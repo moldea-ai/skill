@@ -41,7 +41,7 @@ Examine the actual diff before additional canonical reads; a match alone never r
 
 Use `validate` when structure is the only question. Use content-free `inspect` only when the operation needs canonical paths, digests, counts, relationships, requirements, mirrors, runtimes, or diagnostics. Process each 65,536-byte raw envelope directly. Save a needed page with `--save-response <absolute-temporary-file>`; continue the same selected operation with `--cursor-from-response <absolute-temporary-file>` and retain its command, filters, scope input, and page budget. Use private task-owned temporary storage outside the repository under `local-tooling.md`'s response-file rules. Do not transcribe cursors, pipeline, filter, aggregate, or script a page sequence. A null cursor establishes traversal completion; stop earlier when the selected evidence is sufficient.
 
-Use `content` for one canonical path only after metadata identifies the owner or the direct task already names it. Read only the chunks needed to answer or edit the relevant contract. Never obtain every canonical body for orientation.
+Use `content` for one canonical path only after metadata identifies the owner or the direct task already names it. Read only the chunks needed to answer or edit the relevant contract. Never obtain every canonical body for orientation. Explicit repair reads canonical documents under `project-repair.md`.
 
 Use only the selected skill's closed launcher:
 

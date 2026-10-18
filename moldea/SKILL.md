@@ -4,7 +4,7 @@ description: >-
   Plan, create, review, and maintain AI agents, model workflows, skills, and durable project context. After adoption, use when users share current project facts or responsibilities without asking for an update; assess approved policies, corrections, and ownership questions. Ordinary code needs a declared relationship; stay silent on a miss. Initialize only when asked.
 metadata:
   cliRepairVersion: '11.0.6'
-  version: '8.2.6'
+  version: '8.2.7'
   cliVersionRange: '^11.0.0'
   coreVersionRange: '^7.0.0'
   cliJsonSchemaVersion: '7'
@@ -74,9 +74,9 @@ After relevance, read references.
 
 Aim for four ordinary CLI calls, including scope and final validation. Explicit repair uses `references/local-tooling.md`'s large-traversal profile and may exceed four calls. Keep 65,536-byte raw pages and 524,288-byte output per cycle for ordinary work. Never reset budgets within a cycle or reconstruct a project dump.
 
-After authorized canonical writes and native checks, run final launcher-backed validation. On failure, follow `references/local-tooling.md`'s bounded recovery procedure. Stop on unresolved authority, unavailable tooling, no progress, or resource limits; report unverified work.
+After authorized canonical writes and native checks, run final launcher-backed validation, even at an ordinary-work limit. On failure, follow `references/local-tooling.md`'s bounded recovery procedure. Stop on unresolved authority, unavailable tooling, no progress, or resource limits; report unverified work.
 
-For `validate` and `inspect`, use totals and binding coverage; warnings do not invalidate. Report final `integration` warnings with both paths: `Fix moldea` or developer acceptance. Never edit AGENTS.md without authorization. See `references/local-tooling.md`.
+For `validate` and `inspect`, use totals and binding coverage; warnings do not invalidate. Report final `integration` warnings with both paths: `Fix moldea` or developer acceptance. Never edit AGENTS.md without authorization.
 
 ## Preserve authority and complete the relevant work
 

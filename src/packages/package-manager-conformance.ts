@@ -48,6 +48,17 @@ const readConformanceEnvironment = (): IConformanceEnvironment =>
     managerVersion: process.env['MOLDEA_TEST_MANAGER_VERSION'],
   });
 
+/** Distinguishes Yarn Classic from Yarn 3 and later; Yarn 2 cannot skip dependency builds while adding. */
+const isYarnClassic = (
+  manager: IConformanceEnvironment['manager'],
+  managerVersion: string,
+): boolean => {
+  if (manager !== 'yarn') return false;
+  const major = Number(managerVersion.split('.')[0]);
+  if (major === 2) throw new Error('Yarn 2 is not a supported conformance target.');
+  return major === 1;
+};
+
 /** Returns the package-manager executable installed by the workflow matrix. */
 const getManagerExecutable = (manager: IConformanceEnvironment['manager']): string =>
   process.platform === 'win32' ? `${manager}.cmd` : manager;
@@ -68,9 +79,10 @@ const runCommand = async (options: {
 const configureCandidateRegistry = async (
   clientDirectory: string,
   manager: IConformanceEnvironment['manager'],
+  managerVersion: string,
   registryUrl: string,
 ): Promise<void> => {
-  if (manager === 'yarn') {
+  if (manager === 'yarn' && !isYarnClassic(manager, managerVersion)) {
     await writeFile(path.join(clientDirectory, 'yarn.lock'), '', { flag: 'a' });
     await writeFile(
       path.join(clientDirectory, '.yarnrc.yml'),
@@ -97,6 +109,7 @@ const configureCandidateRegistry = async (
 /** Creates exact lifecycle-safe dependency arguments for one package manager. */
 const createInstallArguments = (options: {
   manager: IConformanceEnvironment['manager'];
+  managerVersion: string;
   packageIdentity: string;
 }): string[] => {
   if (options.manager === 'npm') {
@@ -111,6 +124,9 @@ const createInstallArguments = (options: {
       '--ignore-scripts',
       options.packageIdentity,
     ];
+  }
+  if (isYarnClassic(options.manager, options.managerVersion)) {
+    return ['add', '--dev', '--exact', '--ignore-scripts', options.packageIdentity];
   }
   return ['add', '--dev', '--exact', '--mode=skip-build', options.packageIdentity];
 };
@@ -259,6 +275,7 @@ const verifyBrokenInstallation = async (options: {
   clientDirectory: string;
   environment: NodeJS.ProcessEnv;
   manager: IConformanceEnvironment['manager'];
+  managerVersion: string;
   skillRoot: string;
   targetVersion: string;
 }): Promise<void> => {
@@ -281,7 +298,9 @@ const verifyBrokenInstallation = async (options: {
       ? ['uninstall', '--save-dev', '--ignore-scripts', '@moldea.ai/cli']
       : options.manager === 'pnpm'
         ? ['remove', '--workspace-root', '@moldea.ai/cli']
-        : ['remove', '--mode=skip-build', '@moldea.ai/cli'];
+        : isYarnClassic(options.manager, options.managerVersion)
+          ? ['remove', '--ignore-scripts', '@moldea.ai/cli']
+          : ['remove', '--mode=skip-build', '@moldea.ai/cli'];
   await runCommand({
     command: getManagerExecutable(options.manager),
     args: removeArguments,
@@ -299,6 +318,7 @@ const verifyBrokenInstallation = async (options: {
   }
   const reinstallArguments = createInstallArguments({
     manager: options.manager,
+    managerVersion: options.managerVersion,
     packageIdentity: `@moldea.ai/cli@${options.targetVersion}`,
   });
   // some pnpm versions reuse damaged materialization even after scoped cleanup.
@@ -320,6 +340,7 @@ const verifyInterruptedInstallation = async (options: {
   clientDirectory: string;
   environment: NodeJS.ProcessEnv;
   manager: IConformanceEnvironment['manager'];
+  managerVersion: string;
   registry: ICandidateRegistry;
   targetVersion: string;
 }): Promise<void> => {
@@ -339,6 +360,7 @@ const verifyInterruptedInstallation = async (options: {
   await configureCandidateRegistry(
     interruptedDirectory,
     options.manager,
+    options.managerVersion,
     options.registry.registryUrl,
   );
   const controller = new AbortController();
@@ -354,6 +376,7 @@ const verifyInterruptedInstallation = async (options: {
       executeProcess({
         args: createInstallArguments({
           manager: options.manager,
+          managerVersion: options.managerVersion,
           packageIdentity: `@moldea.ai/cli@${options.targetVersion}`,
         }),
         command: getManagerExecutable(options.manager),
@@ -386,6 +409,7 @@ const verifyOlderInstallation = async (options: {
   clientDirectory: string;
   environment: NodeJS.ProcessEnv;
   manager: IConformanceEnvironment['manager'];
+  managerVersion: string;
   registryUrl: string;
   skillRoot: string;
   targetVersion: string;
@@ -403,11 +427,17 @@ const verifyOlderInstallation = async (options: {
       description: 'An existing application whose tooling needs recovery.',
     }),
   );
-  await configureCandidateRegistry(olderDirectory, options.manager, 'https://registry.npmjs.org');
+  await configureCandidateRegistry(
+    olderDirectory,
+    options.manager,
+    options.managerVersion,
+    'https://registry.npmjs.org',
+  );
   // this exact historical package is installation input only, never execution evidence
   await runCommand({
     args: createInstallArguments({
       manager: options.manager,
+      managerVersion: options.managerVersion,
       packageIdentity: '@moldea.ai/cli@9.0.1',
     }),
     command: getManagerExecutable(options.manager),
@@ -420,7 +450,12 @@ const verifyOlderInstallation = async (options: {
     description: string;
   };
   assert.equal(before.devDependencies['@moldea.ai/cli'], '9.0.1');
-  await configureCandidateRegistry(olderDirectory, options.manager, options.registryUrl);
+  await configureCandidateRegistry(
+    olderDirectory,
+    options.manager,
+    options.managerVersion,
+    options.registryUrl,
+  );
   // only this fixture switches registries; pnpm install recreates its registry metadata.
   if (options.manager === 'pnpm') {
     await runCommand({
@@ -433,6 +468,7 @@ const verifyOlderInstallation = async (options: {
   await runCommand({
     args: createInstallArguments({
       manager: options.manager,
+      managerVersion: options.managerVersion,
       packageIdentity: `@moldea.ai/cli@${options.targetVersion}`,
     }),
     command: getManagerExecutable(options.manager),
@@ -503,6 +539,7 @@ export const verifyPackageManagerCandidate = async (
   input: IConformanceEnvironment,
 ): Promise<void> => {
   const environment = EnvironmentSchema.parse(input);
+  const yarnClassic = isYarnClassic(environment.manager, environment.managerVersion);
   const skillIdentity = assertReleaseIdentity(path.dirname(path.resolve(environment.skillRoot)));
   const artifactDirectory = path.resolve(environment.artifactDirectory);
   const candidate = loadCandidateArtifacts(artifactDirectory);
@@ -512,6 +549,9 @@ export const verifyPackageManagerCandidate = async (
   );
   const managerHomeDirectory = path.join(clientDirectory, '.manager-home');
   const lifecycleSentinelPath = path.join(clientDirectory, 'lifecycle-ran.txt');
+  const lifecycleSentinelSource =
+    "import { appendFileSync } from 'node:fs';\nappendFileSync(process.env.MOLDEA_LIFECYCLE_SENTINEL, `${process.argv[2] ?? 'unknown'}\\n`);\n";
+  const lifecycleDependencyDirectory = path.join(clientDirectory, 'lifecycle-dependency');
   const executable = getManagerExecutable(environment.manager);
   const managerEnvironment: NodeJS.ProcessEnv = {
     ...process.env,
@@ -528,11 +568,36 @@ export const verifyPackageManagerCandidate = async (
   try {
     registry = await createCandidateRegistry(candidate.artifacts);
     await mkdir(managerHomeDirectory, { recursive: true });
+    // a local dependency whose install scripts would record any dependency lifecycle execution
+    await mkdir(lifecycleDependencyDirectory);
+    await writeFile(
+      path.join(lifecycleDependencyDirectory, 'package.json'),
+      `${JSON.stringify(
+        {
+          name: 'moldea-lifecycle-dependency',
+          version: '1.0.0',
+          scripts: {
+            install: 'node lifecycle-sentinel.mjs dependency-install',
+            postinstall: 'node lifecycle-sentinel.mjs dependency-postinstall',
+            preinstall: 'node lifecycle-sentinel.mjs dependency-preinstall',
+          },
+        },
+        null,
+        2,
+      )}\n`,
+      'utf8',
+    );
+    await writeFile(
+      path.join(lifecycleDependencyDirectory, 'lifecycle-sentinel.mjs'),
+      lifecycleSentinelSource,
+      'utf8',
+    );
     await writeFile(
       path.join(clientDirectory, 'package.json'),
       `${JSON.stringify(
         {
           name: 'moldea-cli-candidate-client',
+          devDependencies: { 'moldea-lifecycle-dependency': 'file:./lifecycle-dependency' },
           packageManager: `${environment.manager}@${environment.managerVersion}`,
           private: true,
           scripts: {
@@ -548,10 +613,15 @@ export const verifyPackageManagerCandidate = async (
     );
     await writeFile(
       path.join(clientDirectory, 'lifecycle-sentinel.mjs'),
-      "import { appendFileSync } from 'node:fs';\nappendFileSync(process.env.MOLDEA_LIFECYCLE_SENTINEL, `${process.argv[2] ?? 'unknown'}\\n`);\n",
+      lifecycleSentinelSource,
       'utf8',
     );
-    await configureCandidateRegistry(clientDirectory, environment.manager, registry.registryUrl);
+    await configureCandidateRegistry(
+      clientDirectory,
+      environment.manager,
+      environment.managerVersion,
+      registry.registryUrl,
+    );
 
     const versionResult = await runCommand({
       args: ['--version'],
@@ -566,6 +636,7 @@ export const verifyPackageManagerCandidate = async (
       await runCommand({
         args: createInstallArguments({
           manager: environment.manager,
+          managerVersion: environment.managerVersion,
           packageIdentity: `vitest@${environment.existingVitestVersion}`,
         }),
         command: executable,
@@ -577,6 +648,7 @@ export const verifyPackageManagerCandidate = async (
     const installation = await runCommand({
       args: createInstallArguments({
         manager: environment.manager,
+        managerVersion: environment.managerVersion,
         packageIdentity: `@moldea.ai/cli@${candidate.cliVersion}`,
       }),
       command: executable,
@@ -588,6 +660,16 @@ export const verifyPackageManagerCandidate = async (
       /(?:warn(?:ing)?[^\n]*(?:peer|vitest)|(?:unmet|missing|conflicting)[^\n]*peer)/iu,
     );
     assert.equal(await pathExists(lifecycleSentinelPath), false);
+    // the dependency was installed, so its scripts had the chance to run
+    assert.equal(
+      await pathExists(
+        path.join(
+          clientDirectory,
+          'node_modules/moldea-lifecycle-dependency/lifecycle-sentinel.mjs',
+        ),
+      ),
+      true,
+    );
 
     const clientManifest = JSON.parse(
       await readFile(path.join(clientDirectory, 'package.json'), 'utf8'),
@@ -665,6 +747,7 @@ export const verifyPackageManagerCandidate = async (
       clientDirectory,
       environment: managerEnvironment,
       manager: environment.manager,
+      managerVersion: environment.managerVersion,
       skillRoot: environment.skillRoot,
       targetVersion: candidate.cliVersion,
     });
@@ -672,9 +755,11 @@ export const verifyPackageManagerCandidate = async (
       await readFile(path.join(clientDirectory, 'package.json'), 'utf8'),
     ) as { devDependencies?: Record<string, string> };
     assert.deepEqual(repairedManifest.devDependencies, clientManifest.devDependencies);
+    const lockedAfterRecovery = await readFile(path.join(clientDirectory, lockName));
+    // Yarn Classic's lockfile is not YAML, so its exact bytes stand in for the locked graph
     assert.deepEqual(
-      readLockedGraph(await readFile(path.join(clientDirectory, lockName), 'utf8')),
-      readLockedGraph(before.get(lockName)!.toString('utf8')),
+      yarnClassic ? lockedAfterRecovery : readLockedGraph(lockedAfterRecovery.toString('utf8')),
+      yarnClassic ? before.get(lockName) : readLockedGraph(before.get(lockName)!.toString('utf8')),
       'Same-target recovery must preserve the complete locked dependency graph.',
     );
     if (environment.existingVitestVersion !== undefined) {
@@ -694,6 +779,7 @@ export const verifyPackageManagerCandidate = async (
       clientDirectory,
       environment: managerEnvironment,
       manager: environment.manager,
+      managerVersion: environment.managerVersion,
       registry,
       targetVersion: candidate.cliVersion,
     });
@@ -701,6 +787,7 @@ export const verifyPackageManagerCandidate = async (
       clientDirectory,
       environment: managerEnvironment,
       manager: environment.manager,
+      managerVersion: environment.managerVersion,
       registryUrl: registry.registryUrl,
       skillRoot: environment.skillRoot,
       targetVersion: candidate.cliVersion,

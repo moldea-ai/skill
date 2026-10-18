@@ -90,6 +90,18 @@ Skill 8.2.6 keeps the same 8.2.3 selection. Its only behavioral change concerns 
 
 This change was not re-evaluated. The selected evidence's 64-owner `repair-continuation-partial-coverage` case passed under the previous procedure with an honest partial stop at 12 of 64 owners. Skill 8.2.6 may change how many owners that case checks per cycle; its criteria accept either an honest complete pass or an honest partial stop. The next paid run must re-run the repair cases, including that one, and must count each direct canonical read as a host command and its bytes under the pending moldea-only counting rule.
 
+## Skill 8.2.7 evidence reuse
+
+Skill 8.2.7 keeps the same 8.2.3 selection. It corrects installation and repair guidance:
+
+- Yarn installation follows the executing Yarn line. Yarn Classic 1.x installs with `--ignore-scripts`, Yarn 3 and later with `--mode=skip-build`, and Yarn 2.x stops for the repository's trusted setup workflow. A `yarnPath`, `yarn-path` or non-registry `packageManager` value blocks automatic installation like an executable plugin. One `yarn --version` check runs just before an installation that will proceed.
+- Repair recovers an installed CLI without a supported root declaration to the exact target as a root development dependency, and never lowers a newer declared version.
+- Ordinary work still runs final validation for its canonical writes at a limit.
+- A partial or truncated canonical read never supports a completed repair assessment.
+- In explicit repair and initialization, source reads made for the assessment count toward host commands and model-visible output, not the aggregate moldea-output allowance.
+
+These changes were not re-evaluated. The package-manager harness covers Yarn installation mechanics: release-candidate CI now runs Yarn Classic 1.22.22 alongside npm, pnpm and Yarn 4, it was also run locally with Yarn 3.8.7 for this release, and every run proves that root and dependency lifecycle scripts never execute. Whether a coding agent chooses the correct Yarn command is not evaluated. Deterministic conformance and installation checks do not prove model adherence to the new wording.
+
 ## Check a release
 
 ```bash

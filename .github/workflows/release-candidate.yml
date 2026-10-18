@@ -163,6 +163,9 @@ jobs:
             version: '11.21.0'
             existing_vitest_version: '3.2.4'
           - manager: yarn
+            package: yarn
+            version: '1.22.22'
+          - manager: yarn
             package: '@yarnpkg/cli-dist'
             version: '4.14.1'
           - manager: yarn

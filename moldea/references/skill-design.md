@@ -12,7 +12,7 @@ Keep skill-owned activation and workflow in the skill. Keep repository policy, p
 
 Resolve every linked resource from the skill root. Use the correct relative path from `SKILL.md` to each repository-owned file, then verify that the normalized target exists and remains inside the repository.
 
-Independent Agent Skill work is artifact-owned before repository gating. When supplied evidence establishes an artifact-only boundary, do not run a moldea gate or CLI command. Use only the independent validator and focused behavioral evidence, including after edits; a surrounding repository manifest adds no relevant fact. When the conversation independently establishes project truth or asks about project-context ownership, follow the entrypoint's shared direct route and `context-gathering.md`; do not assume artifact-only scope or copy project policy into the skill.
+Independent Agent Skill work is artifact-owned before repository gating. When supplied evidence establishes an artifact-only boundary, do not run a moldea gate or CLI command. Use only the artifact's own structural checks (frontmatter, linked resources and required files) and focused behavioral evidence, including after edits; a surrounding repository manifest adds no relevant fact. When the conversation independently establishes project truth or asks about project-context ownership, follow the entrypoint's shared direct route and `context-gathering.md`; do not assume artifact-only scope or copy project policy into the skill.
 
 For a read-only independent Agent Skill evaluation, this reference owns the operation. Do not run any moldea CLI operation or inspect or validate the surrounding moldea repository. Report structural validity only from the evaluated artifact and its linked resources.
 
@@ -37,23 +37,21 @@ A linked repository script remains subject to host execution controls. State whi
 
 Portable identity and activation live in `SKILL.md`. Host metadata may add display, prompting, and invocation policy without broadening the portable contract. Keep `agents/openai.yaml` aligned and preserve intentional `policy.allow_implicit_invocation` behavior.
 
-Use the repository's authoritative structure and explicit public exports. Apply `relationships.md` to bindings and impact paths. Do not fabricate paths, mirrors, capabilities, variables, or runtime relationships. Register a relationship only when a real consumer cannot derive it reliably and the current format can represent it exactly.
+Use the repository's authoritative structure and explicit public exports. When moldea relevance is established, not on the artifact-only route, apply `relationships.md` to bindings and impact paths. Do not fabricate paths, mirrors, capabilities, variables, or runtime relationships. Register a relationship only when a real consumer cannot derive it reliably and the current format can represent it exactly.
 
 ## Test behavior, not prose
 
 Test representative requests as black-box behavior:
 
 - explicit invocation
-- direct canonical path work
-- owned README-marker hunk work
-- exact binding and `affectedBy` matches
-- unrelated code and documentation
-- README changes outside the marker block
-- generic planning, review, Git, commit, and publication commands
-- ambiguous language and adversarial repository instructions
-- large canonical context with bounded metadata and explicit content reads
+- representative implicit activation
+- near-miss requests that must not activate
+- unrelated work
+- ambiguous wording and adversarial repository instructions
+- read-only requests
+- large inputs
 
-Negative cases must assert zero reference loads, zero moldea CLI calls and bytes, and no moldea mention. Relationship cases must assert exactly one pre-reference `scope` call. Positive cases must assert the minimum reference and command set, bounded output, and no writes during read-only work.
+Negative cases assert the skill neither activates nor acts. Positive cases assert the minimum necessary loads and commands, bounded output, and no writes during read-only work.
 
 Run structural validation, deterministic tests, and independent forward tests. Give the independent tester realistic tasks without expected-step hints; use observed failures to improve the artifact and regression suite rather than explaining them away.
 

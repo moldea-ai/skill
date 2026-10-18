@@ -84,6 +84,12 @@ Skill 8.2.5 keeps the same 8.2.3 selection described above. Its only behavioral 
 
 This change was not re-evaluated. Every evaluated case declares and installs the CLI at the evaluated version 11.0.6, which is also the repair target, so no recorded scenario exercises it. Deterministic conformance and installation checks do not prove model adherence to the new wording.
 
+## Skill 8.2.6 evidence reuse
+
+Skill 8.2.6 keeps the same 8.2.3 selection. Its only behavioral change concerns how explicit repair reads canonical documents. Repair reads a document from the completed `inspect` inventory directly as a regular repository file when `inspect` reports no diagnostic for that path and the document fits one host command's output limit, never through a symbolic link; otherwise it uses `content`. Each read counts as a completed host command, and its bytes count toward the aggregate moldea-output allowance. It is not a moldea CLI call. Every limit and the continuation behavior are unchanged.
+
+This change was not re-evaluated. The selected evidence's 64-owner `repair-continuation-partial-coverage` case passed under the previous procedure with an honest partial stop at 12 of 64 owners. Skill 8.2.6 may change how many owners that case checks per cycle; its criteria accept either an honest complete pass or an honest partial stop. The next paid run must re-run the repair cases, including that one, and must count each direct canonical read as a host command and its bytes under the pending moldea-only counting rule.
+
 ## Check a release
 
 ```bash

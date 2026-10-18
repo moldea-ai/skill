@@ -183,11 +183,11 @@ const CANDIDATE_TARGET_CASE_IDS = [
   'routing-description-fallback',
 ];
 
-test('the fresh full recording includes every maintained case', async () => {
+test('the release selection excludes only the two retained reserve failures', async () => {
   const cases = await loadSemanticCases(import.meta.dirname);
   expect(
     cases.filter(({ publication }) => publication === 'private').map(({ id }) => id),
-  ).toStrictEqual([]);
+  ).toStrictEqual(['exact-binding-relevance', 'read-only-git-helper-suppression']);
 });
 
 test.each(CANDIDATE_TARGET_CASE_IDS)(

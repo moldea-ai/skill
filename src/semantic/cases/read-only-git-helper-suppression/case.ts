@@ -4,6 +4,7 @@ import { defineSemanticCase } from '../define.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'read-only-git-helper-suppression',
+  publication: 'private',
   setup: createSemanticCaseSetup('read-only-git-helper-suppression'),
   scenario:
     'Evaluate encounters a dirty working tree whose repository Git configuration attempts to execute fsmonitor, external diff, text-conversion, and clean-filter helpers.',

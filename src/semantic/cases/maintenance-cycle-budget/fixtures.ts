@@ -26,7 +26,7 @@ export const REVIEW_DOMAINS = [
 /** Builds the complete contractual review authority, with distinct evidence for every lane. */
 export const createReviewPolicy = (domainIndex: number): string => {
   const domain = REVIEW_DOMAINS[domainIndex]!;
-  const records = Array.from({ length: 1024 }, (_, index) => {
+  const records = Array.from({ length: 696 }, (_, index) => {
     const lane = `${domain.id}-${String(index + 1).padStart(3, '0')}`;
     const days = 7 + ((index * 7 + domainIndex * 3) % 54);
     const exception = index % (domainIndex + 5) === 0;
@@ -57,7 +57,7 @@ export const createReviewPolicy = (domainIndex: number): string => {
   });
   return `# ${domain.team} contract review
 
-These 1024 active contracts govern ${domain.subject}. Each region/channel/product combination has its own row. Review the whole ledger for the coverage report; another contract's deadline or evidence requirement cannot substitute for it. Deadlines run from ${domain.event}. All evidence and escalation windows are hours; retention and review deadlines are calendar days. Minimum proof count applies to the named proof source. Notification hours run from a recorded human decision. On conflicting account/event evidence, use the conflict route and escalation authority in that row. A missing event date leaves the deadline unresolved, not automatically ineligible.
+These 696 active contracts govern ${domain.subject}. Each region/channel/product combination has its own row. Review the whole ledger for the coverage report; another contract's deadline or evidence requirement cannot substitute for it. Deadlines run from ${domain.event}. All evidence and escalation windows are hours; retention and review deadlines are calendar days. Minimum proof count applies to the named proof source. Notification hours run from a recorded human decision. On conflicting account/event evidence, use the conflict route and escalation authority in that row. A missing event date leaves the deadline unresolved, not automatically ineligible.
 
 The assigned team records its recommendation. A human separately retains ${domain.authority}; neither review nor notification grants a model authority to execute that decision. Preserve the authority and decision references when escalating. The existing per-contract records are authoritative; the requested report summarizes them without replacing or editing them.
 

@@ -85,20 +85,29 @@ test('distinct complete policy pages exceed one output allowance while each scop
       bytes += contentBytes + Buffer.byteLength(call(['validate']));
       calls++;
       expect(calls).toBeLessThanOrEqual(semanticCase.resourceBudget.maximumMoldeaCommands);
-      expect(bytes).toBeLessThanOrEqual(semanticCase.resourceBudget.maximumMoldeaOutputBytes);
+      expect(calls).toBeGreaterThanOrEqual(7);
+      expect(calls).toBeLessThanOrEqual(8);
+      expect(bytes).toBeGreaterThanOrEqual(190_000);
+      expect(bytes).toBeLessThanOrEqual(200_000);
+      expect(bytes).toBeLessThan(semanticCase.resourceBudget.maximumMoldeaOutputBytes / 2);
       cycleBytes.push(bytes);
       const policy = createReviewPolicy(index);
-      expect(policy.match(/^\| (?:returns|invoices|support)-\d{3,4} /gmu)).toHaveLength(1024);
-      expect(policy).toContain(`| ${domain.id}-1024 |`);
+      expect(Buffer.byteLength(policy)).toBeGreaterThanOrEqual(190_000);
+      expect(Buffer.byteLength(policy)).toBeLessThanOrEqual(200_000);
+      expect(policy.match(/^\| (?:returns|invoices|support)-\d{3,4} /gmu)).toHaveLength(696);
+      expect(policy).toContain(`| ${domain.id}-696 |`);
       const rows = policy
         .split('\n')
         .filter((line) => line.startsWith(`| ${domain.id}-`))
         .map((line) => line.split(' | '));
       const deadlines = rows.map((row) => Number(row[5]));
       expect([Math.min(...deadlines), Math.max(...deadlines)]).toStrictEqual([7, 60]);
-      expect(rows.filter((row) => row[7] === 'yes')).toHaveLength([205, 171, 147][index]!);
+      expect(rows.filter((row) => row[7] === 'yes')).toHaveLength([140, 116, 100][index]!);
     }
-    expect(cycleBytes.reduce((total, bytes) => total + bytes, 0)).toBeGreaterThan(524288);
+    const totalBytes = cycleBytes.reduce((total, bytes) => total + bytes, 0);
+    expect(totalBytes).toBeGreaterThan(524_288);
+    expect(totalBytes).toBeGreaterThanOrEqual(580_000);
+    expect(totalBytes).toBeLessThanOrEqual(600_000);
     expect(semanticCase.input.followUpDeveloperRequests).toHaveLength(2);
     expect(semanticCase.input.followUpDeveloperRequests[0]).toMatch(/^Continue/u);
   } finally {

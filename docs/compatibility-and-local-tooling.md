@@ -8,7 +8,7 @@ order: 180
 
 # Compatibility and local tooling
 
-Release `8.2.3` supports exactly:
+Release `8.2.4` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.17.0`
@@ -52,7 +52,7 @@ Command boundaries stay explicit:
 - `scope` accepts one `--path` or one NUL-delimited UTF-8 path set of at most 2 MiB and returns relationship matches after the two-byte gate establishes relevance.
 - `content` returns chunks only for one explicit canonical `/moldea/**` path. CLI/Core still reject noncanonical targets.
 
-Release `8.2.3` accepts bare repository-relative and leading-slash repository-logical paths. The development scripts also normalize leading `./` and native absolute paths contained beneath the supplied or physically resolved repository root. The gate's argv and stdin modes and the launcher's `scope` and `content` use the same normalization. Relative paths always start at the repository root, regardless of the working directory. Normalization preserves input order, duplicates, casing, and Unicode, with the same raw 2 MiB batch allowance and no target-file lookup.
+Release `8.2.4` accepts bare repository-relative and leading-slash repository-logical paths. The development scripts also normalize leading `./` and native absolute paths contained beneath the supplied or physically resolved repository root. The gate's argv and stdin modes and the launcher's `scope` and `content` use the same normalization. Relative paths always start at the repository root, regardless of the working directory. Normalization preserves input order, duplicates, casing, and Unicode, with the same raw 2 MiB batch allowance and no target-file lookup.
 
 On POSIX, contained absolute paths take precedence; other leading-slash paths retain their repository-logical meaning, and backslashes remain errors. Windows paths accept either separator in relative paths and convert contained drive-absolute paths. Traversal, internal dot segments, repeated separators, repository-root-only selections, drive-relative paths, and UNC/device forms remain errors. Normalization does not replace canonical filesystem checks.
 
@@ -64,11 +64,13 @@ When the host truncates or loses a response saved with `--save-response`, read t
 
 Ordinary work uses 65,536-byte pages and stops when the relevant record or diagnostic is available. Aggregate `moldea` output should remain at or below 524,288 bytes per maintenance cycle, as defined in the installed skill's `references/local-tooling.md` Resource limits section. Large repositories use deterministic metadata pagination; an explicitly required large traversal may use more pages, but each CLI invocation remains at or below 1 MiB and stays task-scoped. Page limits bound encoded responses, not source parsing. The isolated Node inspection has fixed memory and elapsed-time safeguards. Verified heap exhaustion (`RESOURCE_LIMIT_EXCEEDED`) and elapsed timeout (`INSPECTION_TIMEOUT`) leave verification incomplete; neither establishes faulty application code. Capacity contention (`INSPECTION_BUSY`) and process failure (`INSPECTION_PROCESS_FAILED`) also provide no inspection conclusion. Preserve earlier changes and report remaining checks; do not retry unchanged failures repeatedly or split healthy source automatically.
 
-When ordinary work reaches a limit, the coding agent completes the developer's task without further moldea reads and briefly names canonical checks deferred to the next request. Explicit moldea operations stop and report progress at their limit.
+Across ordinary work, initialization and repair, moldea limits count only moldea CLI calls and output, bundled helpers, and canonical file reads and writes. Project-required commands, including tests, builds, Git and project checks, never count. The installed skill's Resource limits section owns this counting rule.
+
+When ordinary work reaches a limit, the coding agent completes the developer's task, still performs final validation for canonical writes already made and skips further assessment reads, briefly naming deferred canonical checks. One bounded final validation remains required even if the ordinary aggregate moldea-output allowance is exhausted; it does not permit more assessment, a reset or another correction loop. Explicit moldea operations retain their existing bounds and stop-and-continue behavior.
 
 For practical handling, start with [Limitations](/docs/limitations/). Detailed input and worker defaults belong to the [Core resource reference](https://packages.moldea.ai/packages/core/repository-inspection/#resource-limits) and [CLI budgets](https://packages.moldea.ai/packages/cli/output-and-operations/#resource-budgets).
 
-The following profiles constrain release-assurance trials, not users’ repositories or coding-agent sessions. Semantic stages select one operating profile; explicit initialization and project repair use `largeTraversal`, without raising its existing limits:
+The following numbers are release-evaluation measurements from the unchanged source-controlled profiles, not universal limits on developer tasks. The recorded 8.2.3 evaluator counts whole-trial host commands and tool output. Skill 8.2.4 uses the moldea-only counting rule above; initialization and repair retain the numeric `largeTraversal` bounds. The evaluator must adopt that counting rule before the next paid run:
 
 | Limit                     | `ordinary` | `largeTraversal` |
 | ------------------------- | ---------: | ---------------: |

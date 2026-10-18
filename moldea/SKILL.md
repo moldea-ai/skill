@@ -4,7 +4,7 @@ description: >-
   Plan, create, review, and maintain AI agents, model workflows, skills, and durable project context. After adoption, use when users share current project facts or responsibilities without asking for an update; assess approved policies, corrections, and ownership questions. Ordinary code needs a declared relationship; stay silent on a miss. Initialize only when asked.
 metadata:
   cliRepairVersion: '11.0.6'
-  version: '8.2.3'
+  version: '8.2.4'
   cliVersionRange: '^11.0.0'
   coreVersionRange: '^7.0.0'
   cliJsonSchemaVersion: '7'

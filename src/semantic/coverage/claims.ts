@@ -55,7 +55,7 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
       'Sequential developer requests use independent maintenance-cycle budgets while retaining earlier results and campaign-wide paid usage.',
     sourcePaths: ['moldea/references/local-tooling.md#resource-limits'],
     rationale:
-      'The three-request scenario measures scope, content and final validation in each cycle and aggregate output above one ordinary cycle. It is eligible for the fresh full recording; eligibility and deterministic session tests establish no behavioral pass.',
+      'The three-request scenario measures scope, content and validation in each cycle and aggregate output above one ordinary cycle. Recorded outcomes and cycle evidence, rather than eligibility or deterministic session tests alone, establish its behavioral observations.',
     fixedEvidence: [{ kind: 'deterministic-suite', id: 'root-conformance' }],
   },
   {
@@ -80,7 +80,7 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
       'moldea/SKILL.md#reuse-gate-evidence',
     ],
     rationale:
-      'Published cases retain negative controls for unadopted handoffs, implementation and planning. Ordinary whole-project evaluation without a moldea audit is not yet included in passing coverage; its revised case is eligible for fresh recording, and earlier failed observations remain retained. Ordinary repository citations are evidence, not over-activation. Concrete conversational context is assessed separately under bounded relevance.',
+      'The cases retain negative controls for unadopted handoffs, implementation, planning and ordinary whole-project evaluation without a moldea audit. Ordinary repository citations are evidence, not over-activation. Concrete conversational context is assessed separately under bounded relevance; earlier failed observations remain retained.',
     fixedEvidence: [],
   },
   {
@@ -95,7 +95,7 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
       'moldea/references/tooling-installation.md',
     ],
     rationale:
-      'The cases distinguish confirmation, preauthorized and resumed onboarding, unchanged no-agent foundations, evidence blockers, exact local tooling and executable package-manager configuration. PnP-only launcher proof remains not yet included in published passing coverage.',
+      'The cases distinguish confirmation, preauthorized and resumed onboarding, unchanged no-agent foundations, evidence blockers, inspected-source relationship coverage, exact local tooling, PnP-only launcher attempts and executable package-manager configuration. A recorded attempt does not establish successful CLI execution.',
     fixedEvidence: [],
   },
   {
@@ -176,7 +176,7 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
       'Routing-facing metadata selects handoff or agent descriptions from proven consumer semantics rather than property names or unsupported inference.',
     sourcePaths: ['moldea/references/agent-design.md#keep-model-facing-assets-distinct'],
     rationale:
-      'Dynamic, separate, shared, and stale mappings retain focused semantic coverage. Description-fallback assessment remains not yet included in published passing coverage.',
+      'Dynamic, separate, shared, stale and agent-description fallback mappings retain focused semantic coverage. A separate contradiction case checks conflicting authorization despite correct source selection.',
     fixedEvidence: [],
   },
 ] as const satisfies readonly ISemanticCoverageClaimSource[];

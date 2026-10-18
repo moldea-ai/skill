@@ -61,94 +61,101 @@ afterEach(async () => {
 });
 
 describe('semantic checkpoint storage', () => {
-  test('round trips a session above one invocation allowance and rejects mismatched or missing cycles', async () => {
-    const root = await mkdtemp(path.join(tmpdir(), 'moldea-cycle-checkpoint-'));
-    temporaryRoots.push(root);
-    const checkpoint = createCheckpoint();
-    const evidence = parseSemanticEvaluationHostOutput(
-      [
-        { type: 'moldea.cli-invocations', invocations: [] },
-        { type: 'item.completed', item: { type: 'agent_message', text: ' Complete.\n' } },
-        {
-          type: 'turn.completed',
-          usage: { input_tokens: 1_000_000, cached_input_tokens: 800_000, output_tokens: 100 },
-        },
-        {
-          type: 'moldea.git-invocations',
-          evidence: {
-            invocationCount: 0,
-            hostInvocationCount: 0,
-            repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+  test.each([1_000_000, 2_097_153])(
+    'round trips cycles with %d input tokens and rejects mismatched or missing evidence',
+    async (inputTokens) => {
+      const root = await mkdtemp(path.join(tmpdir(), 'moldea-cycle-checkpoint-'));
+      temporaryRoots.push(root);
+      const checkpoint = createCheckpoint();
+      const evidence = parseSemanticEvaluationHostOutput(
+        [
+          { type: 'moldea.cli-invocations', invocations: [] },
+          { type: 'item.completed', item: { type: 'agent_message', text: ' Complete.\n' } },
+          {
+            type: 'turn.completed',
+            usage: { input_tokens: inputTokens, cached_input_tokens: 800_000, output_tokens: 100 },
           },
+          {
+            type: 'moldea.git-invocations',
+            evidence: {
+              invocationCount: 0,
+              hostInvocationCount: 0,
+              repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+            },
+          },
+        ]
+          .map((event) => JSON.stringify(event))
+          .join('\n'),
+        { cliVersion: checkpoint.cli.version, jsonSchemaVersion: checkpoint.cli.jsonSchemaVersion },
+      );
+      const cycles = [0, 1, 2].map((requestIndex) => ({
+        ...structuredClone(evidence),
+        developerRequest: requestIndex === 1 ? 'continue' : ` Request ${requestIndex + 1}\n`,
+        requestIndex,
+        isMountIntegrityPassing: true,
+        isRepositoryControlPassing: true,
+        workspaceChanges: { created: [], deleted: [], modified: [] },
+      }));
+      checkpoint.caseCheckpoints['case-one'] = {
+        caseId: 'case-one',
+        caseDefinitionDigest: SHA256,
+        completedCase: null,
+        trials: [],
+        activeTrial: {
+          actorCycles: cycles,
+          paidInvocations: cycles.map((cycle) => ({ stage: 'actor', usage: cycle.usage, cycle })),
+          actorEvidence: {
+            ...summarizeSemanticCycles(cycles),
+            cycles,
+            actorStageIdentitySha256: SHA256,
+            isMountIntegrityPassing: true,
+            isRepositoryControlPassing: true,
+            workspaceChanges: { created: [], deleted: [], modified: [] },
+          },
+          confirmationIndex: null,
+          operationalRetries: { actorFailureCount: 0, judgeFailureCount: 0, lastFailure: null },
+          phase: 'judge-pending',
+          recordedTrial: null,
+          startedAt: checkpoint.createdAt,
+          updatedAt: checkpoint.updatedAt,
         },
-      ]
-        .map((event) => JSON.stringify(event))
-        .join('\n'),
-      { cliVersion: checkpoint.cli.version, jsonSchemaVersion: checkpoint.cli.jsonSchemaVersion },
-    );
-    const cycles = [0, 1, 2].map((requestIndex) => ({
-      ...structuredClone(evidence),
-      developerRequest: requestIndex === 1 ? 'continue' : ` Request ${requestIndex + 1}\n`,
-      requestIndex,
-      isMountIntegrityPassing: true,
-      isRepositoryControlPassing: true,
-      workspaceChanges: { created: [], deleted: [], modified: [] },
-    }));
-    checkpoint.caseCheckpoints['case-one'] = {
-      caseId: 'case-one',
-      caseDefinitionDigest: SHA256,
-      completedCase: null,
-      trials: [],
-      activeTrial: {
-        actorCycles: cycles,
-        paidInvocations: cycles.map((cycle) => ({ stage: 'actor', usage: cycle.usage, cycle })),
-        actorEvidence: {
-          ...summarizeSemanticCycles(cycles),
-          cycles,
-          actorStageIdentitySha256: SHA256,
-          isMountIntegrityPassing: true,
-          isRepositoryControlPassing: true,
-          workspaceChanges: { created: [], deleted: [], modified: [] },
-        },
-        confirmationIndex: null,
-        operationalRetries: { actorFailureCount: 0, judgeFailureCount: 0, lastFailure: null },
-        phase: 'judge-pending',
-        recordedTrial: null,
-        startedAt: checkpoint.createdAt,
-        updatedAt: checkpoint.updatedAt,
-      },
-    };
-    await writeSemanticCheckpoint(root, checkpoint);
-    expect(await readSemanticCheckpoint(root)).toStrictEqual(checkpoint);
-    const malformed = structuredClone(checkpoint);
-    malformed.caseCheckpoints[
-      'case-one'
-    ]!.activeTrial!.actorEvidence!.commandPolicyEvidence.completedCommandCount = 1;
-    await writeJsonFileAtomically(getSemanticCheckpointPath(root), malformed);
-    await expect(readSemanticCheckpoint(root)).rejects.toThrow('invalid actor execution evidence');
-    const mismatched = structuredClone(checkpoint);
-    mismatched.caseCheckpoints['case-one']!.activeTrial!.actorCycles = cycles.map((cycle) => ({
-      ...cycle,
-      developerRequest: 'Different request',
-    }));
-    await writeJsonFileAtomically(getSemanticCheckpointPath(root), mismatched);
-    await expect(readSemanticCheckpoint(root)).rejects.toThrow(
-      'active cycle evidence does not match',
-    );
-    const missing = structuredClone(checkpoint);
-    missing.caseCheckpoints['case-one']!.activeTrial!.actorEvidence!.cycles = [];
-    await writeJsonFileAtomically(getSemanticCheckpointPath(root), missing);
-    await expect(readSemanticCheckpoint(root)).rejects.toThrow();
-    const reordered = structuredClone(checkpoint);
-    reordered.caseCheckpoints['case-one']!.activeTrial!.actorEvidence!.cycles.reverse();
-    await writeJsonFileAtomically(getSemanticCheckpointPath(root), reordered);
-    await expect(readSemanticCheckpoint(root)).rejects.toThrow('invalid actor execution evidence');
-    await writeJsonFileAtomically(getSemanticCheckpointPath(root), {
-      ...checkpoint,
-      schemaVersion: 2,
-    });
-    await expect(readSemanticCheckpoint(root)).rejects.toThrow();
-  });
+      };
+      await writeSemanticCheckpoint(root, checkpoint);
+      expect(await readSemanticCheckpoint(root)).toStrictEqual(checkpoint);
+      const malformed = structuredClone(checkpoint);
+      malformed.caseCheckpoints[
+        'case-one'
+      ]!.activeTrial!.actorEvidence!.commandPolicyEvidence.completedCommandCount = 1;
+      await writeJsonFileAtomically(getSemanticCheckpointPath(root), malformed);
+      await expect(readSemanticCheckpoint(root)).rejects.toThrow(
+        'invalid actor execution evidence',
+      );
+      const mismatched = structuredClone(checkpoint);
+      mismatched.caseCheckpoints['case-one']!.activeTrial!.actorCycles = cycles.map((cycle) => ({
+        ...cycle,
+        developerRequest: 'Different request',
+      }));
+      await writeJsonFileAtomically(getSemanticCheckpointPath(root), mismatched);
+      await expect(readSemanticCheckpoint(root)).rejects.toThrow(
+        'active cycle evidence does not match',
+      );
+      const missing = structuredClone(checkpoint);
+      missing.caseCheckpoints['case-one']!.activeTrial!.actorEvidence!.cycles = [];
+      await writeJsonFileAtomically(getSemanticCheckpointPath(root), missing);
+      await expect(readSemanticCheckpoint(root)).rejects.toThrow();
+      const reordered = structuredClone(checkpoint);
+      reordered.caseCheckpoints['case-one']!.activeTrial!.actorEvidence!.cycles.reverse();
+      await writeJsonFileAtomically(getSemanticCheckpointPath(root), reordered);
+      await expect(readSemanticCheckpoint(root)).rejects.toThrow(
+        'invalid actor execution evidence',
+      );
+      await writeJsonFileAtomically(getSemanticCheckpointPath(root), {
+        ...checkpoint,
+        schemaVersion: 2,
+      });
+      await expect(readSemanticCheckpoint(root)).rejects.toThrow();
+    },
+  );
 
   test.each(['../escape', '/absolute', 'sem-test/child', 'sem-test\\child', 'sem-test.', 'con'])(
     'rejects unsafe diagnostic archive identity %s without removing active state',

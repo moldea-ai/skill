@@ -2,7 +2,6 @@ import path from 'node:path';
 
 import { z } from 'zod';
 
-import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../resources/index.ts';
 import {
   GitInvocationEvidenceSchema,
   hasValidCodexEvaluationCommandPolicy,
@@ -73,14 +72,12 @@ const UsageSchema = z
     inputTokens: z.number().int().nonnegative(),
     outputTokens: z.number().int().nonnegative(),
   })
-  .refine((usage) => usage.cachedInputTokens <= usage.inputTokens)
+  .refine(
+    (usage) =>
+      usage.cachedInputTokens <= usage.inputTokens &&
+      Number.isSafeInteger(usage.inputTokens + usage.outputTokens),
+  )
   .nullable();
-const InvocationUsageSchema = UsageSchema.refine(
-  (usage) =>
-    usage === null ||
-    usage.inputTokens + usage.outputTokens <=
-      MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount,
-);
 const ResourceEvidenceSchema = z.strictObject({
   commandCount: z.number().int().nonnegative(),
   maximumInvocationByteCount: z.number().int().nonnegative(),
@@ -136,7 +133,7 @@ const CycleSchema = z.strictObject({
   actorResourceEvidence: ResourceEvidenceSchema,
   commandPolicyEvidence: CommandPolicySchema,
   response: z.string().refine((text) => text.trim().length > 0),
-  usage: InvocationUsageSchema,
+  usage: UsageSchema,
   developerRequest: z.string().refine((text) => text.trim().length > 0),
   requestIndex: z.number().int().nonnegative(),
   isMountIntegrityPassing: z.boolean(),
@@ -146,7 +143,7 @@ const CycleSchema = z.strictObject({
 const PaidInvocationSchema = z.strictObject({
   commandPolicyEvidence: CommandPolicySchema.optional(),
   stage: z.enum(['actor', 'judge']),
-  usage: InvocationUsageSchema,
+  usage: UsageSchema,
   cycle: CycleSchema.optional(),
 });
 const RecordedTrialSchema = z.strictObject({
@@ -209,7 +206,7 @@ const RecordedTrialSchema = z.strictObject({
     forbidden: z.array(z.string()),
     judgeCommandPolicyEvidence: CommandPolicySchema,
     judgeHost: HostIdentitySchema.extend({ role: z.literal('judge') }),
-    judgeUsage: InvocationUsageSchema,
+    judgeUsage: UsageSchema,
     kind: z.enum(['confirmation', 'initial']),
     observed: z.array(z.string()),
     passed: z.boolean(),

@@ -362,3 +362,11 @@ The three-request fixture now contains 1,024 distinct contracts per policy and r
 ## Fresh full-recording eligibility
 
 All 122 maintained cases are eligible for the fresh protocol-47 full recording, including the five retained targets and the three new 8.2.3 scenarios. This changes selection, not criteria or recorded outcomes. The verified protocol-46 diagnostic and every original failure remain private; no diagnostic trial supplies recording reuse. Historical selected 8.2.0 evidence and the 108-case fallback remain unchanged. Published passing coverage changes only after the fresh full recording verifies. Windows and macOS CI must pass on the exact candidate commit before freezing, and paid execution still requires separate approval against that freeze and a Codex usage estimate.
+
+## Protocol 48: token overages and resumed-cycle accounting
+
+The developer amended the protocol-47 token rule before any recording used it. First cycles and single-request trials retain input-plus-output grading, including cached input. Later requests in the same session use uncached input plus output for the unchanged 1,625,000 operating threshold and 2,097,152 absolute ceiling. Paid-stage and campaign accounting continue to retain all reported input plus output, including cached input. No Skill bytes, case criteria or numeric limits change. All 122 cases remain selected. Known judge usage retains its existing absolute input-plus-output ceiling in the resource verdict.
+
+The protocol-46 budget confirmations provide concrete regressions: the final cycles reported 1,693,251 input, 1,643,904 cached input and 1,963 output tokens (1,695,214 total; 51,310 added), and 1,490,578 input, 1,440,896 cached input and 2,781 output (1,493,359 total; 52,463 added). These are historical observations, not regraded results.
+
+Native projection, cycle validation and checkpoint storage now retain structurally valid over-ceiling counters. The trial's resource dimension fails instead of throwing during parsing or checkpoint persistence. The no-model runner regression preserves the exact over-ceiling usage, runs ordinary confirmations, and completes a later case without an operational retry. Malformed counters, unsafe sums and inconsistent resumed counters remain invalid. Previously failed cycles cannot be erased by later requests or operational retries.

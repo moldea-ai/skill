@@ -77,11 +77,11 @@ The following profiles constrain release-assurance trials, not users’ reposito
 | `moldea` calls            |         16 |               16 |
 | `moldea` output           |    512 KiB |            1 MiB |
 | Model-visible tool output |      1 MiB |            4 MiB |
-| Input plus output tokens  |  1,625,000 |        1,625,000 |
+| Tokens (accounting below) |  1,625,000 |        1,625,000 |
 
 The isolated model-stage runner retains absolute ceilings of 128 completed commands, 32 `moldea` calls, 8 MiB of `moldea` output, 16 MiB of complete-stage model-visible tool output, 32 KiB of raw command text, and 2,097,152 tokens. These are failure containment, not operating targets. The 256 KiB peak applies to one completed command and is distinct from the 32 KiB raw-command ceiling.
 
-Crossing an operating dimension fails with its profile, dimension, observed value, and limit. A safe cumulative command, moldea-call, or token overage may still reach semantic judging for calibration, but the trial remains failed. Missing token usage and output-volume, deterministic, workspace, runner-owned, or command-policy failures skip judging. Duration and peak memory are diagnostics rather than brittle pass/fail thresholds.
+Token grading counts input plus output, including cached input, for single-request trials and first cycles. For resumed cycles it counts uncached input plus output against both token limits. Campaign usage accounting still includes cached input. A complete token counter above either limit remains valid evidence and records a resource failure for that trial; it does not abort parsing or the campaign. Safe command and moldea-call overages may also reach semantic judging, but the trial remains failed. Missing cycle usage cannot establish a resource pass. Absolute output and evidence-containment violations still stop parsing. Duration and peak memory are diagnostics rather than brittle pass/fail thresholds.
 
 `src/resources/profiles.ts` is the numeric authority. The ordinary moldea-output allowance is 512 KiB because a real Platform implementation cycle consumed 261,014 bytes, leaving little room under the 256 KiB allowance. The per-host-command cap and every other profile limit remain unchanged. `fixtures/resource-calibration.json` contains reproducible measurements for ordinary, 1,024-path, large-Unicode, diagnostic-heavy, and adversarial CLI and repository inputs, with at least 25% cumulative headroom for non-attack cases. `fixtures/model-stage-resource-calibration.json` contains privacy-safe accepted actor and judge aggregates and proves at least 25% cumulative operating headroom; these recorded observations establish calibration integrity, not current behavioral assurance.
 

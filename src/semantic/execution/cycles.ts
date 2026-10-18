@@ -4,7 +4,6 @@ import {
   hasValidActorExecutionEvidence,
   hasValidMoldeaResourceEvidence,
 } from './actor-evidence.ts';
-import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../resources/index.ts';
 import { serializeSemanticStageValue } from '../stages/index.ts';
 import type { ISemanticHostOutput } from './host-output.ts';
 import type { ISemanticCycleEvidence } from './types.ts';
@@ -130,6 +129,5 @@ export const hasValidSemanticCycles = (
       (cycle.usage === null ||
         (Object.values(cycle.usage).every((count) => Number.isSafeInteger(count) && count >= 0) &&
           cycle.usage.cachedInputTokens <= cycle.usage.inputTokens &&
-          cycle.usage.inputTokens + cycle.usage.outputTokens <=
-            MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount)),
+          Number.isSafeInteger(cycle.usage.inputTokens + cycle.usage.outputTokens))),
   );

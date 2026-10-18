@@ -4,7 +4,7 @@ import { expect, test } from 'vitest';
 import type { ISemanticCase } from '../cases/index.ts';
 import { hasValidSemanticCycles, summarizeSemanticCycles } from './cycles.ts';
 import { parseSemanticEvaluationHostOutput } from './host-output.ts';
-import { createSemanticResultDimensions } from './outcomes.ts';
+import { createSemanticResultDimensions, isSemanticConfirmationEligible } from './outcomes.ts';
 import type { ISemanticCycleEvidence } from './types.ts';
 
 const createCycle = (
@@ -154,8 +154,10 @@ test('an earlier exceeded cycle stays failed despite later requests and actor-au
 test.each([
   [1_625_000, true],
   [1_625_001, false],
+  [2_097_152, false],
+  [2_097_153, false],
   [null, false],
-])('per-cycle token usage %s -> resource %s', (tokens, passing) => {
+])('first-cycle token usage including cached input %s -> resource %s', (tokens, passing) => {
   const first = createCycle(0, 0);
   first.usage =
     tokens === null
@@ -166,6 +168,43 @@ test.each([
   expect(dimensions.resource).toBe(passing);
   expect(dimensions.semantic).toBe(true);
   expect(dimensions.commandPolicy).toBe(true);
+  expect(hasValidSemanticCycles(cycles, { cliVersion: '11.0.6', jsonSchemaVersion: 7 })).toBe(true);
+  expect(isSemanticConfirmationEligible(dimensions)).toBe(!passing);
+});
+
+test.each([
+  [{ inputTokens: 1_693_251, cachedInputTokens: 1_643_904, outputTokens: 1_963 }, 51_310],
+  [{ inputTokens: 1_490_578, cachedInputTokens: 1_440_896, outputTokens: 2_781 }, 52_463],
+])('grades resumed diagnostic usage %o by its %d added tokens', (usage, addedTokens) => {
+  expect(usage.inputTokens - usage.cachedInputTokens + usage.outputTokens).toBe(addedTokens);
+  const resumed = createCycle(1, 0);
+  resumed.usage = usage;
+  expect(dimensionsFor([createCycle(0, 0), resumed]).resource).toBe(true);
+  expect(summarizeSemanticCycles([createCycle(0, 0), resumed]).usage).toStrictEqual({
+    inputTokens: 1_000_000 + usage.inputTokens,
+    cachedInputTokens: 800_000 + usage.cachedInputTokens,
+    outputTokens: 100 + usage.outputTokens,
+  });
+});
+
+test.each([
+  [1_625_000, true],
+  [1_625_001, false],
+  [2_097_152, false],
+  [2_097_153, false],
+])('resumed uncached input plus output %d -> resource %s', (tokens, passing) => {
+  const resumed = createCycle(1, 0);
+  resumed.usage = {
+    inputTokens: 2_000_000 + tokens - 100,
+    cachedInputTokens: 2_000_000,
+    outputTokens: 100,
+  };
+  const cycles = [createCycle(0, 0), resumed, createCycle(2, 0)];
+  expect(hasValidSemanticCycles(cycles, { cliVersion: '11.0.6', jsonSchemaVersion: 7 })).toBe(true);
+  const dimensions = dimensionsFor(cycles);
+  expect(dimensions.resource).toBe(passing);
+  expect(dimensions.operational).toBe(true);
+  expect(isSemanticConfirmationEligible(dimensions)).toBe(!passing);
 });
 
 test('rejects missing, reordered and forged per-cycle evidence', () => {
@@ -180,11 +219,19 @@ test('rejects missing, reordered and forged per-cycle evidence', () => {
 test('enforces exact and excess cycle output independently', () => {
   expect(dimensionsFor([createCycle(0, 4, 65_536)]).resource).toBe(true);
   expect(dimensionsFor([createCycle(0, 4, 65_537), createCycle(1, 0)]).resource).toBe(false);
-  const invalidUsage = createCycle(0, 0);
-  invalidUsage.usage!.inputTokens = 2_097_152;
-  expect(
-    hasValidSemanticCycles([invalidUsage], { cliVersion: '11.0.6', jsonSchemaVersion: 7 }),
-  ).toBe(false);
+});
+
+test.each([
+  { inputTokens: 1, cachedInputTokens: 2, outputTokens: 0 },
+  { inputTokens: -1, cachedInputTokens: 0, outputTokens: 0 },
+  { inputTokens: 1.5, cachedInputTokens: 0, outputTokens: 0 },
+  { inputTokens: Number.MAX_SAFE_INTEGER, cachedInputTokens: 0, outputTokens: 1 },
+])('rejects malformed cycle usage %o', (usage) => {
+  const cycle = createCycle(0, 0);
+  cycle.usage = usage;
+  expect(hasValidSemanticCycles([cycle], { cliVersion: '11.0.6', jsonSchemaVersion: 7 })).toBe(
+    false,
+  );
 });
 
 test('session command totals may exceed an invocation ceiling while every cycle stays within its profile', () => {

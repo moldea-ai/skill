@@ -95,8 +95,13 @@ export const createSemanticResultDimensions = (options: {
         isMountIntegrityPassing: cycle.isMountIntegrityPassing,
         isRepositoryControlPassing: cycle.isRepositoryControlPassing,
       });
+      // resumed requests exclude cached history from grading, but retain it in paid usage
       result.resource &&=
-        cycle.usage !== null && cycle.usage.inputTokens + cycle.usage.outputTokens <= tokenLimit;
+        cycle.usage !== null &&
+        cycle.usage.inputTokens -
+          (cycle.requestIndex > 0 ? cycle.usage.cachedInputTokens : 0) +
+          cycle.usage.outputTokens <=
+          tokenLimit;
       return result;
     });
     return Object.fromEntries(
@@ -131,7 +136,15 @@ export const createSemanticResultDimensions = (options: {
       hasPassingMoldeaResourceContainment(
         options.actorResourceEvidence,
         options.caseDefinition.resourceBudget,
-      ) && hasPassingHostResourceProfile(options.actorCommandPolicy, options.caseDefinition),
+      ) &&
+      hasPassingHostResourceProfile(options.actorCommandPolicy, options.caseDefinition) &&
+      (options.paidInvocations ?? []).every(
+        ({ stage, usage }) =>
+          stage !== 'judge' ||
+          usage === null ||
+          usage.inputTokens + usage.outputTokens <=
+            MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount,
+      ),
     commandPolicy:
       hasPassingCodexEvaluationCommandPolicy(options.actorCommandPolicy) &&
       hasPassingCodexEvaluationCommandPolicy(options.judgeCommandPolicy) &&

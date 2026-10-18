@@ -224,6 +224,106 @@ afterEach(async () => {
   );
 });
 
+test('an over-ceiling actor cycle records a resource failure and confirmations without stopping later cases', async () => {
+  const root = await mkdtemp(path.join(tmpdir(), 'moldea-token-ceiling-'));
+  temporaryRoots.push(root);
+  const bin = path.join(root, 'bin');
+  const sourceHome = path.join(root, 'source-home');
+  await Promise.all([bin, sourceHome].map((directory) => mkdir(directory)));
+  await writeFile(
+    path.join(bin, 'codex'),
+    `#!/opt/node
+const fs = require('node:fs');
+const prompt = fs.readFileSync(0, 'utf8');
+const isJudge = prompt.startsWith('Assess whether');
+const isOverBudget = !isJudge && prompt.includes('over-budget');
+const text = isJudge ? JSON.stringify({expected:{expected:true},forbidden:{forbidden:false},rationale:'Completed.'}) : 'Completed.';
+console.log(JSON.stringify({type:'item.completed',item:{type:'agent_message',text}}));
+console.log(JSON.stringify({type:'turn.completed',usage:{input_tokens:isOverBudget ? 2000000 : 100,cached_input_tokens:isOverBudget ? 1900000 : 50,output_tokens:isOverBudget ? 97153 : 20}}));
+`,
+  );
+  await chmod(path.join(bin, 'codex'), 0o755);
+  await writeFile(path.join(bin, 'codex-code-mode-host'), '#!/bin/sh\nexit 0\n');
+  await chmod(path.join(bin, 'codex-code-mode-host'), 0o755);
+  vi.stubEnv('CODEX_HOME', sourceHome);
+  vi.stubEnv('PATH', `${bin}${path.delimiter}${process.env['PATH'] ?? ''}`);
+  try {
+    const cases = ['over-budget', 'later-case'].map((id) => ({
+      ...createCase(id),
+      setup: async ({ sandboxHome }: { sandboxHome: string }) => {
+        await prepareCodexEvaluationHome(sandboxHome);
+        return {};
+      },
+    }));
+    const checkpoint = createCandidateCheckpoint(cases);
+    await writeSemanticCheckpoint(root, checkpoint);
+    const base = [
+      'codex',
+      'exec',
+      '--ignore-user-config',
+      '--ignore-rules',
+      '--ephemeral',
+      '--skip-git-repo-check',
+      '--dangerously-bypass-approvals-and-sandbox',
+      '-c',
+      'shell_environment_policy.inherit=none',
+      '--json',
+      '-',
+    ];
+    const tokenController = createSemanticTokenAdmissionController({
+      getConsumedTokenCount: () =>
+        getSemanticCandidatePaidTokenCount(checkpoint.cases, checkpoint.caseCheckpoints),
+    });
+    const results = await executeSemanticCases({
+      cases,
+      checkpoint,
+      repositoryRoot: root,
+      workerCount: 1,
+      executeTrial: async (options) =>
+        (
+          await runSemanticTrial({
+            ...options,
+            actorCommand: buildCodexEvaluationHostCommand(base, 'actor'),
+            judgeCommand: buildCodexEvaluationHostCommand(base, 'judge'),
+            actorHost: checkpoint.actorHost,
+            judgeHost: checkpoint.judgeHost,
+            artifactDigest: SHA256,
+            cli: checkpoint.cli,
+            isOperationalResumeRequested: false,
+            reusableTrials: [],
+            tokenController,
+          })
+        ).recordedTrial,
+    });
+    expect(results.map(({ id, status }) => ({ id, status }))).toStrictEqual([
+      { id: 'over-budget', status: 'failed' },
+      { id: 'later-case', status: 'passed' },
+    ]);
+    const failedTrials = results[0]!.trials;
+    expect(failedTrials).toHaveLength(3);
+    for (const recorded of failedTrials) {
+      expect(recorded.trial.failureClassifications).toStrictEqual(['resource']);
+      expect(recorded.trial.confirmationEligible).toBe(true);
+      expect(recorded.trial.actorUsage).toStrictEqual({
+        inputTokens: 2_000_000,
+        cachedInputTokens: 1_900_000,
+        outputTokens: 97_153,
+      });
+      expect(recorded.operationalRetries).toStrictEqual({
+        actorFailureCount: 0,
+        judgeFailureCount: 0,
+        lastFailure: null,
+      });
+    }
+    expect(getSemanticCandidatePaidTokenCount(checkpoint.cases, checkpoint.caseCheckpoints)).toBe(
+      3 * (2_097_153 + 120) + 240,
+    );
+    expect(await readSemanticCheckpoint(root)).toStrictEqual(checkpoint);
+  } finally {
+    vi.unstubAllEnvs();
+  }
+}, 30_000);
+
 describe('semantic runner case orchestration', () => {
   test.each(['passed', 'recovered', 'failed'] as const)(
     'archives a completed %s diagnostic with all usage and confirmations before cleanup',

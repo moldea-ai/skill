@@ -85,7 +85,6 @@ const SENSITIVE_INDETERMINATE_REASON_CODES = new Set<ICodexEvaluationCommandPoli
 const MAX_COMPLETED_COMMAND_COUNT =
   MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxCompletedCommandCount;
 const MAX_COMMAND_BYTES = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxCommandTextBytes;
-const MAX_HOST_TOKEN_COUNT = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount;
 const MAX_MODEL_VISIBLE_TOOL_OUTPUT_BYTES =
   MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxModelVisibleToolOutputBytes;
 const MAX_MOLDEA_COMMAND_COUNT = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxMoldeaCommandCount;
@@ -2072,15 +2071,7 @@ export const projectCodexEvaluationExecutionEvidence = (
       throw new Error('Codex resumed-session token usage is inconsistent.');
     }
   }
-  if (usage !== null) {
-    assertWithinResourceLimit(
-      'total model token usage',
-      'tokens',
-      usage.inputTokens + usage.outputTokens,
-      MAX_HOST_TOKEN_COUNT,
-    );
-  }
-
+  // token overages remain evidence for the trial's resource verdict, not parsing failures
   return {
     commandPolicy,
     projectedEvents:

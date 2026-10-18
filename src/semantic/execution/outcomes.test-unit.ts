@@ -46,6 +46,36 @@ const resourceEvidence = {
 };
 
 test.each([
+  [2_097_152, true],
+  [2_097_153, false],
+])('retains the judge absolute token ceiling at %d -> resource %s', (tokens, passing) => {
+  const dimensions = createSemanticResultDimensions({
+    gitInvocationEvidence: {
+      invocationCount: 0,
+      hostInvocationCount: 0,
+      repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+    },
+    actorCommandPolicy: commandPolicy,
+    actorExecutionEvidence: [],
+    actorResourceEvidence: resourceEvidence,
+    caseDefinition,
+    isMountIntegrityPassing: true,
+    isRepositoryControlPassing: true,
+    isSemanticPassing: true,
+    judgeCommandPolicy: commandPolicy,
+    paidInvocations: [
+      {
+        stage: 'judge',
+        usage: { inputTokens: tokens - 100, cachedInputTokens: 1_900_000, outputTokens: 100 },
+      },
+    ],
+  });
+  expect(dimensions.resource).toBe(passing);
+  expect(dimensions.operational).toBe(true);
+  expect(isSemanticConfirmationEligible(dimensions)).toBe(!passing);
+});
+
+test.each([
   ['&&', 'approved', true],
   ['||', 'approved', true],
   ['&&', 'prohibited', false],

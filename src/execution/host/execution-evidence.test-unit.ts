@@ -1101,19 +1101,20 @@ test('execution evidence records the largest completed-command output without re
   assert.doesNotMatch(JSON.stringify(result), /x{32}|y{7}/u);
 });
 
-test('execution evidence rejects model token usage above the host ceiling', () => {
+test('execution evidence retains model token usage above the host ceiling for resource grading', () => {
   const source = `${JSON.stringify({
     type: 'turn.completed',
     usage: { input_tokens: 2_000_000, cached_input_tokens: 1_900_000, output_tokens: 97_153 },
   })}\n`;
 
-  assert.throws(
-    () => projectCodexEvaluationExecutionEvidence(source),
-    /total model token usage is 2097153 tokens; the limit is 2097152 tokens/u,
-  );
+  assert.deepEqual(projectCodexEvaluationExecutionEvidence(source).usage, {
+    inputTokens: 2_000_000,
+    cachedInputTokens: 1_900_000,
+    outputTokens: 97_153,
+  });
 });
 
-test('execution evidence applies the host ceiling to the resumed request, not its session total', () => {
+test('execution evidence retains resumed request deltas separately from session totals', () => {
   const source = JSON.stringify({
     type: 'turn.completed',
     usage: { input_tokens: 3_000_000, cached_input_tokens: 2_000_000, output_tokens: 1_200 },
@@ -1128,15 +1129,18 @@ test('execution evidence applies the host ceiling to the resumed request, not it
     cachedInputTokens: 500_000,
     outputTokens: 200,
   });
-  assert.throws(() => projectCodexEvaluationExecutionEvidence(source), /total model token usage/u);
-  assert.throws(
-    () =>
-      projectCodexEvaluationExecutionEvidence(source, {
-        inputTokens: 1,
-        cachedInputTokens: 0,
-        outputTokens: 0,
-      }),
-    /total model token usage/u,
+  assert.deepEqual(projectCodexEvaluationExecutionEvidence(source).usage, {
+    inputTokens: 3_000_000,
+    cachedInputTokens: 2_000_000,
+    outputTokens: 1_200,
+  });
+  assert.deepEqual(
+    projectCodexEvaluationExecutionEvidence(source, {
+      inputTokens: 1,
+      cachedInputTokens: 0,
+      outputTokens: 0,
+    }).usage,
+    { inputTokens: 2_999_999, cachedInputTokens: 2_000_000, outputTokens: 1_200 },
   );
 });
 

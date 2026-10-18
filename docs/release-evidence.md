@@ -78,6 +78,12 @@ The original 8.2.3 full recording covered 122 cases and 141 trials. Its highest 
 
 Before the next paid evaluation, the evaluator must count only moldea's own work against these limits: moldea CLI calls and output, bundled helpers, and canonical file reads and writes. Project-required commands and their output must not consume those allowances. No evaluator, case, protocol or profile change is included in 8.2.4.
 
+## Skill 8.2.5 evidence reuse
+
+Skill 8.2.5 keeps the same 8.2.3 selection described above. Its only behavioral change concerns repair tooling: explicit repair now updates a compatible CLI older than the skill's `cliRepairVersion`, or an installed CLI that does not satisfy its root declaration, and reports both versions. Other explicit operations only report that mismatch, and ordinary work stays silent about it. Downgrades and explicit version policies still need direction.
+
+This change was not re-evaluated. Every evaluated case declares and installs the CLI at the evaluated version 11.0.6, which is also the repair target, so no recorded scenario exercises it. Deterministic conformance and installation checks do not prove model adherence to the new wording.
+
 ## Check a release
 
 ```bash

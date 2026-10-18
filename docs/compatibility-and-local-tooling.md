@@ -8,7 +8,7 @@ order: 180
 
 # Compatibility and local tooling
 
-Release `8.2.5` supports exactly:
+Release `8.2.6` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.17.0`
@@ -52,7 +52,7 @@ Command boundaries stay explicit:
 - `scope` accepts one `--path` or one NUL-delimited UTF-8 path set of at most 2 MiB and returns relationship matches after the two-byte gate establishes relevance.
 - `content` returns chunks only for one explicit canonical `/moldea/**` path. CLI/Core still reject noncanonical targets.
 
-Release `8.2.5` accepts bare repository-relative and leading-slash repository-logical paths. The development scripts also normalize leading `./` and native absolute paths contained beneath the supplied or physically resolved repository root. The gate's argv and stdin modes and the launcher's `scope` and `content` use the same normalization. Relative paths always start at the repository root, regardless of the working directory. Normalization preserves input order, duplicates, casing, and Unicode, with the same raw 2 MiB batch allowance and no target-file lookup.
+Release `8.2.6` accepts bare repository-relative and leading-slash repository-logical paths. The development scripts also normalize leading `./` and native absolute paths contained beneath the supplied or physically resolved repository root. The gate's argv and stdin modes and the launcher's `scope` and `content` use the same normalization. Relative paths always start at the repository root, regardless of the working directory. Normalization preserves input order, duplicates, casing, and Unicode, with the same raw 2 MiB batch allowance and no target-file lookup.
 
 On POSIX, contained absolute paths take precedence; other leading-slash paths retain their repository-logical meaning, and backslashes remain errors. Windows paths accept either separator in relative paths and convert contained drive-absolute paths. Traversal, internal dot segments, repeated separators, repository-root-only selections, drive-relative paths, and UNC/device forms remain errors. Normalization does not replace canonical filesystem checks.
 

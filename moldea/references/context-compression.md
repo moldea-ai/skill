@@ -10,7 +10,7 @@ Broad compression requires explicit developer intent expressed naturally through
 
 ## Establish scope and authority
 
-1. Confirm that direct probes establish adoption and that the request authorizes repository writes.
+1. Reuse current adoption evidence or run the adoption-only gate, and confirm that the request authorizes repository writes.
 2. Resolve the requested context scope. Follow manifest relationships, canonical references, consumers, and directly affected documentation only as far as needed to preserve meaning and valid paths.
 3. Identify the established owner of every fact, rationale, requirement, unresolved boundary, relationship, and consumer in scope.
 4. Classify apparent duplication as exact duplication, overlapping responsibility, useful controlled repetition, stale superseded wording, or consequential conflict. Similar wording is not enough to prove duplication.
@@ -40,7 +40,7 @@ After authorized writes:
 1. Re-read every changed canonical file and affected consumer to confirm that all distinct established meaning remains represented once by its authoritative owner.
 2. Confirm that removed or moved paths have no stale manifest relationship, reference, index entry, consumer, or directly affected documentation.
 3. Confirm that unrelated context and implementation remain unchanged.
-4. Run relevant project-native checks and the narrowest repository-local metadata command for the installed release as separate completed processes.
+4. Run relevant project-native checks, then final launcher-backed `validate`, as separate completed processes.
 5. Review only the diagnostics, mirrors, requirements, and semantic readiness relevant to the changed owners without claiming whole-project validity from a narrower result.
 
 Report the requested scope, authoritative owners selected, content consolidated or retained, unique truth and unresolved state preserved, relationships and consumers updated, intentionally unchanged surfaces, deterministic status, checks, and limitations. If conflict blocked compression, report the binary adoption state, exact conflict, that compression is blocked pending the focused answer, the question, and that no repository files changed.

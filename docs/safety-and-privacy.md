@@ -30,7 +30,7 @@ Actual runtime-variable values remain private and transient. The skill does not 
 
 ## Safe deterministic execution
 
-Read-only operations never install dependencies or change package-manager configuration. Authorized setup has a separate procedure. It inspects the required configuration as file data before invoking a manager. A repository-supplied executable hook, pnpmfile, Yarn plugin, or equivalent extension stops automatic setup, not ordinary host work.
+Read-only operations never install dependencies or change package-manager configuration. Authorized setup has a separate procedure. It inspects the required configuration as file data before invoking a manager. A repository-supplied executable hook, pnpmfile, Yarn plugin, Yarn executable selected by `yarnPath`, `yarn-path` or a non-registry `packageManager` value, or equivalent extension stops automatic setup, not ordinary host work.
 
 The blocked result identifies the unavailable compatible local CLI, the exact configuration and executable mechanism, the fact that the package manager was not invoked, and the prerequisite to establish the CLI through the repository's approved trusted setup workflow. The skill preserves those controls and does not prescribe removing or disabling them to proceed. An unknown setup workflow is reported as a prerequisite, not invented. Permitted automatic installation keeps dependency lifecycle scripts disabled.
 

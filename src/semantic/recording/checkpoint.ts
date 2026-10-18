@@ -43,7 +43,31 @@ const CommandPolicyObservationSchema = z.strictObject({
   reasons: z.array(CommandPolicyReasonSchema),
   status: z.enum(['indeterminate', 'not-observed', 'observed']),
 });
+const OwnedCommandTotalsSchema = z.strictObject({
+  commandCount: z.number().int().nonnegative(),
+  maximumOutputByteCount: z.number().int().nonnegative(),
+  outputByteCount: z.number().int().nonnegative(),
+});
+const MoldeaEventSchema = z.discriminatedUnion('kind', [
+  z.strictObject({
+    kind: z.literal('command'),
+    operation: z.enum(['composition', 'content', 'inspect', 'scope', 'validate']).nullable(),
+    outputByteCount: z.number().int().nonnegative(),
+    ownership: z.enum(['canonical', 'cli', 'helper']),
+  }),
+  z.strictObject({
+    kind: z.literal('file-change'),
+    moldeaPath: z.enum(['not-touching', 'touching', 'unreadable']),
+  }),
+]);
 const CommandPolicySchema = z.strictObject({
+  commandOwnership: z.strictObject({
+    canonical: OwnedCommandTotalsSchema,
+    cli: OwnedCommandTotalsSchema,
+    helper: OwnedCommandTotalsSchema,
+    project: OwnedCommandTotalsSchema,
+    source: OwnedCommandTotalsSchema,
+  }),
   completedCommandCount: z.number().int().nonnegative(),
   credentialExposure: z.strictObject({
     observedCount: z.number().int().nonnegative(),
@@ -53,6 +77,7 @@ const CommandPolicySchema = z.strictObject({
   maximumCommandOutputByteCount: z.number().int().nonnegative(),
   modelVisibleToolOutputByteCount: z.number().int().nonnegative(),
   moldeaCommandCount: z.number().int().nonnegative(),
+  moldeaEvents: z.array(MoldeaEventSchema),
   moldeaLauncherMissReasons: z
     .array(
       z.strictObject({

@@ -1059,16 +1059,29 @@ export const hasPassingMoldeaActivation = (
   return evidence.operations[0] !== 'scope';
 };
 
-/** Checks one scenario's upper moldea command and output containment limits. */
+/**
+ * Checks one scenario's upper moldea CLI command and output containment limits.
+ * @param evidence The launcher calls captured for one cycle or trial.
+ * @param budget The scenario's CLI-only budget.
+ * @param exemptValidationByteCount The output of an exempt final validation, which then counts as
+ * neither a call nor output, or null when no call is exempt.
+ * @returns Whether the calls stay within the scenario's limits.
+ */
 export const hasPassingMoldeaResourceContainment = (
   evidence: unknown,
   budget: IMoldeaResourceBudget,
-): boolean =>
-  hasValidMoldeaResourceEvidence(evidence) &&
-  evidence.commandCount <= budget.maximumMoldeaCommands &&
-  evidence.stdoutByteCount <= budget.maximumMoldeaOutputBytes &&
-  evidence.modelVisibleToolOutputByteCount <= budget.maximumMoldeaOutputBytes &&
-  evidence.maximumInvocationByteCount <= MAX_MOLDEA_OUTPUT_BYTES;
+  exemptValidationByteCount: number | null = null,
+): boolean => {
+  if (!hasValidMoldeaResourceEvidence(evidence)) return false;
+  const exemptCommandCount = exemptValidationByteCount === null ? 0 : 1;
+  const exemptByteCount = exemptValidationByteCount ?? 0;
+  return (
+    evidence.commandCount - exemptCommandCount <= budget.maximumMoldeaCommands &&
+    evidence.stdoutByteCount - exemptByteCount <= budget.maximumMoldeaOutputBytes &&
+    evidence.modelVisibleToolOutputByteCount - exemptByteCount <= budget.maximumMoldeaOutputBytes &&
+    evidence.maximumInvocationByteCount <= MAX_MOLDEA_OUTPUT_BYTES
+  );
+};
 
 /** Checks measured moldea activation and containment against one complete scenario budget. */
 export const hasPassingMoldeaResourceBudget = (

@@ -256,3 +256,38 @@ test('reading wrapper source does not signal an invocation-capture failure', () 
     .join('\n');
   expect(parseSemanticEvaluationHostOutput(stream, OPTIONS).response).toBe('Read the wrapper.');
 });
+
+test('keeps completed Codex patches as ordered moldea events without command credit', () => {
+  const output = [
+    {
+      type: 'item.started',
+      item: { type: 'file_change', changes: [{ path: '/mnt/moldea/project.md', kind: 'update' }] },
+    },
+    {
+      type: 'item.completed',
+      item: {
+        type: 'file_change',
+        changes: [{ path: '/mnt/moldea/project.md', kind: 'update' }],
+        status: 'completed',
+      },
+    },
+    { type: 'item.completed', item: { type: 'agent_message', text: 'Done.' } },
+    {
+      type: 'moldea.git-invocations',
+      evidence: {
+        invocationCount: 0,
+        hostInvocationCount: 0,
+        repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+      },
+    },
+    EMPTY_CLI_CAPTURE,
+  ]
+    .map((event) => JSON.stringify(event))
+    .join('\n');
+  const parsed = parseSemanticEvaluationHostOutput(output, OPTIONS);
+  expect(parsed.commandPolicyEvidence.moldeaEvents).toStrictEqual([
+    { kind: 'file-change', moldeaPath: 'touching' },
+  ]);
+  expect(parsed.commandPolicyEvidence.completedCommandCount).toBe(0);
+  expect(parsed.actorExecutionEvidence).toStrictEqual([]);
+});

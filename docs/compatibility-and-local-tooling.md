@@ -72,7 +72,7 @@ When ordinary work reaches a limit, the coding agent completes the developer's t
 
 For practical handling, start with [Limitations](/docs/limitations/). Detailed input and worker defaults belong to the [Core resource reference](https://packages.moldea.ai/packages/core/repository-inspection/#resource-limits) and [CLI budgets](https://packages.moldea.ai/packages/cli/output-and-operations/#resource-budgets).
 
-The following numbers are release-evaluation measurements from the unchanged source-controlled profiles, not universal limits on developer tasks. The recorded 8.2.3 evaluator counts whole-trial host commands and tool output. Skill 8.2.4 and later use the moldea-only counting rule above; initialization and repair retain the numeric `largeTraversal` bounds. The evaluator must adopt that counting rule before the next paid run:
+The following numbers are release-evaluation measurements from the unchanged source-controlled profiles, not universal limits on developer tasks. The recorded 8.2.3 evaluation counted whole-trial host commands and tool output. Evaluation protocol 49 applies the moldea-only counting rule above to each cycle: `ordinary` limits cover launcher calls, bundled helpers and `moldea/` reads and writes, and `largeTraversal` limits also cover assessment source reads, except for aggregate `moldea` output. See [resource accounting](/docs/semantic-evaluation/#resource-accounting):
 
 | Limit                     | `ordinary` | `largeTraversal` |
 | ------------------------- | ---------: | ---------------: |

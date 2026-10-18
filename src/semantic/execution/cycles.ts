@@ -53,6 +53,18 @@ export const summarizeSemanticCycles = (
     total.modelVisibleToolOutputByteCount += next.modelVisibleToolOutputByteCount;
     total.moldeaCommandCount += next.moldeaCommandCount;
     total.moldeaOutputByteCount += next.moldeaOutputByteCount;
+    for (const [ownership, totals] of Object.entries(total.commandOwnership) as Array<
+      [keyof typeof total.commandOwnership, (typeof total.commandOwnership)['cli']]
+    >) {
+      const nextTotals = next.commandOwnership[ownership];
+      totals.commandCount += nextTotals.commandCount;
+      totals.outputByteCount += nextTotals.outputByteCount;
+      totals.maximumOutputByteCount = Math.max(
+        totals.maximumOutputByteCount,
+        nextTotals.maximumOutputByteCount,
+      );
+    }
+    total.moldeaEvents.push(...next.moldeaEvents);
     total.moldeaLauncherMissReasons = mergeCounts(
       total.moldeaLauncherMissReasons,
       next.moldeaLauncherMissReasons,

@@ -1,6 +1,7 @@
 // types
 export type {
   ICodexEvaluationBwrapOptions,
+  ICodexEvaluationCommandOwnership,
   ICodexEvaluationCommandPolicyEvidence,
   ICodexEvaluationCommandPolicyReason,
   ICodexEvaluationCommandPolicyReasonCode,
@@ -11,10 +12,12 @@ export type {
   ICodexEvaluationHostFailureKind,
   ICodexEvaluationHostIdentity,
   ICodexEvaluationHostRunOptions,
+  ICodexEvaluationMoldeaEvent,
   ICodexEvaluationOperationalExhaustion,
   ICodexEvaluationOperationalFailureCategory,
   ICodexEvaluationOperationalRetry,
   ICodexEvaluationOperationalStageOptions,
+  ICodexEvaluationOwnedCommandTotals,
   ICodexEvaluationReadOnlyMount,
   ICodexEvaluationRole,
   ICodexEvaluationWorkspaceAccess,

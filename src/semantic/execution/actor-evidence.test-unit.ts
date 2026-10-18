@@ -431,6 +431,42 @@ test('classifies activation and upper resource containment independently', () =>
   assert.equal(hasPassingMoldeaResourceBudget(excessiveCommandEvidence, directBudget), false);
 });
 
+test('scenario containment counts only launcher calls, minus an exempt final validation', () => {
+  // the relevance gate and moldea/ reads are not launcher calls, so abstention captures nothing
+  const abstainBudget: IMoldeaResourceBudget = {
+    activation: 'abstain',
+    minimumMoldeaCommands: 0,
+    maximumMoldeaCommands: 0,
+    maximumMoldeaOutputBytes: 0,
+  };
+  const noLauncherCalls = createMoldeaResourceEvidence([], OPTIONS);
+  assert.equal(hasPassingMoldeaResourceBudget(noLauncherCalls, abstainBudget), true);
+
+  const directBudget: IMoldeaResourceBudget = {
+    activation: 'direct',
+    minimumMoldeaCommands: 0,
+    maximumMoldeaCommands: 1,
+    maximumMoldeaOutputBytes: 1_000,
+  };
+  const scopeThenValidate: IMoldeaResourceEvidence = {
+    commandCount: 2,
+    maximumInvocationByteCount: 4_000,
+    modelVisibleToolOutputByteCount: 4_800,
+    operations: ['scope', 'validate'],
+    stdoutByteCount: 4_800,
+  };
+  assert.equal(hasPassingMoldeaResourceContainment(scopeThenValidate, directBudget), false);
+  assert.equal(hasPassingMoldeaResourceContainment(scopeThenValidate, directBudget, 4_000), true);
+  assert.equal(
+    hasPassingMoldeaResourceContainment(
+      scopeThenValidate,
+      { ...directBudget, maximumMoldeaOutputBytes: 799 },
+      4_000,
+    ),
+    false,
+  );
+});
+
 test('rejects inspect output that contains canonical document bodies', () => {
   assert.throws(() =>
     projectActorExecutionEvidenceEvent(

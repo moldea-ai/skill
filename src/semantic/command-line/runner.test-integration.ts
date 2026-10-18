@@ -35,11 +35,19 @@ import {
 
 const SHA256 = 'a'.repeat(64);
 const EMPTY_COMMAND_POLICY: ICodexEvaluationCommandPolicyEvidence = {
+  commandOwnership: {
+    canonical: { commandCount: 0, maximumOutputByteCount: 0, outputByteCount: 0 },
+    cli: { commandCount: 0, maximumOutputByteCount: 0, outputByteCount: 0 },
+    helper: { commandCount: 0, maximumOutputByteCount: 0, outputByteCount: 0 },
+    project: { commandCount: 0, maximumOutputByteCount: 0, outputByteCount: 0 },
+    source: { commandCount: 0, maximumOutputByteCount: 0, outputByteCount: 0 },
+  },
   completedCommandCount: 0,
   credentialExposure: { observedCount: 0, reasons: [], status: 'not-observed' },
   maximumCommandOutputByteCount: 0,
   modelVisibleToolOutputByteCount: 0,
   moldeaCommandCount: 0,
+  moldeaEvents: [],
   moldeaLauncherMissReasons: [],
   moldeaOutputByteCount: 0,
   networkAccess: {

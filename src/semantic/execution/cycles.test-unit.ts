@@ -240,3 +240,24 @@ test('session command totals may exceed an invocation ceiling while every cycle 
   expect(hasValidSemanticCycles(cycles, { cliVersion: '11.0.6', jsonSchemaVersion: 7 })).toBe(true);
   expect(dimensionsFor(cycles).resource).toBe(true);
 });
+
+test('sums command ownership and keeps every cycle ordered events in request order', () => {
+  const cycles = [createCycle(0, 1, 100, 2), createCycle(1, 0, 0, 1)];
+  expect(hasValidSemanticCycles(cycles, { cliVersion: '11.0.6', jsonSchemaVersion: 7 })).toBe(true);
+  const summary = summarizeSemanticCycles(cycles).commandPolicyEvidence;
+  expect(summary.commandOwnership.canonical).toStrictEqual({
+    commandCount: 3,
+    maximumOutputByteCount: 0,
+    outputByteCount: 0,
+  });
+  expect(summary.commandOwnership.cli).toStrictEqual({
+    commandCount: 1,
+    maximumOutputByteCount: 100,
+    outputByteCount: 100,
+  });
+  expect(summary.moldeaEvents).toStrictEqual([
+    ...cycles[0]!.commandPolicyEvidence.moldeaEvents,
+    ...cycles[1]!.commandPolicyEvidence.moldeaEvents,
+  ]);
+  expect(summary.moldeaEvents).toHaveLength(4);
+});

@@ -20,16 +20,25 @@ import {
   createSemanticJudgeStageIdentity,
 } from '../stages/index.ts';
 import { createSemanticActiveTrial } from './active-trial.ts';
+import { SEMANTIC_EVIDENCE_SCHEMA_VERSION } from './constants.ts';
 import { loadSemanticReusableTrials, selectSemanticReusableTrial } from './reuse.ts';
 import type { ISemanticRecordedTrial } from './types.ts';
 
 const SHA256 = 'a'.repeat(64);
 const emptyCommandPolicy: ICodexEvaluationCommandPolicyEvidence = {
+  commandOwnership: {
+    canonical: { commandCount: 0, maximumOutputByteCount: 0, outputByteCount: 0 },
+    cli: { commandCount: 0, maximumOutputByteCount: 0, outputByteCount: 0 },
+    helper: { commandCount: 0, maximumOutputByteCount: 0, outputByteCount: 0 },
+    project: { commandCount: 0, maximumOutputByteCount: 0, outputByteCount: 0 },
+    source: { commandCount: 0, maximumOutputByteCount: 0, outputByteCount: 0 },
+  },
   completedCommandCount: 0,
   credentialExposure: { observedCount: 0, reasons: [], status: 'not-observed' },
   maximumCommandOutputByteCount: 0,
   modelVisibleToolOutputByteCount: 0,
   moldeaCommandCount: 0,
+  moldeaEvents: [],
   moldeaLauncherMissReasons: [],
   moldeaOutputByteCount: 0,
   networkAccess: {
@@ -164,7 +173,7 @@ const storeRun = async (
         trials,
       },
     ],
-    schemaVersion: 14,
+    schemaVersion: SEMANTIC_EVIDENCE_SCHEMA_VERSION,
   };
   const evidenceSha256 = createHash('sha256')
     .update(`${JSON.stringify(evidenceRecord)}\n`)

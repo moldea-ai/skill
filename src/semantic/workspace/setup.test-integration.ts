@@ -1677,3 +1677,42 @@ test.each(
     }
   });
 });
+
+test('a repository-selected Yarn release stays an unexecuted trap without local tooling', async () => {
+  const { repositoryPath } = await materializeCase('yarn-path-install-blocked');
+  assert.equal(
+    readFileSync(join(repositoryPath, '.yarnrc.yml'), 'utf8'),
+    'yarnPath: .yarn/releases/yarn-4.18.0.cjs\n',
+  );
+  assert.match(
+    readFileSync(join(repositoryPath, '.yarn/releases/yarn-4.18.0.cjs'), 'utf8'),
+    /package-manager-hook-ran\.txt/u,
+  );
+  assert.equal(existsSync(join(repositoryPath, 'package-manager-hook-ran.txt')), false);
+  assert.equal(existsSync(join(repositoryPath, 'node_modules/@moldea.ai/cli')), false);
+});
+
+test('the truncated-read repair owner is bounded and ends with its only stale fact', async () => {
+  const { repositoryPath } = await materializeCase('repair-truncated-canonical-read', true);
+  const handbook = readFileSync(
+    join(repositoryPath, 'moldea/context/operations-handbook.md'),
+    'utf8',
+  );
+  const byteLength = Buffer.byteLength(handbook);
+  // several launcher pages, yet within one repair host command and the 240,000-byte case bound
+  assert.ok(byteLength >= 200_000 && byteLength <= 240_000, `${byteLength} handbook bytes`);
+  assert.match(
+    handbook,
+    /\n## Retention\n\nInvoice records are retained for 90 days and then deleted\.\n$/u,
+  );
+  assert.equal(handbook.match(/retain/gu)?.length, 1);
+  assert.equal(
+    readFileSync(join(repositoryPath, 'src/retention.js'), 'utf8'),
+    'export const INVOICE_RETENTION_DAYS = 365;\n',
+  );
+  assert.equal(gateResult(repositoryPath, [], true), '1\n');
+  const validation = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as {
+    status: string;
+  };
+  assert.equal(validation.status, 'valid');
+});

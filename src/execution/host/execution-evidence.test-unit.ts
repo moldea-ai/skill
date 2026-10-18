@@ -52,6 +52,7 @@ const assertCommandPolicy = (
   actual: ICodexEvaluationCommandPolicyEvidence,
   expected: IExpectedCommandPolicy,
 ): void => {
+  assert.equal(hasValidCodexEvaluationCommandPolicy(actual), true);
   const { reasons: credentialReasons, ...credentialExposure } = actual.credentialExposure;
   const { reasons: networkReasons, ...networkAccess } = actual.networkAccess;
   const { reasons: sensitiveReasons, ...sensitiveAccess } = actual.sensitiveAccess;
@@ -64,9 +65,12 @@ const assertCommandPolicy = (
     },
     {
       ...expected,
+      // ownership totals and ordered events have dedicated exact-total tests
+      commandOwnership: actual.commandOwnership,
       maximumCommandOutputByteCount: actual.maximumCommandOutputByteCount,
       modelVisibleToolOutputByteCount: actual.modelVisibleToolOutputByteCount,
       moldeaCommandCount: actual.moldeaCommandCount,
+      moldeaEvents: actual.moldeaEvents,
       moldeaLauncherMissReasons: [],
       moldeaOutputByteCount: actual.moldeaOutputByteCount,
     },
@@ -1796,4 +1800,128 @@ test('a trusted Git version probe is passive and cannot supply checkpoint eviden
 
 test('the overlaid absolute Git path still reports disallowed argument forms', () => {
   assert.equal(projectRepairGitCommandEvidence('/usr/bin/git status --short').noncompliantCount, 1);
+});
+
+const SKILL_SCRIPTS = '/mnt/.agents/skills/moldea/scripts';
+
+/** Builds one completed Codex patch event with the given change list. */
+const createFileChangeEvent = (changes: unknown): string =>
+  JSON.stringify({
+    type: 'item.completed',
+    item: { type: 'file_change', changes, status: 'completed' },
+  });
+
+test('command ownership follows the accounting table with exact totals', () => {
+  const { commandPolicy } = projectCodexEvaluationExecutionEvidence(
+    [
+      [`node ${SKILL_SCRIPTS}/relevance-gate.mjs --repository /mnt --adoption-only`, 2],
+      [
+        `node ${SKILL_SCRIPTS}/moldea-cli.mjs --repository /mnt -- validate --json --max-output-bytes 65536`,
+        300,
+      ],
+      [`node ${SKILL_SCRIPTS}/repair-git.mjs --repository /mnt -- checkpoint`, 50],
+      ['cat moldea/project.md', 1_000],
+      ['rg -n owner moldea', 40],
+      ['sed -n 1,20p /mnt/moldea/moldea.yaml', 60],
+      ['cat > moldea/notes.md', 0],
+      ['cat README.md', 500],
+      ['sed -n 1,40p AGENTS.md', 200],
+      ['rg -n moldea src', 30],
+      ['cat /mnt/.agents/skills/moldea/references/local-tooling.md', 4_000],
+      ['node --test src/a.test-unit.js', 100],
+      ['git status --short', 20],
+      ['npm --version', 7],
+      ['cd /mnt && git diff --stat', 15],
+    ]
+      .map(([command, bytes]) => createCommandEvent(command as string, 'x'.repeat(bytes as number)))
+      .join('\n'),
+  );
+  assert.equal(hasValidCodexEvaluationCommandPolicy(commandPolicy), true);
+  assert.deepEqual(commandPolicy.commandOwnership, {
+    canonical: { commandCount: 4, maximumOutputByteCount: 1_000, outputByteCount: 1_100 },
+    cli: { commandCount: 1, maximumOutputByteCount: 300, outputByteCount: 300 },
+    helper: { commandCount: 2, maximumOutputByteCount: 50, outputByteCount: 52 },
+    project: { commandCount: 4, maximumOutputByteCount: 100, outputByteCount: 142 },
+    source: { commandCount: 4, maximumOutputByteCount: 4_000, outputByteCount: 4_730 },
+  });
+  assert.equal(commandPolicy.completedCommandCount, 15);
+  assert.equal(commandPolicy.modelVisibleToolOutputByteCount, 6_324);
+  assert.equal(commandPolicy.maximumCommandOutputByteCount, 4_000);
+});
+
+test('ordered moldea events keep command and patch order without commands or paths', () => {
+  const { commandPolicy } = projectCodexEvaluationExecutionEvidence(
+    [
+      createCommandEvent('cat moldea/project.md', 'x'.repeat(10)),
+      createCommandEvent('cat README.md', 'x'.repeat(20)),
+      createFileChangeEvent([{ path: '/mnt/moldea/project.md', kind: 'update' }]),
+      createFileChangeEvent([{ path: '/mnt/src/app.ts', kind: 'update' }]),
+      createFileChangeEvent([
+        { path: 'src/app.ts', kind: 'update' },
+        { path: 'moldea/moldea.yaml', kind: 'update' },
+      ]),
+      createFileChangeEvent([{ kind: 'update' }]),
+      createFileChangeEvent('moldea/project.md'),
+      createFileChangeEvent([]),
+      // Codex also reports a patch before it applies; only completed items are ordered evidence
+      JSON.stringify({
+        type: 'item.started',
+        item: { type: 'file_change', changes: [{ path: '/mnt/moldea/x.md' }] },
+      }),
+      createCommandEvent(
+        `node ${SKILL_SCRIPTS}/moldea-cli.mjs --repository /mnt -- validate --json --max-output-bytes 65536`,
+        'x'.repeat(30),
+      ),
+      createCommandEvent(
+        `node ${SKILL_SCRIPTS}/moldea-cli.mjs --repository /mnt -- validate --json --max-output-bytes 65536 | head -c $LIMIT`,
+        'x'.repeat(40),
+      ),
+      createCommandEvent(`node ${SKILL_SCRIPTS}/managed-readme.mjs --repository /mnt`, ''),
+    ].join('\n'),
+  );
+  assert.equal(hasValidCodexEvaluationCommandPolicy(commandPolicy), true);
+  assert.deepEqual(commandPolicy.moldeaEvents, [
+    { kind: 'command', operation: null, outputByteCount: 10, ownership: 'canonical' },
+    { kind: 'file-change', moldeaPath: 'touching' },
+    { kind: 'file-change', moldeaPath: 'not-touching' },
+    { kind: 'file-change', moldeaPath: 'touching' },
+    { kind: 'file-change', moldeaPath: 'unreadable' },
+    { kind: 'file-change', moldeaPath: 'unreadable' },
+    { kind: 'file-change', moldeaPath: 'unreadable' },
+    { kind: 'command', operation: 'validate', outputByteCount: 30, ownership: 'cli' },
+    // an unparseable launcher call stays moldea work but cannot be placed as an operation
+    { kind: 'command', operation: null, outputByteCount: 40, ownership: 'cli' },
+    { kind: 'command', operation: null, outputByteCount: 0, ownership: 'helper' },
+  ]);
+  assert.equal(JSON.stringify(commandPolicy).includes('project.md'), false);
+});
+
+test('ordered moldea evidence rejects inconsistent ownership totals and events', () => {
+  const { commandPolicy } = projectCodexEvaluationExecutionEvidence(
+    [
+      createCommandEvent('cat moldea/project.md', 'x'.repeat(10)),
+      createFileChangeEvent([{ path: 'moldea/project.md', kind: 'update' }]),
+    ].join('\n'),
+  );
+  assert.equal(hasValidCodexEvaluationCommandPolicy(commandPolicy), true);
+  for (const tampered of [
+    { ...commandPolicy, moldeaEvents: commandPolicy.moldeaEvents.slice(1) },
+    {
+      ...commandPolicy,
+      commandOwnership: {
+        ...commandPolicy.commandOwnership,
+        source: { commandCount: 1, maximumOutputByteCount: 10, outputByteCount: 10 },
+      },
+    },
+    {
+      ...commandPolicy,
+      moldeaEvents: [
+        { kind: 'command', operation: 'validate', outputByteCount: 10, ownership: 'canonical' },
+        commandPolicy.moldeaEvents[1],
+      ],
+    },
+    { ...commandPolicy, moldeaEvents: [...commandPolicy.moldeaEvents, { kind: 'file-change' }] },
+  ]) {
+    assert.equal(hasValidCodexEvaluationCommandPolicy(tampered), false);
+  }
 });

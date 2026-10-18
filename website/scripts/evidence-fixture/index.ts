@@ -39,12 +39,24 @@ const SEMANTIC_EVIDENCE_PATH =
   '.evidence/semantic/results/attempts/fixture-semantic-run/evidence.json';
 const SEMANTIC_COVERAGE_PATH = '.evidence/semantic/results/coverage.json';
 
+const EMPTY_OWNED_COMMANDS = { commandCount: 0, maximumOutputByteCount: 0, outputByteCount: 0 };
+
 const EMPTY_COMMAND_POLICY: ISemanticAttemptTrialModel['actorCommandPolicyEvidence'] = {
+  commandOwnership: {
+    canonical: EMPTY_OWNED_COMMANDS,
+    cli: { commandCount: 1, maximumOutputByteCount: 128, outputByteCount: 128 },
+    helper: EMPTY_OWNED_COMMANDS,
+    project: EMPTY_OWNED_COMMANDS,
+    source: EMPTY_OWNED_COMMANDS,
+  },
   completedCommandCount: 1,
   credentialExposure: { observedCount: 0, reasons: [], status: 'not-observed' },
   maximumCommandOutputByteCount: 128,
   modelVisibleToolOutputByteCount: 128,
   moldeaCommandCount: 1,
+  moldeaEvents: [
+    { kind: 'command', operation: 'validate', outputByteCount: 128, ownership: 'cli' },
+  ],
   moldeaLauncherMissReasons: [],
   moldeaOutputByteCount: 128,
   networkAccess: {

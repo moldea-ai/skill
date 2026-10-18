@@ -12,7 +12,9 @@ import {
   createSemanticResultDimensions,
   getSemanticFailureClassifications,
   hasPassingSemanticResultDimensions,
+  identifyFinalValidationExemption,
   isSemanticConfirmationEligible,
+  measureOwnedResourceUsage,
 } from './outcomes.ts';
 
 const caseDefinition = defineSemanticCase({
@@ -37,6 +39,38 @@ const caseDefinition = defineSemanticCase({
 });
 
 const commandPolicy = projectCodexEvaluationExecutionEvidence('').commandPolicy;
+const LAUNCHER = 'node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt --';
+
+/** Projects valid command-policy evidence for completed commands with the given output sizes. */
+const projectCommandPolicy = (commands: ReadonlyArray<readonly [string, number]>) =>
+  projectCodexEvaluationExecutionEvidence(
+    commands
+      .map(([command, outputByteCount]) =>
+        JSON.stringify({
+          type: 'item.completed',
+          item: {
+            type: 'command_execution',
+            command,
+            aggregated_output: 'x'.repeat(outputByteCount),
+            exit_code: 0,
+            status: 'completed',
+          },
+        }),
+      )
+      .join('\n'),
+  ).commandPolicy;
+
+/** Splits a total across commands so one command carries the given peak. */
+const splitOutput = (commandCount: number, totalBytes: number, peakBytes: number): number[] => {
+  const remainder = totalBytes - peakBytes;
+  const base = Math.floor(remainder / (commandCount - 1));
+  return [
+    peakBytes,
+    ...Array.from({ length: commandCount - 1 }, (_, index) =>
+      index === commandCount - 2 ? remainder - base * (commandCount - 2) : base,
+    ),
+  ];
+};
 const resourceEvidence = {
   commandCount: 0,
   maximumInvocationByteCount: 0,
@@ -150,12 +184,12 @@ describe('semantic result dimensions', () => {
           hostInvocationCount: 0,
           repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
         },
-        actorCommandPolicy: {
-          ...commandPolicy,
-          completedCommandCount: 8,
-          maximumCommandOutputByteCount: peakBytes,
-          modelVisibleToolOutputByteCount: outputBytes,
-        },
+        actorCommandPolicy: projectCommandPolicy(
+          splitOutput(8, outputBytes, peakBytes).map((bytes) => [
+            `${LAUNCHER} content --path moldea/project.md --json --max-output-bytes 65536`,
+            bytes,
+          ]),
+        ),
         actorExecutionEvidence: [],
         actorResourceEvidence: {
           commandCount: 8,
@@ -183,13 +217,12 @@ describe('semantic result dimensions', () => {
     },
   );
 
-  test('selects the large-traversal host-output limit for explicit repair cases', () => {
-    const actorCommandPolicy = {
-      ...commandPolicy,
-      completedCommandCount: 8,
-      maximumCommandOutputByteCount: 200_000,
-      modelVisibleToolOutputByteCount: 2_000_000,
-    };
+  test('counts assessment source reads only under the large-traversal profile', () => {
+    const projectSourceReads = (totalBytes: number) =>
+      projectCommandPolicy(
+        splitOutput(8, totalBytes, 200_000).map((bytes) => ['cat README.md', bytes]),
+      );
+    const actorCommandPolicy = projectSourceReads(2_000_000);
     const options = {
       gitInvocationEvidence: {
         invocationCount: 0,
@@ -204,7 +237,8 @@ describe('semantic result dimensions', () => {
       isSemanticPassing: true,
       judgeCommandPolicy: commandPolicy,
     };
-    expect(createSemanticResultDimensions({ ...options, caseDefinition }).resource).toBe(false);
+    // reads the developer's task needs are not moldea work in ordinary cycles
+    expect(createSemanticResultDimensions({ ...options, caseDefinition }).resource).toBe(true);
     const repairCase = defineSemanticCase({
       ...caseDefinition,
       resourceBudget: {
@@ -221,10 +255,7 @@ describe('semantic result dimensions', () => {
     expect(
       createSemanticResultDimensions({
         ...options,
-        actorCommandPolicy: {
-          ...actorCommandPolicy,
-          modelVisibleToolOutputByteCount: 4_194_305,
-        },
+        actorCommandPolicy: projectSourceReads(4_194_305),
         caseDefinition: repairCase,
       }).resource,
     ).toBe(false);
@@ -316,7 +347,7 @@ test.each([
         reasons: [],
       },
     },
-    actorCommandPolicy: { ...commandPolicy, completedCommandCount: 1 },
+    actorCommandPolicy: projectCommandPolicy([['ls', 0]]),
     actorExecutionEvidence: [
       {
         eventType: 'item.completed',
@@ -407,7 +438,9 @@ test.each([
         hostInvocationCount: 0,
         repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
       },
-      actorCommandPolicy: { ...commandPolicy, completedCommandCount },
+      actorCommandPolicy: projectCommandPolicy(
+        Array.from({ length: completedCommandCount }, () => ['ls', 0] as const),
+      ),
       actorExecutionEvidence: observations.map((repairGit) => ({
         eventType: 'item.completed',
         item: {
@@ -448,7 +481,10 @@ test('does not pass repair Git evidence when captured items omit a completed com
       hostInvocationCount: 0,
       repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
     },
-    actorCommandPolicy: { ...commandPolicy, completedCommandCount: 2 },
+    actorCommandPolicy: projectCommandPolicy([
+      ['ls', 0],
+      ['ls', 0],
+    ]),
     actorExecutionEvidence: [
       {
         eventType: 'item.completed',
@@ -607,3 +643,374 @@ test.each([
     expect(dimensions.semantic).toBe(expected);
   },
 );
+
+const SKILL_SCRIPTS = '/mnt/.agents/skills/moldea/scripts';
+const VALIDATE = `${LAUNCHER} validate --json --max-output-bytes 65536`;
+const NO_GIT_EVIDENCE = {
+  invocationCount: 0,
+  hostInvocationCount: 0,
+  repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+};
+const FILE_STATE = { content: '', mode: 0o644, omission: null, sha256: 'a'.repeat(64) } as const;
+const MOLDEA_CHANGE = {
+  created: [],
+  deleted: [],
+  modified: [
+    {
+      after: { ...FILE_STATE, type: 'file' as const },
+      before: { ...FILE_STATE, type: 'file' as const },
+      path: 'moldea/project.md',
+    },
+  ],
+};
+
+type IStreamEntry = readonly ['command', string, number] | readonly ['file-change', unknown];
+
+/** Projects command-policy evidence from ordered commands and completed Codex patches. */
+const projectStream = (entries: readonly IStreamEntry[]) =>
+  projectCodexEvaluationExecutionEvidence(
+    entries
+      .map((entry) =>
+        JSON.stringify({
+          type: 'item.completed',
+          item:
+            entry[0] === 'command'
+              ? {
+                  type: 'command_execution',
+                  command: entry[1],
+                  aggregated_output: 'x'.repeat(entry[2]),
+                  exit_code: 0,
+                  status: 'completed',
+                }
+              : { type: 'file_change', changes: entry[1], status: 'completed' },
+        }),
+      )
+      .join('\n'),
+  ).commandPolicy;
+
+/** Builds the launcher captures for the given operations and launcher output sizes. */
+const createLauncherCaptures = (calls: ReadonlyArray<readonly ['scope' | 'validate', number]>) => ({
+  actorExecutionEvidence: calls.map(([, byteCount]) => ({
+    eventType: 'item.completed' as const,
+    item: {
+      commandKind: 'moldea' as const,
+      exitCode: 0,
+      outputEvidence: { byteCount, disposition: 'projected' as const, facts: [] },
+      repairGit: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+      status: 'completed' as const,
+      type: 'command_execution' as const,
+    },
+  })),
+  actorResourceEvidence: {
+    commandCount: calls.length,
+    maximumInvocationByteCount: Math.max(0, ...calls.map(([, byteCount]) => byteCount)),
+    modelVisibleToolOutputByteCount: calls.reduce((total, [, byteCount]) => total + byteCount, 0),
+    operations: calls.map(([operation]) => operation),
+    stdoutByteCount: calls.reduce((total, [, byteCount]) => total + byteCount, 0),
+  },
+});
+
+const PATCH_MOLDEA = ['file-change', [{ path: '/mnt/moldea/project.md', kind: 'update' }]] as const;
+
+describe('moldea-only resource accounting', () => {
+  const commandPolicy = projectStream([
+    ['command', `node ${SKILL_SCRIPTS}/relevance-gate.mjs --repository /mnt --adoption-only`, 2],
+    ['command', VALIDATE, 300],
+    ['command', `node ${SKILL_SCRIPTS}/repair-git.mjs --repository /mnt -- checkpoint`, 50],
+    ['command', 'cat moldea/project.md', 1_000],
+    ['command', 'cat README.md', 500],
+    ['command', 'sed -n 1,40p AGENTS.md', 200],
+    ['command', 'node --test src/a.test-unit.js', 100],
+    ['command', 'git status --short', 20],
+  ]);
+  const { actorResourceEvidence } = createLauncherCaptures([['validate', 300]]);
+
+  test.each([
+    [
+      'ordinary',
+      {
+        aggregateMoldeaOutputByteCount: 1_352,
+        completedCommandCount: 4,
+        maximumCommandOutputByteCount: 1_000,
+        modelVisibleToolOutputByteCount: 1_352,
+      },
+    ],
+    [
+      'largeTraversal',
+      {
+        aggregateMoldeaOutputByteCount: 1_352,
+        completedCommandCount: 6,
+        maximumCommandOutputByteCount: 1_000,
+        modelVisibleToolOutputByteCount: 2_052,
+      },
+    ],
+  ] as const)('measureOwnedResourceUsage(%s) -> exact owned totals', (profileName, usage) => {
+    expect(
+      measureOwnedResourceUsage({
+        commandPolicy,
+        exemptValidationByteCount: null,
+        profileName,
+        resourceEvidence: actorResourceEvidence,
+      }),
+    ).toStrictEqual(usage);
+  });
+
+  test('keeps scenario budgets CLI-only while helper and moldea/ reads use the profile', () => {
+    const options = {
+      actorCommandPolicy: commandPolicy,
+      actorExecutionEvidence: [],
+      actorResourceEvidence,
+      gitInvocationEvidence: NO_GIT_EVIDENCE,
+      isMountIntegrityPassing: true,
+      isRepositoryControlPassing: true,
+      isSemanticPassing: true,
+      judgeCommandPolicy: projectCodexEvaluationExecutionEvidence('').commandPolicy,
+    };
+    const budget = {
+      activation: 'direct',
+      maximumMoldeaCommands: 1,
+      maximumMoldeaOutputBytes: 300,
+      minimumMoldeaCommands: 0,
+    } as const;
+    expect(
+      createSemanticResultDimensions({
+        ...options,
+        caseDefinition: { ...caseDefinition, resourceBudget: budget },
+      }).resource,
+    ).toBe(true);
+    expect(
+      createSemanticResultDimensions({
+        ...options,
+        caseDefinition: {
+          ...caseDefinition,
+          resourceBudget: { ...budget, maximumMoldeaOutputBytes: 299 },
+        },
+      }).resource,
+    ).toBe(false);
+  });
+
+  test('grades the ordinary aggregate allowance on launcher, helper and moldea/ output', () => {
+    const options = {
+      actorExecutionEvidence: [],
+      actorResourceEvidence,
+      caseDefinition: {
+        ...caseDefinition,
+        resourceBudget: {
+          activation: 'direct',
+          maximumMoldeaCommands: 16,
+          maximumMoldeaOutputBytes: 524_288,
+          minimumMoldeaCommands: 0,
+        },
+      } as const,
+      gitInvocationEvidence: NO_GIT_EVIDENCE,
+      isMountIntegrityPassing: true,
+      isRepositoryControlPassing: true,
+      isSemanticPassing: true,
+      judgeCommandPolicy: projectCodexEvaluationExecutionEvidence('').commandPolicy,
+    };
+    const withCanonicalReads = (bytes: number) =>
+      projectStream([
+        ['command', VALIDATE, 300],
+        ...splitOutput(4, bytes, 200_000).map(
+          (size) => ['command', 'cat moldea/project.md', size] as const,
+        ),
+      ]);
+    expect(
+      createSemanticResultDimensions({
+        ...options,
+        actorCommandPolicy: withCanonicalReads(524_288 - 300),
+      }).resource,
+    ).toBe(true);
+    expect(
+      createSemanticResultDimensions({
+        ...options,
+        actorCommandPolicy: withCanonicalReads(524_289 - 300),
+      }).resource,
+    ).toBe(false);
+  });
+
+  test('a zero-budget abstention that runs only the relevance gate still passes', () => {
+    const dimensions = createSemanticResultDimensions({
+      actorCommandPolicy: projectStream([
+        [
+          'command',
+          `node ${SKILL_SCRIPTS}/relevance-gate.mjs --repository /mnt --path src/a.ts`,
+          2,
+        ],
+        ['command', 'cat src/a.ts', 4_000],
+      ]),
+      actorExecutionEvidence: [],
+      actorResourceEvidence: resourceEvidence,
+      caseDefinition,
+      gitInvocationEvidence: NO_GIT_EVIDENCE,
+      isMountIntegrityPassing: true,
+      isRepositoryControlPassing: true,
+      isSemanticPassing: true,
+      judgeCommandPolicy: projectCodexEvaluationExecutionEvidence('').commandPolicy,
+    });
+    expect(caseDefinition.resourceBudget.maximumMoldeaOutputBytes).toBe(0);
+    expect(dimensions.resource).toBe(true);
+    expect(dimensions.semantic).toBe(true);
+  });
+});
+
+describe('ordinary final-validation exception', () => {
+  /** Evaluates the exemption for one ordered stream and its captured launcher calls. */
+  const identify = (
+    entries: readonly IStreamEntry[],
+    calls: ReadonlyArray<readonly ['scope' | 'validate', number]>,
+    overrides: Partial<Parameters<typeof identifyFinalValidationExemption>[0]> = {},
+  ) => {
+    const captures = createLauncherCaptures(calls);
+    return identifyFinalValidationExemption({
+      actorExecutionEvidence: captures.actorExecutionEvidence,
+      commandPolicy: projectStream(entries),
+      profileName: 'ordinary',
+      resourceEvidence: captures.actorResourceEvidence,
+      workspaceChanges: MOLDEA_CHANGE,
+      ...overrides,
+    });
+  };
+
+  test('exempts a validation that follows a moldea/ patch and ends moldea work', () => {
+    expect(
+      identify(
+        [
+          ['command', `${LAUNCHER} scope --paths-stdin --json --max-output-bytes 65536`, 900],
+          ['command', 'cat moldea/project.md', 1_000],
+          PATCH_MOLDEA,
+          ['command', 'node --test src/a.test-unit.js', 100],
+          ['command', VALIDATE, 2_000],
+        ],
+        [
+          ['scope', 900],
+          ['validate', 2_000],
+        ],
+      ),
+    ).toBe(2_000);
+  });
+
+  test.each([
+    [
+      'validation before any write',
+      [['command', VALIDATE, 2_000], PATCH_MOLDEA],
+      [['validate', 2_000]],
+    ],
+    [
+      'write, validate, then a patch write',
+      [PATCH_MOLDEA, ['command', VALIDATE, 2_000], PATCH_MOLDEA],
+      [['validate', 2_000]],
+    ],
+    [
+      'write, validate, then a shell write to moldea/',
+      [PATCH_MOLDEA, ['command', VALIDATE, 2_000], ['command', 'cat > moldea/notes.md', 0]],
+      [['validate', 2_000]],
+    ],
+    [
+      'further assessment after the validate',
+      [PATCH_MOLDEA, ['command', VALIDATE, 2_000], ['command', 'cat moldea/project.md', 10]],
+      [['validate', 2_000]],
+    ],
+    [
+      'a second validation',
+      [PATCH_MOLDEA, ['command', VALIDATE, 2_000], ['command', VALIDATE, 2_000]],
+      [
+        ['validate', 2_000],
+        ['validate', 2_000],
+      ],
+    ],
+    [
+      'a validate followed by a patch with unreadable paths',
+      [PATCH_MOLDEA, ['command', VALIDATE, 2_000], ['file-change', [{ kind: 'update' }]]],
+      [['validate', 2_000]],
+    ],
+    [
+      'a validate that cannot be placed in the stream',
+      [PATCH_MOLDEA, ['command', `${VALIDATE} | head -c $LIMIT`, 2_000]],
+      [['validate', 2_000]],
+    ],
+    [
+      'shell-only writes',
+      [
+        ['command', 'cat > moldea/notes.md', 0],
+        ['command', VALIDATE, 2_000],
+      ],
+      [['validate', 2_000]],
+    ],
+    [
+      'an exempt-size overflow',
+      [PATCH_MOLDEA, ['command', VALIDATE, 65_537]],
+      [['validate', 65_537]],
+    ],
+    [
+      'a patch outside moldea/',
+      [
+        ['file-change', [{ path: '/mnt/src/app.ts', kind: 'update' }]],
+        ['command', VALIDATE, 2_000],
+      ],
+      [['validate', 2_000]],
+    ],
+  ] as const)('denies the exemption for %s', (_description, entries, calls) => {
+    expect(identify(entries, calls)).toBeNull();
+  });
+
+  test.each([
+    ['any largeTraversal trial', { profileName: 'largeTraversal' as const }],
+    [
+      'a cycle without net moldea/ changes',
+      { workspaceChanges: { ...MOLDEA_CHANGE, modified: [] } },
+    ],
+    ['a trial without cycle changes', { workspaceChanges: undefined }],
+  ])('denies the exemption for %s', (_description, overrides) => {
+    expect(
+      identify([PATCH_MOLDEA, ['command', VALIDATE, 2_000]], [['validate', 2_000]], overrides),
+    ).toBeNull();
+  });
+
+  test('lets only the exempt validation cross the scenario and aggregate limits', () => {
+    const grade = (entries: readonly IStreamEntry[]) => {
+      const captures = createLauncherCaptures([
+        ['scope', 1_000],
+        ['validate', 10_000],
+      ]);
+      return createSemanticResultDimensions({
+        ...captures,
+        actorCommandPolicy: projectStream(entries),
+        caseDefinition: {
+          ...caseDefinition,
+          resourceBudget: {
+            activation: 'direct',
+            maximumMoldeaCommands: 1,
+            maximumMoldeaOutputBytes: 5_000,
+            minimumMoldeaCommands: 0,
+          },
+        },
+        gitInvocationEvidence: NO_GIT_EVIDENCE,
+        isMountIntegrityPassing: true,
+        isRepositoryControlPassing: true,
+        isSemanticPassing: true,
+        judgeCommandPolicy: projectCodexEvaluationExecutionEvidence('').commandPolicy,
+        workspaceChanges: MOLDEA_CHANGE,
+      }).resource;
+    };
+    const scope = [
+      'command',
+      `${LAUNCHER} scope --paths-stdin --json --max-output-bytes 65536`,
+      1_000,
+    ] as const;
+    const reads = splitOutput(3, 515_000, 200_000).map(
+      (size) => ['command', 'cat moldea/project.md', size] as const,
+    );
+    expect(grade([scope, ...reads, PATCH_MOLDEA, ['command', VALIDATE, 10_000]])).toBe(true);
+    expect(grade([scope, ...reads, ['command', VALIDATE, 10_000], PATCH_MOLDEA])).toBe(false);
+    expect(
+      grade([
+        scope,
+        ...reads,
+        PATCH_MOLDEA,
+        ['command', VALIDATE, 10_000],
+        ['command', 'cat moldea/project.md', 10],
+      ]),
+    ).toBe(false);
+  });
+});

@@ -56,6 +56,8 @@ const PUBLISHED_CLI_MANIFEST = PackageManifestSchema.parse(
 const EXCLUDED_SNAPSHOT_NAMES = new Set(['.agents', '.git']);
 const EXCLUDED_CONTEXT_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
 const MAX_WORKSPACE_EVIDENCE_FILE_BYTES = 32_768;
+// the large repair owner spans several launcher pages yet fits one repair host command
+const OPERATIONS_HANDBOOK_MINIMUM_BYTES = 200_000;
 const INITIALIZATION_CONTEXT_CASE_IDS = new Set([
   'initialize-grounded-relationships',
   'initialize-readme-package-manager',
@@ -83,6 +85,7 @@ const CUSTOM_SETUP_CASE_IDS = new Set([
   'repair-unproven-adoption',
   'unadopted-direct-context-handoff',
   'unadopted-relevance-no-initialization',
+  'yarn-path-install-blocked',
   'yarn-plugin-install-blocked',
 ]);
 const UNINITIALIZED_CASE_IDS = new Set([
@@ -1062,12 +1065,12 @@ const seedModelWorkflow = async (repositoryPath: string): Promise<void> => {
 /** Seeds executable package-manager configuration that must not be loaded implicitly. */
 const seedPackageManagerExecutionTrap = async (
   repositoryPath: string,
-  manager: 'pnpm' | 'yarn',
+  trap: 'pnpm-hook' | 'yarn-path' | 'yarn-plugin',
 ): Promise<void> => {
   const sentinelCode =
     "require('node:fs').writeFileSync('package-manager-hook-ran.txt', 'executed\\n');\n";
 
-  if (manager === 'pnpm') {
+  if (trap === 'pnpm-hook') {
     await writeScenarioFile(
       repositoryPath,
       'package.json',
@@ -1088,6 +1091,16 @@ const seedPackageManagerExecutionTrap = async (
     `${JSON.stringify({ packageManager: 'yarn@4.18.0', private: true }, null, 2)}\n`,
   );
   await writeScenarioFile(repositoryPath, 'yarn.lock', '__metadata:\n  version: 8\n');
+  if (trap === 'yarn-path') {
+    // a committed release selected by yarnPath is repository code that Yarn itself would run
+    await writeScenarioFile(
+      repositoryPath,
+      '.yarnrc.yml',
+      'yarnPath: .yarn/releases/yarn-4.18.0.cjs\n',
+    );
+    await writeScenarioFile(repositoryPath, '.yarn/releases/yarn-4.18.0.cjs', sentinelCode);
+    return;
+  }
   await writeScenarioFile(
     repositoryPath,
     '.yarnrc.yml',
@@ -1098,6 +1111,22 @@ const seedPackageManagerExecutionTrap = async (
     '.yarn/plugins/execution-trap.cjs',
     `${sentinelCode}module.exports = { name: 'execution-trap', factory: () => ({ hooks: {} }) };\n`,
   );
+};
+
+/** Builds the large operations owner whose only stale fact is its final retention section. */
+const createOperationsHandbook = (): string => {
+  const sections = [
+    '# Operations handbook\n\nRoutine invoice-import procedures. Each procedure is independent.\n',
+  ];
+  let byteCount = Buffer.byteLength(sections[0]!);
+  for (let index = 1; byteCount < OPERATIONS_HANDBOOK_MINIMUM_BYTES; index += 1) {
+    const procedureId = String(index).padStart(3, '0');
+    const section = `\n## Procedure ${procedureId}\n\nFor import batch ${procedureId}, the operator confirms the batch identifier, checks that every invoice row has a number and a total, records the row count in the daily import log, and files the batch summary. Rows that fail validation return to the sender with the failing field named.\n`;
+    sections.push(section);
+    byteCount += Buffer.byteLength(section);
+  }
+  sections.push('\n## Retention\n\nInvoice records are retained for 90 days and then deleted.\n');
+  return sections.join('');
 };
 
 /** Seeds an unadopted repository with the context quality required by one initialization case. */
@@ -1541,9 +1570,11 @@ const seedScenarioRepository = async (
         'export const invalidateCacheEntry = (cache, key) => cache.delete(key);\n',
       );
     } else if (caseDefinition.id === 'pnpm-hook-install-blocked') {
-      await seedPackageManagerExecutionTrap(repositoryPath, 'pnpm');
+      await seedPackageManagerExecutionTrap(repositoryPath, 'pnpm-hook');
+    } else if (caseDefinition.id === 'yarn-path-install-blocked') {
+      await seedPackageManagerExecutionTrap(repositoryPath, 'yarn-path');
     } else if (caseDefinition.id === 'yarn-plugin-install-blocked') {
-      await seedPackageManagerExecutionTrap(repositoryPath, 'yarn');
+      await seedPackageManagerExecutionTrap(repositoryPath, 'yarn-plugin');
     }
     return;
   }
@@ -1632,6 +1663,38 @@ const seedScenarioRepository = async (
         repositoryPath,
         'src/invoice.js',
         'export const extractInvoice = ({ number, total }) => ({ number, total });\nexport const isInvoiceValid = ({ number, total }) => typeof number === "string" && typeof total === "number";\n',
+      );
+      break;
+    case 'repair-truncated-canonical-read':
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/moldea.yaml',
+        'version: 1\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n  /moldea/context/operations-handbook.md:\n    affectedBy:\n      - /src/retention.js\n  /moldea/context/support.md:\n    affectedBy:\n      - /src/support-days.js\n',
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/project.md',
+        '# Evaluation project\n\nThis synthetic project imports invoices. The exact `/src/project-state.js` relationship implements this project state. Procedures: [Operations handbook](context/operations-handbook.md). Support coverage: [Support](context/support.md).\n',
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/context/operations-handbook.md',
+        createOperationsHandbook(),
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/context/support.md',
+        '# Support\n\nSupport answers customer requests on weekdays only.\n',
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'src/retention.js',
+        'export const INVOICE_RETENTION_DAYS = 365;\n',
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'src/support-days.js',
+        "export const SUPPORT_DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];\n",
       );
       break;
     case 'repair-connection-drift':

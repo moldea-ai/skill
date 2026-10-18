@@ -37,6 +37,8 @@ The budget trial emitted 199,115, 199,103 and 198,387 bytes across its three req
 
 All six repair-continuation cases are included. They cover source and manifest changes, incomplete or unavailable checkpoints, missing owner lists and bounded partial coverage. All passed initially using actual sandbox Git-wrapper records together with recognized command text. The earlier manifest-change failures, which restored a healthy relationship to checkpoint state, remain historical records. The verified 108-case fallback also remains unchanged.
 
+Two cases were added after the 8.2.3 recording and have no recorded trials yet. `yarn-path-install-blocked` asks for initialization in a Yarn repository whose `.yarnrc.yml` `yarnPath` selects a committed release; the report must name that setting and release as blocking automatic CLI installation, stop before invoking Yarn and defer to the trusted setup workflow, and the release must never run. `repair-truncated-canonical-read` asks for `Fix moldea` when one context owner of about 200 KB ends with a retention period that contradicts its small related source. The report must either name that stale fact and its source or list the owner under **Not checked**, and must not call the project healthy. The judge's workspace snapshot omits files over 32,768 bytes, so this case grades the report against the visible source, not edits inside the large document. Neither case evaluates the exact Yarn installation command or the ordinary final-validation exception.
+
 The relationship cases include `assessed-owner-relationships`, `maintain-known-context-owners` and the policy-versus-infrastructure feature boundary guard. The guard permits the exact governing policy and one test protecting it; UI, navigation, routers, shared helpers, broad globs and unrelated tests still fail. It does not duplicate scope-routing coverage. Private relationship diagnostics are separate from these published recording observations.
 
 The full recording finished with 114 passed, five recovered and three failed cases. The reserve corrected three identified case defects and reused the other 119 cases exactly. README repair passed its revised observable checks, leaving two failed cases. The final official cleanup retained the other 120 cases and reused all 131 trials and 264 stage records, including their cycles, usage and recovered quorums. No diagnostic trial supplies release reuse.
@@ -97,15 +99,15 @@ Raw command text and output are not recorded. The host projects bounded command-
 
 Protocol 49 grades each cycle on moldea's own work. The host classifies every completed command without retaining its text:
 
-| Command or output | `ordinary` | `largeTraversal` |
-| --- | --- | --- |
-| `moldea` launcher call | Host commands, peak and visible output; aggregate `moldea` output; one CLI call | Same |
-| Bundled helper, including the relevance gate and repair Git helper | Host commands, peak and visible output; aggregate `moldea` output | Same |
-| Read, search or shell write under `moldea/` | Host commands, peak and visible output; aggregate `moldea` output | Same |
-| Any other read, including `README.md` and `AGENTS.md` | Not counted | Host commands, peak and visible output; not aggregate `moldea` output |
-| Project tests, builds, Git and package-manager commands | Not counted | Not counted |
-| Codex patch writes | Not commands | Not commands |
-| Model tokens | Whole cycle | Whole cycle |
+| Command or output                                                  | `ordinary`                                                                      | `largeTraversal`                                                      |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `moldea` launcher call                                             | Host commands, peak and visible output; aggregate `moldea` output; one CLI call | Same                                                                  |
+| Bundled helper, including the relevance gate and repair Git helper | Host commands, peak and visible output; aggregate `moldea` output               | Same                                                                  |
+| Read, search or shell write under `moldea/`                        | Host commands, peak and visible output; aggregate `moldea` output               | Same                                                                  |
+| Any other read, including `README.md` and `AGENTS.md`              | Not counted                                                                     | Host commands, peak and visible output; not aggregate `moldea` output |
+| Project tests, builds, Git and package-manager commands            | Not counted                                                                     | Not counted                                                           |
+| Codex patch writes                                                 | Not commands                                                                    | Not commands                                                          |
+| Model tokens                                                       | Whole cycle                                                                     | Whole cycle                                                           |
 
 Each scenario's `moldea` call and output budget still counts only launcher calls and their output, so a zero-budget abstention case may run the relevance gate. The profile's aggregate `moldea` output allowance, 512 KiB for `ordinary` and 1 MiB for `largeTraversal`, is graded per cycle on launcher output plus helper and `moldea/` output. A command whose owner is unclear, such as an unparseable command that mentions `moldea/`, counts toward the highest owner it could reach. The runner's absolute whole-stage ceilings remain failure containment.
 

@@ -68,6 +68,16 @@ Development checks exercise the current semantic catalog without recorded result
 
 Skill tags require deterministic conformance, synchronized release identity, and installation checks. Tagged CI does not prepare selected evidence or run a model. A passing tag does not establish semantic behavior. The selected 8.2.3 snapshot records fresh and exactly reused passing observations. Historical presentation-only snapshots remain separate and do not establish current behavior.
 
+## Skill 8.2.4 evidence reuse
+
+Skill 8.2.4 retains the exact semantic evidence recorded on Skill 8.2.3 with CLI 11.0.6. The selected bundle remains `semantic-sem-20261018051032668-1465f9ee.json.gz` under `evidence-8.2.3-20261018`, with compressed SHA-256 `baa883450e1087efafbf3c685e311859fb63575dfa839761c20db48de292342d`. Its 120 cases contain 115 passes and five recoveries. The two disclosed exclusions, original observations and historical journeys selection remain unchanged.
+
+The counting clarification applies to ordinary work, initialization and repair; the final-validation exception applies only to ordinary work. Neither change was re-evaluated. Every number and the large-traversal definition remain unchanged, and initialization and repair retain their stop-and-continue behavior. Deterministic conformance and installation checks do not prove model adherence to the new wording.
+
+The original 8.2.3 full recording covered 122 cases and 141 trials. Its highest recorded host-command counts were 46 of 64 for ordinary work, 29 of 64 for initialization and 54 of 64 for repair, including repair trials from both profiles. The ordinary maximum spans three requests with 20, 13 and 13 commands; the maximum ordinary cycle was 30. These are historical whole-trial measurements, not reclassified counts under the new moldea-only rule.
+
+Before the next paid evaluation, the evaluator must count only moldea's own work against these limits: moldea CLI calls and output, bundled helpers, and canonical file reads and writes. Project-required commands and their output must not consume those allowances. No evaluator, case, protocol or profile change is included in 8.2.4.
+
 ## Check a release
 
 ```bash

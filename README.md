@@ -4,7 +4,7 @@
 
 [Get moldea on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or read the complete documentation at [skill.moldea.ai](https://skill.moldea.ai).
 
-This checkout targets release `8.2.3`. Install the latest published version from `main` inside each repository that will use it:
+This checkout targets release `8.2.4`. Install the latest published version from `main` inside each repository that will use it:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -13,7 +13,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the immutable release after publication:
 
 ```bash
-npx skills add "moldea-ai/skill#v8.2.3"
+npx skills add "moldea-ai/skill#v8.2.4"
 ```
 
 Both commands install the portable skill named `moldea`. They do not install the CLI globally or require a hosted account. See [Getting started](docs/getting-started.md) for initialization, updates, and removal.
@@ -73,7 +73,7 @@ Evaluation is read-only. Repair checks every owner, its material implementation 
 
 ## Compatibility
 
-Release `8.2.3` supports exactly:
+Release `8.2.4` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.17.0`
@@ -107,6 +107,10 @@ For ordinary repository paths, the AGENTS.md precheck runs before loading SKILL.
 Evaluation is read-only across ordinary repository files, Git state, configuration, submodules, the installed portable skill, and declared related repositories. Structural validation proves repository shape, not behavioral completeness. Claims still require repository evidence, and unresolved developer decisions remain explicit instead of being converted into invented policy.
 
 Tooling establishment occurs only during authorized write-capable work and only after sufficient project context exists. Executable package-manager extensions stop automatic setup rather than being bypassed. Package identity and containment checks protect the launcher boundary, but they do not authenticate executable contents or provide an operating-system sandbox; the host's trust and execution controls remain authoritative.
+
+## Report a problem
+
+If `moldea` fails or behaves unexpectedly, email [jesus@moldea.ai](mailto:jesus@moldea.ai). Describe what you asked your coding agent and what happened instead. Include the error message and your skill, CLI, Node.js, Git, and operating system versions. Remove private code, secrets, credentials, and personal data before sending.
 
 ## Project blueprint
 
@@ -202,6 +206,8 @@ The skill uses independent semantic versioning. Every release must:
 - use an immutable `v<version>` tag
 
 During prelaunch testing, skill tags require deterministic conformance, synchronized release identity, and installation checks. Semantic evaluation is a separate evidence-backed operation; a passing tag does not establish it. The selected 8.2.3 semantic recording contains 120 cases: 115 passed and five recovered. Its final cleanup reused verified full-recording and reserve trials without new model calls. Two unresolved cases remain private and are disclosed as not yet included. Historical evidence preserves its recorded versions, dates and sources and supplies no current-release assurance. See [Release evidence](docs/release-evidence.md) for the exact workflows.
+
+Release 8.2.4 retains the selected 8.2.3 semantic evidence. Its resource-counting clarification and ordinary final-validation exception were not re-evaluated; see [the release qualification](docs/release-evidence.md#skill-824-evidence-reuse).
 
 ## License
 

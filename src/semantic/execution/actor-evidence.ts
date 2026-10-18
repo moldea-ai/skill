@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { posix } from 'node:path';
 
 import {
   hasValidRepairGitCommandEvidence,
@@ -11,6 +12,7 @@ import {
   projectRepairGitCommandEvidence,
 } from '../../execution/host/index.ts';
 import type {
+  ICliInvocation,
   IMoldeaCliOperation,
   IGitInvocationEvidence,
   IRepositoryTestCommandKind,
@@ -820,10 +822,18 @@ const hasValidEntry = (
   );
 };
 
-/** Projects one completed command event without retaining command text or output bodies. */
+/**
+ * Projects a completed host command without retaining command text or output bodies.
+ * @param event The native command result.
+ * @param options The accepted release CLI identity.
+ * @param recognizeCliFromCommand Whether transcript-only callers may infer CLI use from command text.
+ * @returns Content-free evidence, or null for another event kind.
+ * @throws If the command evidence or release identity is invalid.
+ */
 export const projectActorExecutionEvidenceEvent = (
   event: unknown,
   options: ISemanticActorExecutionEvidenceOptions,
+  recognizeCliFromCommand = true,
 ): ISemanticActorExecutionEvidence | null => {
   if (!hasValidProjectionOptions(options)) {
     throw new Error('Actor execution evidence requires a valid release CLI identity.');
@@ -848,7 +858,7 @@ export const projectActorExecutionEvidenceEvent = (
   ) {
     throw new Error('A completed Codex command event did not include its result evidence.');
   }
-  const operation = identifyMoldeaCliLauncherOperation(command);
+  const operation = recognizeCliFromCommand ? identifyMoldeaCliLauncherOperation(command) : null;
   const gateMode = operation === null ? identifyMoldeaRelevanceGateMode(command) : null;
   const isManagedReadmeWriter =
     operation === null && gateMode === null && isMoldeaManagedReadmeWriterCommand(command);
@@ -887,6 +897,61 @@ export const projectActorExecutionEvidenceEvent = (
   return entry;
 };
 
+/**
+ * Projects a launcher execution; only a consistent successful envelope proves validation.
+ * @returns Content-free attempt and response evidence.
+ * @throws If the captured result cannot be projected into the bounded evidence contract.
+ */
+export const projectCliInvocationEvidence = (
+  invocation: ICliInvocation,
+  options: ISemanticActorExecutionEvidenceOptions,
+): ISemanticActorExecutionEvidence => {
+  const [repositoryFlag, repository, separator, command] = invocation.arguments;
+  // startup proves the entry point; the launcher itself validates all remaining arguments
+  const operation =
+    repositoryFlag === '--repository' &&
+    typeof repository === 'string' &&
+    repository !== '' &&
+    posix.resolve('/mnt', repository) === '/mnt' &&
+    separator === '--' &&
+    isMoldeaOperation(command)
+      ? command
+      : null;
+  const outputEvidence = createOutputEvidence(
+    invocation.stdout,
+    operation,
+    null,
+    false,
+    null,
+    null,
+    invocation.exitCode,
+    options,
+    null,
+  );
+  outputEvidence.byteCount = invocation.outputByteCount;
+  if (invocation.outputByteCount > MAX_MOLDEA_OUTPUT_BYTES) {
+    outputEvidence.disposition = 'too-large';
+    outputEvidence.facts = [];
+  } else if (operation === null) {
+    outputEvidence.disposition = invocation.outputByteCount === 0 ? 'empty' : 'unrecognized';
+    outputEvidence.facts = [];
+  }
+  const entry: ISemanticActorExecutionEvidence = {
+    eventType: 'item.completed',
+    item: {
+      type: 'command_execution',
+      commandKind: 'moldea',
+      status: invocation.exitCode === 0 ? 'completed' : 'failed',
+      exitCode: invocation.exitCode,
+      repairGit: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+      outputEvidence,
+    },
+  };
+  if (!hasValidEntry(entry, options))
+    throw new Error('CLI invocation evidence has an unsupported shape.');
+  return entry;
+};
+
 /** Checks the strict bounded protocol for a complete projected command sequence. */
 export const hasValidActorExecutionEvidence = (
   executionEvidence: unknown,
@@ -897,7 +962,7 @@ export const hasValidActorExecutionEvidence = (
   executionEvidence.length <= MAX_ACTOR_EXECUTION_EVIDENCE_ITEMS &&
   executionEvidence.every((entry) => hasValidEntry(entry, options));
 
-/** Summarizes moldea command and model-visible output consumption without retaining content. */
+/** Summarizes actual launcher calls and emitted output without retaining content. */
 export const createMoldeaResourceEvidence = (
   executionEvidence: ISemanticActorExecutionEvidence[],
   options: ISemanticActorExecutionEvidenceOptions,

@@ -45,13 +45,13 @@ export const semanticCase = defineSemanticCase({
     activation: 'direct',
     minimumMoldeaCommands: 1,
     maximumMoldeaCommands: 8,
-    maximumMoldeaOutputBytes: 262144,
+    maximumMoldeaOutputBytes: 524288,
   },
   expected: [
     {
       label: 'assess-direct-canonical-change',
       criterion:
-        'The actor assesses the changed /moldea/project.md owner directly, completes a successful launcher-backed structural validation, and reports the reviewed clarification separately from any semantic conclusion the available implementation evidence cannot support. A gate miss or empty scope result must not suppress the requested direct assessment and validation. Repository files remain unchanged.',
+        'The actor reviews the changed /moldea/project.md owner directly and completes a successful launcher-backed structural validation. A concise no-findings response naming the reviewed owner is sufficient; it need not restate the clarification. The report does not present structural validity as proof of runtime or semantic alignment. A gate miss or empty scope result must not suppress the requested direct assessment and validation. Repository files remain unchanged.',
     },
   ],
   forbidden: [

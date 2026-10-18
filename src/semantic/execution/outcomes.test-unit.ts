@@ -107,6 +107,52 @@ test.each([
 );
 
 describe('semantic result dimensions', () => {
+  test.each([
+    [524_288, 262_144, true],
+    [524_289, 262_144, false],
+    [524_288, 262_145, false],
+  ])(
+    'ordinary moldea output %d and peak host output %d -> resource %s',
+    (outputBytes, peakBytes, passing) => {
+      const dimensions = createSemanticResultDimensions({
+        gitInvocationEvidence: {
+          invocationCount: 0,
+          hostInvocationCount: 0,
+          repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+        },
+        actorCommandPolicy: {
+          ...commandPolicy,
+          completedCommandCount: 8,
+          maximumCommandOutputByteCount: peakBytes,
+          modelVisibleToolOutputByteCount: outputBytes,
+        },
+        actorExecutionEvidence: [],
+        actorResourceEvidence: {
+          commandCount: 8,
+          maximumInvocationByteCount: 65_536,
+          modelVisibleToolOutputByteCount: outputBytes,
+          operations: Array<string>(8).fill('content'),
+          stdoutByteCount: outputBytes,
+        },
+        caseDefinition: {
+          ...caseDefinition,
+          resourceBudget: {
+            activation: 'direct',
+            maximumMoldeaCommands: 16,
+            maximumMoldeaOutputBytes: 524_288,
+            minimumMoldeaCommands: 0,
+          },
+        },
+        isMountIntegrityPassing: true,
+        isRepositoryControlPassing: true,
+        isSemanticPassing: true,
+        judgeCommandPolicy: commandPolicy,
+      });
+      expect(dimensions.resource).toBe(passing);
+      expect(dimensions.semantic).toBe(true);
+    },
+  );
+
   test('selects the large-traversal host-output limit for explicit repair cases', () => {
     const actorCommandPolicy = {
       ...commandPolicy,

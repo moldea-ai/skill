@@ -35,6 +35,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
       - name: Setup development Node.js
         uses: actions/setup-node@v4
@@ -50,6 +51,7 @@ jobs:
         id: selection
         env:
           CI_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          CI_TESTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: node src/ci/changes.ts
 
   correctness:
@@ -61,6 +63,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
       - name: Setup development Node.js
         uses: actions/setup-node@v4
@@ -101,6 +104,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
       - name: Setup development Node.js
         uses: actions/setup-node@v4
@@ -170,6 +174,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
       - name: Setup development Node.js
         uses: actions/setup-node@v4
@@ -200,6 +205,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
@@ -208,6 +214,7 @@ jobs:
         shell: pwsh
         env:
           SOURCE_REPOSITORY: ${{ github.workspace }}
+          CANDIDATE_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
           npm_config_before: ${{ env.SKILLS_REGISTRY_SNAPSHOT }}
         run: |
           $deepRoot = Join-Path $env:RUNNER_TEMP 'users\windows-developer\appdata\local\temp\skills-portability-clone'
@@ -218,7 +225,7 @@ jobs:
             throw 'The repository objects could not be cloned with default Windows path behavior.'
           }
 
-          git -C $clonePath checkout --detach $env:GITHUB_SHA
+          git -C $clonePath checkout --detach $env:CANDIDATE_COMMIT
           if ($LASTEXITCODE -ne 0) {
             throw 'The exact candidate could not be checked out with default Windows path behavior.'
           }
@@ -251,9 +258,9 @@ jobs:
             }
 
             $env:MOLDEA_TEST_NODE = (Get-Command node).Source
-            npm exec -- vitest run --config vitest/test-integration.config.ts src/portable/runtime-generation.test-integration.ts
+            npm run test:integration -- src/portable
             if ($LASTEXITCODE -ne 0) {
-              throw 'Generated runtime helpers failed on Windows.'
+              throw 'Portable integration failed on Windows.'
             }
 
             $skillsHome = Join-Path $deepRoot 'developer-home'
@@ -279,10 +286,32 @@ jobs:
             Pop-Location
           }
 
+  macos-portability:
+    needs: changes
+    if: needs.changes.outputs.full == 'true'
+    name: macOS portable integration
+    runs-on: macos-15
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.DEVELOPMENT_NODE_VERSION }}
+      - name: Install workspace dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts
+      - name: Build isolated runtime helpers
+        run: npm run runtime:build
+      - name: Check portable generated artifacts
+        run: npm run portable:check
+      - name: Run portable integration tests
+        run: npm run test:integration -- src/portable
+
   result:
     name: Conformance result
     if: always()
-    needs: [changes, correctness, portable, quality, windows-portability]
+    needs: [changes, correctness, portable, quality, windows-portability, macos-portability]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -294,6 +323,7 @@ jobs:
           PORTABLE: ${{ needs.portable.result }}
           QUALITY: ${{ needs.quality.result }}
           WINDOWS: ${{ needs.windows-portability.result }}
+          MACOS: ${{ needs.macos-portability.result }}
         run: |
           test "$CLASSIFICATION" = success
           if [ "$FULL" = true ]; then
@@ -303,6 +333,6 @@ jobs:
           else
             exit 1
           fi
-          for result in "$CORRECTNESS" "$PORTABLE" "$QUALITY" "$WINDOWS"; do
+          for result in "$CORRECTNESS" "$PORTABLE" "$QUALITY" "$WINDOWS" "$MACOS"; do
             test "$result" = "$expected" || exit 1
           done

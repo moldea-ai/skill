@@ -15,6 +15,8 @@ export interface IScopePathContext {
  * - Invalid scope path input.
  */
 export const normalizeScopePath = (path: string, context: IScopePathContext): string => {
+  const usesWindowsPaths = /^[A-Za-z]:[\\/]|^\\\\/u.test(context.resolvedRepositoryRoot);
+  if (usesWindowsPaths) path = path.replaceAll('\\', '/');
   const isDriveAbsolute = /^[A-Za-z]:[\\/]/u.test(path);
   const normalizedPath = path.replace(/^(?:\.\/)+/u, '');
   const segments = normalizedPath.split(isDriveAbsolute ? /[\\/]/u : '/');
@@ -34,7 +36,6 @@ export const normalizeScopePath = (path: string, context: IScopePathContext): st
     throw new Error('Invalid scope path input.');
   }
 
-  const usesWindowsPaths = /^[A-Za-z]:[\\/]|^\\\\/u.test(context.resolvedRepositoryRoot);
   if (isDriveAbsolute && !usesWindowsPaths) throw new Error('Invalid scope path input.');
   const pathApi = usesWindowsPaths ? win32 : posix;
   if (isDriveAbsolute || (!usesWindowsPaths && normalizedPath.startsWith('/'))) {

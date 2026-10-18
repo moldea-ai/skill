@@ -18,6 +18,7 @@ import { test } from 'vitest';
 import { z } from 'zod';
 
 import { GitInvocationEventSchema } from './git-invocations.ts';
+import { CliInvocationEventSchema } from './cli-invocations/index.ts';
 import { CODEX_EVALUATION_GIT_STATUS_ARGUMENTS } from './git-command-policy-boundary.ts';
 import {
   CODEX_EVALUATION_HOST_FAILURE_KINDS,
@@ -80,6 +81,7 @@ const prepareEmptyCodexEvaluationHome = async (
 /** Verifies the required capture frame while testing a fake host's own output. */
 const unwrapHostOutput = (output: string): string => {
   const lines = output.split('\n');
+  CliInvocationEventSchema.parse(JSON.parse(lines.pop() ?? ''));
   GitInvocationEventSchema.parse(JSON.parse(lines.pop() ?? ''));
   return lines.join('\n');
 };
@@ -466,6 +468,55 @@ test('Bubblewrap exposes the exact host Node runtime through its isolated PATH',
         sandboxHome,
       }),
       { encoding: 'utf8', timeout: 2_000 },
+    );
+    assert.equal(result.status, 0, result.stderr);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
+test('Bubblewrap supports private response checkpoints without changing repository files', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-checkpoint-mount-'));
+  const repositoryPath = join(evaluationRoot, 'repository');
+  const sandboxHome = join(evaluationRoot, 'home');
+  try {
+    mkdirSync(repositoryPath);
+    await prepareEmptyCodexEvaluationHome(sandboxHome, evaluationRoot);
+    for (const name of ['response-directory.mjs', 'repository-files.mjs']) {
+      writeFileSync(
+        join(repositoryPath, name),
+        readFileSync(join(process.cwd(), 'moldea', 'scripts', name)),
+      );
+    }
+    const probe = `
+      const assert = require('node:assert/strict');
+      const { spawnSync } = require('node:child_process');
+      const { writeFileSync, readFileSync, rmSync, readdirSync } = require('node:fs');
+      const { join } = require('node:path');
+      const result = spawnSync('node', ['/mnt/response-directory.mjs', '--repository', '/mnt'], { encoding: 'utf8' });
+      assert.equal(result.status, 0, result.stderr);
+      const directory = result.stdout.trim();
+      assert.match(directory, /^\\/tmp\\/moldea-response-/);
+      try {
+        const checkpoint = join(directory, 'response.json');
+        writeFileSync(checkpoint, '{"cursor":"next-page"}');
+        assert.equal(readFileSync(checkpoint, 'utf8'), '{"cursor":"next-page"}');
+      } finally {
+        rmSync(directory, { recursive: true });
+      }
+      assert.deepEqual(readdirSync('/tmp'), []);
+      assert.deepEqual(readdirSync('/mnt').sort(), ['repository-files.mjs', 'response-directory.mjs']);
+    `;
+    const result = spawnSync(
+      'bwrap',
+      buildCodexEvaluationBwrapArguments({
+        command: ['codex', '--eval', probe],
+        cwd: repositoryPath,
+        hostExecutable: process.execPath,
+        nodeExecutable: process.execPath,
+        sandboxHome,
+      }),
+      { encoding: 'utf8', timeout: 5_000 },
     );
     assert.equal(result.status, 0, result.stderr);
   } finally {

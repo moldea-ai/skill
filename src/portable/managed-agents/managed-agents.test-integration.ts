@@ -2,10 +2,12 @@
 import { spawnSync, type SpawnSyncReturns } from 'node:child_process';
 import {
   copyFile,
+  cp,
   lstat,
   mkdir,
   mkdtemp,
   readFile,
+  realpath,
   readdir,
   rename,
   rm,
@@ -13,15 +15,18 @@ import {
   writeFile,
 } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { join, relative, resolve } from 'node:path';
 import { expect, test } from 'vitest';
+
+import { readReleaseIdentity } from '../../release/index.ts';
+import { collectProductionPackageRoots } from '../../semantic/workspace/index.ts';
 
 const TEST_NODE_EXECUTABLE = process.env['MOLDEA_TEST_NODE'] ?? process.execPath;
 const SOURCE = resolve(import.meta.dirname, '../../../moldea');
 const withInstallation = async (
   operation: (root: string, run: (flags?: string[]) => SpawnSyncReturns<string>) => Promise<void>,
 ): Promise<void> => {
-  const root = await mkdtemp(join(tmpdir(), 'moldea-agents-'));
+  const root = await realpath(await mkdtemp(join(tmpdir(), 'moldea-agents-')));
   try {
     const skill = join(root, '.agents', 'skills', 'moldea');
     await mkdir(join(skill, 'scripts'), { recursive: true });
@@ -69,6 +74,41 @@ test('print and write agree and preserve unrelated instruction bytes', async () 
     expect((await readdir(root)).some((name) => name.endsWith('.tmp'))).toBe(false);
   });
 });
+
+test.each(['append', 'replace'])(
+  'bundled AGENTS writer preserves CRLF and outside bytes during %s and remains unchanged on repeat',
+  async (operation) => {
+    await withInstallation(async (root, run) => {
+      const block = run(['--print']).stdout.replaceAll('\n', '\r\n');
+      const prefix = '\uFEFF# Host rules\r\n';
+      const suffix = '\r\nKeep these rules.\r\n';
+      const target = join(root, 'AGENTS.md');
+      await writeFile(
+        target,
+        operation === 'append'
+          ? prefix
+          : `${prefix}\r\n<!-- moldea:start -->\r\nStale\r\n<!-- moldea:end -->\r\n${suffix}`,
+      );
+      const updated = run();
+      expect({
+        status: updated.status,
+        stdout: updated.stdout,
+        stderr: updated.stderr,
+      }).toStrictEqual({ status: 0, stdout: 'updated\n', stderr: '' });
+      const expected = Buffer.from(
+        prefix + '\r\n' + block + (operation === 'replace' ? suffix : ''),
+      );
+      expect(await readFile(target)).toStrictEqual(expected);
+      const repeated = run();
+      expect({
+        status: repeated.status,
+        stdout: repeated.stdout,
+        stderr: repeated.stderr,
+      }).toStrictEqual({ status: 0, stdout: 'unchanged\n', stderr: '' });
+      expect(await readFile(target)).toStrictEqual(expected);
+    });
+  },
+);
 
 test.each(['link', 'directory', 'ambiguous', 'invalid-utf8', 'oversized'])(
   'unsafe AGENTS target %s refuses writes',
@@ -207,6 +247,122 @@ test('the rendered command gates from nested cwd and remains valid after a repos
       expect(await readFile(join(moved, 'AGENTS.md'), 'utf8')).toBe(printed);
     } finally {
       await rename(moved, root);
+    }
+  });
+});
+
+test('bundled helpers handle long paths within native process limits', async () => {
+  await withInstallation(async (root) => {
+    const packageRoot = resolve(SOURCE, '../node_modules');
+    const { cliVersion } = readReleaseIdentity(resolve(SOURCE, '..'));
+    for (const source of collectProductionPackageRoots(join(packageRoot, '@moldea.ai/cli'))) {
+      await cp(source, join(root, 'node_modules', relative(packageRoot, source)), {
+        recursive: true,
+        filter: (path) =>
+          !relative(source, path)
+            .split(/[\\/]/u)
+            .some((part) =>
+              ['node_modules', '_archive', '_archives', '_backup', '_backups'].includes(part),
+            ),
+      });
+    }
+    await writeFile(
+      join(root, 'package.json'),
+      JSON.stringify({ devDependencies: { '@moldea.ai/cli': cliVersion } }),
+    );
+    await writeFile(join(root, '.gitignore'), '/node_modules/\n');
+    await mkdir(join(root, 'src'));
+    await writeFile(join(root, 'src/refund.js'), 'export const refund = true;\n');
+    await mkdir(join(root, 'moldea'));
+    await writeFile(join(root, 'moldea/project.md'), '# Project\n');
+    await writeFile(
+      join(root, 'moldea/moldea.yaml'),
+      'version: 1\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/refund.js\n',
+    );
+    const git = (...args: string[]) => {
+      const result = spawnSync('git', args, { cwd: root, encoding: 'utf8', timeout: 10_000 });
+      expect(result.status, result.stderr).toBe(0);
+    };
+    git('init', '--quiet');
+    git('config', 'core.longpaths', 'true');
+    git(
+      'add',
+      '--',
+      'moldea/project.md',
+      'moldea/moldea.yaml',
+      'package.json',
+      '.gitignore',
+      'src/refund.js',
+    );
+    git(
+      '-c',
+      'commit.gpgsign=false',
+      '-c',
+      'core.hooksPath=/dev/null',
+      '-c',
+      'user.name=Fixture',
+      '-c',
+      'user.email=fixture@example.com',
+      'commit',
+      '--quiet',
+      '-m',
+      'Long-path fixture',
+    );
+    const parent = await mkdtemp(join(tmpdir(), 'moldea-long-'));
+    const deep = join(
+      parent,
+      ...Array.from({ length: 6 }, (_, index) => `nested-${index}-` + 'directory-'.repeat(3)),
+      'repository',
+    );
+    let isMoved = false;
+    try {
+      await mkdir(join(deep, '..'), { recursive: true });
+      await rename(root, deep);
+      isMoved = true;
+      expect(deep.length).toBeGreaterThan(260);
+      const run = (name: string, flags: string[] = []) =>
+        spawnSync(
+          TEST_NODE_EXECUTABLE,
+          [join(deep, '.agents/skills/moldea/scripts', name), '--repository', deep, ...flags],
+          { encoding: 'utf8', timeout: 30_000 },
+        );
+      expect(run('managed-agents.mjs').stdout).toBe('created\n');
+      expect(run('managed-readme.mjs').stdout).toBe('created\n');
+      expect(run('relevance-gate.mjs', ['--path', 'src/refund.js']).stdout).toBe('1\n');
+      const inspection = run('initialization-inspection.mjs');
+      expect(inspection.status, inspection.stderr).toBe(0);
+      expect(JSON.parse(inspection.stdout)).toMatchObject({
+        status: 'complete',
+        mode: 'inventory',
+      });
+      const repair = run('repair-git.mjs', ['--', 'checkpoint']);
+      if (process.platform === 'win32') {
+        expect(repair.status, repair.stdout + repair.stderr).toBe(1);
+        expect(JSON.parse(repair.stdout)).toMatchObject({
+          status: 'unavailable',
+          reasonCode: 'git-read',
+          reason:
+            "The repository path exceeds Windows' 260-character working-directory limit for Git; move or clone it to a shorter path.",
+        });
+      } else {
+        expect(repair.status, repair.stdout + repair.stderr).toBe(0);
+        expect(JSON.parse(repair.stdout)).toMatchObject({ status: 'available' });
+      }
+      for (const command of ['validate', 'inspect']) {
+        const cli = run('moldea-cli.mjs', ['--', command, '--json', '--max-output-bytes', '65536']);
+        if (process.platform === 'win32') {
+          expect(cli.status, cli.stdout + cli.stderr).toBe(1);
+          expect(cli.stdout).toBe('');
+          expect(cli.stderr).toContain('Error: read ENOTCONN');
+          expect(cli.stderr).toContain('at ChildProcess.spawn');
+        } else {
+          expect(cli.status, cli.stdout + cli.stderr).toBe(0);
+          expect(JSON.parse(cli.stdout)).toMatchObject({ command, status: 'valid' });
+        }
+      }
+    } finally {
+      if (isMoved) await rename(deep, root);
+      await rm(parent, { recursive: true, force: true });
     }
   });
 });

@@ -7,6 +7,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  realpathSync,
   rmSync,
   writeFileSync,
 } from 'node:fs';
@@ -17,9 +18,11 @@ import { afterEach, beforeAll, test } from 'vitest';
 
 import {
   CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX,
+  buildCodexEvaluationBwrapArguments,
   prepareGitCommandPolicyBoundary,
   projectCodexEvaluationExecutionEvidence,
 } from '../../execution/host/index.ts';
+import { readCliInvocations } from '../../execution/host/cli-invocations/index.ts';
 import { loadSemanticCases, type ISemanticCase } from '../cases/index.ts';
 import { projectActorExecutionEvidenceEvent } from '../execution/index.ts';
 import { buildSemanticActorPrompt, buildSemanticJudgePrompt } from '../judging/index.ts';
@@ -160,6 +163,80 @@ const runFixtureTests = (repositoryPath: string, testPaths: string[]) => {
   assert.equal(result.status, 0, result.stderr || result.stdout);
   return result;
 };
+
+test.each(['direct-canonical-relevance', 'pnpm-pnp-local-cli-provider'])(
+  '%s preserves Node startup capture through the production actor-tools mount',
+  async (caseId) => {
+    const definition = cases.find(({ id }) => id === caseId);
+    assert.ok(definition);
+    const root = mkdtempSync(join(tmpdir(), 'moldea-mounted-capture-'));
+    temporaryRoots.push(root);
+    const sandboxHome = join(root, 'home');
+    const { repositoryPath, readOnlyMounts, hasWorkspaceBinaryDirectory } =
+      await withEmptyCodexHome(root, () =>
+        createActorRepository(root, definition, sandboxHome, join(root, 'actor-tools')),
+      );
+    const logPath = join(sandboxHome, 'cli-invocations.jsonl');
+    const launcherArguments = [
+      '/mnt/.agents/skills/moldea/scripts/moldea-cli.mjs',
+      '--repository',
+      '/mnt',
+      '--',
+      'validate',
+      '--json',
+      '--max-output-bytes',
+      '65536',
+    ];
+    for (const form of ['direct', 'spawnSync', 'execFileSync', 'ordinary'] as const) {
+      writeFileSync(logPath, '');
+      const script =
+        form === 'ordinary'
+          ? 'process.stdout.write("ordinary Node script");'
+          : form === 'spawnSync'
+            ? `const result = require('node:child_process').spawnSync('/opt/node', ${JSON.stringify(launcherArguments)}, { stdio: 'inherit' }); process.exitCode = result.status ?? 1;`
+            : `try { require('node:child_process').execFileSync('/opt/node', ${JSON.stringify(launcherArguments)}, { stdio: 'inherit' }); } catch (error) { process.exitCode = error.status ?? 1; }`;
+      const result = spawnSync(
+        'bwrap',
+        buildCodexEvaluationBwrapArguments({
+          command: ['codex', ...(form === 'direct' ? launcherArguments : ['-e', script])],
+          cwd: repositoryPath,
+          hostExecutable: realpathSync(process.execPath),
+          nodeExecutable: process.execPath,
+          includeWorkspaceBinaryDirectory: hasWorkspaceBinaryDirectory,
+          readOnlyMounts,
+          sandboxHome,
+        }),
+        { encoding: 'utf8', timeout: 20_000 },
+      );
+      if (result.error) throw result.error;
+      const invocations = await readCliInvocations(logPath);
+      if (form === 'ordinary') {
+        assert.equal(result.status, 0, result.stderr);
+        assert.equal(result.stdout, 'ordinary Node script');
+        assert.deepEqual(invocations, []);
+        continue;
+      }
+      assert.equal(invocations.length, 1, result.stderr);
+      assert.deepEqual(invocations[0]?.arguments, launcherArguments.slice(1));
+      assert.equal(invocations[0]?.exitCode, result.status);
+      if (caseId === 'pnpm-pnp-local-cli-provider') {
+        assert.notEqual(result.status, 0);
+        assert.equal(invocations[0]?.stdout, '');
+        assert.doesNotMatch(result.stderr, /cli-invocation-preload/u);
+      } else {
+        assert.equal(result.status, 0, result.stderr);
+        const validation = JSON.parse(invocations[0]?.stdout ?? '') as {
+          command: string;
+          status: string;
+          result: { errorCount: number };
+        };
+        assert.equal(validation.command, 'validate');
+        assert.equal(validation.status, 'valid');
+        assert.equal(validation.result.errorCount, 0);
+      }
+    }
+  },
+);
 
 test.each([
   'maintain-context-without-duplication',
@@ -349,7 +426,10 @@ test('generic project evaluation fixture has no declared path relationship', asy
   const { repositoryPath } = await materializeCase('evaluate-brief-project-request', true);
   assert.equal(gateResult(repositoryPath, [], true), '1\n');
   assert.equal(gateResult(repositoryPath, ['/src/project-state.js']), '0\n');
-  assert.match(readFileSync(join(repositoryPath, 'moldea', 'project.md'), 'utf8'), /no declared/u);
+  assert.equal(
+    readFileSync(join(repositoryPath, 'moldea', 'project.md'), 'utf8'),
+    '# Invoice review service\n\nThis service extracts and validates invoice data for accounting staff. Human reviewers authorize payments.\n',
+  );
 });
 
 test.each(['model-workflow-routing', 'unrelated-sdk-maintenance'])(

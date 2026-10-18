@@ -56,6 +56,7 @@ describe('semantic active-trial recovery', () => {
 
   test('advances actor and judge boundaries without discarding completed evidence', () => {
     const actorEvidence = {
+      cycles: [],
       gitInvocationEvidence: {
         invocationCount: 0,
         hostInvocationCount: 0,
@@ -76,6 +77,7 @@ describe('semantic active-trial recovery', () => {
         maximumCommandOutputByteCount: 0,
         modelVisibleToolOutputByteCount: 0,
         moldeaCommandCount: 0,
+        moldeaLauncherMissReasons: [],
         moldeaOutputByteCount: 0,
         networkAccess: {
           indeterminateCount: 0,
@@ -102,6 +104,8 @@ describe('semantic active-trial recovery', () => {
       RETRIED_AT,
     );
     const recordedTrial = {
+      cycles: [],
+      paidInvocations: [],
       gitInvocationEvidence: {
         invocationCount: 0,
         hostInvocationCount: 0,

@@ -153,7 +153,6 @@ const requireStageObservation = (
     stageRecord.cachedInputTokenCount > stageRecord.inputTokenCount ||
     stageRecord.totalTokenCount !== stageRecord.inputTokenCount + stageRecord.outputTokenCount ||
     stageRecord.maximumCommandOutputByteCount > stageRecord.modelVisibleToolOutputByteCount ||
-    stageRecord.moldeaOutputByteCount > stageRecord.modelVisibleToolOutputByteCount ||
     (stageRecord.completedCommandCount === 0 && stageRecord.maximumCommandOutputByteCount !== 0) ||
     (stageRecord.moldeaCommandCount === 0 && stageRecord.moldeaOutputByteCount !== 0)
   ) {

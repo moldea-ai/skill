@@ -1,6 +1,6 @@
 // @vitest-environment node
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, symlink } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -31,6 +31,7 @@ test('runtime generation emits standalone helpers for isolated execution', async
   assert.deepEqual(
     result.artifacts,
     [
+      path.relative(process.cwd(), path.join(outputDirectory, 'cli-invocation-preload.mjs')),
       path.relative(process.cwd(), path.join(outputDirectory, 'git-command-policy-boundary.mjs')),
       path.relative(process.cwd(), path.join(outputDirectory, 'codex-evaluation-proxy.mjs')),
       ...['setup', 'next', 'record', 'export'].map((entry) =>
@@ -62,11 +63,19 @@ test('runtime generation emits standalone helpers for isolated execution', async
   const wrapperSource = await readFile(wrapperPath, 'utf8');
   assert.match(wrapperSource, /\["fixture"\]/u);
 
-  const proxyResult = await executeProcess({
-    args: [path.join(outputDirectory, 'codex-evaluation-proxy.mjs')],
-    command: TEST_NODE_EXECUTABLE,
-    cwd: temporaryDirectory,
-    expectedExitCodes: [1],
-  });
-  assert.match(proxyResult.stderr, /requires a socket path and allowed hosts/u);
+  const linkedDirectory = path.join(temporaryDirectory, 'linked-runtime');
+  await symlink(
+    outputDirectory,
+    linkedDirectory,
+    process.platform === 'win32' ? 'junction' : 'dir',
+  );
+  for (const directory of [outputDirectory, linkedDirectory]) {
+    const proxyResult = await executeProcess({
+      args: [path.join(directory, 'codex-evaluation-proxy.mjs')],
+      command: TEST_NODE_EXECUTABLE,
+      cwd: temporaryDirectory,
+      expectedExitCodes: [1],
+    });
+    assert.match(proxyResult.stderr, /requires a socket path and allowed hosts/u);
+  }
 });

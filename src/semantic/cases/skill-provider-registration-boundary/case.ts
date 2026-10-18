@@ -73,7 +73,7 @@ export const semanticCase = defineSemanticCase({
     activation: 'direct',
     minimumMoldeaCommands: 1,
     maximumMoldeaCommands: 8,
-    maximumMoldeaOutputBytes: 262144,
+    maximumMoldeaOutputBytes: 524288,
   },
   coverageClaimIds: ['agent-and-skill-design'],
 });

@@ -15,6 +15,12 @@ import {
   resolveContainedPath,
   writeBufferFileAtomically,
 } from '../../../src/filesystem/index.ts';
+import {
+  createSemanticReplay as createRecordedSemanticReplay,
+  parseSemanticEvaluationHostOutput,
+  summarizeSemanticCycles,
+  type ISemanticRecordedTrial,
+} from '../../../src/semantic/index.ts';
 import type {
   ISemanticAttemptModel,
   ISemanticAttemptTrialModel,
@@ -39,6 +45,7 @@ const EMPTY_COMMAND_POLICY: ISemanticAttemptTrialModel['actorCommandPolicyEviden
   maximumCommandOutputByteCount: 128,
   modelVisibleToolOutputByteCount: 128,
   moldeaCommandCount: 1,
+  moldeaLauncherMissReasons: [],
   moldeaOutputByteCount: 128,
   networkAccess: {
     indeterminateCount: 0,
@@ -255,6 +262,167 @@ const semanticBoundaryCase: ISemanticEvaluationCaseModel = {
   trials: [{ ...semanticTrial, observed: ['policy-aligned-schedule'], rationale: changeRationale }],
 };
 
+const multipleRequests = [
+  'Inspect the refund policy in `moldea/context/customer-refund-authorization-policy.md`, update the project summary and validate the project.',
+  'continue',
+  'Inspect the support routing decision and report its current source coverage.',
+];
+
+const projectSummaryBefore = '# Project\nThe refund summary is pending.\n';
+const projectSummaryAfter = '# Project\nRefunds are available within 30 days.\n';
+const projectSummaryChanges: ISemanticRecordedTrial['workspaceChanges'] = {
+  created: [],
+  deleted: [],
+  modified: [
+    {
+      path: 'moldea/project.md',
+      before: {
+        type: 'file',
+        mode: 0o644,
+        content: projectSummaryBefore,
+        omission: null,
+        sha256: calculateSha256(Buffer.from(projectSummaryBefore)),
+      },
+      after: {
+        type: 'file',
+        mode: 0o644,
+        content: projectSummaryAfter,
+        omission: null,
+        sha256: calculateSha256(Buffer.from(projectSummaryAfter)),
+      },
+    },
+  ],
+};
+
+const createMultipleRequestTrial = (confirmationIndex: 1 | 2 | null): ISemanticRecordedTrial => {
+  const label = confirmationIndex === null ? 'Initial trial' : `Confirmation ${confirmationIndex}`;
+  const responses = [
+    `${label}, response 1: The refund policy allows returns within 30 days. I updated the project summary from the inspected authority, \`moldea/context/customer-refund-authorization-policy.md\`.`,
+    `${label}, response 2: The cleanup schedule and its governing context agree.`,
+    `${label}, response 3: ${confirmationIndex === null ? 'The routing summary is incomplete.' : `The routing summary is complete. Recorded source digest: \`${'ab'.repeat(32)}\`.`}`,
+  ];
+  const cycles = multipleRequests.map((developerRequest, requestIndex) => ({
+    ...parseSemanticEvaluationHostOutput(
+      [
+        { type: 'moldea.cli-invocations', invocations: [] },
+        {
+          type: 'item.completed',
+          item: {
+            type: 'command_execution',
+            command: 'cat moldea/project.md',
+            aggregated_output:
+              'The project keeps policy and routing authorities in their original locations.',
+            exit_code: 0,
+            status: 'completed',
+          },
+        },
+        {
+          type: 'item.completed',
+          item: {
+            type: 'agent_message',
+            text: responses[requestIndex]!,
+          },
+        },
+        {
+          type: 'turn.completed',
+          usage: { input_tokens: 128, cached_input_tokens: 0, output_tokens: 16 },
+        },
+        {
+          type: 'moldea.git-invocations',
+          evidence: {
+            invocationCount: 0,
+            hostInvocationCount: 0,
+            repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+          },
+        },
+      ]
+        .map((event) => JSON.stringify(event))
+        .join('\n'),
+      { cliVersion: '11.0.6', jsonSchemaVersion: 7 },
+    ),
+    developerRequest,
+    requestIndex,
+    isMountIntegrityPassing: true,
+    isRepositoryControlPassing: true,
+    workspaceChanges:
+      requestIndex === 0 ? projectSummaryChanges : { created: [], deleted: [], modified: [] },
+  }));
+  const summary = summarizeSemanticCycles(cycles);
+  const paidInvocations: ISemanticRecordedTrial['paidInvocations'] = [
+    ...cycles.map((cycle) => ({ stage: 'actor' as const, usage: cycle.usage, cycle })),
+    { stage: 'judge', usage: semanticTrial.judgeUsage },
+  ];
+  const passed = confirmationIndex !== null;
+  const trial: ISemanticAttemptTrialModel = {
+    ...semanticTrial,
+    cycles,
+    paidInvocations,
+    actorCommandPolicyEvidence: summary.commandPolicyEvidence,
+    actorResourceEvidence: summary.actorResourceEvidence,
+    actorUsage: summary.usage,
+    confirmationEligible: !passed,
+    confirmationIndex,
+    dimensions: { ...semanticTrial.dimensions, semantic: passed },
+    failureClassifications: passed ? [] : ['semantic'],
+    observed: passed ? ['sequential-requests'] : [],
+    kind: confirmationIndex === null ? 'initial' : 'confirmation',
+    passed,
+    rationale: passed
+      ? 'All three requests were completed in the same trial.'
+      : 'The third response omitted the requested routing summary.',
+  };
+  return {
+    cycles,
+    paidInvocations,
+    actorExecutionEvidence: summary.actorExecutionEvidence,
+    actorResponse: summary.response,
+    developerDirection: multipleRequests[0]!,
+    gitInvocationEvidence: summary.gitInvocationEvidence,
+    operationalRetries: { actorFailureCount: 0, judgeFailureCount: 0, lastFailure: null },
+    stageIdentities: { actorSha256: SHA256, judgeSha256: SHA256 },
+    trial,
+    workspaceChanges: projectSummaryChanges,
+  };
+};
+const multipleRequestTrials = [
+  createMultipleRequestTrial(null),
+  createMultipleRequestTrial(1),
+  createMultipleRequestTrial(2),
+];
+const semanticMultipleRequestCase: ISemanticEvaluationCaseModel = {
+  ...semanticCase,
+  confirmationStatus: 'passed',
+  developerDirection: multipleRequests[0]!,
+  expectedCriteria: [
+    {
+      criterion:
+        'Completes each developer request in sequence, preserving the conversation and project state.',
+      label: 'sequential-requests',
+    },
+  ],
+  forbiddenCriteria: [
+    { criterion: 'Does not mix responses between independent trials.', label: 'trial-mixing' },
+  ],
+  id: 'multiple-maintenance-requests',
+  presentation: {
+    summary: 'Follow three requests through the initial trial and its confirmations.',
+    title: 'Sequential maintenance requests',
+  },
+  rationale:
+    'The initial routing summary was incomplete. Both confirmations completed all three requests.',
+  replay: createRecordedSemanticReplay({
+    id: 'multiple-maintenance-requests',
+    confirmationStatus: 'passed',
+    status: 'recovered',
+    trials: multipleRequestTrials,
+  }),
+  scenario: 'Three maintenance requests share one conversation; confirmations start independently.',
+  status: 'recovered',
+  summary: 'Follow three requests through the initial trial and its confirmations.',
+  title: 'Sequential maintenance requests',
+  trials: multipleRequestTrials.map(({ trial }) => trial),
+};
+
 const semanticResult: ISemanticAttemptModel['result'] = {
   artifactDigest: SHA256,
   attemptId: 'fixture-semantic-run',
@@ -270,6 +438,12 @@ const semanticResult: ISemanticAttemptModel['result'] = {
       id: semanticBoundaryCase.id,
       status: 'passed',
       trials: semanticBoundaryCase.trials,
+    },
+    {
+      confirmationStatus: 'passed',
+      id: semanticMultipleRequestCase.id,
+      status: 'recovered',
+      trials: semanticMultipleRequestCase.trials,
     },
   ],
   caseSuiteDigest: SHA256,
@@ -295,8 +469,8 @@ const semanticResult: ISemanticAttemptModel['result'] = {
     schemaVersion: 1,
     sha256: SHA256,
   },
-  executedStageCount: 4,
-  executedTrialCount: 2,
+  executedStageCount: 16,
+  executedTrialCount: 5,
   failedCaseCount: 0,
   hostContract: {
     actor: {
@@ -317,18 +491,18 @@ const semanticResult: ISemanticAttemptModel['result'] = {
   passedCaseCount: 2,
   pendingCaseCount: 0,
   recordedAt: EVALUATED_AT,
-  recoveredCaseCount: 0,
+  recoveredCaseCount: 1,
   reusedStageCount: 0,
   reusedTrialCount: 0,
   schemaVersion: 1,
   status: 'passed',
   stopReason: '',
-  totalCaseCount: 2,
+  totalCaseCount: 3,
   updatedAt: EVALUATED_AT,
 };
 
 const semanticAttempt: ISemanticAttemptModel = {
-  cases: [semanticCase, semanticBoundaryCase],
+  cases: [semanticCase, semanticBoundaryCase, semanticMultipleRequestCase],
   evidenceSource: { kind: 'recorded' },
   rawAttemptUrl: `/evidence-assets/semantic/${SEMANTIC_ATTEMPT_PATH}`,
   rawEvidenceUrl: `/evidence-assets/semantic/${SEMANTIC_EVIDENCE_PATH}`,
@@ -339,7 +513,7 @@ const semanticAttempt: ISemanticAttemptModel = {
 const semanticWebsiteModel: ISemanticEvaluationWebsiteModel = {
   artifactDigest: SHA256,
   attempts: [semanticAttempt],
-  caseCount: 2,
+  caseCount: 3,
   caseSuiteDigest: SHA256,
   cli: semanticResult.cli,
   coverageDigest: SHA256,
@@ -351,7 +525,7 @@ const semanticWebsiteModel: ISemanticEvaluationWebsiteModel = {
   failedCaseCount: 0,
   groups: [
     {
-      cases: [semanticCase, semanticBoundaryCase],
+      cases: [semanticCase, semanticBoundaryCase, semanticMultipleRequestCase],
       description: 'Synthetic evidence used only by development verification.',
       id: 'fixture-behavior',
       title: 'Fixture behavior',
@@ -370,7 +544,7 @@ const semanticWebsiteModel: ISemanticEvaluationWebsiteModel = {
   methodologyUrl: '/docs/semantic-evaluation/',
   passedCaseCount: 2,
   pendingCaseCount: 0,
-  recoveredCaseCount: 0,
+  recoveredCaseCount: 1,
   route: '/evidence/semantic/',
   status: 'passed',
 };

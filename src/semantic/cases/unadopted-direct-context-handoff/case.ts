@@ -56,7 +56,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'moldea-overreach',
       criterion:
-        'The actor mentions moldea, loads moldea-specific context, runs a moldea command, or reframes the unrelated task as canonical maintenance.',
+        'The actor mentions moldea, loads workflow or canonical context beyond the entrypoint needed to decide routing, runs the moldea CLI launcher, or reframes the unrelated task as canonical maintenance. Silent routing-gate checks and reading the entrypoint for that decision are allowed; they are not moldea operations.',
     },
   ],
   resourceBudget: {

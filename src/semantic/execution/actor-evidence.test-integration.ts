@@ -8,8 +8,77 @@ import { expect, test } from 'vitest';
 
 import { semanticCase } from '../cases/integration-block-missing-handoff/case.ts';
 import { buildSemanticJudgePrompt } from '../judging/index.ts';
+import { readReleaseIdentity } from '../../release/index.ts';
 
 import { parseSemanticEvaluationHostOutput } from './host-output.ts';
+
+test('real launcher composition agrees with sandbox Node recognition and resource projection', () => {
+  const repositoryRoot = resolve(import.meta.dirname, '../../..');
+  const { cliVersion, cliJsonSchemaVersion } = readReleaseIdentity(repositoryRoot);
+  const composition = spawnSync(
+    process.execPath,
+    [
+      join(repositoryRoot, 'moldea/scripts/moldea-cli.mjs'),
+      '--repository',
+      repositoryRoot,
+      '--',
+      'composition',
+      '--json',
+    ],
+    { encoding: 'utf8', timeout: 15_000 },
+  );
+  expect(composition.error).toBeUndefined();
+  expect(composition.status, composition.stderr).toBe(0);
+  const stream = [
+    {
+      type: 'moldea.cli-invocations',
+      invocations: [
+        {
+          arguments: ['--repository', '/mnt', '--', 'composition', '--json'],
+          stdout: composition.stdout,
+          outputByteCount: Buffer.byteLength(composition.stdout),
+          exitCode: composition.status,
+        },
+      ],
+    },
+    {
+      type: 'item.completed',
+      item: {
+        type: 'command_execution',
+        command:
+          '/opt/node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt/. -- composition --json',
+        aggregated_output: composition.stdout,
+        exit_code: composition.status,
+        status: 'completed',
+      },
+    },
+    { type: 'item.completed', item: { type: 'agent_message', text: 'Composition checked.' } },
+    {
+      type: 'moldea.git-invocations',
+      evidence: {
+        invocationCount: 0,
+        hostInvocationCount: 0,
+        repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+      },
+    },
+  ]
+    .map((event) => JSON.stringify(event))
+    .join('\n');
+  const projected = parseSemanticEvaluationHostOutput(stream, {
+    cliVersion,
+    jsonSchemaVersion: cliJsonSchemaVersion,
+  });
+  expect(projected.commandPolicyEvidence.moldeaCommandCount).toBe(1);
+  expect(projected.commandPolicyEvidence.moldeaLauncherMissReasons).toStrictEqual([]);
+  expect(projected.actorResourceEvidence.commandCount).toBe(1);
+  expect(projected.actorResourceEvidence.operations).toStrictEqual(['composition']);
+  expect(projected.actorResourceEvidence.stdoutByteCount).toBe(
+    Buffer.byteLength(composition.stdout),
+  );
+  expect(projected.commandPolicyEvidence.moldeaOutputByteCount).toBe(
+    Buffer.byteLength(composition.stdout),
+  );
+});
 
 test('real installed helper print survives host projection and verifies the judge handoff', async () => {
   const root = await mkdtemp(join(tmpdir(), 'moldea-print-evidence-'));
@@ -40,6 +109,7 @@ test('real installed helper print survives host projection and verifies the judg
       '\n',
     );
     const stream = [
+      { type: 'moldea.cli-invocations', invocations: [] },
       {
         type: 'item.completed',
         item: {

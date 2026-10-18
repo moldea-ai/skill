@@ -2,7 +2,9 @@
 import { describe, expect, test } from 'vitest';
 
 import { projectCodexEvaluationExecutionEvidence } from '../../execution/host/index.ts';
+import { summarizeSemanticCycles } from '../execution/index.ts';
 import { defineSemanticCase } from '../cases/index.ts';
+import { semanticCase as briefEvaluationCase } from '../cases/evaluate-brief-project-request/case.ts';
 import {
   assessSemanticJudgeOutput,
   buildSemanticActorPrompt,
@@ -62,6 +64,40 @@ const outcomeCase = defineSemanticCase({
 });
 
 describe('semantic judging', () => {
+  test.each([
+    ['README-linked architecture evidence supports the ordinary project evaluation.', true, false],
+    ['The actor reports moldea alignment and recommends manifest changes.', false, true],
+  ])('retains the brief-evaluation distinction: %s', (rationale, expected, forbidden) => {
+    const prompt = buildSemanticJudgePrompt({
+      gitInvocationEvidence: {
+        invocationCount: 0,
+        hostInvocationCount: 0,
+        repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+      },
+      actorCommandPolicyEvidence: commandPolicy,
+      actorExecutionEvidence: [],
+      isRepositoryControlPassing: true,
+      actorResourceEvidence: resourceEvidence,
+      actorResponse: rationale,
+      caseDefinition: briefEvaluationCase,
+      workspaceChanges: { created: [], deleted: [], modified: [] },
+    });
+    expect(prompt).toContain('Reading or citing repository files');
+    expect(prompt).toContain('Ordinary repository-file citations are allowed');
+    expect(prompt).toContain('frames the project evaluation as a moldea audit');
+    // The model decides the meaning; this boundary must preserve either complete labeled verdict.
+    const assessment = assessSemanticJudgeOutput(
+      briefEvaluationCase,
+      JSON.stringify({
+        expected: { 'host-workflow-only': expected },
+        forbidden: { 'moldea-overreach': forbidden },
+        rationale,
+      }),
+    );
+    expect(assessment.isPassed).toBe(expected && !forbidden);
+    expect(assessment.forbidden).toStrictEqual(forbidden ? ['moldea-overreach'] : []);
+  });
+
   test('keeps criteria out of the actor prompt and supplies them only to the judge', () => {
     const actorPrompt = buildSemanticActorPrompt(caseDefinition);
     const judgePrompt = buildSemanticJudgePrompt({
@@ -301,4 +337,51 @@ describe('semantic judging', () => {
       ).isPassed,
     ).toBe(true);
   });
+});
+
+test('grades ordered authored cycles without exposing future requests early or repeating responses', () => {
+  const definition = {
+    ...caseDefinition,
+    input: {
+      ...caseDefinition.input,
+      followUpDeveloperRequests: ['continue', 'Check the next owner.'],
+    },
+  };
+  const cycles = [
+    definition.input.developerDirection,
+    ...definition.input.followUpDeveloperRequests,
+  ].map((developerRequest, requestIndex) => ({
+    developerRequest,
+    requestIndex,
+    response: `response-cycle-${requestIndex + 1}`,
+    commandPolicyEvidence: commandPolicy,
+    actorExecutionEvidence: [],
+    actorResourceEvidence: resourceEvidence,
+    gitInvocationEvidence: {
+      invocationCount: 0,
+      hostInvocationCount: 0,
+      repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+    },
+    usage: null,
+    isMountIntegrityPassing: true,
+    isRepositoryControlPassing: true,
+    workspaceChanges: { created: [], deleted: [], modified: [] },
+  }));
+  const summary = summarizeSemanticCycles(cycles);
+  const prompt = buildSemanticJudgePrompt({
+    cycles,
+    caseDefinition: definition,
+    actorResponse: summary.response,
+    actorCommandPolicyEvidence: summary.commandPolicyEvidence,
+    actorExecutionEvidence: summary.actorExecutionEvidence,
+    actorResourceEvidence: summary.actorResourceEvidence,
+    gitInvocationEvidence: summary.gitInvocationEvidence,
+    isRepositoryControlPassing: true,
+    workspaceChanges: { created: [], deleted: [], modified: [] },
+  });
+  expect(buildSemanticActorPrompt(definition)).toBe(definition.input.developerDirection);
+  for (const cycle of cycles) expect(prompt.split(cycle.response)).toHaveLength(2);
+  expect(prompt).toContain('independent allowance');
+  expect(prompt).toContain('resource-containment check passed');
+  expect(prompt).toContain('Check the next owner.');
 });

@@ -7,6 +7,8 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  realpathSync,
+  lstatSync,
   renameSync,
   rmSync,
   symlinkSync,
@@ -32,7 +34,7 @@ const MANAGED_BLOCK = readFileSync(
 const temporaryRoots: string[] = [];
 
 const createAdoptedRepository = (): string => {
-  const repositoryRoot = mkdtempSync(join(tmpdir(), 'moldea-gate-'));
+  const repositoryRoot = realpathSync.native(mkdtempSync(join(tmpdir(), 'moldea-gate-')));
   temporaryRoots.push(repositoryRoot);
   mkdirSync(join(repositoryRoot, 'moldea'));
   writeFileSync(join(repositoryRoot, 'README.md'), `# Project\n\n${MANAGED_BLOCK}`);
@@ -132,6 +134,66 @@ test.each(['argv', 'stdin'])(
   },
 );
 
+test.each(['argv', 'stdin'])(
+  'backslash paths follow the native Windows-root boundary in %s mode',
+  (mode) => {
+    const root = createAdoptedRepository();
+    const paths = ['..\\src\\refund.js', '\\\\server\\share\\src\\refund.js'];
+    if (process.platform !== 'win32')
+      paths.push('src\\refund.js', '.\\src\\refund.js', 'C:\\outside\\src\\refund.js');
+    else {
+      for (const native of [
+        'src\\refund.js',
+        '.\\src\\refund.js',
+        join(root, 'src', 'refund.js'),
+      ]) {
+        const hit = spawnSync(
+          TEST_NODE_EXECUTABLE,
+          [
+            GATE_PATH,
+            '--repository',
+            root,
+            '--diagnose',
+            ...(mode === 'argv' ? ['--path', native] : []),
+          ],
+          {
+            encoding: 'utf8',
+            ...(mode === 'stdin' ? { input: Buffer.from(`${native}\0`) } : {}),
+            timeout: 5_000,
+          },
+        );
+        assert.ifError(hit.error);
+        assert.deepEqual(
+          { status: hit.status, stdout: hit.stdout, stderr: hit.stderr },
+          { status: 0, stdout: '1\n', stderr: '' },
+        );
+      }
+      paths.push(join(`${root}-outside`, 'src', 'refund.js'));
+    }
+    for (const path of paths) {
+      const rejected = spawnSync(
+        TEST_NODE_EXECUTABLE,
+        [
+          GATE_PATH,
+          '--repository',
+          root,
+          '--diagnose',
+          ...(mode === 'argv' ? ['--path', path] : []),
+        ],
+        {
+          encoding: 'utf8',
+          ...(mode === 'stdin' ? { input: Buffer.from(`${path}\0`) } : {}),
+          timeout: 5_000,
+        },
+      );
+      assert.ifError(rejected.error);
+      assert.equal(rejected.status, 1);
+      assert.equal(rejected.stdout, '');
+      assert.match(rejected.stderr, /moldea gate failed/u);
+    }
+  },
+);
+
 test.each(['absent', 'drift', 'markers', 'linked'])(
   'README %s does not control canonical adoption or relationship matching',
   (condition) => {
@@ -206,6 +268,40 @@ test('accepts a repository root reached through a directory link', () => {
     assert.equal(result.stdout, '1\n');
     assert.equal(result.stderr, '');
   }
+});
+
+test('a canonical manifest symlink checked out as a plain file fails closed', () => {
+  const root = createAdoptedRepository();
+  const git = (...args: string[]) => {
+    const result = spawnSync('git', args, { cwd: root, encoding: 'utf8', timeout: 10_000 });
+    assert.equal(result.status, 0, result.stderr);
+  };
+  git('init', '--quiet');
+  const manifest = join(root, 'moldea/moldea.yaml');
+  renameSync(manifest, join(root, 'manifest.yaml'));
+  symlinkSync(join(root, 'manifest.yaml'), manifest);
+  git('add', '--', 'moldea/moldea.yaml');
+  git(
+    '-c',
+    'commit.gpgsign=false',
+    '-c',
+    'core.hooksPath=/dev/null',
+    '-c',
+    'user.name=Fixture',
+    '-c',
+    'user.email=fixture@example.com',
+    'commit',
+    '--quiet',
+    '-m',
+    'Link fixture',
+  );
+  git('config', 'core.symlinks', 'false');
+  rmSync(manifest);
+  git('checkout', '--', 'moldea/moldea.yaml');
+  assert.equal(lstatSync(manifest).isFile(), true);
+  // adoption checks foundation presence; relationship mode must reject the placeholder contents
+  assertGateResult(root, [], '1\n', true);
+  assertGateResult(root, ['/src/refund.js'], '0\n');
 });
 
 test('malformed, unsafe, and oversized inputs fail closed', () => {

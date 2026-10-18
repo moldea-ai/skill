@@ -72,6 +72,7 @@ export const createSemanticActorStageIdentity = (options: {
   actorCommand: readonly string[];
   actorHost: unknown;
   actorPrompt: string;
+  followUpDeveloperRequests?: readonly string[];
   artifactDigest: string;
   caseDefinitionDigest: string;
   cli: unknown;
@@ -98,6 +99,11 @@ export const createSemanticActorStageIdentity = (options: {
     actorCommandSha256: createSemanticStageValueDigest(options.actorCommand),
     actorHost: requireHostIdentity(options.actorHost, 'Actor host', 'actor'),
     actorPromptSha256: createSemanticStageValueDigest(options.actorPrompt),
+    authoredRequestsSha256: createSemanticStageValueDigest([
+      options.actorPrompt,
+      ...(options.followUpDeveloperRequests ?? []),
+    ]),
+    actorSessionMode: options.followUpDeveloperRequests === undefined ? 'ephemeral' : 'retained',
     artifactDigest: requireSha256(options.artifactDigest, 'Portable skill artifact'),
     caseDefinitionDigest: requireSha256(options.caseDefinitionDigest, 'Semantic case definition'),
     cli: options.cli,

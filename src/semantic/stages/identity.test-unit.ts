@@ -57,6 +57,7 @@ describe('semantic stage identity', () => {
     const baseline = createActor();
     for (const override of [
       { actorPrompt: 'Use moldea to inspect this repository.' },
+      { followUpDeveloperRequests: ['continue'] },
       { actorCommand: ['codex', 'exec', '--json', '-'] },
       { artifactDigest: 'b'.repeat(64) },
       { caseDefinitionDigest: 'b'.repeat(64) },
@@ -89,6 +90,13 @@ describe('semantic stage identity', () => {
     ]) {
       assert.notEqual(createActor(override).sha256, baseline.sha256);
     }
+  });
+
+  test('binds the complete authored request order', () => {
+    assert.notEqual(
+      createActor({ followUpDeveloperRequests: ['continue', 'Check again'] }).sha256,
+      createActor({ followUpDeveloperRequests: ['Check again', 'continue'] }).sha256,
+    );
   });
 
   test('does not bind semantic stage reuse to the host timeout ceiling', () => {

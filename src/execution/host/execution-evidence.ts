@@ -17,6 +17,7 @@ import type {
   ICodexEvaluationOwnedCommandTotals,
   IMoldeaCliOperation,
   IMoldeaCliLauncherMissReasonCode,
+  IMoldeaManagedAgentsMode,
   IRepositoryTestCommandKind,
   IRepairGitCommandEvidence,
   IRepairGitReasonCode,
@@ -914,8 +915,15 @@ export const isMoldeaManagedReadmeWriterCommand = (command: unknown): boolean =>
   return words !== null && isSafeManagedReadmeCommand(words);
 };
 
+// Claude Code instruction files the installed helper may name with --claude
+const MANAGED_AGENTS_CLAUDE_SUBJECTS: ReadonlySet<string> = new Set([
+  '/CLAUDE.md',
+  '/.claude/CLAUDE.md',
+  '/CLAUDE.local.md',
+]);
+
 /** Recognizes only the installed AGENTS helper and its closed operation modes. */
-const getManagedAgentsMode = (words: readonly string[]): 'write' | 'print' | null => {
+const getManagedAgentsMode = (words: readonly string[]): IMoldeaManagedAgentsMode | null => {
   if (
     !isTrustedLocalExecutable(words[0], 'node') ||
     !SAFE_MANAGED_README_PATHS.has(
@@ -926,13 +934,22 @@ const getManagedAgentsMode = (words: readonly string[]): 'write' | 'print' | nul
     !isSandboxRepositoryRoot(words[3])
   )
     return null;
-  if (words.length === 4) return 'write';
-  if (words.length === 5 && words[4] === '--print') return 'print';
+  const isPrint = words.length > 4 && words.at(-1) === '--print';
+  const modeOptions = words.slice(4, isPrint ? -1 : undefined);
+  if (modeOptions.length === 0) return isPrint ? 'print' : 'write';
+  if (
+    modeOptions.length === 2 &&
+    modeOptions[0] === '--claude' &&
+    MANAGED_AGENTS_CLAUDE_SUBJECTS.has(modeOptions[1] ?? '')
+  )
+    return isPrint ? 'claude-print' : 'claude-write';
   return null;
 };
 
 /** Returns the exact helper mode without retaining raw command text. */
-export const identifyMoldeaManagedAgentsMode = (command: unknown): 'write' | 'print' | null => {
+export const identifyMoldeaManagedAgentsMode = (
+  command: unknown,
+): IMoldeaManagedAgentsMode | null => {
   const words = getStandaloneCommandWords(command);
   return words === null ? null : getManagedAgentsMode(words);
 };

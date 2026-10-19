@@ -4,6 +4,7 @@ export type IReleasePackageManifest = {
   devDependencies: Record<string, string>;
   moldeaRelease: {
     cliJsonSchemaVersion: number;
+    cliVersionRange: string;
     coreVersionRange: string;
   };
   version: string;

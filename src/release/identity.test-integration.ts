@@ -122,6 +122,18 @@ test('release identity inspection detects a stale maintained copy', () => {
     writeFileSync(lockPath, `${JSON.stringify(packageLock, null, 2)}\n`, 'utf8');
     assert.throws(() => readReleaseIdentity(temporaryRoot), /does not bind a Core release/u);
     writeFileSync(lockPath, lockSource, 'utf8');
+    const packageManifestPath = join(temporaryRoot, RELEASE_PATHS.packageManifest);
+    const packageManifestSource = readFileSync(packageManifestPath, 'utf8');
+    writeFileSync(
+      packageManifestPath,
+      packageManifestSource.replace(
+        `"cliVersionRange": "${cliVersionRange}"`,
+        `"cliVersionRange": "^${cliVersion.split('.')[0]}.999.0"`,
+      ),
+      'utf8',
+    );
+    assert.throws(() => readReleaseIdentity(temporaryRoot), /does not bind a CLI release/u);
+    writeFileSync(packageManifestPath, packageManifestSource, 'utf8');
     writeFileSync(semanticCliManifestPath, semanticCliManifestSource, 'utf8');
     const semanticCliManifest = SemanticCliManifestSchema.parse(
       JSON.parse(readFileSync(semanticCliManifestPath, 'utf8')) as unknown,

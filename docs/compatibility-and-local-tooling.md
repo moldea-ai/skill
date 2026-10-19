@@ -8,16 +8,16 @@ order: 180
 
 # Compatibility and local tooling
 
-Release `8.2.8` supports exactly:
+Release `8.3.0` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.17.0`
-- stable `@moldea.ai/core` releases satisfying `^7.0.0`
-- stable `@moldea.ai/cli` releases satisfying `^11.0.0`
+- stable `@moldea.ai/core` releases satisfying `^7.1.0`
+- stable `@moldea.ai/cli` releases satisfying `^11.1.0`
 - repository format version 1
 - CLI JSON schema 7
 
-The CLI is a repository-root-local development dependency. Its declaration and installed stable version must satisfy `^11.0.0`; compatible CLI 11 patches and minors do not require a skill release. Installed Core must satisfy both the CLI's declared Core range and `moldea`'s supported `^7.0.0` range. Other CLI majors, prereleases, malformed declarations, incompatible installed versions, and incompatible Core versions fail closed. The skill never selects a global CLI, runs a transient download, or searches unrelated workspaces for a provider.
+The CLI is a repository-root-local development dependency. Its declaration and installed stable version must satisfy `^11.1.0`; compatible CLI 11 patches and minors do not require a skill release. Installed Core must satisfy both the CLI's declared Core range and `moldea`'s supported `^7.1.0` range. Other CLI majors, prereleases, malformed declarations, incompatible installed versions, and incompatible Core versions fail closed. The skill never selects a global CLI, runs a transient download, or searches unrelated workspaces for a provider.
 
 ## Tooling ownership
 
@@ -54,7 +54,7 @@ Command boundaries stay explicit:
 - `scope` accepts one `--path` or one NUL-delimited UTF-8 path set of at most 2 MiB and returns relationship matches after the two-byte gate establishes relevance.
 - `content` returns chunks only for one explicit canonical `/moldea/**` path. CLI/Core still reject noncanonical targets.
 
-Release `8.2.8` accepts bare repository-relative and leading-slash repository-logical paths. The development scripts also normalize leading `./` and native absolute paths contained beneath the supplied or physically resolved repository root. The gate's argv and stdin modes and the launcher's `scope` and `content` use the same normalization. Relative paths always start at the repository root, regardless of the working directory. Normalization preserves input order, duplicates, casing, and Unicode, with the same raw 2 MiB batch allowance and no target-file lookup.
+Release `8.3.0` accepts bare repository-relative and leading-slash repository-logical paths. The development scripts also normalize leading `./` and native absolute paths contained beneath the supplied or physically resolved repository root. The gate's argv and stdin modes and the launcher's `scope` and `content` use the same normalization. Relative paths always start at the repository root, regardless of the working directory. Normalization preserves input order, duplicates, casing, and Unicode, with the same raw 2 MiB batch allowance and no target-file lookup.
 
 On POSIX, contained absolute paths take precedence; other leading-slash paths retain their repository-logical meaning, and backslashes remain errors. Windows paths accept either separator in relative paths and convert contained drive-absolute paths. Traversal, internal dot segments, repeated separators, repository-root-only selections, drive-relative paths, and UNC/device forms remain errors. Normalization does not replace canonical filesystem checks.
 
@@ -72,7 +72,7 @@ When ordinary work reaches a limit, the coding agent completes the developer's t
 
 For practical handling, start with [Limitations](/docs/limitations/). Detailed input and worker defaults belong to the [Core resource reference](https://packages.moldea.ai/packages/core/repository-inspection/#resource-limits) and [CLI budgets](https://packages.moldea.ai/packages/cli/output-and-operations/#resource-budgets).
 
-The following numbers are release-evaluation measurements from the unchanged source-controlled profiles, not universal limits on developer tasks. The recorded 8.2.3 evaluation counted whole-trial host commands and tool output. Evaluation protocol 50 applies the moldea-only counting rule above to each cycle: `ordinary` limits cover launcher calls, bundled helpers and `moldea/` reads and writes, and `largeTraversal` limits also cover assessment source reads, except for aggregate `moldea` output. See [resource accounting](/docs/semantic-evaluation/#resource-accounting):
+The following numbers are release-evaluation measurements from the unchanged source-controlled profiles, not universal limits on developer tasks. The recorded 8.2.3 evaluation counted whole-trial host commands and tool output. Evaluation protocol 51 applies the moldea-only counting rule above to each cycle: `ordinary` limits cover launcher calls, bundled helpers and `moldea/` reads and writes, and `largeTraversal` limits also cover assessment source reads, except for aggregate `moldea` output. See [resource accounting](/docs/semantic-evaluation/#resource-accounting):
 
 | Limit                     | `ordinary` | `largeTraversal` |
 | ------------------------- | ---------: | ---------------: |
@@ -108,7 +108,7 @@ Core checks declared files and explicit runtime exports in TypeScript and JavaSc
 
 Complete, unchanged instructions may be reused while available. After compaction, read missing required instructions again. See [reference-reading checks](/docs/reference-reading/).
 
-The bundled `managed-agents.mjs --repository <absolute-root>` writer derives its installation from the executing repository-contained copy. `--print` renders the exact block without writing. It preserves outside bytes, rejects linked or ambiguous targets, and respects host restrictions on instruction files. README uses its separate informational writer. Ask for `Fix moldea` to repair permitted integration, or explicitly accept the supported warning with your reason. When AGENTS.md is protected, the coding agent hands off the exact block for a separate instruction update.
+The bundled `managed-agents.mjs --repository <absolute-root>` writer derives its installation from the executing repository-contained copy. `--print` renders the exact block without writing. It preserves outside bytes, rejects ambiguous targets, and respects host restrictions on instruction files. A symbolic-link AGENTS.md is updated through its regular-file target inside the repository, and the link is kept. Links outside the repository, broken or looping links and network targets are refused, using the same Repository FS resolver as validation. `--claude <file>` appends the AGENTS.md import line to the existing Claude Code instruction file that `MOLDEA_INTEGRATION_CLAUDE_IMPORT_MISSING` names, following the same link rules, and `--claude <file> --print` prints only that line. The helper never creates a Claude Code file. README uses its separate informational writer. Ask for `Fix moldea` to repair permitted integration, or explicitly accept the supported warning with your reason. When AGENTS.md is protected, the coding agent hands off the exact block for a separate instruction update.
 
 ## Initialization inspection
 

@@ -55,7 +55,7 @@ test('createCliReleaseUpdate synchronizes every CLI-owned release file', () => {
   );
   currentFiles.set(
     RELEASE_PATHS.packageManifest,
-    '{"version":"3.0.0","moldeaRelease":{"cliJsonSchemaVersion":3,"coreVersionRange":"^2.0.1"}}\n',
+    '{"version":"3.0.0","moldeaRelease":{"cliJsonSchemaVersion":3,"cliVersionRange":"^6.0.0","coreVersionRange":"^2.0.1"}}\n',
   );
   currentFiles.set(RELEASE_PATHS.packageLock, '{}\n');
   currentFiles.set(
@@ -246,7 +246,7 @@ test('createCliReleaseUpdate preserves portable ranges for a same-major patch', 
   );
   currentFiles.set(
     RELEASE_PATHS.packageManifest,
-    '{"version":"5.0.0","moldeaRelease":{"cliJsonSchemaVersion":4,"coreVersionRange":"^3.0.1"}}\n',
+    '{"version":"5.0.0","moldeaRelease":{"cliJsonSchemaVersion":4,"cliVersionRange":"^7.0.0","coreVersionRange":"^3.0.1"}}\n',
   );
   currentFiles.set(RELEASE_PATHS.packageLock, '{}\n');
   currentFiles.set(
@@ -356,7 +356,7 @@ test('createCliReleaseUpdate keeps coincident CLI and Core ranges independent', 
   );
   currentFiles.set(
     RELEASE_PATHS.packageManifest,
-    '{"version":"5.0.0","moldeaRelease":{"cliJsonSchemaVersion":4,"coreVersionRange":"^6.0.0"}}\n',
+    '{"version":"5.0.0","moldeaRelease":{"cliJsonSchemaVersion":4,"cliVersionRange":"^6.0.0","coreVersionRange":"^6.0.0"}}\n',
   );
   currentFiles.set(RELEASE_PATHS.packageLock, '{}\n');
   currentFiles.set(
@@ -414,5 +414,62 @@ test('createCliReleaseUpdate keeps coincident CLI and Core ranges independent', 
   assert.equal(
     coreMajorUpdate.get(RELEASE_PATHS.sourceRepositoryPackage),
     "export const EXPECTED_CLI_RANGE = '^6.0.0';\nexport const SUPPORTED_CORE_RANGE = '^7.0.0';\n",
+  );
+});
+
+test('createCliReleaseUpdate keeps a raised CLI minimum within one major', () => {
+  const portableText =
+    '@moldea.ai/cli ^6.1.0\nCLI 6\n@moldea.ai/core ^6.0.0\nCLI JSON schema `4`\n';
+  const currentFiles = new Map<string, string>(
+    [...new Set([...CLI_VERSION_RANGE_TEXT_PATHS, ...CLI_JSON_SCHEMA_VERSION_TEXT_PATHS])].map(
+      (relativePath) => [relativePath, portableText],
+    ),
+  );
+  currentFiles.set(
+    RELEASE_PATHS.skill,
+    `${portableText}cliRepairVersion: '6.1.0'\ncliVersionRange: '^6.1.0'\ncliJsonSchemaVersion: '4'\n`,
+  );
+  currentFiles.set(
+    RELEASE_PATHS.sourceRepositoryPackage,
+    "export const EXPECTED_CLI_RANGE = '^6.1.0';\nexport const SUPPORTED_CORE_RANGE = '^6.0.0';\n",
+  );
+  currentFiles.set(
+    RELEASE_PATHS.packageManifest,
+    '{"version":"5.0.0","moldeaRelease":{"cliJsonSchemaVersion":4,"cliVersionRange":"^6.1.0","coreVersionRange":"^6.0.0"}}\n',
+  );
+  currentFiles.set(RELEASE_PATHS.packageLock, '{}\n');
+  currentFiles.set(
+    RELEASE_PATHS.semanticCliManifest,
+    '{"dependencies":{"@moldea.ai/core":"^6.0.0"},"moldeaRelease":{"cliJsonSchemaVersion":4},"version":"6.1.0"}\n',
+  );
+  currentFiles.set(
+    RELEASE_PATHS.conformanceCases,
+    JSON.stringify({
+      cliEnvelopeCases: [
+        { id: 'schema-mismatch', input: { output: { cliVersion: '6.1.0', schemaVersion: 3 } } },
+        { id: 'version-mismatch', input: { output: { cliVersion: '7.0.0', schemaVersion: 4 } } },
+      ],
+      packageManagerCases: [],
+    }),
+  );
+  const update = (version: string): Map<string, string> =>
+    createCliReleaseUpdate({
+      currentFiles,
+      previousCliVersion: '6.1.0',
+      publishedManifest: {
+        dependencies: { '@moldea.ai/core': '^6.0.0' },
+        jsonSchemaVersion: 4,
+        version,
+      },
+      updatedRootManifests: { packageLock: '{}\n', packageManifest: '{}\n' },
+    });
+
+  assert.equal(
+    update('6.2.0').get(RELEASE_PATHS.sourceRepositoryPackage),
+    "export const EXPECTED_CLI_RANGE = '^6.1.0';\nexport const SUPPORTED_CORE_RANGE = '^6.0.0';\n",
+  );
+  assert.equal(
+    update('7.0.0').get(RELEASE_PATHS.sourceRepositoryPackage),
+    "export const EXPECTED_CLI_RANGE = '^7.0.0';\nexport const SUPPORTED_CORE_RANGE = '^6.0.0';\n",
   );
 });

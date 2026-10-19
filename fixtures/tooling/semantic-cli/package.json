@@ -1,14 +1,14 @@
 {
   "dependencies": {
     "semver": "7.8.5",
-    "@moldea.ai/core": "^7.0.4",
-    "@moldea.ai/repository": "^2.0.0",
-    "@moldea.ai/repository-fs": "^2.0.7"
+    "@moldea.ai/core": "^7.1.0",
+    "@moldea.ai/repository": "^2.1.0",
+    "@moldea.ai/repository-fs": "^2.1.0"
   },
   "moldeaRelease": {
     "cliJsonSchemaVersion": 7
   },
-  "version": "11.0.6",
+  "version": "11.1.0",
   "name": "@moldea.ai/cli",
   "private": true,
   "bin": {

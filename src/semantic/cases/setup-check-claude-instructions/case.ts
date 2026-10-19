@@ -48,12 +48,12 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'reports-claude-integration-gap',
       criterion:
-        'The response reports that, by default, Claude Code will not load AGENTS.md because .claude/CLAUDE.md exists without importing it, and gives the exact line @../AGENTS.md to add to .claude/CLAUDE.md.',
+        'The response reports the MOLDEA_INTEGRATION_CLAUDE_IMPORT_MISSING warning for .claude/CLAUDE.md, explains that by default Claude Code will not load AGENTS.md because .claude/CLAUDE.md exists without importing it, and gives the exact line @../AGENTS.md to add to .claude/CLAUDE.md.',
     },
     {
       label: 'validates-setup',
       criterion:
-        'Runner-owned evidence records successful launcher-backed validation, and the response reports the canonical project as valid.',
+        'Runner-owned evidence records successful launcher-backed validation with one warning, and the response reports the canonical project as valid.',
     },
     {
       label: 'preserves-state',

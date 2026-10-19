@@ -19,7 +19,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin an immutable release tag:
 
 ```bash
-npx skills add "moldea-ai/skill#v8.2.8"
+npx skills add "moldea-ai/skill#v8.3.0"
 ```
 
 Repository installation is required because the selected skill version must travel with the project. A global installation does not establish adoption and is not a supported path.
@@ -54,7 +54,7 @@ README receives a short introduction with links to `moldea/project.md` and `mold
 
 AGENTS.md receives a separate managed block with the verified local installation path. For ordinary planning, implementation, or review, it runs the relevance gate once the files are known and before acting. A relationship hit reads SKILL.md unless its complete unchanged instructions are already available; missing, partial, summarized, or changed instructions require a fresh read. New independently discovered files get one new-batch check; unchanged results are reused. The ordinary precheck performs no repository scan.
 
-If AGENTS.md cannot be safely edited or host instructions prohibit it, the coding agent gives you the exact block to add. Adding it is important: ordinary work may otherwise miss context maintenance and leave saved knowledge stale. Explicit `moldea` operations remain available. A missing or stale block produces an integration warning, never canonical invalidity. Ask to fix it, or explicitly accept the warning with your own reason. The coding agent never chooses acceptance on your behalf. Updating the installed skill alone does not rewrite project integration and can make an older block stale; ask for `Fix moldea` to refresh permitted managed regions or obtain the current block for a protected-instruction handoff.
+If AGENTS.md cannot be safely edited or host instructions prohibit it, the coding agent gives you the exact block to add. When a Claude Code instruction file exists without loading AGENTS.md, the coding agent adds the import line to it when permitted, or gives you the exact line. Adding it is important: ordinary work may otherwise miss context maintenance and leave saved knowledge stale. Explicit `moldea` operations remain available. A missing or stale block produces an integration warning, never canonical invalidity. Ask to fix it, or explicitly accept the warning with your own reason. The coding agent never chooses acceptance on your behalf. Updating the installed skill alone does not rewrite project integration and can make an older block stale; ask for `Fix moldea` to refresh permitted managed regions or obtain the current block for a protected-instruction handoff.
 
 Some coding hosts ask for permission to execute commands. If desired, approve a rule for this specific installed gate command using your host’s controls. Do not grant blanket Node execution or weaken repository trust controls. The small instruction block and bounded Node invocation are the cost of an unrelated precheck; the full skill and workflow references are not loaded on a miss. Host compliance is not guaranteed.
 

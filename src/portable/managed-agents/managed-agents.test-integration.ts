@@ -116,7 +116,7 @@ test.each(['link', 'directory', 'ambiguous', 'invalid-utf8', 'oversized'])(
     await withInstallation(async (root, run) => {
       const target = join(root, 'AGENTS.md');
       if (condition === 'link')
-        await symlink(join(root, '.agents', 'skills', 'moldea', 'SKILL.md'), target);
+        await symlink('missing.md', target, process.platform === 'win32' ? 'file' : undefined);
       if (condition === 'directory') await mkdir(target);
       if (condition === 'ambiguous') await writeFile(target, '<!-- moldea:start -->\n');
       if (condition === 'invalid-utf8') await writeFile(target, Buffer.from([0xff]));
@@ -364,5 +364,138 @@ test('bundled helpers handle long paths within native process limits', async () 
       if (isMoved) await rename(deep, root);
       await rm(parent, { recursive: true, force: true });
     }
+  });
+});
+
+const createOutsideDirectory = async (): Promise<string> =>
+  realpath(await mkdtemp(join(tmpdir(), 'moldea-agents-outside-')));
+const fileLinkType = process.platform === 'win32' ? 'file' : undefined;
+
+test('bundled writer updates an inside AGENTS.md link target and keeps the link', async () => {
+  await withInstallation(async (root, run) => {
+    const block = run(['--print']).stdout;
+    await mkdir(join(root, 'docs'));
+    await writeFile(join(root, 'docs', 'AGENTS.md'), '# Shared rules\n');
+    await symlink(join('docs', 'AGENTS.md'), join(root, 'AGENTS.md'), fileLinkType);
+
+    expect(run().stdout).toBe('updated\n');
+    expect((await lstat(join(root, 'AGENTS.md'))).isSymbolicLink()).toBe(true);
+    expect(await readFile(join(root, 'AGENTS.md'), 'utf8')).toBe(`# Shared rules\n\n${block}`);
+    expect(await readFile(join(root, 'docs', 'AGENTS.md'), 'utf8')).toBe(
+      `# Shared rules\n\n${block}`,
+    );
+    expect(run().stdout).toBe('unchanged\n');
+    expect((await readdir(join(root, 'docs'))).some((name) => name.endsWith('.tmp'))).toBe(false);
+  });
+});
+
+test.each(['outside', 'broken', 'loop'])(
+  'bundled writer refuses a %s AGENTS.md link and changes nothing',
+  async (condition) => {
+    const outside = await createOutsideDirectory();
+    try {
+      await withInstallation(async (root, run) => {
+        await writeFile(join(outside, 'AGENTS.md'), '# Outside rules\n');
+        if (condition === 'outside')
+          await symlink(join(outside, 'AGENTS.md'), join(root, 'AGENTS.md'), fileLinkType);
+        if (condition === 'broken')
+          await symlink('missing.md', join(root, 'AGENTS.md'), fileLinkType);
+        if (condition === 'loop') {
+          await symlink('loop.md', join(root, 'AGENTS.md'), fileLinkType);
+          await symlink('AGENTS.md', join(root, 'loop.md'), fileLinkType);
+        }
+
+        const refused = run();
+        expect(refused.status).toBe(1);
+        expect(refused.stdout).toBe('');
+        expect(refused.stderr).toMatch(/^managed AGENTS update failed: AGENTS\.md (?:links|is)/u);
+        expect(await readFile(join(outside, 'AGENTS.md'), 'utf8')).toBe('# Outside rules\n');
+        expect((await lstat(join(root, 'AGENTS.md'))).isSymbolicLink()).toBe(true);
+      });
+    } finally {
+      await rm(outside, { recursive: true, force: true });
+    }
+  },
+);
+
+test('bundled writer writes the file the OS opens through .. after a directory link', async () => {
+  for (const isOutside of [false, true]) {
+    const outside = await createOutsideDirectory();
+    try {
+      await withInstallation(async (root, run) => {
+        const block = run(['--print']).stdout;
+        const nested = isOutside ? join(outside, 'nested') : join(root, 'deep', 'nested');
+        await mkdir(nested, { recursive: true });
+        await writeFile(join(nested, '..', 'shared.md'), '# Physical\n');
+        await writeFile(join(root, 'shared.md'), '# Lexical\n');
+        await symlink(
+          nested,
+          join(root, 'dir-link'),
+          process.platform === 'win32' ? 'junction' : 'dir',
+        );
+        await symlink(join('dir-link', '..', 'shared.md'), join(root, 'AGENTS.md'), fileLinkType);
+        const opened = await readFile(join(root, 'AGENTS.md'), 'utf8');
+        const result = run();
+
+        if (isOutside && opened === '# Physical\n') {
+          expect(result.status).toBe(1);
+          expect(result.stderr).toContain('AGENTS.md links to a file outside the repository');
+          expect(await readFile(join(nested, '..', 'shared.md'), 'utf8')).toBe('# Physical\n');
+        } else {
+          expect(result.stdout).toBe('updated\n');
+          expect(await readFile(join(root, 'AGENTS.md'), 'utf8')).toBe(`${opened}\n${block}`);
+        }
+        if (opened === '# Physical\n') {
+          expect(await readFile(join(root, 'shared.md'), 'utf8')).toBe('# Lexical\n');
+        }
+      });
+    } finally {
+      await rm(outside, { recursive: true, force: true });
+    }
+  }
+});
+
+test('bundled Claude import prints, appends once, keeps CRLF, and never creates a file', async () => {
+  await withInstallation(async (root, run) => {
+    expect(run(['--claude', '/CLAUDE.md', '--print']).stdout).toBe('@AGENTS.md\n');
+    expect(run(['--claude', '/CLAUDE.local.md', '--print']).stdout).toBe('@AGENTS.md\n');
+    expect(run(['--claude', '/.claude/CLAUDE.md', '--print']).stdout).toBe('@../AGENTS.md\n');
+    const missing = run(['--claude', '/CLAUDE.md']);
+    expect(missing.status).toBe(1);
+    expect(missing.stderr).toBe(
+      'Claude import update failed: CLAUDE.md does not exist, and Claude instruction files are never created\n',
+    );
+    await expect(lstat(join(root, 'CLAUDE.md'))).rejects.toThrow();
+    await expect(lstat(join(root, '.claude'))).rejects.toThrow();
+
+    await writeFile(join(root, 'CLAUDE.md'), '# Claude\r\nKeep these rules.\r\n');
+    expect(run(['--claude', '/CLAUDE.md']).stdout).toBe('updated\n');
+    expect(run(['--claude', '/CLAUDE.md']).stdout).toBe('unchanged\n');
+    expect(await readFile(join(root, 'CLAUDE.md'), 'utf8')).toBe(
+      '# Claude\r\nKeep these rules.\r\n@AGENTS.md\r\n',
+    );
+
+    await mkdir(join(root, '.claude'));
+    await writeFile(join(root, '.claude', 'CLAUDE.md'), '# Nested\n');
+    expect(run(['--claude', '/.claude/CLAUDE.md']).stdout).toBe('updated\n');
+    expect(await readFile(join(root, '.claude', 'CLAUDE.md'), 'utf8')).toBe(
+      '# Nested\n@../AGENTS.md\n',
+    );
+    await expect(lstat(join(root, 'AGENTS.md'))).rejects.toThrow();
+  });
+});
+
+test.each([
+  ['--claude'],
+  ['--claude', 'CLAUDE.md'],
+  ['--claude', '/README.md'],
+  ['--claude', '/CLAUDE.md', '--print', '--print'],
+  ['--print', '--claude', '/CLAUDE.md'],
+])('rejects unsupported Claude import arguments %o', async (...flags) => {
+  await withInstallation(async (root, run) => {
+    const result = run(flags);
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('Usage: managed-agents.mjs');
+    expect((await readdir(root)).sort()).toStrictEqual(['.agents']);
   });
 });

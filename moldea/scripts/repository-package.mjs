@@ -15803,8 +15803,8 @@ config(en_default());
 
 // src/portable/repository-package.ts
 import { isPathWithin, readRepositoryFile } from "./repository-files.mjs";
-var EXPECTED_CLI_RANGE = "^11.0.0";
-var SUPPORTED_CORE_RANGE = "^7.0.0";
+var EXPECTED_CLI_RANGE = "^11.1.0";
+var SUPPORTED_CORE_RANGE = "^7.1.0";
 var MAXIMUM_PACKAGE_MANIFEST_BYTES = 65536;
 var utf8Decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
 var STABLE_VERSION_PATTERN = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/u;

@@ -1,10 +1,23 @@
 // @vitest-environment node
 import { spawn, spawnSync } from 'node:child_process';
-import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import {
+  lstat,
+  mkdir,
+  mkdtemp,
+  readFile,
+  readdir,
+  realpath,
+  rm,
+  stat,
+  symlink,
+  writeFile,
+} from 'node:fs/promises';
 import type * as FileSystem from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { expect, test, vi } from 'vitest';
+
+import { resolveInstructionWriteTarget } from '../instruction-link/index.ts';
 
 import { updateManagedFile } from './index.ts';
 
@@ -132,3 +145,35 @@ test.each(['existing', 'new'])(
     }
   },
 );
+
+test('writes a linked AGENTS.md through its resolved target and refuses links otherwise', async () => {
+  const root = await realpath(await mkdtemp(join(tmpdir(), 'moldea-block-link-')));
+  const linkPath = join(root, 'AGENTS.md');
+  try {
+    await mkdir(join(root, 'docs'));
+    await writeFile(join(root, 'docs', 'AGENTS.md'), '# Rules\n');
+    await symlink(
+      join('docs', 'AGENTS.md'),
+      linkPath,
+      process.platform === 'win32' ? 'file' : undefined,
+    );
+    await expect(updateManagedFile(root, BLOCK, 'AGENTS.md')).rejects.toThrow(
+      'AGENTS.md must be a regular file',
+    );
+
+    await expect(
+      updateManagedFile(root, BLOCK, 'AGENTS.md', () =>
+        resolveInstructionWriteTarget(root, 'AGENTS.md'),
+      ),
+    ).resolves.toBe('updated');
+    expect((await lstat(linkPath)).isSymbolicLink()).toBe(true);
+    const [opened, target] = await Promise.all([
+      stat(linkPath, { bigint: true }),
+      stat(join(root, 'docs', 'AGENTS.md'), { bigint: true }),
+    ]);
+    expect(opened.ino).toBe(target.ino);
+    expect(await readFile(linkPath, 'utf8')).toBe(`# Rules\n\n${BLOCK}`);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});

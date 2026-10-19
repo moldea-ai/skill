@@ -219,6 +219,46 @@ test('Git command-policy boundary suppresses helpers and refuses filter attribut
     assert.equal(multipleSelectionResult.status, 2);
     assert.match(multipleSelectionResult.stderr, /command shape is not evaluator-approved/u);
 
+    const instructionPathspecs = [
+      ':(top,literal)AGENTS.md',
+      ':(top,literal)CLAUDE.md',
+      ':(top,literal).claude/CLAUDE.md',
+      ':(top,literal)CLAUDE.local.md',
+    ];
+    const ignoredInventoryArguments = [
+      ...RELEASE_CLI_GIT_OPTIONS,
+      '-C',
+      repositoryPath,
+      'ls-files',
+      '--others',
+      '--ignored',
+      '--exclude-standard',
+      '--full-name',
+      '--no-recurse-submodules',
+      '-z',
+      '--',
+    ];
+    for (const approvedArguments of [
+      [...selectedInventoryArguments, ...instructionPathspecs],
+      [...ignoredInventoryArguments, ...instructionPathspecs],
+    ]) {
+      const instructionResult = runWrappedGit(wrapperPath, repositoryPath, approvedArguments);
+
+      assert.equal(instructionResult.status, 0, instructionResult.stderr);
+    }
+
+    for (const rejectedArguments of [
+      ignoredInventoryArguments,
+      [...ignoredInventoryArguments, ':(top,literal)moldea/moldea.yaml'],
+      [...ignoredInventoryArguments, ...instructionPathspecs.slice(0, 3)],
+      [...ignoredInventoryArguments, ...instructionPathspecs, ':(top,literal)README.md'],
+    ]) {
+      const rejectedIgnoredResult = runWrappedGit(wrapperPath, repositoryPath, rejectedArguments);
+
+      assert.equal(rejectedIgnoredResult.status, 2);
+      assert.match(rejectedIgnoredResult.stderr, /command shape is not evaluator-approved/u);
+    }
+
     const unsupportedCommandSentinelPath = join(repositoryPath, 'unsupported-git-command-ran.txt');
     runSystemGit(repositoryPath, [
       'config',

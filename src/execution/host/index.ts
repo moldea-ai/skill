@@ -22,6 +22,7 @@ export type {
   ICodexEvaluationRole,
   ICodexEvaluationWorkspaceAccess,
   IMoldeaCliOperation,
+  IMoldeaManagedAgentsMode,
   IMoldeaCliLauncherMissReason,
   IMoldeaCliLauncherMissReasonCode,
   IRepositoryTestCommandKind,

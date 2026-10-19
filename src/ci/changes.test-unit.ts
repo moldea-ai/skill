@@ -42,10 +42,12 @@ test.each([
 });
 
 const WorkflowSchema = z.object({
+  env: z.record(z.string(), z.string()).optional(),
   jobs: z.record(
     z.string(),
     z.object({
       if: z.string().optional(),
+      container: z.string().optional(),
       needs: z.union([z.string(), z.array(z.string())]).optional(),
       steps: z
         .array(
@@ -77,6 +79,7 @@ const selectedJobs = [
   'quality',
   'windows-portability',
   'macos-portability',
+  'minimum-git',
 ];
 
 test('conformance selects all maintained lanes together and retains tag identity checks', () => {
@@ -111,6 +114,14 @@ test('Windows and macOS run every portable integration file', () => {
   ).toBe('npm run test:integration -- src/portable');
 });
 
+test('the minimum-Git lane runs repair Git tests on Bullseye with the development Node.js', () => {
+  const job = conformance.jobs['minimum-git'];
+  expect(job?.container).toBe(`node:${conformance.env?.['DEVELOPMENT_NODE_VERSION']}-bullseye`);
+  expect(job?.steps?.find(({ name }) => name === 'Run repair Git integration tests')?.run).toBe(
+    'npx vitest run --config vitest/test-integration.config.ts src/portable/repair-git',
+  );
+});
+
 test('conformance checks the exact candidate head and Windows deep-clones that same commit', () => {
   const candidateRef = '${{ github.event.pull_request.head.sha || github.sha }}';
   for (const name of ['changes', ...selectedJobs]) {
@@ -132,11 +143,23 @@ test('conformance checks the exact candidate head and Windows deep-clones that s
 
 // GitHub's Ubuntu run steps use Bash with errexit; Windows does not execute this gate.
 test.runIf(process.platform !== 'win32').each([
-  ['full success', 'success', 'true', 'success', 'success', 'success', 'success', 'success', 0],
+  [
+    'full success',
+    'success',
+    'true',
+    'success',
+    'success',
+    'success',
+    'success',
+    'success',
+    'success',
+    0,
+  ],
   [
     'presentation-only skips',
     'success',
     'false',
+    'skipped',
     'skipped',
     'skipped',
     'skipped',
@@ -153,6 +176,7 @@ test.runIf(process.platform !== 'win32').each([
     'success',
     'success',
     'success',
+    'success',
     1,
   ],
   [
@@ -164,9 +188,21 @@ test.runIf(process.platform !== 'win32').each([
     'success',
     'success',
     'success',
+    'success',
     1,
   ],
-  ['failed quality', 'success', 'true', 'success', 'success', 'failure', 'success', 'success', 1],
+  [
+    'failed quality',
+    'success',
+    'true',
+    'success',
+    'success',
+    'failure',
+    'success',
+    'success',
+    'success',
+    1,
+  ],
   [
     'unexpected Windows skip',
     'success',
@@ -176,14 +212,39 @@ test.runIf(process.platform !== 'win32').each([
     'success',
     'skipped',
     'success',
+    'success',
     1,
   ],
-  ['failed macOS', 'success', 'true', 'success', 'success', 'success', 'success', 'failure', 1],
+  [
+    'failed macOS',
+    'success',
+    'true',
+    'success',
+    'success',
+    'success',
+    'success',
+    'failure',
+    'failure',
+    1,
+  ],
+  [
+    'failed minimum Git',
+    'success',
+    'true',
+    'success',
+    'success',
+    'success',
+    'success',
+    'success',
+    'failure',
+    1,
+  ],
   [
     'unexpected presentation execution',
     'success',
     'false',
     'success',
+    'skipped',
     'skipped',
     'skipped',
     'skipped',
@@ -194,6 +255,7 @@ test.runIf(process.platform !== 'win32').each([
     'failed classification',
     'failure',
     'true',
+    'success',
     'success',
     'success',
     'success',
@@ -210,9 +272,21 @@ test.runIf(process.platform !== 'win32').each([
     'skipped',
     'skipped',
     'skipped',
+    'skipped',
     1,
   ],
-  ['missing selection', 'success', '', 'skipped', 'skipped', 'skipped', 'skipped', 'skipped', 1],
+  [
+    'missing selection',
+    'success',
+    '',
+    'skipped',
+    'skipped',
+    'skipped',
+    'skipped',
+    'skipped',
+    'skipped',
+    1,
+  ],
 ])(
   'conformance gate: %s',
   (
@@ -224,6 +298,7 @@ test.runIf(process.platform !== 'win32').each([
     quality,
     windows,
     macos,
+    minimumGit,
     expectedCode,
   ) => {
     const step = conformance.jobs['result']?.steps?.find(
@@ -237,6 +312,7 @@ test.runIf(process.platform !== 'win32').each([
       QUALITY: '${{ needs.quality.result }}',
       WINDOWS: '${{ needs.windows-portability.result }}',
       MACOS: '${{ needs.macos-portability.result }}',
+      MINIMUM_GIT: '${{ needs.minimum-git.result }}',
     });
     if (step?.run === undefined) throw new Error('Conformance result gate is missing.');
     const result = spawnSync('bash', ['-e', '-c', step.run], {
@@ -250,6 +326,7 @@ test.runIf(process.platform !== 'win32').each([
         QUALITY: quality,
         WINDOWS: windows,
         MACOS: macos,
+        MINIMUM_GIT: minimumGit,
       },
       encoding: 'utf8',
     });

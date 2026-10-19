@@ -19,6 +19,7 @@ const repository = async (): Promise<string> => {
 
 afterEach(async () => {
   runGit.mockReset();
+  vi.unstubAllEnvs();
   vi.unstubAllGlobals();
   for (const root of roots.splice(0)) await rm(root, { recursive: true, force: true });
 });
@@ -98,6 +99,19 @@ test('Git receives its portable null path for both configuration and attributes'
   expect(runGit.mock.calls[0]).toHaveProperty('2.env.GIT_CONFIG_GLOBAL', '/dev/null');
 });
 
+test('Git reads override ambient settings that would allow fetching missing objects', async () => {
+  vi.stubEnv('GIT_ALLOW_PROTOCOL', 'file');
+  vi.stubEnv('GIT_NO_LAZY_FETCH', '0');
+  runGit.mockReturnValue({
+    status: 128,
+    stdout: Buffer.alloc(0),
+    stderr: Buffer.from('fatal: stop'),
+  });
+  await collectRepairGitEvidence({ repositoryRoot: await repository(), mode: 'checkpoint' });
+  expect(runGit.mock.calls[0]).toHaveProperty('2.env.GIT_ALLOW_PROTOCOL', '');
+  expect(runGit.mock.calls[0]).toHaveProperty('2.env.GIT_NO_LAZY_FETCH', '1');
+});
+
 test('long Git error lines cannot exceed the bounded response reason', async () => {
   runGit.mockReturnValue({
     status: 128,
@@ -132,8 +146,5 @@ test('Git file-monitor failures retain git-read classification and the first err
     reason:
       'The bounded repair Git read failed or exceeded its limit. fatal: fsmonitor read failed',
   });
-  expect(runGit.mock.calls[0]).toHaveProperty(
-    '1',
-    expect.arrayContaining(['core.fsmonitor=false']),
-  );
+  expect(runGit.mock.calls[0]).toHaveProperty('1', expect.arrayContaining(['core.fsmonitor=']));
 });

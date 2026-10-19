@@ -950,8 +950,42 @@ describe('ordinary final-validation exception', () => {
       ],
       [['validate', 2_000]],
     ],
+    [
+      'a validate that follows only a patch with missing paths',
+      [
+        ['file-change', [{ kind: 'update' }]],
+        ['command', VALIDATE, 2_000],
+      ],
+      [['validate', 2_000]],
+    ],
+    [
+      'a validate that follows only a patch with an empty change list',
+      [
+        ['file-change', []],
+        ['command', VALIDATE, 2_000],
+      ],
+      [['validate', 2_000]],
+    ],
+    [
+      'a patch with missing paths and a shell write before the validate',
+      [
+        ['file-change', [{ kind: 'update' }]],
+        ['command', 'cat > moldea/notes.md', 0],
+        ['command', VALIDATE, 2_000],
+      ],
+      [['validate', 2_000]],
+    ],
   ] as const)('denies the exemption for %s', (_description, entries, calls) => {
     expect(identify(entries, calls)).toBeNull();
+  });
+
+  test('exempts a validation after a known moldea/ patch and a later unreadable patch', () => {
+    expect(
+      identify(
+        [PATCH_MOLDEA, ['file-change', [{ kind: 'update' }]], ['command', VALIDATE, 2_000]],
+        [['validate', 2_000]],
+      ),
+    ).toBe(2_000);
   });
 
   test.each([

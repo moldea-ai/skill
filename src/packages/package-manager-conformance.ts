@@ -22,6 +22,20 @@ const EnvironmentSchema = z.strictObject({
 
 type IConformanceEnvironment = z.infer<typeof EnvironmentSchema>;
 
+// ordinary lockfile written by each package manager
+const LOCKFILE_NAMES = {
+  npm: 'package-lock.json',
+  pnpm: 'pnpm-lock.yaml',
+  yarn: 'yarn.lock',
+} as const;
+
+/*
+ * The unrelated local dependency whose declaration and lock entries must survive CLI recovery.
+ * Its directory carries the package name, because npm 8 and 10 otherwise add a `name` field to
+ * its lock entry when another dependency is removed and re-added.
+ */
+const UNRELATED_DEPENDENCY_NAME = 'moldea-lifecycle-dependency';
+
 /** Reads every lockfile document, including pnpm's multi-document format. */
 const readLockedGraph = (source: string): unknown[] =>
   parseAllDocuments(source).map((document) => {
@@ -126,10 +140,50 @@ const createInstallArguments = (options: {
     ];
   }
   if (isYarnClassic(options.manager, options.managerVersion)) {
-    return ['add', '--dev', '--exact', '--ignore-scripts', options.packageIdentity];
+    return ['add', '-W', '--dev', '--exact', '--ignore-scripts', options.packageIdentity];
   }
   return ['add', '--dev', '--exact', '--mode=skip-build', options.packageIdentity];
 };
+
+/** Creates the targeted lifecycle-safe CLI removal arguments for one package manager. */
+const createRemoveArguments = (
+  manager: IConformanceEnvironment['manager'],
+  managerVersion: string,
+): string[] => {
+  if (manager === 'npm') return ['uninstall', '--ignore-scripts', '@moldea.ai/cli'];
+  if (manager === 'pnpm') return ['remove', '--workspace-root', '@moldea.ai/cli'];
+  if (isYarnClassic(manager, managerVersion))
+    return ['remove', '-W', '--ignore-scripts', '@moldea.ai/cli'];
+  return ['remove', '--mode=skip-build', '@moldea.ai/cli'];
+};
+
+/** Disables scripts through configuration; pnpm removal accepts no flag on every supported version. */
+const createScriptlessEnvironment = (environment: NodeJS.ProcessEnv): NodeJS.ProcessEnv => ({
+  ...environment,
+  npm_config_ignore_scripts: 'true',
+  PNPM_CONFIG_IGNORE_SCRIPTS: 'true',
+});
+
+/** Collects every lockfile value whose key names the unrelated dependency or its path. */
+const collectUnrelatedLockEntries = (
+  value: unknown,
+  keyPath: readonly string[] = [],
+): Array<[string, unknown]> => {
+  if (value === null || typeof value !== 'object') return [];
+  return Object.entries(value).flatMap(([key, child]) =>
+    key.includes(UNRELATED_DEPENDENCY_NAME)
+      ? [[[...keyPath, key].join(' > '), child] as [string, unknown]]
+      : collectUnrelatedLockEntries(child, [...keyPath, key]),
+  );
+};
+
+/** Reads the unrelated dependency's lock entries; Yarn Classic's lockfile is compared as text blocks. */
+const readUnrelatedLockEntries = (source: string, yarnClassic: boolean): unknown[] =>
+  yarnClassic
+    ? source
+        .split(/\n{2,}/u)
+        .filter((block) => block.split('\n', 1)[0]!.includes(UNRELATED_DEPENDENCY_NAME))
+    : readLockedGraph(source).flatMap((document) => collectUnrelatedLockEntries(document));
 
 /** Creates a minimal valid Custom-runtime project for real CLI execution. */
 const seedConformanceProject = async (clientDirectory: string): Promise<void> => {
@@ -287,23 +341,10 @@ const verifyBrokenInstallation = async (options: {
     expectedExitCodes: [3],
   });
   assert.equal(rejected.stdout, '');
-  // pnpm removal uses configuration; supported versions recognize these prefixes.
-  const recoveryEnvironment: NodeJS.ProcessEnv = {
-    ...options.environment,
-    npm_config_ignore_scripts: 'true',
-    PNPM_CONFIG_IGNORE_SCRIPTS: 'true',
-  };
-  const removeArguments =
-    options.manager === 'npm'
-      ? ['uninstall', '--save-dev', '--ignore-scripts', '@moldea.ai/cli']
-      : options.manager === 'pnpm'
-        ? ['remove', '--workspace-root', '@moldea.ai/cli']
-        : isYarnClassic(options.manager, options.managerVersion)
-          ? ['remove', '--ignore-scripts', '@moldea.ai/cli']
-          : ['remove', '--mode=skip-build', '@moldea.ai/cli'];
+  const recoveryEnvironment = createScriptlessEnvironment(options.environment);
   await runCommand({
     command: getManagerExecutable(options.manager),
-    args: removeArguments,
+    args: createRemoveArguments(options.manager, options.managerVersion),
     cwd: options.clientDirectory,
     environment: recoveryEnvironment,
   });
@@ -493,6 +534,106 @@ const verifyOlderInstallation = async (options: {
   assert.equal(composition.status, 'valid');
 };
 
+/** Moves a CLI declared in `dependencies` to an exact root development dependency by removal and re-add. */
+const verifyDeclarationMigration = async (options: {
+  clientDirectory: string;
+  environment: NodeJS.ProcessEnv;
+  lifecycleSentinelPath: string;
+  manager: IConformanceEnvironment['manager'];
+  managerVersion: string;
+  registryUrl: string;
+  skillRoot: string;
+  targetVersion: string;
+}): Promise<void> => {
+  const migrationDirectory = path.join(options.clientDirectory, 'migration-project');
+  await mkdir(migrationDirectory);
+  const unrelatedSource = 'export const projectPolicy = "keep unrelated dependencies";\n';
+  await writeFile(path.join(migrationDirectory, 'policy.ts'), unrelatedSource);
+  const unrelatedDeclaration = {
+    [UNRELATED_DEPENDENCY_NAME]: `file:../${UNRELATED_DEPENDENCY_NAME}`,
+  };
+  await writeFile(
+    path.join(migrationDirectory, 'package.json'),
+    JSON.stringify({
+      name: 'moldea-migration-fixture',
+      private: true,
+      scripts: { preinstall: 'node -e "process.exit(99)"' },
+      dependencies: unrelatedDeclaration,
+    }),
+  );
+  await configureCandidateRegistry(
+    migrationDirectory,
+    options.manager,
+    options.managerVersion,
+    options.registryUrl,
+  );
+  const packageIdentity = `@moldea.ai/cli@${options.targetVersion}`;
+  // the same exact scriptless add without the development flag declares a regular dependency
+  await runCommand({
+    args: createInstallArguments({
+      manager: options.manager,
+      managerVersion: options.managerVersion,
+      packageIdentity,
+    }).filter((argument) => argument !== '--save-dev' && argument !== '--dev'),
+    command: getManagerExecutable(options.manager),
+    cwd: migrationDirectory,
+    environment: options.environment,
+  });
+  const readManifest = async () =>
+    JSON.parse(await readFile(path.join(migrationDirectory, 'package.json'), 'utf8')) as {
+      dependencies?: Record<string, string>;
+      devDependencies?: Record<string, string>;
+    };
+  assert.equal((await readManifest()).dependencies?.['@moldea.ai/cli'], options.targetVersion);
+  const rejected = await runCli({
+    ...options,
+    clientDirectory: migrationDirectory,
+    argumentsList: ['composition', '--json'],
+    expectedExitCodes: [3],
+  });
+  assert.equal(rejected.stdout, '');
+  const yarnClassic = isYarnClassic(options.manager, options.managerVersion);
+  const lockPath = path.join(migrationDirectory, LOCKFILE_NAMES[options.manager]);
+  const lockedBefore = readUnrelatedLockEntries(await readFile(lockPath, 'utf8'), yarnClassic);
+  assert.notDeepEqual(lockedBefore, []);
+
+  const scriptlessEnvironment = createScriptlessEnvironment(options.environment);
+  await runCommand({
+    args: createRemoveArguments(options.manager, options.managerVersion),
+    command: getManagerExecutable(options.manager),
+    cwd: migrationDirectory,
+    environment: scriptlessEnvironment,
+  });
+  await runCommand({
+    args: createInstallArguments({
+      manager: options.manager,
+      managerVersion: options.managerVersion,
+      packageIdentity,
+    }),
+    command: getManagerExecutable(options.manager),
+    cwd: migrationDirectory,
+    environment: scriptlessEnvironment,
+  });
+
+  const migrated = await readManifest();
+  assert.deepEqual(migrated.dependencies ?? {}, unrelatedDeclaration);
+  assert.deepEqual(migrated.devDependencies, { '@moldea.ai/cli': options.targetVersion });
+  assert.deepEqual(
+    readUnrelatedLockEntries(await readFile(lockPath, 'utf8'), yarnClassic),
+    lockedBefore,
+  );
+  assert.equal(await readFile(path.join(migrationDirectory, 'policy.ts'), 'utf8'), unrelatedSource);
+  assert.equal(await pathExists(options.lifecycleSentinelPath), false);
+  const result = await runCli({
+    ...options,
+    clientDirectory: migrationDirectory,
+    argumentsList: ['composition', '--json'],
+  });
+  z.object({ cliVersion: z.literal(options.targetVersion), status: z.literal('valid') }).parse(
+    JSON.parse(result.stdout) as unknown,
+  );
+};
+
 /** Exercises the real managed writer and adoption gate after successful tooling establishment. */
 const verifyFoundationMechanics = async (options: {
   clientDirectory: string;
@@ -551,7 +692,7 @@ export const verifyPackageManagerCandidate = async (
   const lifecycleSentinelPath = path.join(clientDirectory, 'lifecycle-ran.txt');
   const lifecycleSentinelSource =
     "import { appendFileSync } from 'node:fs';\nappendFileSync(process.env.MOLDEA_LIFECYCLE_SENTINEL, `${process.argv[2] ?? 'unknown'}\\n`);\n";
-  const lifecycleDependencyDirectory = path.join(clientDirectory, 'lifecycle-dependency');
+  const lifecycleDependencyDirectory = path.join(clientDirectory, UNRELATED_DEPENDENCY_NAME);
   const executable = getManagerExecutable(environment.manager);
   const managerEnvironment: NodeJS.ProcessEnv = {
     ...process.env,
@@ -574,7 +715,7 @@ export const verifyPackageManagerCandidate = async (
       path.join(lifecycleDependencyDirectory, 'package.json'),
       `${JSON.stringify(
         {
-          name: 'moldea-lifecycle-dependency',
+          name: UNRELATED_DEPENDENCY_NAME,
           version: '1.0.0',
           scripts: {
             install: 'node lifecycle-sentinel.mjs dependency-install',
@@ -597,7 +738,7 @@ export const verifyPackageManagerCandidate = async (
       `${JSON.stringify(
         {
           name: 'moldea-cli-candidate-client',
-          devDependencies: { 'moldea-lifecycle-dependency': 'file:./lifecycle-dependency' },
+          devDependencies: { [UNRELATED_DEPENDENCY_NAME]: `file:./${UNRELATED_DEPENDENCY_NAME}` },
           packageManager: `${environment.manager}@${environment.managerVersion}`,
           private: true,
           scripts: {
@@ -605,12 +746,22 @@ export const verifyPackageManagerCandidate = async (
             postinstall: 'node lifecycle-sentinel.mjs postinstall',
             preinstall: 'node lifecycle-sentinel.mjs preinstall',
           },
+          // Yarn installs at a real workspace root; pnpm's root comes from pnpm-workspace.yaml
+          ...(environment.manager === 'yarn' ? { workspaces: ['packages/*'] } : {}),
         },
         null,
         2,
       )}\n`,
       'utf8',
     );
+    if (environment.manager === 'yarn') {
+      await mkdir(path.join(clientDirectory, 'packages', 'app'), { recursive: true });
+      await writeFile(
+        path.join(clientDirectory, 'packages', 'app', 'package.json'),
+        `${JSON.stringify({ name: 'moldea-workspace-app', private: true, version: '1.0.0' }, null, 2)}\n`,
+        'utf8',
+      );
+    }
     await writeFile(
       path.join(clientDirectory, 'lifecycle-sentinel.mjs'),
       lifecycleSentinelSource,
@@ -695,12 +846,7 @@ export const verifyPackageManagerCandidate = async (
       skillRoot: environment.skillRoot,
       cliVersion: candidate.cliVersion,
     });
-    const lockName =
-      environment.manager === 'npm'
-        ? 'package-lock.json'
-        : environment.manager === 'pnpm'
-          ? 'pnpm-lock.yaml'
-          : 'yarn.lock';
+    const lockName = LOCKFILE_NAMES[environment.manager];
     const preservedPaths = [
       'package.json',
       lockName,
@@ -786,6 +932,16 @@ export const verifyPackageManagerCandidate = async (
     await verifyOlderInstallation({
       clientDirectory,
       environment: managerEnvironment,
+      manager: environment.manager,
+      managerVersion: environment.managerVersion,
+      registryUrl: registry.registryUrl,
+      skillRoot: environment.skillRoot,
+      targetVersion: candidate.cliVersion,
+    });
+    await verifyDeclarationMigration({
+      clientDirectory,
+      environment: managerEnvironment,
+      lifecycleSentinelPath,
       manager: environment.manager,
       managerVersion: environment.managerVersion,
       registryUrl: registry.registryUrl,

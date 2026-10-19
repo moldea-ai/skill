@@ -247,7 +247,7 @@ const SAFE_GIT_SUBCOMMANDS = new Set([
 ]);
 const SAFE_GIT_CONFIG_ASSIGNMENTS = new Set([
   'core.attributesFile=/dev/null',
-  'core.fsmonitor=false',
+  'core.fsmonitor=',
   'core.pager=cat',
   'diff.external=',
   'filter.lfs.clean=',

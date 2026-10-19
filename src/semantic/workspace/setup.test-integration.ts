@@ -1432,6 +1432,34 @@ test('the missing-bridge fixture stays valid and hands off the exact installed b
   assert.deepEqual(await snapshotSemanticWorkspace(repositoryPath), before);
 });
 
+test('the Claude instruction fixture is valid while .claude/CLAUDE.md never imports AGENTS.md', async () => {
+  const { repositoryPath } = await materializeCase('setup-check-claude-instructions', true);
+  assert.equal(
+    readFileSync(join(repositoryPath, '.claude', 'CLAUDE.md'), 'utf8').includes('AGENTS.md'),
+    false,
+  );
+  assert.equal(existsSync(join(repositoryPath, 'CLAUDE.md')), false);
+  assert.equal(existsSync(join(repositoryPath, 'CLAUDE.local.md')), false);
+  const tracked = spawnSync('git', ['ls-files', '--error-unmatch', '--', '.claude/CLAUDE.md'], {
+    cwd: repositoryPath,
+    encoding: 'utf8',
+  });
+  assert.equal(tracked.status, 0, tracked.stderr);
+  assert.ok(
+    readFileSync(join(repositoryPath, 'AGENTS.md'), 'utf8').includes(
+      readFileSync(
+        join(repositoryPath, '.agents/skills/moldea/assets/managed-agents-block.md'),
+        'utf8',
+      ).replaceAll('{{skill-path}}', '.agents/skills/moldea'),
+    ),
+  );
+  const validation = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as {
+    result: { valid: boolean; warningCount: number };
+  };
+  assert.equal(validation.result.valid, true);
+  assert.equal(validation.result.warningCount, 0);
+});
+
 test.each([
   ['lf', '\n'],
   ['crlf', '\r\n'],

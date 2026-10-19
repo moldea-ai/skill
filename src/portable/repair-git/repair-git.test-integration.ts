@@ -5,6 +5,7 @@ import {
   chmodSync,
   mkdirSync,
   mkdtempSync,
+  readdirSync,
   readFileSync,
   renameSync,
   rmSync,
@@ -13,6 +14,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { afterEach, expect, test } from 'vitest';
 
 import {
@@ -72,6 +74,21 @@ const runHelper = (root: string, ...arguments_: string[]) =>
     ],
     { encoding: 'utf8', timeout: 30_000 },
   );
+
+// records every Git storage path and its bytes so a read can prove it wrote nothing
+const snapshot = (directory: string, prefix = ''): string[] =>
+  readdirSync(directory, { withFileTypes: true })
+    .sort((left, right) => left.name.localeCompare(right.name))
+    .flatMap((entry) =>
+      entry.isDirectory()
+        ? [
+            `${prefix}${entry.name}/`,
+            ...snapshot(join(directory, entry.name), `${prefix}${entry.name}/`),
+          ]
+        : [
+            `${prefix}${entry.name}:${readFileSync(join(directory, entry.name)).toString('base64')}`,
+          ],
+    );
 
 afterEach(() => {
   for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true });
@@ -172,6 +189,89 @@ test('a configured failing file monitor is suppressed without executing its hook
   expect(result.status, result.stdout + result.stderr).toBe(0);
   expect(JSON.parse(result.stdout)).toMatchObject({ status: 'available' });
   expect(existsSync(sentinel)).toBe(false);
+});
+
+// the false shim is a POSIX sh script; Git 2.35 and earlier ran core.fsmonitor=false through PATH
+test.skipIf(process.platform === 'win32')(
+  'a stored file-monitor index extension never runs a false program from PATH',
+  () => {
+    const root = repository();
+    writeFileSync(join(root, 'monitor.cjs'), 'process.exit(0);\n');
+    git(root, 'config', 'core.fsmonitorHookVersion', '1');
+    git(root, 'config', 'core.fsmonitor', 'node monitor.cjs');
+    git(root, 'update-index', '--fsmonitor');
+    git(root, 'config', '--unset', 'core.fsmonitor');
+    git(root, 'config', '--unset', 'core.fsmonitorHookVersion');
+    expect(readFileSync(join(root, '.git', 'index')).includes('FSMN')).toBe(true);
+    const tools = mkdtempSync(join(tmpdir(), 'moldea-repair-tools-'));
+    roots.push(tools);
+    const sentinel = join(tools, 'false-ran');
+    writeFileSync(join(tools, 'false'), `#!/bin/sh\nprintf x >> '${sentinel}'\nexit 1\n`);
+    chmodSync(join(tools, 'false'), 0o755);
+    const result = spawnSync(
+      process.env['MOLDEA_TEST_NODE'] ?? process.execPath,
+      [
+        resolve(import.meta.dirname, '../../../moldea/scripts/repair-git.mjs'),
+        '--repository',
+        root,
+        '--',
+        'checkpoint',
+      ],
+      {
+        encoding: 'utf8',
+        timeout: 30_000,
+        env: { ...process.env, PATH: tools + ':' + process.env['PATH'] },
+      },
+    );
+    expect(result.status, result.stdout + result.stderr).toBe(0);
+    expect(JSON.parse(result.stdout)).toMatchObject({ status: 'available' });
+    expect(existsSync(sentinel)).toBe(false);
+  },
+);
+
+test('a missing object in a partial clone is unavailable evidence and is never fetched', () => {
+  const source = repository();
+  const checkpoint = git(source, 'rev-parse', 'HEAD');
+  const missingBlob = git(source, 'rev-parse', 'HEAD:moldea/moldea.yaml');
+  writeFileSync(join(source, 'moldea', 'moldea.yaml'), 'version: 1\ncontext: {}\n');
+  git(source, 'add', '--', 'moldea/moldea.yaml');
+  git(source, 'commit', '-m', 'Manifest change');
+  git(source, 'config', 'uploadpack.allowFilter', 'true');
+  git(source, 'config', 'uploadpack.allowAnySHA1InWant', 'true');
+  const parent = mkdtempSync(join(tmpdir(), 'moldea-repair-partial-'));
+  roots.push(parent);
+  const clone = join(parent, 'clone');
+  git(parent, 'clone', '--filter=blob:none', pathToFileURL(source).href, clone);
+  const isMissing = (): boolean =>
+    git(clone, 'rev-list', '--objects', '--missing=print', checkpoint)
+      .split('\n')
+      .includes(`?${missingBlob}`);
+  expect(isMissing()).toBe(true);
+  // a POSIX upload-pack shim proves whether any fetch reached the remote
+  const sentinel = join(parent, 'upload-pack-ran');
+  if (process.platform !== 'win32') {
+    const uploadPack = join(parent, 'upload-pack.sh');
+    writeFileSync(uploadPack, `#!/bin/sh\nprintf x >> '${sentinel}'\nexec git upload-pack "$@"\n`);
+    chmodSync(uploadPack, 0o755);
+    git(clone, 'config', 'remote.origin.uploadpack', uploadPack);
+  }
+  const before = snapshot(join(clone, '.git'));
+
+  const result = runHelper(clone, 'continue', '--checkpoint', checkpoint);
+  expect(result.status, result.stdout + result.stderr).toBe(1);
+  expect(JSON.parse(result.stdout)).toMatchObject({
+    status: 'unavailable',
+    reasonCode: 'git-read',
+  });
+  expect(snapshot(join(clone, '.git'))).toStrictEqual(before);
+  expect(isMissing()).toBe(true);
+  if (process.platform === 'win32') return;
+  expect(existsSync(sentinel)).toBe(false);
+
+  // the same read without the helper's environment fetches, so the fixture is meaningful
+  git(clone, 'diff', checkpoint, '--', 'moldea/moldea.yaml');
+  expect(existsSync(sentinel)).toBe(true);
+  expect(isMissing()).toBe(false);
 });
 
 test('bundled repair reads tracked backup paths without changing the index', () => {

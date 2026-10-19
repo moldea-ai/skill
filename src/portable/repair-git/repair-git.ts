@@ -82,9 +82,12 @@ const readGit = (repositoryRoot: string, arguments_: readonly string[]): Buffer 
       encoding: 'buffer',
       env: {
         ...environment,
+        // evidence reads never fetch missing objects; Git without GIT_NO_LAZY_FETCH needs the empty protocol list
+        GIT_ALLOW_PROTOCOL: '',
         GIT_ATTR_NOSYSTEM: '1',
         GIT_CONFIG_GLOBAL: '/dev/null',
         GIT_CONFIG_NOSYSTEM: '1',
+        GIT_NO_LAZY_FETCH: '1',
         GIT_OPTIONAL_LOCKS: '0',
         GIT_WORK_TREE: repositoryRoot,
         GIT_LITERAL_PATHSPECS: '1',

@@ -1,7 +1,8 @@
 // fixed read-only Git configuration shared by the helper and evaluation boundary
 export const REPAIR_GIT_COMMON_CONFIGURATIONS = [
   'core.attributesFile=/dev/null',
-  'core.fsmonitor=false',
+  // empty disables the monitor on every supported Git; before Git 2.36, false names a hook
+  'core.fsmonitor=',
   'core.pager=cat',
   'filter.lfs.clean=',
   'filter.lfs.process=',

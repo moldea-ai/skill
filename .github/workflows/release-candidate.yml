@@ -104,6 +104,7 @@ jobs:
           git -C packages rev-parse HEAD > "$candidate_directory/packages-commit.txt"
           node skill/src/packages/pack.ts \
             --workspace packages \
+            --root @moldea.ai/website-ui \
             --output "$candidate_directory"
 
       - name: Upload candidate closure
@@ -205,21 +206,21 @@ jobs:
             "${{ runner.temp }}/cli-candidate-packages" \
             "$PACKAGES_COMMIT"
 
-      - name: Use dispatched candidate closure
+      # the dispatched pack also carries Website UI, which only skill preparation consumes
+      - name: Select dispatched CLI closure
         if: ${{ inputs.artifact_name == '' }}
-        run: mv "${{ runner.temp }}/downloaded-package-artifacts" "${{ runner.temp }}/cli-candidate-packages"
+        run: |
+          mkdir -p "${{ runner.temp }}/cli-candidate-packages"
+          find "${{ runner.temp }}/downloaded-package-artifacts" -maxdepth 1 -type f -name '*.tgz' \
+            ! -name 'moldea.ai-website-ui-*.tgz' \
+            -exec cp {} "${{ runner.temp }}/cli-candidate-packages/" \;
 
       - name: Prepare complete skill candidate with development npm
         env:
-          MOLDEA_CANDIDATE_ARTIFACT_NAME: ${{ inputs.artifact_name }}
           MOLDEA_CANDIDATE_SKILL_VERSION: ${{ inputs.skill_version }}
         run: |
-          candidate_artifacts="${{ runner.temp }}/cli-candidate-packages"
-          if [ -n "$MOLDEA_CANDIDATE_ARTIFACT_NAME" ]; then
-            candidate_artifacts="${{ runner.temp }}/downloaded-package-artifacts"
-          fi
           candidate_arguments=(
-            --artifacts "$candidate_artifacts"
+            --artifacts "${{ runner.temp }}/downloaded-package-artifacts"
             --output "${{ runner.temp }}/skill-candidate"
           )
           if [ -n "$MOLDEA_CANDIDATE_SKILL_VERSION" ]; then

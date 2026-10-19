@@ -1625,6 +1625,14 @@ const seedScenarioRepository = async (
     case 'integration-block-missing-handoff':
       await writeScenarioFile(repositoryPath, 'moldea/moldea.yaml', 'version: 1\n');
       break;
+    case 'setup-check-claude-instructions':
+      // ordinary Claude Code notes that never import AGENTS.md
+      await writeScenarioFile(
+        repositoryPath,
+        '.claude/CLAUDE.md',
+        '# Project notes\n\nRun `node --test` before committing. Keep responses short.\n',
+      );
+      break;
     case 'evaluate-brief-project-request':
       await writeScenarioFile(repositoryPath, 'moldea/moldea.yaml', 'version: 1\n');
       await writeScenarioFile(

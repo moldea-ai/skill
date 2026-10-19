@@ -118,9 +118,9 @@ These changes were not re-evaluated. Deterministic coverage:
 
 Whether a coding agent checks Claude Code's files or chooses the correct import or package-manager command is not established by the selected evidence. Deterministic conformance and installation checks do not prove model adherence to the new wording.
 
-## Evaluation protocol 49
+## Evaluation protocol 50
 
-Protocol 49 meets the pre-run counting and final-validation requirements stated above: it grades each cycle on moldea's own work and recognizes the ordinary final-validation exception from ordered Codex events, as described in [resource accounting](/docs/semantic-evaluation/#resource-accounting). It changes no selected evidence; it applies to the next recording.
+Protocol 50 meets the pre-run counting and final-validation requirements stated above: it grades each cycle on moldea's own work and recognizes the ordinary final-validation exception from ordered Codex events, as described in [resource accounting](/docs/semantic-evaluation/#resource-accounting). It corrects protocol 49, which no recording used, so that a patch whose paths cannot be read never earns that exception. It changes no selected evidence; it applies to the next recording.
 
 ## Check a release
 

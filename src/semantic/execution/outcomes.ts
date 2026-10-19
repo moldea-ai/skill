@@ -108,8 +108,9 @@ const hasPassingResourceProfile = (
 
 /**
  * Finds the one ordinary-profile `validate` exempt from the aggregate allowance and the scenario's
- * CLI limits: it follows a patch to moldea/, is the only validation since the last such patch, and
- * nothing moldea-owned follows it. Missing or unplaceable evidence never earns the exemption.
+ * CLI limits: it follows a known patch to moldea/ and any later patch that may have touched it, is
+ * the only validation since the last such patch, and nothing moldea-owned follows it. Missing or
+ * unplaceable evidence, including an unreadable patch on its own, never earns the exemption.
  * @param options One cycle's ordered events, launcher captures and net workspace changes.
  * @returns The exempt call's launcher output bytes, or null when no call qualifies.
  */
@@ -133,11 +134,15 @@ export const identifyFinalValidationExemption = (options: {
   ) {
     return null;
   }
-  // an unreadable patch may have touched moldea/, so it counts as a write
+  // an unreadable patch may have touched moldea/, so the validate must follow it, but only a
+  // patch positively touching moldea/ at or before that point earns the exemption
   const lastWriteIndex = events.findLastIndex(
     (event) => event.kind === 'file-change' && event.moldeaPath !== 'not-touching',
   );
-  if (lastWriteIndex === -1) return null;
+  const hasKnownWrite = events
+    .slice(0, lastWriteIndex + 1)
+    .some((event) => event.kind === 'file-change' && event.moldeaPath === 'touching');
+  if (!hasKnownWrite) return null;
   const laterCommands = events
     .slice(lastWriteIndex + 1)
     .flatMap((event) => (event.kind === 'command' ? [event] : []));

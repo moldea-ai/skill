@@ -118,6 +118,8 @@ export interface ICodexEvaluationExecutionEvidence {
 }
 
 export type IMoldeaCliOperation = 'composition' | 'content' | 'inspect' | 'scope' | 'validate';
+// closed operation modes of the installed AGENTS.md and Claude Code integration helper
+export type IMoldeaManagedAgentsMode = 'claude-print' | 'claude-write' | 'print' | 'write';
 export type IRepositoryTestCommandKind = 'e2e' | 'integration' | 'unit';
 
 export interface ICodexEvaluationHostConfiguration {

@@ -14,6 +14,7 @@ import {
 import type {
   ICliInvocation,
   IMoldeaCliOperation,
+  IMoldeaManagedAgentsMode,
   IGitInvocationEvidence,
   IRepositoryTestCommandKind,
 } from '../../execution/host/index.ts';
@@ -552,7 +553,7 @@ const hasValidManagedReadmeFact = (fact: unknown, byteCount: number, exitCode: n
 
 const projectManagedAgentsResult = (
   source: string,
-  mode: 'write' | 'print' | null,
+  mode: IMoldeaManagedAgentsMode | null,
   exitCode: number,
 ): ISemanticActorExecutionOutputFact | null => {
   if (exitCode !== 0) return null;
@@ -697,7 +698,7 @@ const createOutputEvidence = (
   operation: IMoldeaCliOperation | null,
   gateMode: 'adoption-only' | 'relationship' | null,
   isManagedReadmeWriter: boolean,
-  agentsMode: 'write' | 'print' | null,
+  agentsMode: IMoldeaManagedAgentsMode | null,
   repairMode: 'checkpoint' | 'continue' | 'review' | 'verify' | null,
   exitCode: number,
   options: ISemanticActorExecutionEvidenceOptions,

@@ -118,9 +118,30 @@ These changes were not re-evaluated. Deterministic coverage:
 
 Whether a coding agent checks Claude Code's files or chooses the correct import or package-manager command is not established by the selected evidence. Deterministic conformance and installation checks do not prove model adherence to the new wording.
 
+## Skill 8.3.0 evidence reuse
+
+Skill 8.3.0 keeps the same 8.2.3 selection, recorded with CLI 11.0.6. It moves the Claude Code integration check from instruction text into Core 7.1.0 and the bundled writer:
+
+- `validate` checks a linked AGENTS.md on its regular-file target, inside or outside the repository, and reports a Claude Code instruction file that does not load AGENTS.md as `MOLDEA_INTEGRATION_CLAUDE_IMPORT_MISSING`. A link it cannot verify reports `MOLDEA_INTEGRATION_UNVERIFIED`. CLI 11.1.0 passes Git-ignored instruction files to this check and to no other.
+- `managed-agents.mjs` updates a linked AGENTS.md through its regular-file target inside the repository, keeping the link, and refuses every other link with its reason. `--claude <file>` appends the import line to an existing Claude Code instruction file, and `--claude <file> --print` prints only that line.
+- The coding agent offers acceptance of an integration warning only for a shared instruction file that Git tracks. An accepted warning about a personal or ignored file would report `MOLDEA_ACCEPTANCE_UNMATCHED` on every other checkout.
+- The supported ranges rise to CLI `^11.1.0` and Core `^7.1.0`, and the repair target is CLI 11.1.0.
+
+These changes were not re-evaluated. Deterministic coverage:
+
+- Real-link writer tests compare each written file with the file the operating system opens through the link. They cover refusals of outside, broken, looping and network targets, `..` after a directory link, Claude Code import insertion, idempotence and CRLF, the `--print` forms, and never creating a Claude Code file.
+- Disposable repositories driven through the launcher with the published CLI 11.1.0 cover initialization, repair and warning acceptance; a `CLAUDE.md` link to AGENTS.md, an AGENTS.md link to `CLAUDE.md`, and `.claude/CLAUDE.md` with `@../AGENTS.md`; an AGENTS.md linked outside the repository; and an accepted `/CLAUDE.local.md` warning that reports `MOLDEA_ACCEPTANCE_UNMATCHED` on a checkout without that file.
+- The package-manager harness passed locally with the published CLI 11.1.0 closure on every release-candidate matrix entry and Yarn 3.8.7.
+
+Whether a coding agent uses the new helper modes or follows the acceptance rule is not established by the selected evidence.
+
 ## Evaluation protocol 50
 
 Protocol 50 meets the pre-run counting and final-validation requirements stated above: it grades each cycle on moldea's own work and recognizes the ordinary final-validation exception from ordered Codex events, as described in [resource accounting](/docs/semantic-evaluation/#resource-accounting). It corrects protocol 49, which no recording used, so that a patch whose paths cannot be read never earns that exception. It changes no selected evidence; it applies to the next recording.
+
+## Evaluation protocol 51
+
+Protocol 51 recognizes the writer's `--claude <file>` and `--claude <file> --print` forms as bundled-helper operations, and the sandbox Git policy admits CLI 11.1.0's instruction-file probe. `setup-check-claude-instructions` now expects Core's warning and the exact `@../AGENTS.md` line. Resource accounting and evidence schema 15 are unchanged. It changes no selected evidence; it applies to the next recording.
 
 ## Check a release
 

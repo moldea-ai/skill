@@ -1213,7 +1213,26 @@ test('recognizes only closed installed AGENTS helper operations', () => {
   const helper = 'node /mnt/.agents/skills/moldea/scripts/managed-agents.mjs --repository /mnt';
   assert.equal(identifyMoldeaManagedAgentsMode(helper), 'write');
   assert.equal(identifyMoldeaManagedAgentsMode(`${helper} --print`), 'print');
-  for (const suffix of ['--target file.md', '--skill-path /outside'])
+  for (const subject of ['/CLAUDE.md', '/.claude/CLAUDE.md', '/CLAUDE.local.md']) {
+    assert.equal(identifyMoldeaManagedAgentsMode(`${helper} --claude ${subject}`), 'claude-write');
+    assert.equal(
+      identifyMoldeaManagedAgentsMode(`${helper} --claude ${subject} --print`),
+      'claude-print',
+    );
+  }
+  for (const suffix of [
+    '--target file.md',
+    '--skill-path /outside',
+    '--print --print',
+    '--claude',
+    '--claude --print',
+    '--claude CLAUDE.md',
+    '--claude /README.md',
+    '--claude /AGENTS.md',
+    '--print --claude /CLAUDE.md',
+    '--claude /CLAUDE.md --print --print',
+    '--claude /CLAUDE.md /CLAUDE.local.md',
+  ])
     assert.equal(identifyMoldeaManagedAgentsMode(`${helper} ${suffix}`), null);
   assert.equal(
     identifyMoldeaManagedAgentsMode(helper.replace('/mnt/.agents', '/other/.agents')),

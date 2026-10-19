@@ -102,6 +102,22 @@ Skill 8.2.7 keeps the same 8.2.3 selection. It corrects installation and repair 
 
 These changes were not re-evaluated. The package-manager harness covers Yarn installation mechanics: release-candidate CI now runs Yarn Classic 1.22.22 alongside npm, pnpm and Yarn 4, it was also run locally with Yarn 3.8.7 for this release, and every run proves that root and dependency lifecycle scripts never execute. Whether a coding agent chooses the correct Yarn command is not evaluated. Deterministic conformance and installation checks do not prove model adherence to the new wording.
 
+## Skill 8.2.8 evidence reuse
+
+Skill 8.2.8 keeps the same 8.2.3 selection. It closes gaps an external review found in 8.2.7:
+
+- The repair Git helper never fetches missing objects or contacts a remote. Every helper Git read disables lazy fetching and allows no transport protocol, so an object missing from a partial clone becomes unavailable evidence and every completed owner is reassessed. Its file-monitor override is now empty, which disables the monitor on every supported Git; Git 2.35 and earlier ran the previous `false` value as a program.
+- Initialization, setup checks and repair check Claude Code's instruction files. When a root `CLAUDE.md`, `.claude/CLAUDE.md` or `CLAUDE.local.md` exists, Claude Code does not load AGENTS.md by default unless one of them imports it or is a symbolic link to it, and a shared file must carry that integration. The coding agent adds the import only when host instructions permit and otherwise reports the exact line.
+- Yarn Classic 1.x installs and removes with `-W`, which a workspace root requires.
+- A CLI declared in `dependencies` or another section is moved to an exact root development dependency by a targeted removal and re-add, both with scripts disabled. Adding alone did not move it: Yarn Classic left the declaration in `dependencies`, and Yarn 4 refuses to add a development dependency that is already a regular one.
+
+These changes were not re-evaluated. Deterministic coverage:
+
+- Repair Git integration tests run on current Git on Linux, Windows and macOS and, in a new conformance job, on Debian Bullseye's Git 2.30. In a blobless partial clone, continuation returns unavailable evidence and leaves Git storage unchanged, while a plain Git read of the same object does fetch. A stored file-monitor index extension never runs a `false` program from `PATH`. Debian's Git 2.30 package backports `GIT_NO_LAZY_FETCH`, so that job cannot show the empty protocol list working alone; locally, removing each setting in turn showed that either one blocks the fetch, and the test fails when both are removed.
+- The package-manager harness now installs Yarn at a real workspace root and, for every manager, moves a CLI declared in `dependencies` while preserving an unrelated dependency's declaration and lock entries. It passed locally with the published CLI 11.0.6 closure on every release-candidate matrix entry and Yarn 3.8.7, and removing Yarn Classic's `-W` makes the workspace run fail.
+
+Whether a coding agent checks Claude Code's files or chooses the correct import or package-manager command is not established by the selected evidence. Deterministic conformance and installation checks do not prove model adherence to the new wording.
+
 ## Evaluation protocol 49
 
 Protocol 49 meets the pre-run counting and final-validation requirements stated above: it grades each cycle on moldea's own work and recognizes the ordinary final-validation exception from ordered Codex events, as described in [resource accounting](/docs/semantic-evaluation/#resource-accounting). It changes no selected evidence; it applies to the next recording.

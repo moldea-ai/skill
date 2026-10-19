@@ -10,7 +10,7 @@ During explicit repair, use only the installed bundled helper for Git evidence, 
 node <installed-skill-root>/scripts/repair-git.mjs --repository <absolute-repository-root> -- checkpoint
 ```
 
-The helper inspects bounded repository attributes before status or diff, conservatively refuses any attribute file that mentions `filter`, including Git LFS declarations, and unverified attribute fallbacks, disables configured helpers, and captures the full commit and NUL-delimited path evidence without Git writes. It uses the host's Git executable boundary. An `attribute-safety` or `arguments` limitation stops Git-dependent repair; report it and use only the bounded inert foundation diagnosis below. Report `attribute-safety` as a helper limitation, not as evidence of an unsafe repository. Never bypass the helper or retry unchanged failure.
+The helper inspects bounded repository attributes before status or diff, conservatively refuses any attribute file that mentions `filter`, including Git LFS declarations, and unverified attribute fallbacks, disables configured helpers, never fetches missing objects or contacts a remote, and captures the full commit and NUL-delimited path evidence without Git writes. It uses the host's Git executable boundary. An `attribute-safety` or `arguments` limitation stops Git-dependent repair; report it and use only the bounded inert foundation diagnosis below. Report `attribute-safety` as a helper limitation, not as evidence of an unsafe repository. Never bypass the helper or retry unchanged failure.
 
 For continuation with a supplied full checkpoint commit, use:
 

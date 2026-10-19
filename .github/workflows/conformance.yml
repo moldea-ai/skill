@@ -308,10 +308,36 @@ jobs:
       - name: Run portable integration tests
         run: npm run test:integration -- src/portable
 
+  minimum-git:
+    needs: changes
+    if: needs.changes.outputs.full == 'true'
+    name: Portable repair Git / Git 2.30
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Bullseye ships the minimum supported Git; job containers cannot read the env context
+    container: node:24.15.0-bullseye
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Require Git 2.30 and the development Node.js
+        run: |
+          git --version
+          node --version
+          git --version | grep -q '^git version 2\.30\.'
+          test "$(node --version)" = "v$DEVELOPMENT_NODE_VERSION"
+      - name: Install workspace dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts
+      - name: Build isolated runtime helpers
+        run: npm run runtime:build
+      - name: Run repair Git integration tests
+        run: npx vitest run --config vitest/test-integration.config.ts src/portable/repair-git
+
   result:
     name: Conformance result
     if: always()
-    needs: [changes, correctness, portable, quality, windows-portability, macos-portability]
+    needs:
+      [changes, correctness, portable, quality, windows-portability, macos-portability, minimum-git]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -324,6 +350,7 @@ jobs:
           QUALITY: ${{ needs.quality.result }}
           WINDOWS: ${{ needs.windows-portability.result }}
           MACOS: ${{ needs.macos-portability.result }}
+          MINIMUM_GIT: ${{ needs.minimum-git.result }}
         run: |
           test "$CLASSIFICATION" = success
           if [ "$FULL" = true ]; then
@@ -333,6 +360,6 @@ jobs:
           else
             exit 1
           fi
-          for result in "$CORRECTNESS" "$PORTABLE" "$QUALITY" "$WINDOWS" "$MACOS"; do
+          for result in "$CORRECTNESS" "$PORTABLE" "$QUALITY" "$WINDOWS" "$MACOS" "$MINIMUM_GIT"; do
             test "$result" = "$expected" || exit 1
           done

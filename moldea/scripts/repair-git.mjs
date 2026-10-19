@@ -3,7 +3,8 @@
 // src/portable/repair-git/constants.ts
 var REPAIR_GIT_COMMON_CONFIGURATIONS = [
   "core.attributesFile=/dev/null",
-  "core.fsmonitor=false",
+  // empty disables the monitor on every supported Git; before Git 2.36, false names a hook
+  "core.fsmonitor=",
   "core.pager=cat",
   "filter.lfs.clean=",
   "filter.lfs.process=",
@@ -77,9 +78,12 @@ var readGit = (repositoryRoot2, arguments_2) => {
       encoding: "buffer",
       env: {
         ...environment,
+        // evidence reads never fetch missing objects; Git without GIT_NO_LAZY_FETCH needs the empty protocol list
+        GIT_ALLOW_PROTOCOL: "",
         GIT_ATTR_NOSYSTEM: "1",
         GIT_CONFIG_GLOBAL: "/dev/null",
         GIT_CONFIG_NOSYSTEM: "1",
+        GIT_NO_LAZY_FETCH: "1",
         GIT_OPTIONAL_LOCKS: "0",
         GIT_WORK_TREE: repositoryRoot2,
         GIT_LITERAL_PATHSPECS: "1"

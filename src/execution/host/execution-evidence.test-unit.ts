@@ -273,10 +273,10 @@ test('execution evidence recognizes exact evaluator-owned local tooling checks',
       createCommandEvent('env GIT_ATTR_NOSYSTEM=1 /home/evaluator/bin/git status --short'),
       createCommandEvent("rg --files -g '!node_modules' . 2>/dev/null | sed -n '1,240p'"),
       createCommandEvent(
-        'env GIT_ATTR_NOSYSTEM=1 git -C /mnt -c core.fsmonitor=false -c core.pager=cat --no-pager status --porcelain=v2 -z',
+        'env GIT_ATTR_NOSYSTEM=1 git -C /mnt -c core.fsmonitor= -c core.pager=cat --no-pager status --porcelain=v2 -z',
       ),
       createCommandEvent(
-        'GIT_ATTR_NOSYSTEM=1 git -C /mnt -c core.fsmonitor=false -c core.pager=cat -c diff.external= --no-pager diff --no-ext-diff --no-textconv',
+        'GIT_ATTR_NOSYSTEM=1 git -C /mnt -c core.fsmonitor= -c core.pager=cat -c diff.external= --no-pager diff --no-ext-diff --no-textconv',
       ),
       createCommandEvent(
         `env GIT_ATTR_NOSYSTEM=1 git ${CODEX_EVALUATION_GIT_STATUS_ARGUMENTS.join(' ')}`,
@@ -445,6 +445,7 @@ test('execution evidence keeps package mutation and unsafe local forms fail-clos
       createCommandEvent('/usr/bin/npm --version'),
       createCommandEvent('node scripts/check.mjs'),
       createCommandEvent("git -c core.fsmonitor='./network-helper' status --short"),
+      createCommandEvent('git -c core.fsmonitor=false status --short'),
       createCommandEvent('git push origin main'),
       createCommandEvent('PATH=. node --version'),
       createCommandEvent('env PATH=. git status --short'),
@@ -459,17 +460,17 @@ test('execution evidence keeps package mutation and unsafe local forms fail-clos
   );
 
   assertCommandPolicy(result.commandPolicy, {
-    completedCommandCount: 10,
+    completedCommandCount: 11,
     credentialExposure: { status: 'not-observed', observedCount: 0 },
     networkAccess: {
       status: 'observed',
       observedCount: 3,
-      indeterminateCount: 7,
+      indeterminateCount: 8,
     },
     sensitiveAccess: {
       status: 'indeterminate',
       observedCount: 0,
-      indeterminateCount: 7,
+      indeterminateCount: 8,
     },
   });
 });

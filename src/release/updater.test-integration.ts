@@ -19,6 +19,7 @@ const SEMANTIC_CLI_EXECUTABLE_PATH = 'fixtures/tooling/semantic-cli/bin/moldea.j
 const BUNDLED_PACKAGES = [
   '@moldea.ai/core',
   '@moldea.ai/repository',
+  '@moldea.ai/repository-fs',
   'error-message-utils',
   'semver',
   'yaml',
@@ -127,7 +128,11 @@ const createRootManifestUpdater =
     packageLock: string;
     packageManifest: {
       devDependencies: Record<string, string>;
-      moldeaRelease: { cliJsonSchemaVersion: number; coreVersionRange: string };
+      moldeaRelease: {
+        cliJsonSchemaVersion: number;
+        cliVersionRange: string;
+        coreVersionRange: string;
+      };
       version: string;
     };
     version: string;
@@ -368,18 +373,14 @@ test('updateCliRelease preserves the supported Core range when the CLI minimum r
     assert.equal(identity.cliCoreVersionRange, `^${coreMajor}.1.0`);
     assert.equal(identity.coreVersionRange, currentIdentity.coreVersionRange);
     assert.deepEqual(inspectReleaseIdentity(temporaryRoot), []);
-    assert.match(
-      readFileSync(join(temporaryRoot, RELEASE_PATHS.readme), 'utf8'),
-      new RegExp(
-        `stable \`@moldea\\.ai/core\` releases satisfying \`\\^${coreMajor}\\.0\\.0\``,
-        'u',
+    assert.ok(
+      readFileSync(join(temporaryRoot, RELEASE_PATHS.readme), 'utf8').includes(
+        `stable \`@moldea.ai/core\` releases satisfying \`${currentIdentity.coreVersionRange}\``,
       ),
     );
-    assert.match(
-      readFileSync(join(temporaryRoot, RELEASE_PATHS.skillLocalTooling), 'utf8'),
-      new RegExp(
-        `stable \`@moldea\\.ai/core\` releases satisfying \`\\^${coreMajor}\\.0\\.0\``,
-        'u',
+    assert.ok(
+      readFileSync(join(temporaryRoot, RELEASE_PATHS.skillLocalTooling), 'utf8').includes(
+        `stable \`@moldea.ai/core\` releases satisfying \`${currentIdentity.coreVersionRange}\``,
       ),
     );
   } finally {

@@ -12,12 +12,12 @@ Release `8.2.8` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.17.0`
-- stable `@moldea.ai/core` releases satisfying `^7.0.0`
-- stable `@moldea.ai/cli` releases satisfying `^11.0.0`
+- stable `@moldea.ai/core` releases satisfying `^7.1.0`
+- stable `@moldea.ai/cli` releases satisfying `^11.1.0`
 - repository format version 1
 - CLI JSON schema 7
 
-The CLI is a repository-root-local development dependency. Its declaration and installed stable version must satisfy `^11.0.0`; compatible CLI 11 patches and minors do not require a skill release. Installed Core must satisfy both the CLI's declared Core range and `moldea`'s supported `^7.0.0` range. Other CLI majors, prereleases, malformed declarations, incompatible installed versions, and incompatible Core versions fail closed. The skill never selects a global CLI, runs a transient download, or searches unrelated workspaces for a provider.
+The CLI is a repository-root-local development dependency. Its declaration and installed stable version must satisfy `^11.1.0`; compatible CLI 11 patches and minors do not require a skill release. Installed Core must satisfy both the CLI's declared Core range and `moldea`'s supported `^7.1.0` range. Other CLI majors, prereleases, malformed declarations, incompatible installed versions, and incompatible Core versions fail closed. The skill never selects a global CLI, runs a transient download, or searches unrelated workspaces for a provider.
 
 ## Tooling ownership
 

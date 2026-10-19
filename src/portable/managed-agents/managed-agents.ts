@@ -4,6 +4,13 @@ import { realpath } from 'node:fs/promises';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import {
+  CLAUDE_INSTRUCTION_SUBJECTS,
+  getClaudeImportLine,
+  isClaudeInstructionSubject,
+  updateClaudeImport,
+} from '../claude-import/index.ts';
+import { resolveInstructionWriteTarget } from '../instruction-link/index.ts';
 import { assertManagedBlock, updateManagedFile } from '../managed-block/index.ts';
 import { isPathWithin, resolveRepositoryFile } from '../repository-files.ts';
 
@@ -42,24 +49,43 @@ const isDirectExecution =
   process.argv[1] !== undefined &&
   (await realpath(resolve(process.argv[1]))) === (await realpath(fileURLToPath(import.meta.url)));
 if (isDirectExecution) {
+  const arguments_ = process.argv.slice(2);
+  const claudeSubject = arguments_[2] === '--claude' ? arguments_[3] : undefined;
   try {
-    const arguments_ = process.argv.slice(2);
+    const optionCount = claudeSubject === undefined ? 2 : 4;
     if (
       arguments_[0] !== '--repository' ||
       arguments_[1] === undefined ||
       !isAbsolute(arguments_[1]) ||
-      arguments_.length < 2 ||
-      arguments_.length > 3 ||
-      (arguments_.length === 3 && arguments_[2] !== '--print')
+      (arguments_[2] === '--claude' && !isClaudeInstructionSubject(claudeSubject)) ||
+      arguments_.length < optionCount ||
+      arguments_.length > optionCount + 1 ||
+      (arguments_.length === optionCount + 1 && arguments_[optionCount] !== '--print')
     )
-      throw new Error('Usage: managed-agents.mjs --repository <absolute-root> [--print]');
+      throw new Error(
+        `Usage: managed-agents.mjs --repository <absolute-root> [--claude ${CLAUDE_INSTRUCTION_SUBJECTS.join('|')}] [--print]`,
+      );
     const repositoryRoot = await realpath(arguments_[1]);
-    const block = await renderManagedAgentsBlock(repositoryRoot);
-    if (arguments_[2] === '--print') process.stdout.write(block);
-    else process.stdout.write(`${await updateManagedFile(repositoryRoot, block, 'AGENTS.md')}\n`);
+    const isPrint = arguments_[optionCount] === '--print';
+    if (isClaudeInstructionSubject(claudeSubject)) {
+      process.stdout.write(
+        isPrint
+          ? `${getClaudeImportLine(claudeSubject)}\n`
+          : `${await updateClaudeImport(repositoryRoot, claudeSubject)}\n`,
+      );
+    } else {
+      const block = await renderManagedAgentsBlock(repositoryRoot);
+      if (isPrint) process.stdout.write(block);
+      else
+        process.stdout.write(
+          `${await updateManagedFile(repositoryRoot, block, 'AGENTS.md', () =>
+            resolveInstructionWriteTarget(repositoryRoot, 'AGENTS.md'),
+          )}\n`,
+        );
+    }
   } catch (error) {
     process.stderr.write(
-      `managed AGENTS update failed: ${error instanceof Error ? error.message : 'Unknown failure'}\n`,
+      `${claudeSubject === undefined ? 'managed AGENTS update' : 'Claude import update'} failed: ${error instanceof Error ? error.message : 'Unknown failure'}\n`,
     );
     process.exitCode = 1;
   }

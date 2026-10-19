@@ -26,7 +26,6 @@ export { EVIDENCE_RELEASE_REPOSITORY } from '../evidence/index.ts';
 // semantic versions
 export {
   createCompatibleMajorRange,
-  parseCompatibleMajorRange,
   parseCompatibleStableRange,
   parseStableVersion,
 } from './versions.ts';

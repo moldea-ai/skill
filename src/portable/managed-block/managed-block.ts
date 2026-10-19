@@ -2,7 +2,8 @@ import { randomUUID } from 'node:crypto';
 import { constants } from 'node:fs';
 import { chmod, lstat, open, rename, rm, writeFile } from 'node:fs/promises';
 import { basename, dirname, isAbsolute, join, resolve } from 'node:path';
-import type { IManagedFileName } from './types.ts';
+
+import type { IManagedFileName, IManagedWriteTargetResolver } from './types.ts';
 
 const MAX_DOCUMENT_BYTES = 2 * 1024 * 1024;
 const MAX_MANAGED_BLOCK_BYTES = 4 * 1024;
@@ -362,7 +363,13 @@ export const readManagedFile = async (
   }
 };
 
-const writeAtomically = async (
+/**
+ * Replaces a bounded regular document through a sibling temporary file, after confirming the
+ * document still matches what was read, or is still absent.
+ * @throws
+ * - The document changed before replacement.
+ */
+export const writeManagedFileAtomically = async (
   filePath: string,
   bytes: Buffer,
   mode: number,
@@ -400,7 +407,9 @@ const writeAtomically = async (
 };
 
 /**
- * Creates or normalizes a root managed region atomically.
+ * Creates or normalizes a root managed region atomically. Without a write-target resolver the
+ * document must be a regular file; with one, such as AGENTS.md's link resolution, the region is
+ * written to the host file it selects, which is then confirmed.
  * @param {string} repositoryRoot The normalized absolute repository root.
  * @param {string} block The canonical block text.
  * @returns {Promise<'created' | 'updated' | 'unchanged'>} The completed write status.
@@ -409,6 +418,7 @@ export const updateManagedFile = async (
   repositoryRoot: string,
   block: string,
   fileName: IManagedFileName = 'README.md',
+  resolveWriteTarget?: IManagedWriteTargetResolver,
 ): Promise<'created' | 'unchanged' | 'updated'> => {
   if (
     typeof repositoryRoot !== 'string' ||
@@ -429,7 +439,8 @@ export const updateManagedFile = async (
     fileName === 'README.md' ? 'README' : fileName,
     fileName === 'README.md',
   );
-  const targetPath = join(repositoryRoot, fileName);
+  const target = await resolveWriteTarget?.();
+  const targetPath = target?.hostPath ?? join(repositoryRoot, fileName);
   let currentBytes: Buffer<ArrayBufferLike> = Buffer.alloc(0);
   let currentMode = 0o644;
   let status: 'created' | 'updated' = 'created';
@@ -458,7 +469,8 @@ export const updateManagedFile = async (
     return 'unchanged';
   }
 
-  await writeAtomically(targetPath, updatedBytes, currentMode, expected);
+  await writeManagedFileAtomically(targetPath, updatedBytes, currentMode, expected);
+  await target?.confirm();
   return status;
 };
 

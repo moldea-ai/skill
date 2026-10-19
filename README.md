@@ -77,8 +77,8 @@ Release `8.2.8` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.17.0`
-- stable `@moldea.ai/core` releases satisfying `^7.0.0`
-- stable `@moldea.ai/cli` releases satisfying `^11.0.0`
+- stable `@moldea.ai/core` releases satisfying `^7.1.0`
+- stable `@moldea.ai/cli` releases satisfying `^11.1.0`
 - repository format version 1
 - CLI JSON schema 7
 

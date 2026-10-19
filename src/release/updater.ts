@@ -45,6 +45,7 @@ const RootPackageManifestSchema = z
     devDependencies: StringRecordSchema.default({}),
     moldeaRelease: z.object({
       cliJsonSchemaVersion: z.number().int().positive(),
+      cliVersionRange: z.string(),
       coreVersionRange: z.string(),
     }),
     version: z.string(),
@@ -127,6 +128,18 @@ const createDifferentStableVersion = (version: string): string => {
   const [major] = version.split('.').map(Number);
   return `${(major ?? 0) + 1}.0.0`;
 };
+
+/** Preserves a raised CLI minimum within one major and resets it for a new CLI major. */
+const resolveNextCliVersionRange = ({
+  previousRange,
+  version,
+}: {
+  previousRange: string;
+  version: string;
+}): string =>
+  parseCompatibleStableRange(previousRange).slice(1).split('.')[0] === version.split('.')[0]
+    ? previousRange
+    : createCompatibleMajorRange(version);
 
 /** Preserves a safe Core minimum within one major and resets it for a new CLI Core major. */
 const resolveNextCoreVersionRange = ({
@@ -455,8 +468,10 @@ export const createCliReleaseUpdate = ({
       RELEASE_PATHS.semanticCliManifest,
     ),
   );
-  const previousCliRange = createCompatibleMajorRange(previousCliVersion);
-  const nextCliRange = createCompatibleMajorRange(version);
+  const previousCliRange = parseCompatibleStableRange(
+    currentPackageManifest.moldeaRelease?.cliVersionRange,
+  );
+  const nextCliRange = resolveNextCliVersionRange({ previousRange: previousCliRange, version });
   const previousCoreRange = parseCompatibleStableRange(
     semanticCliManifest.dependencies?.['@moldea.ai/core'],
   );
@@ -709,6 +724,10 @@ export const updateCliRelease = async ({
     moldeaRelease: {
       ...packageManifest.moldeaRelease,
       cliJsonSchemaVersion: publishedManifest.jsonSchemaVersion,
+      cliVersionRange: resolveNextCliVersionRange({
+        previousRange: packageManifest.moldeaRelease.cliVersionRange,
+        version,
+      }),
       coreVersionRange: nextCoreVersionRange,
     },
     devDependencies: {

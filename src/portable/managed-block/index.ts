@@ -1,5 +1,5 @@
 // types
-export type { IManagedFileName } from './types.ts';
+export type { IManagedFileName, IManagedWriteTargetResolver } from './types.ts';
 
 // managed regions
 export {
@@ -8,5 +8,6 @@ export {
   hasManagedBlock,
   readManagedFile,
   updateManagedFile,
+  writeManagedFileAtomically,
   isMissingFile,
 } from './managed-block.ts';

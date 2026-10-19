@@ -14,12 +14,7 @@ import {
   RELEASE_PATHS,
 } from './constants.ts';
 import type { IReleaseIdentity, IReleasePackageLock, IReleasePackageManifest } from './types.ts';
-import {
-  createCompatibleMajorRange,
-  parseCompatibleMajorRange,
-  parseCompatibleStableRange,
-  parseStableVersion,
-} from './versions.ts';
+import { parseCompatibleStableRange, parseStableVersion } from './versions.ts';
 
 const OBSOLETE_SKILL_RELEASE_PATTERN =
   /(?:\bskill(?:\s+release)?\s+|@moldea\.ai\/skill@|\/releases\/tag\/v?)4\.0\.[0-2]\b/iu;
@@ -28,6 +23,7 @@ const PackageManifestSchema = z.object({
   devDependencies: StringRecordSchema,
   moldeaRelease: z.object({
     cliJsonSchemaVersion: z.number().int().positive(),
+    cliVersionRange: z.string(),
     coreVersionRange: z.string(),
   }),
   version: z.string(),
@@ -103,7 +99,10 @@ export const readReleaseIdentity = (repositoryRoot: string): IReleaseIdentity =>
     parseJson(packageLockText, RELEASE_PATHS.packageLock),
   );
   const cliVersion = parseStableVersion(packageManifest.devDependencies[CLI_PACKAGE_NAME]);
-  const cliVersionRange = createCompatibleMajorRange(cliVersion);
+  const cliVersionRange = parseCompatibleStableRange(packageManifest.moldeaRelease.cliVersionRange);
+  if (!semver.satisfies(cliVersion, cliVersionRange)) {
+    throw new Error(`package.json does not bind a CLI release satisfying ${cliVersionRange}.`);
+  }
   const coreVersionRange = parseCompatibleStableRange(
     packageManifest.moldeaRelease.coreVersionRange,
   );
@@ -196,7 +195,7 @@ export const inspectReleaseIdentity = (repositoryRoot: string): string[] => {
     skillMetadata.name !== 'moldea' ||
     parseStableVersion(skillMetadata.metadata.cliRepairVersion) !== identity.cliVersion ||
     parseStableVersion(skillMetadata.metadata.version) !== identity.releaseVersion ||
-    parseCompatibleMajorRange(skillMetadata.metadata.cliVersionRange) !==
+    parseCompatibleStableRange(skillMetadata.metadata.cliVersionRange) !==
       identity.cliVersionRange ||
     parseCompatibleStableRange(skillMetadata.metadata.coreVersionRange) !==
       identity.coreVersionRange ||

@@ -1,7 +1,7 @@
 {
   "devDependencies": {
     "@eslint/js": "10.0.1",
-    "@moldea.ai/cli": "11.0.6",
+    "@moldea.ai/cli": "11.1.0",
     "@moldea.ai/website-ui": "4.1.0",
     "@types/node": "22.20.1",
     "@types/semver": "7.8.0",
@@ -20,7 +20,8 @@
   },
   "moldeaRelease": {
     "cliJsonSchemaVersion": 7,
-    "coreVersionRange": "^7.0.0"
+    "cliVersionRange": "^11.1.0",
+    "coreVersionRange": "^7.1.0"
   },
   "version": "8.2.8",
   "name": "@moldea.ai/skill-conformance",

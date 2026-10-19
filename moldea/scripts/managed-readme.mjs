@@ -240,7 +240,7 @@ var readManagedFile = async (filePath) => {
     await fileHandle.close();
   }
 };
-var writeAtomically = async (filePath, bytes, mode, expected) => {
+var writeManagedFileAtomically = async (filePath, bytes, mode, expected) => {
   const temporaryPath = join(
     dirname(filePath),
     `.${basename(filePath)}.${process.pid}.${randomUUID()}.tmp`
@@ -262,7 +262,7 @@ var writeAtomically = async (filePath, bytes, mode, expected) => {
     await rm(temporaryPath, { force: true });
   }
 };
-var updateManagedFile = async (repositoryRoot, block, fileName = "README.md") => {
+var updateManagedFile = async (repositoryRoot, block, fileName = "README.md", resolveWriteTarget) => {
   if (typeof repositoryRoot !== "string" || !isAbsolute(repositoryRoot) || resolve(repositoryRoot) !== repositoryRoot) {
     throw new Error("The repository root must be a normalized absolute path");
   }
@@ -275,7 +275,8 @@ var updateManagedFile = async (repositoryRoot, block, fileName = "README.md") =>
     fileName === "README.md" ? "README" : fileName,
     fileName === "README.md"
   );
-  const targetPath = join(repositoryRoot, fileName);
+  const target = await resolveWriteTarget?.();
+  const targetPath = target?.hostPath ?? join(repositoryRoot, fileName);
   let currentBytes = Buffer.alloc(0);
   let currentMode = 420;
   let status = "created";
@@ -295,7 +296,8 @@ var updateManagedFile = async (repositoryRoot, block, fileName = "README.md") =>
   if (isEqualBytes(currentBytes, updatedBytes)) {
     return "unchanged";
   }
-  await writeAtomically(targetPath, updatedBytes, currentMode, expected);
+  await writeManagedFileAtomically(targetPath, updatedBytes, currentMode, expected);
+  await target?.confirm();
   return status;
 };
 var isMissingFile = (error) => error !== null && typeof error === "object" && "code" in error && error.code === "ENOENT";

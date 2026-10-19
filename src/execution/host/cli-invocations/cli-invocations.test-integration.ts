@@ -6,6 +6,7 @@ import { join } from 'node:path';
 
 import { expect, test, vi } from 'vitest';
 
+import { readReleaseIdentity } from '../../../release/index.ts';
 import {
   hasValidSemanticCycles,
   parseSemanticEvaluationHostOutput,
@@ -14,6 +15,8 @@ import {
 import { buildCodexEvaluationBwrapArguments, prepareCodexEvaluationHome } from '../host.ts';
 import { prepareGitCommandPolicyBoundary } from '../git-command-policy-boundary.ts';
 import { readCliInvocations } from './cli-invocations.ts';
+
+const { cliVersion } = readReleaseIdentity(process.cwd());
 
 test('Node startup records direct and wrapped launchers, early failures and filtered output without model calls', async () => {
   const root = await mkdtemp(join(tmpdir(), 'moldea-cli-capture-'));
@@ -42,7 +45,7 @@ test('Node startup records direct and wrapped launchers, early failures and filt
         name: 'capture-fixture',
         private: true,
         type: 'module',
-        devDependencies: { '@moldea.ai/cli': '11.0.6' },
+        devDependencies: { '@moldea.ai/cli': cliVersion },
       }),
     );
     await writeFile(join(repository, '.gitignore'), '.agents/\nnode_modules/\n');
@@ -136,7 +139,7 @@ test('Node startup records direct and wrapped launchers, early failures and filt
         .map((event) => JSON.stringify(event))
         .join('\n');
       const parsed = parseSemanticEvaluationHostOutput(stream, {
-        cliVersion: '11.0.6',
+        cliVersion,
         jsonSchemaVersion: 7,
       });
       expect(
@@ -151,7 +154,7 @@ test('Node startup records direct and wrapped launchers, early failures and filt
               workspaceChanges: { created: [], modified: [], deleted: [] },
             },
           ],
-          { cliVersion: '11.0.6', jsonSchemaVersion: 7 },
+          { cliVersion, jsonSchemaVersion: 7 },
         ),
       ).toBe(true);
       expect(parsed.actorResourceEvidence.commandCount).toBe(callCount);

@@ -1432,7 +1432,7 @@ test('the missing-bridge fixture stays valid and hands off the exact installed b
   assert.deepEqual(await snapshotSemanticWorkspace(repositoryPath), before);
 });
 
-test('the Claude instruction fixture is valid while .claude/CLAUDE.md never imports AGENTS.md', async () => {
+test('the Claude instruction fixture reports only the missing .claude/CLAUDE.md import', async () => {
   const { repositoryPath } = await materializeCase('setup-check-claude-instructions', true);
   assert.equal(
     readFileSync(join(repositoryPath, '.claude', 'CLAUDE.md'), 'utf8').includes('AGENTS.md'),
@@ -1454,10 +1454,20 @@ test('the Claude instruction fixture is valid while .claude/CLAUDE.md never impo
     ),
   );
   const validation = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as {
-    result: { valid: boolean; warningCount: number };
+    result: {
+      page: { records: Array<{ code?: string; kind: string; subject?: string }> };
+      valid: boolean;
+      warningCount: number;
+    };
   };
   assert.equal(validation.result.valid, true);
-  assert.equal(validation.result.warningCount, 0);
+  assert.equal(validation.result.warningCount, 1);
+  assert.deepEqual(
+    validation.result.page.records
+      .filter(({ kind }) => kind === 'diagnostic')
+      .map(({ code, subject }) => ({ code, subject })),
+    [{ code: 'MOLDEA_INTEGRATION_CLAUDE_IMPORT_MISSING', subject: '/.claude/CLAUDE.md' }],
+  );
 });
 
 test.each([

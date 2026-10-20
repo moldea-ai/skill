@@ -1,7 +1,7 @@
-import { spawnSync } from 'node:child_process';
 import { lstat, realpath } from 'node:fs/promises';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 
+import { GitCommandError, runGitCommand } from '../git-command/index.ts';
 import { isPathWithin, readRepositoryFile } from '../repository-files.ts';
 
 import {
@@ -9,7 +9,6 @@ import {
   REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS,
   REPAIR_GIT_INDEX_BYTES,
   REPAIR_GIT_ATTRIBUTE_PATHS,
-  REPAIR_GIT_COMMON_CONFIGURATIONS,
   REPAIR_GIT_INDEX_ARGUMENTS,
   REPAIR_GIT_OUTPUT_BYTES,
   REPAIR_GIT_RESPONSE_BYTES,
@@ -17,9 +16,6 @@ import {
 import type { IRepairGitEvidence, IRepairGitOptions } from './types.ts';
 
 const OBJECT_ID_PATTERN = /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u;
-
-// distinguish subprocess failures from attribute files that cannot be verified safely
-class RepairGitReadError extends Error {}
 
 /** Validates structural Git output without interpreting filename punctuation as arguments. */
 const validateEvidencePath = (path: string): string => {
@@ -44,83 +40,22 @@ const validatePath = (path: string): string => {
 };
 
 /**
- * Captures only a fixed bounded Git read, respecting the host's executable boundary.
+ * Captures only a fixed bounded Git read that sees the repository's own config, nothing global.
  * @throws If Git fails or its output exceeds the bounded capture limit.
  */
 const readGit = (repositoryRoot: string, arguments_: readonly string[]): Buffer => {
-  if (process.platform === 'win32' && repositoryRoot.length >= 260)
-    throw new RepairGitReadError(
-      "The repository path exceeds Windows' 260-character working-directory limit for Git; move or clone it to a shorter path.",
-    );
-  // Git for Windows maps /dev/null to NUL but rejects Node's devNull spelling.
-  const configurations: string[] = [...REPAIR_GIT_COMMON_CONFIGURATIONS];
-  if (arguments_[0] === 'diff') configurations.push('diff.external=');
-  const environment = { ...process.env };
-  for (const name of [
-    'GIT_DIR',
-    'GIT_WORK_TREE',
-    'GIT_COMMON_DIR',
-    'GIT_INDEX_FILE',
-    'GIT_OBJECT_DIRECTORY',
-    'GIT_ALTERNATE_OBJECT_DIRECTORIES',
-    'GIT_ATTR_SOURCE',
-    'GIT_CONFIG',
-    'GIT_CONFIG_PARAMETERS',
-    'GIT_CONFIG_COUNT',
-    'GIT_GLOB_PATHSPECS',
-    'GIT_NOGLOB_PATHSPECS',
-    'GIT_ICASE_PATHSPECS',
-  ])
-    delete environment[name];
-  for (const name of Object.keys(environment))
-    if (/^GIT_CONFIG_(?:KEY|VALUE)_/u.test(name)) delete environment[name];
-  const result = spawnSync(
-    'git',
-    [...configurations.flatMap((setting) => ['-c', setting]), '--no-pager', ...arguments_],
-    {
-      cwd: repositoryRoot,
-      encoding: 'buffer',
-      env: {
-        ...environment,
-        // evidence reads never fetch missing objects; Git without GIT_NO_LAZY_FETCH needs the empty protocol list
-        GIT_ALLOW_PROTOCOL: '',
-        GIT_ATTR_NOSYSTEM: '1',
-        GIT_CONFIG_GLOBAL: '/dev/null',
-        GIT_CONFIG_NOSYSTEM: '1',
-        GIT_NO_LAZY_FETCH: '1',
-        GIT_OPTIONAL_LOCKS: '0',
-        GIT_WORK_TREE: repositoryRoot,
-        GIT_LITERAL_PATHSPECS: '1',
-      },
-      maxBuffer: arguments_[0] === 'ls-files' ? REPAIR_GIT_INDEX_BYTES : REPAIR_GIT_OUTPUT_BYTES,
-      timeout: 30_000,
-      windowsHide: true,
-    },
-  );
-  if (
-    !result.error &&
-    result.status === 1 &&
+  const isAttributeSourceRead =
     arguments_.length === REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS.length &&
-    arguments_.every((argument, index) => argument === REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS[index])
-  )
-    return Buffer.alloc(0);
-  if (result.error && 'code' in result.error && result.error.code === 'ENOBUFS')
-    throw new RangeError('Repair Git output exceeds its bounded capture limit.');
-  if (result.error || result.status !== 0) {
-    const firstErrorLine = (
-      result.stderr?.subarray(0, 512).toString('utf8') ||
-      result.error?.message ||
-      ''
-    )
-      .split(/[\r\n]/u, 1)[0]!
-      .replace(/[\p{Cc}]/gu, ' ')
-      .trim();
-    throw new RepairGitReadError(
-      `The bounded repair Git read failed or exceeded its limit.${firstErrorLine ? ` ${firstErrorLine}` : ''}`,
-      { cause: result.error },
+    arguments_.every(
+      (argument, index) => argument === REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS[index],
     );
-  }
-  return result.stdout;
+  const { status, stdout } = runGitCommand(repositoryRoot, arguments_, {
+    configScope: 'repository',
+    maxOutputBytes: arguments_[0] === 'ls-files' ? REPAIR_GIT_INDEX_BYTES : REPAIR_GIT_OUTPUT_BYTES,
+    // an unset attribute source exits with 1, which means there is none
+    ...(isAttributeSourceRead ? { acceptedExitCodes: [0, 1] } : {}),
+  });
+  return status === 1 ? Buffer.alloc(0) : stdout;
 };
 
 /** Decodes complete NUL-delimited filenames without shell or Git quote interpretation. */
@@ -404,7 +339,7 @@ export const collectRepairGitEvidence = async (
     return evidence;
   } catch (error) {
     if (error instanceof RangeError) reasonCode = 'output-limit';
-    if (error instanceof RepairGitReadError) reasonCode = 'git-read';
+    if (error instanceof GitCommandError) reasonCode = 'git-read';
     const reason = error instanceof Error ? error.message : 'Repair Git evidence is unavailable.';
     return {
       kind: 'moldea-repair-git',

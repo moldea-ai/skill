@@ -79,7 +79,7 @@ test.each(['config', 'ls-files', 'status', 'diff'])(
     ).toMatchObject({
       status: 'unavailable',
       reasonCode: 'git-read',
-      reason: 'The bounded repair Git read failed or exceeded its limit. fatal: Git read denied',
+      reason: 'The bounded Git read failed or exceeded its limit. fatal: Git read denied',
     });
   },
 );
@@ -143,8 +143,7 @@ test('Git file-monitor failures retain git-read classification and the first err
   expect(result).toMatchObject({
     status: 'unavailable',
     reasonCode: 'git-read',
-    reason:
-      'The bounded repair Git read failed or exceeded its limit. fatal: fsmonitor read failed',
+    reason: 'The bounded Git read failed or exceeded its limit. fatal: fsmonitor read failed',
   });
   expect(runGit.mock.calls[0]).toHaveProperty('1', expect.arrayContaining(['core.fsmonitor=']));
 });

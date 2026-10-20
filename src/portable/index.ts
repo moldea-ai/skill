@@ -46,8 +46,7 @@ export {
 
 // bounded repair Git evidence
 export type { IRepairGitEvidence, IRepairGitMode, IRepairGitOptions } from './repair-git/index.ts';
-export {
-  collectRepairGitEvidence,
-  REPAIR_GIT_COMMON_CONFIGURATIONS,
-  REPAIR_GIT_INDEX_ARGUMENTS,
-} from './repair-git/index.ts';
+export { collectRepairGitEvidence, REPAIR_GIT_INDEX_ARGUMENTS } from './repair-git/index.ts';
+
+// hardened Git reads
+export { HARDENED_GIT_CONFIGURATIONS } from './git-command/index.ts';

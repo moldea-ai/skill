@@ -9,6 +9,25 @@ import {
 
 const status = [...CODEX_EVALUATION_GIT_STATUS_ARGUMENTS, '--untracked-files=all', '--branch'];
 const diff = CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX.slice(0, -1);
+const hardened = status.slice(0, status.indexOf('status'));
+const storage = [
+  ...hardened,
+  'ls-files',
+  '--cached',
+  '--others',
+  '--exclude-standard',
+  '--stage',
+  '-z',
+  '--',
+];
+const symlinkSetting = [
+  ...hardened,
+  'config',
+  '--type=bool',
+  '--default=true',
+  '--get',
+  'core.symlinks',
+];
 
 test.each([
   status,
@@ -23,6 +42,9 @@ test.each([
   [...diff, '--', 'moldea/context/a.md'],
   [...diff, '--', 'README.md', 'src/owner-a.js'],
   [...diff, '--', 'src/file with spaces.js'],
+  [...storage, 'AGENTS.md'],
+  [...storage, 'docs/shared agents.md'],
+  symlinkSetting,
 ])('accepts a complete approved repair shape %o', (...argumentsList) => {
   expect(isApprovedRepairGitArguments(argumentsList)).toBe(true);
 });
@@ -73,6 +95,18 @@ test.each([
   ].map((path) => [...diff, '--', path]),
   [...diff, '--cached', '--', 'README.md'],
   [...status.slice(0, status.indexOf('status')), 'rev-parse', 'HEAD'],
+  storage,
+  [...storage, 'AGENTS.md', 'CLAUDE.md'],
+  [...storage.filter((argument) => argument !== '--exclude-standard'), 'AGENTS.md'],
+  [...storage.slice(0, -1), '--ignored', '--', 'AGENTS.md'],
+  [...storage.slice(0, -1), 'AGENTS.md'],
+  ...[':(top)AGENTS.md', 'docs/[ab].md', '../AGENTS.md', 'src/_archive/AGENTS.md', '-p'].map(
+    (path) => [...storage, path],
+  ),
+  [...diff.slice(0, diff.indexOf('diff')), ...storage.slice(hardened.length), 'AGENTS.md'],
+  symlinkSetting.slice(0, -1),
+  [...symlinkSetting.slice(0, -1), 'core.hooksPath'],
+  [...hardened, 'config', '--get', 'core.symlinks'],
 ])('rejects a nonapproved repair shape %o', (...argumentsList) => {
   expect(isApprovedRepairGitArguments(argumentsList)).toBe(false);
 });

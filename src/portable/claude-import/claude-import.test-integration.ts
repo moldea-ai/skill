@@ -1,4 +1,5 @@
 // @vitest-environment node
+import { execFileSync } from 'node:child_process';
 import {
   lstat,
   mkdir,
@@ -24,6 +25,7 @@ const createRoot = async (): Promise<string> => {
   temporaryRoots.push(directory);
   const root = join(directory, 'repository');
   await mkdir(root);
+  execFileSync('git', ['init', '-q'], { cwd: root });
   return root;
 };
 
@@ -40,7 +42,7 @@ test('appends the import once, keeping CRLF, and never creates a file', async ()
   await expect(updateClaudeImport(root, '/.claude/CLAUDE.md')).rejects.toThrow(
     '.claude/CLAUDE.md does not exist',
   );
-  expect(await readdir(root)).toStrictEqual([]);
+  expect(await readdir(root)).toStrictEqual(['.git']);
 
   await writeFile(join(root, 'CLAUDE.md'), '# Claude\r\nKeep\r\n');
   await expect(updateClaudeImport(root, '/CLAUDE.md')).resolves.toBe('updated');
@@ -72,7 +74,7 @@ test('updates an inside link target and refuses an outside one', async () => {
   await writeFile(outside, '# Personal\n');
   await symlink(outside, join(root, 'CLAUDE.local.md'), isWindows ? 'file' : undefined);
   await expect(updateClaudeImport(root, '/CLAUDE.local.md')).rejects.toThrow(
-    'CLAUDE.local.md links to a file outside the repository',
+    'CLAUDE.local.md links outside the repository',
   );
   expect(await readFile(outside, 'utf8')).toBe('# Personal\n');
 });

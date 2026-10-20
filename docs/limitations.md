@@ -43,7 +43,7 @@ Initialization registers relationships only for source it inspected; in the four
 
 ## Large projects and files
 
-The current Core 7 and CLI 11 defaults allow **8 MiB per file read**, **2 MiB for the manifest**, **100,000 entries**, and **128 MiB of source reads per operation**. These measure different things. An entry can be a directory or a requested path; this is not a universal file-count limit. A large file’s presence alone does not mean an inspection reads it.
+The current Core and CLI defaults allow **8 MiB per file read**, **2 MiB for the manifest**, **100,000 entries**, and **128 MiB of source reads per operation**. These measure different things. An entry can be a directory or a requested path; this is not a universal file-count limit. A large file’s presence alone does not mean an inspection reads it.
 
 | Boundary                   | What to know                                                                                                                                                           | Numeric authority                                                                                           |
 | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |

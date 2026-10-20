@@ -196,7 +196,9 @@ const replaceCliRangeReferences = ({
     markers: CLI_RANGE_MARKERS,
     nextRange: nextCliRange,
     previousRange: previousCliRange,
-  }).replaceAll(`CLI ${previousCliMajor}`, `CLI ${nextCliMajor}`);
+  })
+    .replaceAll(`CLI ${previousCliMajor}`, `CLI ${nextCliMajor}`)
+    .replaceAll(`stable ${previousCliMajor}.x`, `stable ${nextCliMajor}.x`);
 };
 
 const updateConformanceCases = ({

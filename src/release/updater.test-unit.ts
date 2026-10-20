@@ -32,7 +32,7 @@ test('createCliReleaseUpdate synchronizes every CLI-owned release file', () => {
   const currentFiles = new Map<string, string>(
     CLI_VERSION_RANGE_TEXT_PATHS.map((relativePath) => [
       relativePath,
-      `${relativePath}: @moldea.ai/cli ^6.0.0\n${relativePath}: CLI 6\n${relativePath}: Yarn 6.0.0\n${relativePath}: @moldea.ai/core ^2.0.1\n${relativePath}: unrelated-package ^6.0.0\n`,
+      `${relativePath}: @moldea.ai/cli ^6.0.0\n${relativePath}: CLI 6\n${relativePath}: a caret range on a stable 6.x version\n${relativePath}: Yarn 6.0.0\n${relativePath}: Yarn 6.x\n${relativePath}: @moldea.ai/core ^2.0.1\n${relativePath}: unrelated-package ^6.0.0\n`,
     ]),
   );
   for (const relativePath of CLI_JSON_SCHEMA_VERSION_TEXT_PATHS) {
@@ -136,7 +136,9 @@ test('createCliReleaseUpdate synchronizes every CLI-owned release file', () => {
     if (relativePath === RELEASE_PATHS.sourceRepositoryPackage) continue;
     assert.match(getUpdated(relativePath), /@moldea\.ai\/cli \^7\.0\.0/u);
     assert.match(getUpdated(relativePath), /CLI 7/u);
+    assert.match(getUpdated(relativePath), /a caret range on a stable 7\.x version/u);
     assert.match(getUpdated(relativePath), new RegExp(`${relativePath}: Yarn 6\\.0\\.0`));
+    assert.match(getUpdated(relativePath), new RegExp(`${relativePath}: Yarn 6\\.x`));
     assert.match(getUpdated(relativePath), /unrelated-package \^6\.0\.0/u);
   }
   for (const relativePath of CORE_VERSION_RANGE_TEXT_PATHS) {

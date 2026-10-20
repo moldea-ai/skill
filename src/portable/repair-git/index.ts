@@ -2,11 +2,7 @@
 export type { IRepairGitEvidence, IRepairGitMode, IRepairGitOptions } from './types.ts';
 
 // fixed arguments
-export {
-  REPAIR_GIT_COMMON_CONFIGURATIONS,
-  REPAIR_GIT_INDEX_ARGUMENTS,
-  REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS,
-} from './constants.ts';
+export { REPAIR_GIT_INDEX_ARGUMENTS, REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS } from './constants.ts';
 
 // evidence collection
 export { collectRepairGitEvidence } from './repair-git.ts';

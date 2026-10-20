@@ -150,6 +150,7 @@ test('writes a linked AGENTS.md through its resolved target and refuses links ot
   const root = await realpath(await mkdtemp(join(tmpdir(), 'moldea-block-link-')));
   const linkPath = join(root, 'AGENTS.md');
   try {
+    spawnSync('git', ['init', '-q'], { cwd: root });
     await mkdir(join(root, 'docs'));
     await writeFile(join(root, 'docs', 'AGENTS.md'), '# Rules\n');
     await symlink(

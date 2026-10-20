@@ -4,7 +4,7 @@
       "id": "inspect-valid",
       "input": {
         "output": {
-          "cliVersion": "11.1.0",
+          "cliVersion": "12.0.0",
           "schemaVersion": 7,
           "command": "inspect",
           "status": "valid",
@@ -23,7 +23,7 @@
       "id": "scope-valid",
       "input": {
         "output": {
-          "cliVersion": "11.1.0",
+          "cliVersion": "12.0.0",
           "schemaVersion": 7,
           "command": "scope",
           "status": "valid",
@@ -43,7 +43,7 @@
       "id": "content-valid",
       "input": {
         "output": {
-          "cliVersion": "11.1.0",
+          "cliVersion": "12.0.0",
           "schemaVersion": 7,
           "command": "content",
           "status": "valid",
@@ -61,7 +61,7 @@
       "id": "schema-mismatch",
       "input": {
         "output": {
-          "cliVersion": "11.1.0",
+          "cliVersion": "12.0.0",
           "schemaVersion": 1,
           "command": "inspect",
           "status": "valid",
@@ -76,7 +76,7 @@
       "id": "version-mismatch",
       "input": {
         "output": {
-          "cliVersion": "12.0.0",
+          "cliVersion": "13.0.0",
           "schemaVersion": 7,
           "command": "inspect",
           "status": "valid",
@@ -84,14 +84,14 @@
           "error": null
         }
       },
-      "scenario": "The machine envelope reports unsupported CLI 12.0.0 while the declared and installed root package is 11.1.0.",
+      "scenario": "The machine envelope reports unsupported CLI 13.0.0 while the declared and installed root package is 12.0.0.",
       "expected": "reject-envelope"
     },
     {
       "id": "command-mismatch",
       "input": {
         "output": {
-          "cliVersion": "11.1.0",
+          "cliVersion": "12.0.0",
           "schemaVersion": 7,
           "command": "validate",
           "status": "valid",
@@ -105,7 +105,7 @@
       "id": "status-exit-mismatch",
       "input": {
         "output": {
-          "cliVersion": "11.1.0",
+          "cliVersion": "12.0.0",
           "schemaVersion": 7,
           "command": "inspect",
           "status": "valid",
@@ -119,7 +119,7 @@
       "id": "inspect-content-leak",
       "input": {
         "output": {
-          "cliVersion": "11.1.0",
+          "cliVersion": "12.0.0",
           "schemaVersion": 7,
           "command": "inspect",
           "status": "valid",
@@ -158,7 +158,10 @@
         "initialized": true,
         "hostCommand": "review",
         "repositoryName": "moldea",
-        "paths": ["/src/payment.ts", "/tests/agent-auth/payment.test.ts"],
+        "paths": [
+          "/src/payment.ts",
+          "/tests/agent-auth/payment.test.ts"
+        ],
         "agentWorkIntent": false
       },
       "expected": "abstain"
@@ -169,7 +172,9 @@
         "initialized": true,
         "hostCommand": "fix",
         "repositoryName": "moldea",
-        "paths": ["/src/payment.ts"],
+        "paths": [
+          "/src/payment.ts"
+        ],
         "agentWorkIntent": false
       },
       "expected": "abstain"
@@ -180,7 +185,10 @@
         "initialized": true,
         "hostCommand": "repo push",
         "repositoryName": "moldea",
-        "paths": ["/README.md", "/src/payment.ts"],
+        "paths": [
+          "/README.md",
+          "/src/payment.ts"
+        ],
         "readmeHunk": "outside-markers"
       },
       "expected": "abstain"
@@ -191,7 +199,9 @@
         "initialized": true,
         "activeAgentTask": true,
         "continuesActiveTask": false,
-        "paths": ["/src/payment.ts"],
+        "paths": [
+          "/src/payment.ts"
+        ],
         "agentWorkIntent": false
       },
       "expected": "abstain"
@@ -268,7 +278,9 @@
       "id": "preinit-canonical-looking-path",
       "input": {
         "initialized": false,
-        "paths": ["/moldea/project.md"]
+        "paths": [
+          "/moldea/project.md"
+        ]
       },
       "expected": "abstain"
     },
@@ -277,7 +289,9 @@
       "input": {
         "hostCommand": "review",
         "initialized": false,
-        "paths": ["/docs/operations.md"]
+        "paths": [
+          "/docs/operations.md"
+        ]
       },
       "expected": "abstain"
     },
@@ -293,7 +307,9 @@
       "id": "canonical",
       "input": {
         "initialized": true,
-        "paths": ["/moldea/project.md"]
+        "paths": [
+          "/moldea/project.md"
+        ]
       },
       "expected": "direct"
     },
@@ -301,7 +317,9 @@
       "id": "managed-readme",
       "input": {
         "initialized": true,
-        "paths": ["/README.md"],
+        "paths": [
+          "/README.md"
+        ],
         "readmeHunk": "inside-markers"
       },
       "expected": "direct"
@@ -310,7 +328,9 @@
       "id": "exact-binding",
       "input": {
         "initialized": true,
-        "paths": ["/src/support-agent.js"],
+        "paths": [
+          "/src/support-agent.js"
+        ],
         "relationshipMatch": true
       },
       "expected": "relationship-gate"
@@ -319,7 +339,9 @@
       "id": "affected-by",
       "input": {
         "initialized": true,
-        "paths": ["/src/project-state.js"],
+        "paths": [
+          "/src/project-state.js"
+        ],
         "relationshipMatch": true
       },
       "expected": "relationship-gate"
@@ -328,7 +350,9 @@
       "id": "unrelated-doc",
       "input": {
         "initialized": true,
-        "paths": ["/docs/branding.md"]
+        "paths": [
+          "/docs/branding.md"
+        ]
       },
       "expected": "abstain"
     },
@@ -336,7 +360,9 @@
       "id": "unrelated-source",
       "input": {
         "initialized": true,
-        "paths": ["/src/unrelated.js"]
+        "paths": [
+          "/src/unrelated.js"
+        ]
       },
       "expected": "abstain"
     },
@@ -344,7 +370,9 @@
       "id": "readme-outside",
       "input": {
         "initialized": true,
-        "paths": ["/README.md"],
+        "paths": [
+          "/README.md"
+        ],
         "readmeHunk": "outside-markers"
       },
       "expected": "abstain"
@@ -354,7 +382,9 @@
       "input": {
         "hostCommand": "review",
         "initialized": true,
-        "paths": ["/docs/operations.md"]
+        "paths": [
+          "/docs/operations.md"
+        ]
       },
       "expected": "abstain"
     },
@@ -380,7 +410,9 @@
       "input": {
         "initialized": true,
         "agentWorkIntent": true,
-        "paths": ["/src/triage.ts"],
+        "paths": [
+          "/src/triage.ts"
+        ],
         "relationshipMatch": false
       },
       "expected": "direct"
@@ -417,7 +449,9 @@
         "initialized": true,
         "activeAgentTask": true,
         "continuesActiveTask": false,
-        "paths": ["/docs/branding.md"]
+        "paths": [
+          "/docs/branding.md"
+        ]
       },
       "expected": "abstain"
     },
@@ -426,7 +460,9 @@
       "input": {
         "initialized": true,
         "agentWorkIntent": false,
-        "paths": ["/package.json"]
+        "paths": [
+          "/package.json"
+        ]
       },
       "expected": "abstain"
     },

@@ -127,6 +127,61 @@ test.each(['unborn', 'committed', 'detached'] as const)(
   },
 );
 
+test('Git command-policy boundary runs the writer link queries for one literal path', async () => {
+  const testRoot = mkdtempSync(join(tmpdir(), 'moldea-git-command-policy-writer-'));
+  const repositoryPath = join(testRoot, 'repository');
+
+  try {
+    mkdirSync(repositoryPath);
+    runSystemGit(repositoryPath, ['init', '--quiet']);
+    runSystemGit(repositoryPath, ['config', 'core.symlinks', 'false']);
+    writeFileSync(join(repositoryPath, 'AGENTS.md'), '# Rules\n');
+    runSystemGit(repositoryPath, ['add', '--', 'AGENTS.md']);
+    const wrapperPath = await prepareGitCommandPolicyBoundary(join(testRoot, 'bin'), {
+      realGitExecutable: '/usr/bin/git',
+      invocationLogPath: join(testRoot, 'git-invocations.jsonl'),
+    });
+    const hardened = CODEX_EVALUATION_GIT_STATUS_ARGUMENTS.slice(
+      0,
+      CODEX_EVALUATION_GIT_STATUS_ARGUMENTS.indexOf('status'),
+    );
+    const storage = [
+      ...hardened,
+      'ls-files',
+      '--cached',
+      '--others',
+      '--exclude-standard',
+      '--stage',
+      '-z',
+      '--',
+    ];
+
+    const storageResult = runWrappedGit(wrapperPath, repositoryPath, [...storage, 'AGENTS.md']);
+    assert.equal(storageResult.status, 0, storageResult.stderr);
+    assert.match(storageResult.stdout, /^100644 [0-9a-f]{40} 0\tAGENTS\.md\0$/u);
+
+    const settingResult = runWrappedGit(wrapperPath, repositoryPath, [
+      ...hardened,
+      'config',
+      '--type=bool',
+      '--default=true',
+      '--get',
+      'core.symlinks',
+    ]);
+    assert.equal(settingResult.status, 0, settingResult.stderr);
+    assert.equal(settingResult.stdout, 'false\n');
+
+    const refusedResult = runWrappedGit(wrapperPath, repositoryPath, [
+      ...storage,
+      ':(top)AGENTS.md',
+    ]);
+    assert.equal(refusedResult.status, 2);
+    assert.match(refusedResult.stderr, /command shape is not evaluator-approved/u);
+  } finally {
+    rmSync(testRoot, { force: true, recursive: true });
+  }
+});
+
 test('Git command-policy boundary suppresses helpers and refuses filter attributes', async () => {
   const testRoot = mkdtempSync(join(tmpdir(), 'moldea-git-command-policy-test-'));
   const repositoryPath = join(testRoot, 'repository');

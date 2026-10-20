@@ -54,3 +54,94 @@ test('stacks the three benefits without a cramped comparison table at 320px', as
   }));
   expect(widths.scroll).toBeLessThanOrEqual(widths.client);
 });
+
+for (const colorScheme of ['light', 'dark'] as const) {
+  test(`keeps comparison insets and divider edges consistent in ${colorScheme} mode`, async ({
+    page,
+  }, testInfo) => {
+    await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' });
+    await page.goto(toPublicPath('/'));
+    const comparison = page.getByRole('region', {
+      name: 'Your coding agent can remember. Your project still needs a system.',
+    });
+    await expect(comparison).toBeVisible();
+    await expect(page.locator('html')).toHaveClass(new RegExp(colorScheme));
+
+    for (const width of [320, 639, 640, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      const geometry = await comparison.evaluate((section) => {
+        const article = section.querySelector('article');
+        const strengths = section.querySelector('ul[aria-label="What coding agents already do"]');
+        const additions = section.querySelector('ol[aria-label="What the skill adds"]');
+        const additionsHeader = additions?.previousElementSibling;
+        if (!article || !strengths || !additions || !additionsHeader) {
+          throw new Error('The comparison panes are missing.');
+        }
+        const measure = (element: Element) => {
+          const bounds = element.getBoundingClientRect();
+          const styles = getComputedStyle(element);
+          return {
+            left: bounds.left,
+            right: bounds.right,
+            padding: [
+              styles.paddingTop,
+              styles.paddingRight,
+              styles.paddingBottom,
+              styles.paddingLeft,
+            ],
+            borderTop: styles.borderTopWidth,
+            borderBottom: styles.borderBottomWidth,
+          };
+        };
+        return {
+          pageOverflows:
+            document.documentElement.scrollWidth > document.documentElement.clientWidth,
+          sectionOverflows: section.scrollWidth > section.clientWidth,
+          article: measure(article),
+          strengths: measure(strengths),
+          strengthRows: Array.from(strengths.children).map(measure),
+          additionsHeader: measure(additionsHeader),
+          additionRows: Array.from(additions.children).map(measure),
+        };
+      });
+      expect(geometry.pageOverflows).toBe(false);
+      expect(geometry.sectionOverflows).toBe(false);
+      const inset = width < 640 ? 20 : 24;
+      for (const panel of [geometry.article, geometry.additionsHeader, ...geometry.additionRows]) {
+        expect(panel.padding).toStrictEqual(Array(4).fill(`${inset}px`));
+      }
+      expect(geometry.strengths.left).toBeCloseTo(geometry.article.left, 1);
+      expect(geometry.strengths.right).toBeCloseTo(geometry.article.right, 1);
+      expect(geometry.strengths.borderTop).toBe('1px');
+      expect(geometry.strengths.borderBottom).toBe('1px');
+      for (const row of geometry.strengthRows) {
+        expect(row.left).toBeCloseTo(geometry.article.left + inset, 1);
+        expect(row.right).toBeCloseTo(geometry.article.right - inset, 1);
+      }
+      expect(geometry.additionsHeader.borderBottom).toBe('1px');
+      for (const row of geometry.additionRows) {
+        expect(row.left).toBeCloseTo(geometry.additionsHeader.left, 1);
+        expect(row.right).toBeCloseTo(geometry.additionsHeader.right, 1);
+      }
+      if (process.env['MOLDEA_WHY_UI_REVIEW'] === '1' && testInfo.repeatEachIndex === 0) {
+        await comparison.screenshot({
+          path: testInfo.outputPath(`why-${colorScheme}-${width}.png`),
+        });
+      }
+    }
+    const homeLink = page.getByRole('banner').getByRole('link', { name: 'moldea skill home' });
+    await homeLink.focus();
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Shift+Tab');
+    await expect(homeLink).toBeFocused();
+    expect(
+      await homeLink.evaluate((element) => {
+        const styles = getComputedStyle(element);
+        return (
+          (styles.outlineStyle !== 'none' && parseFloat(styles.outlineWidth) > 0) ||
+          styles.boxShadow !== 'none'
+        );
+      }),
+    ).toBe(true);
+  });
+}

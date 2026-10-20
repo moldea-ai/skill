@@ -6,6 +6,31 @@ import { realpath as realpath2 } from "node:fs/promises";
 import { dirname as dirname2, isAbsolute as isAbsolute2, join as join3, relative, resolve as resolve2, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
+// src/portable/instruction-link/constants.ts
+var INSTRUCTION_GIT_STORAGE_ARGUMENTS = [
+  "ls-files",
+  "--cached",
+  "--others",
+  "--exclude-standard",
+  "--stage",
+  "-z",
+  "--"
+];
+var INSTRUCTION_GIT_SYMLINK_SETTING_ARGUMENTS = [
+  "config",
+  "--type=bool",
+  "--default=true",
+  "--get",
+  "core.symlinks"
+];
+var INSTRUCTION_PATHS = /* @__PURE__ */ new Set([
+  "/AGENTS.md",
+  "/CLAUDE.md",
+  "/.claude/CLAUDE.md",
+  "/CLAUDE.local.md"
+]);
+var INSTRUCTION_GIT_OUTPUT_BYTES = 4096;
+
 // src/portable/instruction-link/instruction-link.ts
 import { lstat as lstat2 } from "node:fs/promises";
 import { join } from "node:path";
@@ -347,13 +372,14 @@ var Exception = class extends Error {
   }
 };
 
-// node_modules/@moldea.ai/repository/dist/chunks/comparison-B911z4jo.js
+// node_modules/@moldea.ai/repository/dist/chunks/links-BK-KuJue.js
 var SOURCE_ERROR_MESSAGES = {
   ABORTED: "The repository operation was aborted.",
   ACCESS_DENIED: "Access to the repository source was denied.",
   ENTRY_NOT_DIRECTORY: "The requested repository entry is not a directory.",
   ENTRY_NOT_FILE: "The requested repository entry is not a file.",
   ENTRY_NOT_FOUND: "The requested repository entry was not found.",
+  ENTRY_NOT_LINK: "The requested repository entry is not a symlink.",
   INVALID_PAGE_REQUEST: "The repository page request is invalid.",
   INVALID_SOURCE_DATA: "The repository source returned invalid data.",
   PROVIDER_INCOMPLETE: "The repository provider cannot expose a complete result.",
@@ -911,6 +937,48 @@ var createRepositoryComparison = async (base, candidate, options) => {
   await Promise.resolve();
   return new RepositoryComparison(base, candidate);
 };
+var REPOSITORY_LINK_TEXT_MAX_BYTES = 4096;
+var DRIVE_PREFIX_PATTERN = /^[A-Za-z]:/u;
+var resolveLinkText = (linkPath, text) => {
+  if (text === null || text === "") return { kind: "unsupported" };
+  if (text.startsWith("/") || DRIVE_PREFIX_PATTERN.test(text)) return { kind: "outside" };
+  const segments = text.split("/");
+  if (segments.at(-1) === "") return { kind: "unsupported" };
+  const namedSegments = segments.filter((segment) => segment !== "" && segment !== ".");
+  const directorySegments = linkPath.split("/").slice(1, -1);
+  let segmentIndex = 0;
+  while (namedSegments[segmentIndex] === "..") {
+    if (directorySegments.length === 0) return { kind: "outside" };
+    directorySegments.pop();
+    segmentIndex += 1;
+  }
+  const remainingSegments = namedSegments.slice(segmentIndex);
+  if (remainingSegments.includes("..")) return { kind: "unsupported" };
+  const candidate = `/${[...directorySegments, ...remainingSegments].join("/")}`;
+  return isRepositoryPath(candidate) ? {
+    kind: "path",
+    path: candidate
+  } : { kind: "unsupported" };
+};
+var resolveRepositoryLink = async (source, path2, options) => {
+  const visitedPaths = /* @__PURE__ */ new Set();
+  let currentPath = parseRepositoryPath(path2);
+  for (let followedLinks = 0; ; followedLinks += 1) {
+    if (visitedPaths.has(currentPath)) return { state: "loop" };
+    visitedPaths.add(currentPath);
+    const entry = await source.getEntry(currentPath, options);
+    if (entry === null) return { state: "missing" };
+    if (entry.type === "file") return {
+      state: "file",
+      targetPath: currentPath
+    };
+    if (entry.type !== "symlink") return { state: "not-file" };
+    if (followedLinks === 32) return { state: "loop" };
+    const step = resolveLinkText(currentPath, await source.readLinkText(currentPath, options));
+    if (step.kind !== "path") return { state: step.kind };
+    currentPath = step.path;
+  }
+};
 
 // node_modules/@moldea.ai/repository-fs/dist/index.js
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
@@ -1114,9 +1182,7 @@ var cacheFilePage = (cache, cachedBytes, cacheKey, bytes, entryIdentity, maxCach
   });
   return cachedBytes + bytes.byteLength;
 };
-var linkHosts = /* @__PURE__ */ new WeakMap();
-var getFilesystemLinkHost = (candidate) => typeof candidate === "object" && candidate !== null ? linkHosts.get(candidate) : void 0;
-var decoder$1 = new TextDecoder2("utf-8", {
+var decoder = new TextDecoder2("utf-8", {
   fatal: true,
   ignoreBOM: true
 });
@@ -1151,12 +1217,12 @@ var hashParts = (parts) => {
   }
   return `sha256:${hash.digest("hex")}`;
 };
-var getErrorCode$1 = (cause) => {
+var getErrorCode2 = (cause) => {
   if (typeof cause !== "object" || cause === null || !("code" in cause)) return;
   const code = cause.code;
   return typeof code === "string" ? code : void 0;
 };
-var throwSource$1 = (code, operation, logicalPath, retryable, cause, resource) => {
+var throwSource = (code, operation, logicalPath, retryable, cause, resource) => {
   throw new RepositorySourceException({
     cause,
     code,
@@ -1167,14 +1233,14 @@ var throwSource$1 = (code, operation, logicalPath, retryable, cause, resource) =
   });
 };
 var throwMappedHostError = (cause, operation, logicalPath) => {
-  const code = getErrorCode$1(cause);
-  if (code === "EACCES" || code === "EPERM") return throwSource$1("ACCESS_DENIED", operation, logicalPath, true, cause);
-  if (operation !== "create-reader" && (code === "ENOENT" || code === "ENOTDIR" || code === "ELOOP")) return throwSource$1("SNAPSHOT_CHANGED", operation, logicalPath, true, cause);
-  if (operation === "create-reader" && (code === "ENOENT" || code === "ENOTDIR")) return throwSource$1("ENTRY_NOT_FOUND", operation, logicalPath, true, cause);
-  return throwSource$1("SOURCE_UNAVAILABLE", operation, logicalPath, true, cause);
+  const code = getErrorCode2(cause);
+  if (code === "EACCES" || code === "EPERM") return throwSource("ACCESS_DENIED", operation, logicalPath, true, cause);
+  if (operation !== "create-reader" && (code === "ENOENT" || code === "ENOTDIR" || code === "ELOOP")) return throwSource("SNAPSHOT_CHANGED", operation, logicalPath, true, cause);
+  if (operation === "create-reader" && (code === "ENOENT" || code === "ENOTDIR")) return throwSource("ENTRY_NOT_FOUND", operation, logicalPath, true, cause);
+  return throwSource("SOURCE_UNAVAILABLE", operation, logicalPath, true, cause);
 };
-var throwIfAborted$1 = (signal, operation, logicalPath) => {
-  if (signal?.aborted) throwSource$1("ABORTED", operation, logicalPath, false, signal.reason);
+var throwIfAborted2 = (signal, operation, logicalPath) => {
+  if (signal?.aborted) throwSource("ABORTED", operation, logicalPath, false, signal.reason);
 };
 var getStatisticsIdentity = (statistics, type) => {
   return hashParts([
@@ -1191,15 +1257,15 @@ var classifyStatistics = (statistics, operation, logicalPath) => {
   if (statistics.isFile()) return "file";
   if (statistics.isDirectory()) return "directory";
   if (statistics.isSymbolicLink()) return "symlink";
-  return throwSource$1("INVALID_SOURCE_DATA", operation, logicalPath, false);
+  return throwSource("INVALID_SOURCE_DATA", operation, logicalPath, false);
 };
 var decodeName = (encodedName, operation, parentPath) => {
   try {
-    const name = decoder$1.decode(encodedName);
+    const name = decoder.decode(encodedName);
     parseRepositoryPath(parentPath === REPOSITORY_ROOT ? `/${name}` : `${parentPath}/${name}`);
     return name;
   } catch (cause) {
-    return throwSource$1("INVALID_SOURCE_DATA", operation, parentPath, false, cause);
+    return throwSource("INVALID_SOURCE_DATA", operation, parentPath, false, cause);
   }
 };
 var openBufferDirectory = async (hostPath) => {
@@ -1244,7 +1310,7 @@ var OperationGate = class {
   async run(operation, logicalPath, signal, callback) {
     await this.#acquire(operation, logicalPath, signal);
     try {
-      throwIfAborted$1(signal, operation, logicalPath);
+      throwIfAborted2(signal, operation, logicalPath);
       return await callback();
     } finally {
       this.#active -= 1;
@@ -1252,12 +1318,12 @@ var OperationGate = class {
     }
   }
   async #acquire(operation, logicalPath, signal) {
-    throwIfAborted$1(signal, operation, logicalPath);
+    throwIfAborted2(signal, operation, logicalPath);
     if (this.#active < this.#limits.maxConcurrentOperations) {
       this.#active += 1;
       return;
     }
-    if (this.#waiters.length >= this.#limits.maxQueuedOperations) throwSource$1("RESOURCE_LIMIT_EXCEEDED", operation, logicalPath, true, void 0, {
+    if (this.#waiters.length >= this.#limits.maxQueuedOperations) throwSource("RESOURCE_LIMIT_EXCEEDED", operation, logicalPath, true, void 0, {
       dimension: "queuedOperations",
       limit: this.#limits.maxQueuedOperations,
       observed: this.#waiters.length + 1
@@ -1325,16 +1391,15 @@ var FilesystemRepositoryReader = class {
       names.add(logicalPath.slice(separatorIndex + 1));
       this.#selectedNamesByParent.set(parentPath, names);
     }
-    linkHosts.set(this, this.#createLinkHost());
   }
   /** Completes bounded initialization for exact-path selections. */
   async initialize(signal) {
     if (this.#selection.kind !== "paths") return;
     for (const logicalPath of this.#selectedPaths) {
-      throwIfAborted$1(signal, "create-reader", logicalPath);
+      throwIfAborted2(signal, "create-reader", logicalPath);
       const entry = await this.#observeEntry(logicalPath, "create-reader", void 0, signal);
-      if (entry === null) return throwSource$1("ENTRY_NOT_FOUND", "create-reader", logicalPath, true);
-      if (logicalPath !== REPOSITORY_ROOT && !this.#explicitSelectedPaths.has(logicalPath) && entry.type !== "directory") throwSource$1("ENTRY_NOT_DIRECTORY", "create-reader", logicalPath, false);
+      if (entry === null) return throwSource("ENTRY_NOT_FOUND", "create-reader", logicalPath, true);
+      if (logicalPath !== REPOSITORY_ROOT && !this.#explicitSelectedPaths.has(logicalPath) && entry.type !== "directory") throwSource("ENTRY_NOT_DIRECTORY", "create-reader", logicalPath, false);
     }
   }
   async compare(candidate, options) {
@@ -1350,8 +1415,8 @@ var FilesystemRepositoryReader = class {
     return this.#gate.run("list-entries-page", prefix, options.signal, async () => {
       const maxEntries = this.#parseBoundedPositiveInteger(options.maxEntries, this.#limits.maxPageEntries, "pageEntries", "list-entries-page", prefix);
       const prefixEntry = await this.#observeEntry(prefix, "list-entries-page", void 0, options.signal);
-      if (prefixEntry === null || !this.#isVisible(prefix)) return throwSource$1("ENTRY_NOT_FOUND", "list-entries-page", prefix, false);
-      if (prefixEntry.type !== "directory") throwSource$1("ENTRY_NOT_DIRECTORY", "list-entries-page", prefix, false);
+      if (prefixEntry === null || !this.#isVisible(prefix)) return throwSource("ENTRY_NOT_FOUND", "list-entries-page", prefix, false);
+      if (prefixEntry.type !== "directory") throwSource("ENTRY_NOT_DIRECTORY", "list-entries-page", prefix, false);
       return this.#selection.kind === "paths" ? this.#listSelectedEntries(prefix, maxEntries, options.cursor, options.signal) : this.#listDirectoryEntries(prefix, maxEntries, options.cursor, options.signal);
     });
   }
@@ -1360,13 +1425,13 @@ var FilesystemRepositoryReader = class {
     return this.#gate.run("read-file-page", parsedPath, options.signal, async () => {
       const offset = this.#parseOffset(options.offset, parsedPath);
       const maxBytes = this.#parseBoundedPositiveInteger(options.maxBytes, this.#limits.maxReadBytes, "readBytes", "read-file-page", parsedPath);
-      if (!this.#isVisible(parsedPath)) throwSource$1("ENTRY_NOT_FOUND", "read-file-page", parsedPath, false);
+      if (!this.#isVisible(parsedPath)) throwSource("ENTRY_NOT_FOUND", "read-file-page", parsedPath, false);
       const entry = await this.#observeEntry(parsedPath, "read-file-page", void 0, options.signal);
-      if (entry === null) return throwSource$1("ENTRY_NOT_FOUND", "read-file-page", parsedPath, false);
-      if (entry.type !== "file" || entry.byteLength === null) return throwSource$1("ENTRY_NOT_FILE", "read-file-page", parsedPath, false);
+      if (entry === null) return throwSource("ENTRY_NOT_FOUND", "read-file-page", parsedPath, false);
+      if (entry.type !== "file" || entry.byteLength === null) return throwSource("ENTRY_NOT_FILE", "read-file-page", parsedPath, false);
       const entryIdentity = this.#observations.get(parsedPath);
-      if (entryIdentity === void 0) return throwSource$1("INVALID_SOURCE_DATA", "read-file-page", parsedPath, false);
-      if (offset > entry.byteLength) throwSource$1("INVALID_PAGE_REQUEST", "read-file-page", parsedPath, false);
+      if (entryIdentity === void 0) return throwSource("INVALID_SOURCE_DATA", "read-file-page", parsedPath, false);
+      if (offset > entry.byteLength) throwSource("INVALID_PAGE_REQUEST", "read-file-page", parsedPath, false);
       const bytesToRead = Math.min(maxBytes, entry.byteLength - offset);
       const cacheKey = `${parsedPath}\0${offset}\0${bytesToRead}`;
       const cached2 = this.#cache.get(cacheKey);
@@ -1380,22 +1445,28 @@ var FilesystemRepositoryReader = class {
       return this.#createFilePage(bytes.slice(), entry.byteLength, offset);
     });
   }
-  #createLinkHost() {
-    return Object.freeze({
-      assertRootUnchanged: async (operation, logicalPath) => {
-        await this.#assertRootUnchanged(operation, logicalPath);
-      },
-      getHostPath: (logicalPath) => this.#getHostPath(logicalPath),
-      identifyStatistics: getStatisticsIdentity,
-      limits: this.#limits,
-      observeEntry: async (logicalPath, operation, signal) => this.#isVisible(logicalPath) ? this.#observeEntry(logicalPath, operation, void 0, signal) : null,
-      parseFilePageOptions: (options, logicalPath) => ({
-        maxBytes: this.#parseBoundedPositiveInteger(options.maxBytes, this.#limits.maxReadBytes, "readBytes", "read-file-page", logicalPath),
-        offset: this.#parseOffset(options.offset, logicalPath)
-      }),
-      rootDirectory: this.#rootDirectory,
-      run: async (operation, logicalPath, signal, callback) => this.#gate.run(operation, logicalPath, signal, callback),
-      snapshot: this.snapshot
+  async readLinkText(logicalPath, options) {
+    const parsedPath = parseRepositoryPath(logicalPath);
+    return this.#gate.run("read-link-text", parsedPath, options?.signal, async () => {
+      if (!this.#isVisible(parsedPath)) return throwSource("ENTRY_NOT_FOUND", "read-link-text", parsedPath, false);
+      const entry = await this.#observeEntry(parsedPath, "read-link-text", void 0, options?.signal);
+      if (entry === null) return throwSource("ENTRY_NOT_FOUND", "read-link-text", parsedPath, false);
+      if (entry.type !== "symlink") return throwSource("ENTRY_NOT_LINK", "read-link-text", parsedPath, false);
+      let text;
+      try {
+        text = await readlink(this.#getHostPath(parsedPath), { encoding: "buffer" });
+      } catch (cause) {
+        return throwMappedHostError(cause, "read-link-text", parsedPath);
+      }
+      await this.#observeEntry(parsedPath, "read-link-text", void 0, options?.signal);
+      if (text.byteLength > REPOSITORY_LINK_TEXT_MAX_BYTES) return null;
+      let decodedText;
+      try {
+        decodedText = decoder.decode(text);
+      } catch {
+        return null;
+      }
+      return process.platform === "win32" ? decodedText.replaceAll("\\", "/") : decodedText;
     });
   }
   #createFilePage(bytes, totalBytes, offset) {
@@ -1416,7 +1487,7 @@ var FilesystemRepositoryReader = class {
       visiblePaths.add(selectedPath);
       for (const parentPath of getParentPaths(selectedPath)) visiblePaths.add(parentPath);
     }
-    if (visiblePaths.size - 1 > this.#limits.maxEntries) throwSource$1("RESOURCE_LIMIT_EXCEEDED", "create-reader", null, false, void 0, {
+    if (visiblePaths.size - 1 > this.#limits.maxEntries) throwSource("RESOURCE_LIMIT_EXCEEDED", "create-reader", null, false, void 0, {
       dimension: "selectedEntries",
       limit: this.#limits.maxEntries,
       observed: visiblePaths.size - 1
@@ -1464,13 +1535,13 @@ var FilesystemRepositoryReader = class {
       };
       throw new Error("cursor payload is invalid");
     } catch (cause) {
-      return throwSource$1("INVALID_PAGE_REQUEST", "list-entries-page", prefix, false, cause);
+      return throwSource("INVALID_PAGE_REQUEST", "list-entries-page", prefix, false, cause);
     }
   }
   #encodeCursor(cursor) {
     const encodedPayload = Buffer.from(JSON.stringify(cursor), "utf8").toString("base64url");
     const encodedCursor = `${encodedPayload}.${createHmac("sha256", this.#cursorKey).update(encodedPayload).digest("base64url")}`;
-    if (Buffer.byteLength(encodedCursor, "utf8") > MAX_CURSOR_BYTES) throwSource$1("RESOURCE_LIMIT_EXCEEDED", "list-entries-page", cursor.prefix, false, void 0, {
+    if (Buffer.byteLength(encodedCursor, "utf8") > MAX_CURSOR_BYTES) throwSource("RESOURCE_LIMIT_EXCEEDED", "list-entries-page", cursor.prefix, false, void 0, {
       dimension: "cursorBytes",
       limit: MAX_CURSOR_BYTES,
       observed: Buffer.byteLength(encodedCursor, "utf8")
@@ -1481,7 +1552,7 @@ var FilesystemRepositoryReader = class {
     if (logicalPath === REPOSITORY_ROOT) return this.#rootDirectory;
     const hostPath = path.resolve(this.#rootDirectory, ...logicalPath.slice(1).split("/"));
     const relativePath = path.relative(this.#rootDirectory, hostPath);
-    if (relativePath === "" || relativePath === ".." || relativePath.startsWith(`..${path.sep}`) || path.isAbsolute(relativePath)) throwSource$1("INVALID_SOURCE_DATA", "get-entry", logicalPath, false);
+    if (relativePath === "" || relativePath === ".." || relativePath.startsWith(`..${path.sep}`) || path.isAbsolute(relativePath)) throwSource("INVALID_SOURCE_DATA", "get-entry", logicalPath, false);
     return hostPath;
   }
   #isVisible(logicalPath) {
@@ -1496,7 +1567,7 @@ var FilesystemRepositoryReader = class {
       directoryFrames.set(prefix, initialFrame);
     } else {
       const cursor = this.#decodeCursor(encodedCursor, prefix);
-      if (cursor.kind !== "directory" || cursor.frames.length === 0) return throwSource$1("INVALID_PAGE_REQUEST", "list-entries-page", prefix, false);
+      if (cursor.kind !== "directory" || cursor.frames.length === 0) return throwSource("INVALID_PAGE_REQUEST", "list-entries-page", prefix, false);
       frames = [];
       for (const frame of cursor.frames) {
         const restored = await this.#restoreDirectoryFrame(frame, directoryFrames, signal);
@@ -1506,7 +1577,7 @@ var FilesystemRepositoryReader = class {
     }
     const entries = [];
     while (frames.length > 0 && entries.length < maxEntries) {
-      throwIfAborted$1(signal, "list-entries-page", prefix);
+      throwIfAborted2(signal, "list-entries-page", prefix);
       const frame = frames.at(-1);
       if (frame === void 0) break;
       if (frame.nextIndex >= frame.names.length) {
@@ -1515,7 +1586,7 @@ var FilesystemRepositoryReader = class {
         continue;
       }
       const name = frame.names[frame.nextIndex];
-      if (name === void 0) return throwSource$1("INVALID_SOURCE_DATA", "list-entries-page", frame.path, false);
+      if (name === void 0) return throwSource("INVALID_SOURCE_DATA", "list-entries-page", frame.path, false);
       frames[frames.length - 1] = {
         ...frame,
         lastName: name,
@@ -1523,7 +1594,7 @@ var FilesystemRepositoryReader = class {
       };
       const childPath = parseRepositoryPath(frame.path === REPOSITORY_ROOT ? `/${name}` : `${frame.path}/${name}`);
       const entry = await this.#observeEntry(childPath, "list-entries-page", directoryFrames, signal);
-      if (entry === null) return throwSource$1("SNAPSHOT_CHANGED", "list-entries-page", childPath, true);
+      if (entry === null) return throwSource("SNAPSHOT_CHANGED", "list-entries-page", childPath, true);
       entries.push(entry);
       if (entry.type === "directory") {
         const childFrame = await this.#createDirectoryFrame(childPath, null, "list-entries-page", directoryFrames, signal);
@@ -1554,25 +1625,25 @@ var FilesystemRepositoryReader = class {
     let lastPath = null;
     if (encodedCursor !== void 0) {
       const cursor = this.#decodeCursor(encodedCursor, prefix);
-      if (cursor.kind !== "paths" || !this.#selectedPathSet.has(cursor.lastPath)) return throwSource$1("INVALID_PAGE_REQUEST", "list-entries-page", prefix, false);
+      if (cursor.kind !== "paths" || !this.#selectedPathSet.has(cursor.lastPath)) return throwSource("INVALID_PAGE_REQUEST", "list-entries-page", prefix, false);
       lastPath = cursor.lastPath;
     }
     const descendantPrefix = prefix === REPOSITORY_ROOT ? REPOSITORY_ROOT : `${prefix}/`;
     let pathIndex = findFirstPathAfter(this.#selectedPaths, lastPath ?? prefix);
     const entries = [];
     while (entries.length < maxEntries) {
-      throwIfAborted$1(signal, "list-entries-page", prefix);
+      throwIfAborted2(signal, "list-entries-page", prefix);
       const logicalPath = this.#selectedPaths[pathIndex];
       if (logicalPath === void 0 || !logicalPath.startsWith(descendantPrefix)) break;
       const entry = await this.#observeEntry(logicalPath, "list-entries-page", void 0, signal);
-      if (entry === null) return throwSource$1("SNAPSHOT_CHANGED", "list-entries-page", logicalPath, true);
+      if (entry === null) return throwSource("SNAPSHOT_CHANGED", "list-entries-page", logicalPath, true);
       entries.push(entry);
       pathIndex += 1;
     }
     const nextPath = this.#selectedPaths[pathIndex];
     const isComplete = nextPath === void 0 || !nextPath.startsWith(descendantPrefix);
     const finalEntry = entries.at(-1);
-    if (!isComplete && finalEntry === void 0) return throwSource$1("INVALID_SOURCE_DATA", "list-entries-page", prefix, false);
+    if (!isComplete && finalEntry === void 0) return throwSource("INVALID_SOURCE_DATA", "list-entries-page", prefix, false);
     return {
       entries,
       isComplete,
@@ -1587,8 +1658,8 @@ var FilesystemRepositoryReader = class {
     };
   }
   #parseBoundedPositiveInteger(candidate, limit, dimension, operation, logicalPath) {
-    if (!Number.isSafeInteger(candidate) || candidate <= 0) throwSource$1("INVALID_PAGE_REQUEST", operation, logicalPath, false);
-    if (candidate > limit) throwSource$1("RESOURCE_LIMIT_EXCEEDED", operation, logicalPath, false, void 0, {
+    if (!Number.isSafeInteger(candidate) || candidate <= 0) throwSource("INVALID_PAGE_REQUEST", operation, logicalPath, false);
+    if (candidate > limit) throwSource("RESOURCE_LIMIT_EXCEEDED", operation, logicalPath, false, void 0, {
       dimension,
       limit,
       observed: candidate
@@ -1596,15 +1667,15 @@ var FilesystemRepositoryReader = class {
     return candidate;
   }
   #parseOffset(candidate, logicalPath) {
-    if (!Number.isSafeInteger(candidate) || candidate < 0) throwSource$1("INVALID_PAGE_REQUEST", "read-file-page", logicalPath, false);
+    if (!Number.isSafeInteger(candidate) || candidate < 0) throwSource("INVALID_PAGE_REQUEST", "read-file-page", logicalPath, false);
     return candidate;
   }
   async #createDirectoryFrame(logicalPath, lastName, operation, directoryFrames, signal) {
     const entry = await this.#observeEntry(logicalPath, operation, directoryFrames, signal);
-    if (entry === null || entry.type !== "directory") throwSource$1("SNAPSHOT_CHANGED", operation, logicalPath, true);
+    if (entry === null || entry.type !== "directory") throwSource("SNAPSHOT_CHANGED", operation, logicalPath, true);
     const names = await this.#readDirectoryNames(logicalPath, operation, directoryFrames, signal);
     const nextIndex = lastName === null ? 0 : findSortedName(names, lastName) + 1;
-    if (nextIndex === 0 && lastName !== null) throwSource$1("SNAPSHOT_CHANGED", operation, logicalPath, true);
+    if (nextIndex === 0 && lastName !== null) throwSource("SNAPSHOT_CHANGED", operation, logicalPath, true);
     return {
       lastName,
       names,
@@ -1616,7 +1687,7 @@ var FilesystemRepositoryReader = class {
   }
   async #restoreDirectoryFrame(frame, directoryFrames, signal) {
     const restored = await this.#createDirectoryFrame(parseRepositoryPath(frame.path), frame.lastName, "list-entries-page", directoryFrames, signal);
-    if (restored.pathIdentity !== frame.pathIdentity || restored.namesIdentity !== frame.namesIdentity) throwSource$1("SNAPSHOT_CHANGED", "list-entries-page", frame.path, true);
+    if (restored.pathIdentity !== frame.pathIdentity || restored.namesIdentity !== frame.namesIdentity) throwSource("SNAPSHOT_CHANGED", "list-entries-page", frame.path, true);
     return restored;
   }
   async #readDirectoryNames(logicalPath, operation, directoryFrames, signal) {
@@ -1625,9 +1696,9 @@ var FilesystemRepositoryReader = class {
       const names = [];
       let observedEntries = 0;
       for await (const directoryEntry of directory) {
-        throwIfAborted$1(signal, operation, logicalPath);
+        throwIfAborted2(signal, operation, logicalPath);
         observedEntries += 1;
-        if (observedEntries > this.#limits.maxDirectoryEntries) throwSource$1("RESOURCE_LIMIT_EXCEEDED", operation, logicalPath, false, void 0, {
+        if (observedEntries > this.#limits.maxDirectoryEntries) throwSource("RESOURCE_LIMIT_EXCEEDED", operation, logicalPath, false, void 0, {
           dimension: "directoryEntries",
           limit: this.#limits.maxDirectoryEntries,
           observed: observedEntries
@@ -1646,15 +1717,15 @@ var FilesystemRepositoryReader = class {
   async #hasExactChildName(logicalPath, targetName, operation, parentIdentity, directoryFrames, signal) {
     const frame = directoryFrames?.get(logicalPath);
     if (frame !== void 0) {
-      if (frame.pathIdentity !== parentIdentity) throwSource$1("SNAPSHOT_CHANGED", operation, logicalPath, true);
+      if (frame.pathIdentity !== parentIdentity) throwSource("SNAPSHOT_CHANGED", operation, logicalPath, true);
       return findSortedName(frame.names, targetName) >= 0;
     }
     const selectedNames = this.#selectedNamesByParent.get(logicalPath);
     const isSelectedName = selectedNames?.has(targetName) === true;
     const proof = isSelectedName ? this.#selectedDirectoryProofs.get(logicalPath) : void 0;
     if (proof !== void 0) {
-      if (proof.identity !== parentIdentity) throwSource$1("SNAPSHOT_CHANGED", operation, logicalPath, true);
-      throwIfAborted$1(signal, operation, logicalPath);
+      if (proof.identity !== parentIdentity) throwSource("SNAPSHOT_CHANGED", operation, logicalPath, true);
+      throwIfAborted2(signal, operation, logicalPath);
       return proof.names.has(targetName);
     }
     try {
@@ -1663,9 +1734,9 @@ var FilesystemRepositoryReader = class {
       const names = /* @__PURE__ */ new Set();
       let observedEntries = 0;
       for await (const directoryEntry of directory) {
-        throwIfAborted$1(signal, operation, logicalPath);
+        throwIfAborted2(signal, operation, logicalPath);
         observedEntries += 1;
-        if (observedEntries > this.#limits.maxDirectoryEntries) throwSource$1("RESOURCE_LIMIT_EXCEEDED", operation, logicalPath, false, void 0, {
+        if (observedEntries > this.#limits.maxDirectoryEntries) throwSource("RESOURCE_LIMIT_EXCEEDED", operation, logicalPath, false, void 0, {
           dimension: "directoryEntries",
           limit: this.#limits.maxDirectoryEntries,
           observed: observedEntries
@@ -1684,13 +1755,13 @@ var FilesystemRepositoryReader = class {
       }
       if (isSelectedName) {
         const statistics = await lstat(this.#getHostPath(logicalPath), { bigint: true });
-        if (!statistics.isDirectory() || getStatisticsIdentity(statistics, "directory") !== parentIdentity) throwSource$1("SNAPSHOT_CHANGED", operation, logicalPath, true);
+        if (!statistics.isDirectory() || getStatisticsIdentity(statistics, "directory") !== parentIdentity) throwSource("SNAPSHOT_CHANGED", operation, logicalPath, true);
         this.#selectedDirectoryProofs.set(logicalPath, {
           identity: parentIdentity,
           names
         });
       }
-      throwIfAborted$1(signal, operation, logicalPath);
+      throwIfAborted2(signal, operation, logicalPath);
       return names.has(targetName);
     } catch (cause) {
       if (cause instanceof RepositorySourceException) throw cause;
@@ -1706,7 +1777,7 @@ var FilesystemRepositoryReader = class {
     let statistics = null;
     const parentIdentities = [];
     for (const [index, segment] of segments.entries()) {
-      throwIfAborted$1(signal, operation, logicalPath);
+      throwIfAborted2(signal, operation, logicalPath);
       const parentIdentity = getStatisticsIdentity(statistics ?? rootStatistics, "directory");
       if (!await this.#hasExactChildName(currentPath, segment, operation, parentIdentity, directoryFrames, signal)) return null;
       currentPath = parseRepositoryPath(currentPath === REPOSITORY_ROOT ? `/${segment}` : `${currentPath}/${segment}`);
@@ -1722,14 +1793,14 @@ var FilesystemRepositoryReader = class {
       });
     }
     for (const parent of parentIdentities) {
-      throwIfAborted$1(signal, operation, logicalPath);
+      throwIfAborted2(signal, operation, logicalPath);
       let currentStatistics;
       try {
         currentStatistics = await lstat(this.#getHostPath(parent.path), { bigint: true });
       } catch (cause) {
         return throwMappedHostError(cause, operation, parent.path);
       }
-      if (!currentStatistics.isDirectory() || getStatisticsIdentity(currentStatistics, "directory") !== parent.identity) return throwSource$1("SNAPSHOT_CHANGED", operation, parent.path, true);
+      if (!currentStatistics.isDirectory() || getStatisticsIdentity(currentStatistics, "directory") !== parent.identity) return throwSource("SNAPSHOT_CHANGED", operation, parent.path, true);
     }
     await this.#assertRootUnchanged(operation, logicalPath);
     return statistics;
@@ -1738,7 +1809,7 @@ var FilesystemRepositoryReader = class {
     try {
       const statistics = await lstat(this.#rootDirectory, { bigint: true });
       const rootIdentity = this.#observations.get(REPOSITORY_ROOT);
-      if (!statistics.isDirectory() || rootIdentity === void 0 || getStatisticsIdentity(statistics, "directory") !== rootIdentity) return throwSource$1("SNAPSHOT_CHANGED", operation, logicalPath, true);
+      if (!statistics.isDirectory() || rootIdentity === void 0 || getStatisticsIdentity(statistics, "directory") !== rootIdentity) return throwSource("SNAPSHOT_CHANGED", operation, logicalPath, true);
       return statistics;
     } catch (cause) {
       if (cause instanceof RepositorySourceException) throw cause;
@@ -1747,14 +1818,14 @@ var FilesystemRepositoryReader = class {
   }
   async #observeEntry(logicalPath, operation, directoryFrames, signal) {
     const statistics = await this.#readExactEntryStatistics(logicalPath, operation, directoryFrames, signal);
-    throwIfAborted$1(signal, operation, logicalPath);
-    if (statistics === null) return this.#observations.has(logicalPath) ? throwSource$1("SNAPSHOT_CHANGED", operation, logicalPath, true) : null;
+    throwIfAborted2(signal, operation, logicalPath);
+    if (statistics === null) return this.#observations.has(logicalPath) ? throwSource("SNAPSHOT_CHANGED", operation, logicalPath, true) : null;
     const type = classifyStatistics(statistics, operation, logicalPath);
     const identity = getStatisticsIdentity(statistics, type);
     const previousIdentity = this.#observations.get(logicalPath);
-    if (previousIdentity !== void 0 && previousIdentity !== identity) throwSource$1("SNAPSHOT_CHANGED", operation, logicalPath, true);
+    if (previousIdentity !== void 0 && previousIdentity !== identity) throwSource("SNAPSHOT_CHANGED", operation, logicalPath, true);
     if (previousIdentity === void 0) {
-      if (this.#observations.size - 1 >= this.#limits.maxEntries) throwSource$1("RESOURCE_LIMIT_EXCEEDED", operation, logicalPath, false, void 0, {
+      if (this.#observations.size - 1 >= this.#limits.maxEntries) throwSource("RESOURCE_LIMIT_EXCEEDED", operation, logicalPath, false, void 0, {
         dimension: "observedEntries",
         limit: this.#limits.maxEntries,
         observed: this.#observations.size
@@ -1774,17 +1845,17 @@ var FilesystemRepositoryReader = class {
       const noFollow = "O_NOFOLLOW" in constants ? constants.O_NOFOLLOW : 0;
       handle = await open(this.#getHostPath(logicalPath), constants.O_RDONLY | noFollow);
       const before = await handle.stat({ bigint: true });
-      if (getStatisticsIdentity(before, classifyStatistics(before, "read-file-page", logicalPath)) !== entryIdentity) throwSource$1("SNAPSHOT_CHANGED", "read-file-page", logicalPath, true);
+      if (getStatisticsIdentity(before, classifyStatistics(before, "read-file-page", logicalPath)) !== entryIdentity) throwSource("SNAPSHOT_CHANGED", "read-file-page", logicalPath, true);
       const bytes = new Uint8Array(bytesToRead);
       let totalRead = 0;
       while (totalRead < bytesToRead) {
-        throwIfAborted$1(signal, "read-file-page", logicalPath);
+        throwIfAborted2(signal, "read-file-page", logicalPath);
         const result = await handle.read(bytes, totalRead, bytesToRead - totalRead, offset + totalRead);
-        if (result.bytesRead === 0) throwSource$1("SNAPSHOT_CHANGED", "read-file-page", logicalPath, true);
+        if (result.bytesRead === 0) throwSource("SNAPSHOT_CHANGED", "read-file-page", logicalPath, true);
         totalRead += result.bytesRead;
       }
       const after = await handle.stat({ bigint: true });
-      if (getStatisticsIdentity(after, classifyStatistics(after, "read-file-page", logicalPath)) !== entryIdentity) throwSource$1("SNAPSHOT_CHANGED", "read-file-page", logicalPath, true);
+      if (getStatisticsIdentity(after, classifyStatistics(after, "read-file-page", logicalPath)) !== entryIdentity) throwSource("SNAPSHOT_CHANGED", "read-file-page", logicalPath, true);
       await this.#observeEntry(logicalPath, "read-file-page");
       return bytes;
     } catch (cause) {
@@ -1796,11 +1867,11 @@ var FilesystemRepositoryReader = class {
   }
 };
 var prepareRoot = async (options) => {
-  throwIfAborted$1(options.signal, "create-reader", null);
+  throwIfAborted2(options.signal, "create-reader", null);
   try {
     const rootDirectory = await realpath(options.rootDirectory);
     const statistics = await lstat(rootDirectory, { bigint: true });
-    if (!statistics.isDirectory()) throwSource$1("ENTRY_NOT_DIRECTORY", "create-reader", null, false);
+    if (!statistics.isDirectory()) throwSource("ENTRY_NOT_DIRECTORY", "create-reader", null, false);
     return {
       identity: getStatisticsIdentity(statistics, "directory"),
       rootDirectory
@@ -1815,297 +1886,117 @@ var createFilesystemRepositoryReader = async (rawOptions) => {
   const root = await prepareRoot(options);
   const reader = new FilesystemRepositoryReader(options, root.rootDirectory, root.identity);
   await reader.initialize(options.signal);
-  throwIfAborted$1(options.signal, "create-reader", null);
+  throwIfAborted2(options.signal, "create-reader", null);
   return Object.freeze(reader);
 };
-var LOCAL_LONG_PATH_PATTERN = /^[\\/]{2}\?[\\/](?=[A-Za-z]:[\\/])/u;
-var isRefusedLinkPath = (candidate) => {
-  const normalized = candidate.replaceAll("\\", "/");
-  if (normalized.startsWith("//")) return !/^\/\/\?\/[A-Za-z]:\//u.test(normalized);
-  if (/^[A-Za-z]:(?!\/)/u.test(normalized)) return true;
-  return /^\/(?:net|network)(?:\/|$)/iu.test(normalized);
+
+// src/portable/git-command/constants.ts
+var HARDENED_GIT_CONFIGURATIONS = [
+  "core.attributesFile=/dev/null",
+  // empty disables the monitor on every supported Git; before Git 2.36, false names a hook
+  "core.fsmonitor=",
+  "core.pager=cat",
+  "filter.lfs.clean=",
+  "filter.lfs.process=",
+  "filter.lfs.required=false",
+  "filter.lfs.smudge="
+];
+var HARDENED_GIT_DIFF_CONFIGURATION = "diff.external=";
+var REMOVED_GIT_ENVIRONMENT_NAMES = [
+  "GIT_DIR",
+  "GIT_WORK_TREE",
+  "GIT_COMMON_DIR",
+  "GIT_INDEX_FILE",
+  "GIT_OBJECT_DIRECTORY",
+  "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+  "GIT_ATTR_SOURCE",
+  "GIT_CONFIG",
+  "GIT_CONFIG_PARAMETERS",
+  "GIT_CONFIG_COUNT",
+  "GIT_GLOB_PATHSPECS",
+  "GIT_NOGLOB_PATHSPECS",
+  "GIT_ICASE_PATHSPECS"
+];
+var CLI_REMOVED_GIT_ENVIRONMENT_NAMES = [
+  "GIT_CEILING_DIRECTORIES",
+  "GIT_DISCOVERY_ACROSS_FILESYSTEM",
+  "GIT_NAMESPACE",
+  "GIT_SHALLOW_FILE",
+  "GIT_CONFIG_SYSTEM",
+  "GIT_CONFIG_GLOBAL",
+  "GIT_CONFIG_NOSYSTEM",
+  "GIT_EXEC_PATH",
+  "GIT_LITERAL_PATHSPECS"
+];
+
+// src/portable/git-command/git-command.ts
+import { spawnSync } from "node:child_process";
+var GitCommandError = class extends Error {
 };
-var stripLocalLongPathPrefix = (text) => text.replace(LOCAL_LONG_PATH_PATTERN, "");
-var getLexicalLinkCandidate = (pathApi, directory, text) => pathApi.resolve(directory, text);
-var getLinkWalkStart = (pathApi, directory, text) => {
-  if (pathApi.sep === "/") return {
-    components: text.split("/"),
-    directory: pathApi.isAbsolute(text) ? "/" : directory
-  };
-  const lexical = pathApi.resolve(directory, text);
-  const relative2 = pathApi.relative(directory, lexical);
-  if (relative2 === "" || relative2 !== ".." && !relative2.startsWith(`..${pathApi.sep}`) && !pathApi.isAbsolute(relative2)) return {
-    components: relative2 === "" ? [] : relative2.split(pathApi.sep),
-    directory
-  };
-  const root = pathApi.parse(lexical).root;
+var createEnvironment = (repositoryRoot, configScope) => {
+  const removedNames = new Set(
+    configScope === "cli" ? [...REMOVED_GIT_ENVIRONMENT_NAMES, ...CLI_REMOVED_GIT_ENVIRONMENT_NAMES] : REMOVED_GIT_ENVIRONMENT_NAMES
+  );
+  const environment = {};
+  for (const [name, value] of Object.entries(process.env)) {
+    const upperName = name.toUpperCase();
+    if (removedNames.has(upperName) || /^GIT_CONFIG_(?:KEY|VALUE)_/u.test(upperName) || configScope === "cli" && upperName.startsWith("GIT_TRACE"))
+      continue;
+    environment[name] = value;
+  }
   return {
-    components: lexical.slice(root.length).split(pathApi.sep),
-    directory: root
+    ...environment,
+    // reads never fetch missing objects; Git without GIT_NO_LAZY_FETCH needs the empty protocol list
+    GIT_ALLOW_PROTOCOL: "",
+    GIT_NO_LAZY_FETCH: "1",
+    GIT_OPTIONAL_LOCKS: "0",
+    GIT_WORK_TREE: repositoryRoot,
+    GIT_LITERAL_PATHSPECS: "1",
+    ...configScope === "repository" ? { GIT_ATTR_NOSYSTEM: "1", GIT_CONFIG_GLOBAL: "/dev/null", GIT_CONFIG_NOSYSTEM: "1" } : {}
   };
 };
-var getContainedLogicalPath = (pathApi, rootDirectory, hostPath) => {
-  const relative2 = pathApi.relative(rootDirectory, hostPath);
-  if (relative2 === "") return "/";
-  if (relative2 === ".." || relative2.startsWith(`..${pathApi.sep}`) || pathApi.isAbsolute(relative2)) return null;
-  return `/${relative2.split(pathApi.sep).join("/")}`;
-};
-var decoder = new TextDecoder2("utf-8", {
-  fatal: true,
-  ignoreBOM: true
-});
-var getErrorCode2 = (cause) => {
-  if (typeof cause !== "object" || cause === null || !("code" in cause)) return;
-  const code = cause.code;
-  return typeof code === "string" ? code : void 0;
-};
-var throwSource = (code, operation, logicalPath, retryable, cause) => {
-  throw new RepositorySourceException({
-    cause,
-    code,
-    operation,
-    path: logicalPath,
-    retryable
-  });
-};
-var throwIfAborted2 = (signal, operation, logicalPath) => {
-  if (signal?.aborted) throwSource("ABORTED", operation, logicalPath, false, signal.reason);
-};
-var refuse = (state) => ({
-  kind: "refused",
-  state
-});
-var getRefusedState = (cause) => {
-  switch (getErrorCode2(cause)) {
-    case "ENOENT":
-    case "ENOTDIR":
-      return "broken";
-    case "EACCES":
-    case "EPERM":
-      return "denied";
-    case "ELOOP":
-      return "loop";
-    case "ENAMETOOLONG":
-      return "unsafe";
-    default:
-      return;
-  }
-};
-var getTargetType = (statistics) => {
-  if (statistics.isFile()) return "file";
-  return statistics.isDirectory() ? "directory" : "other";
-};
-var FilesystemRepositoryLinkResolver = class {
-  snapshot;
-  #host;
-  #identityKey = randomBytes(32);
-  #recordedOutcomes = /* @__PURE__ */ new Map();
-  constructor(host) {
-    this.#host = host;
-    this.snapshot = host.snapshot;
-  }
-  async resolveLink(logicalPath, options) {
-    const parsedPath = parseRepositoryPath(logicalPath);
-    return this.#host.run("get-entry", parsedPath, options?.signal, async () => {
-      const outcome = await this.#resolve(parsedPath, "get-entry", options?.signal);
-      return outcome === null ? { state: "not-link" } : this.#toResolution(outcome);
-    });
-  }
-  async readLinkTargetPage(logicalPath, options) {
-    const parsedPath = parseRepositoryPath(logicalPath);
-    return this.#host.run("read-file-page", parsedPath, options.signal, async () => {
-      const { maxBytes, offset } = this.#host.parseFilePageOptions(options, parsedPath);
-      const outcome = await this.#resolve(parsedPath, "read-file-page", options.signal);
-      if (outcome?.kind !== "target" || !outcome.statistics.isFile() || this.#toResolution(outcome).state === "unsafe") return throwSource("ENTRY_NOT_FILE", "read-file-page", parsedPath, false);
-      const totalBytes = Number(outcome.statistics.size);
-      if (offset > totalBytes) throwSource("INVALID_PAGE_REQUEST", "read-file-page", parsedPath, false);
-      const bytes = await this.#readTargetRange(outcome.hostPath, this.#host.identifyStatistics(outcome.statistics, "file"), offset, Math.min(maxBytes, totalBytes - offset), parsedPath, options.signal);
-      await this.#resolve(parsedPath, "read-file-page", options.signal);
-      const nextOffset = offset + bytes.byteLength;
-      const isComplete = nextOffset === totalBytes;
-      return {
-        bytes,
-        isComplete,
-        nextOffset: isComplete ? null : nextOffset,
-        offset,
-        snapshot: this.snapshot,
-        totalBytes
-      };
-    });
-  }
-  /** Observes one named entry and walks its chain, or returns `null` for a non-link entry. */
-  async #resolve(logicalPath, operation, signal) {
-    const entry = await this.#host.observeEntry(logicalPath, operation, signal);
-    if (entry === null) return throwSource("ENTRY_NOT_FOUND", operation, logicalPath, false);
-    if (entry.type !== "symlink") return null;
-    const outcome = await this.#walk(this.#host.getHostPath(logicalPath), operation, logicalPath, signal);
-    await this.#host.assertRootUnchanged(operation, logicalPath);
-    await this.#host.observeEntry(logicalPath, operation, signal);
-    this.#record(logicalPath, outcome, operation);
-    return outcome;
-  }
-  /** Fails when a chain resolves differently from its earlier observation in this snapshot. */
-  #record(logicalPath, outcome, operation) {
-    const fingerprint = outcome.kind === "refused" ? outcome.state : this.#host.identifyStatistics(outcome.statistics, getTargetType(outcome.statistics));
-    const previous = this.#recordedOutcomes.get(logicalPath);
-    if (previous !== void 0 && previous !== fingerprint) throwSource("SNAPSHOT_CHANGED", operation, logicalPath, true);
-    this.#recordedOutcomes.set(logicalPath, fingerprint);
-  }
-  #toResolution(outcome) {
-    if (outcome.kind === "refused") return { state: outcome.state };
-    const targetType = getTargetType(outcome.statistics);
-    const targetIdentity = createHmac("sha256", this.#identityKey).update(`${outcome.statistics.dev}:${outcome.statistics.ino}`).digest("hex");
-    const containedPath = getContainedLogicalPath(path, this.#host.rootDirectory, outcome.hostPath);
-    if (containedPath === null) return {
-      state: "outside",
-      targetIdentity,
-      targetType
-    };
-    try {
-      return {
-        state: "inside",
-        targetIdentity,
-        targetPath: parseRepositoryPath(containedPath),
-        targetType
-      };
-    } catch {
-      return { state: "unsafe" };
+var runGitCommand = (repositoryRoot, gitArguments, options) => {
+  if (process.platform === "win32" && repositoryRoot.length >= 260)
+    throw new GitCommandError(
+      "The repository path exceeds Windows' 260-character working-directory limit for Git; move or clone it to a shorter path."
+    );
+  const configurations = [...HARDENED_GIT_CONFIGURATIONS];
+  if (gitArguments[0] === "diff") configurations.push(HARDENED_GIT_DIFF_CONFIGURATION);
+  const result = spawnSync(
+    "git",
+    [...configurations.flatMap((setting) => ["-c", setting]), "--no-pager", ...gitArguments],
+    {
+      cwd: repositoryRoot,
+      encoding: "buffer",
+      env: createEnvironment(repositoryRoot, options.configScope),
+      maxBuffer: options.maxOutputBytes,
+      timeout: 3e4,
+      windowsHide: true
     }
+  );
+  if (result.error && "code" in result.error && result.error.code === "ENOBUFS")
+    throw new RangeError("Git output exceeds its bounded capture limit.");
+  const acceptedExitCodes = options.acceptedExitCodes ?? [0];
+  if (result.error || result.status === null || !acceptedExitCodes.includes(result.status)) {
+    const firstErrorLine = (result.stderr?.subarray(0, 512).toString("utf8") || result.error?.message || "").split(/[\r\n]/u, 1)[0].replace(/[\p{Cc}]/gu, " ").trim();
+    throw new GitCommandError(
+      `The bounded Git read failed or exceeded its limit.${firstErrorLine ? ` ${firstErrorLine}` : ""}`,
+      { cause: result.error }
+    );
   }
-  /**
-  * Follows one chain a component at a time with the host's own `..` semantics, classifying the
-  * raw text, the lexical candidate, and every reached path before any filesystem call on it.
-  */
-  async #walk(linkHostPath, operation, logicalPath, signal) {
-    let current = path.dirname(linkHostPath);
-    let pending = [];
-    let nextLink = linkHostPath;
-    let hops = 0;
-    for (; ; ) {
-      throwIfAborted2(signal, operation, logicalPath);
-      if (nextLink !== null) {
-        hops += 1;
-        if (hops > 32) return refuse("loop");
-        const text = await this.#readLinkText(nextLink, operation, logicalPath);
-        if (text.kind === "refused") return text;
-        const linkText = stripLocalLongPathPrefix(text.value);
-        if (isRefusedLinkPath(text.value) || isRefusedLinkPath(getLexicalLinkCandidate(path, current, linkText))) return refuse("unsafe");
-        const start = getLinkWalkStart(path, current, linkText);
-        current = start.directory;
-        pending = [...start.components, ...pending];
-        nextLink = null;
-        continue;
-      }
-      const component = pending.shift();
-      if (component === void 0) break;
-      if (component === "" || component === ".") continue;
-      if (component === "..") {
-        current = path.dirname(current);
-        continue;
-      }
-      const candidate = path.join(current, component);
-      if (isRefusedLinkPath(candidate)) return refuse("unsafe");
-      const statistics = await this.#lstat(candidate, operation, logicalPath);
-      if (statistics.kind === "refused") return statistics;
-      if (statistics.value.isSymbolicLink()) {
-        nextLink = candidate;
-        continue;
-      }
-      if (pending.length > 0 && !statistics.value.isDirectory()) return refuse("broken");
-      current = candidate;
-    }
-    if (isRefusedLinkPath(current)) return refuse("unsafe");
-    const target = await this.#lstat(current, operation, logicalPath);
-    if (target.kind === "refused") return target;
-    if (target.value.isSymbolicLink()) return throwSource("SNAPSHOT_CHANGED", operation, logicalPath, true);
-    return {
-      hostPath: current,
-      kind: "target",
-      statistics: target.value
-    };
-  }
-  async #lstat(hostPath, operation, logicalPath) {
-    try {
-      return {
-        kind: "observed",
-        value: await lstat(hostPath, { bigint: true })
-      };
-    } catch (cause) {
-      const state = getRefusedState(cause);
-      return state === void 0 ? throwSource("SOURCE_UNAVAILABLE", operation, logicalPath, true, cause) : {
-        kind: "refused",
-        state
-      };
-    }
-  }
-  async #readLinkText(hostPath, operation, logicalPath) {
-    let bytes;
-    try {
-      bytes = await readlink(hostPath, { encoding: "buffer" });
-    } catch (cause) {
-      const code = getErrorCode2(cause);
-      if (code === "EACCES" || code === "EPERM") return {
-        kind: "refused",
-        state: "denied"
-      };
-      if (code === "ENAMETOOLONG") return {
-        kind: "refused",
-        state: "unsafe"
-      };
-      return code === "ENOENT" || code === "ENOTDIR" || code === "EINVAL" ? throwSource("SNAPSHOT_CHANGED", operation, logicalPath, true, cause) : throwSource("SOURCE_UNAVAILABLE", operation, logicalPath, true, cause);
-    }
-    if (bytes.byteLength === 0) return {
-      kind: "refused",
-      state: "broken"
-    };
-    try {
-      return {
-        kind: "text",
-        value: decoder.decode(bytes)
-      };
-    } catch {
-      return {
-        kind: "refused",
-        state: "unsafe"
-      };
-    }
-  }
-  /** Reads one range from the final target, proving the opened handle is the recorded target. */
-  async #readTargetRange(hostPath, targetIdentity, offset, bytesToRead, logicalPath, signal) {
-    let handle;
-    try {
-      const noFollow = "O_NOFOLLOW" in constants ? constants.O_NOFOLLOW : 0;
-      handle = await open(hostPath, constants.O_RDONLY | noFollow);
-      const before = await handle.stat({ bigint: true });
-      if (!before.isFile() || this.#host.identifyStatistics(before, "file") !== targetIdentity) throwSource("SNAPSHOT_CHANGED", "read-file-page", logicalPath, true);
-      const bytes = new Uint8Array(bytesToRead);
-      let totalRead = 0;
-      while (totalRead < bytesToRead) {
-        throwIfAborted2(signal, "read-file-page", logicalPath);
-        const result = await handle.read(bytes, totalRead, bytesToRead - totalRead, offset + totalRead);
-        if (result.bytesRead === 0) throwSource("SNAPSHOT_CHANGED", "read-file-page", logicalPath, true);
-        totalRead += result.bytesRead;
-      }
-      const after = await handle.stat({ bigint: true });
-      if (!after.isFile() || this.#host.identifyStatistics(after, "file") !== targetIdentity) throwSource("SNAPSHOT_CHANGED", "read-file-page", logicalPath, true);
-      return bytes;
-    } catch (cause) {
-      if (cause instanceof RepositorySourceException) throw cause;
-      const code = getErrorCode2(cause);
-      if (code === "EACCES" || code === "EPERM") return throwSource("ACCESS_DENIED", "read-file-page", logicalPath, true, cause);
-      return code === "ENOENT" || code === "ENOTDIR" || code === "ELOOP" ? throwSource("SNAPSHOT_CHANGED", "read-file-page", logicalPath, true, cause) : throwSource("SOURCE_UNAVAILABLE", "read-file-page", logicalPath, true, cause);
-    } finally {
-      await handle?.close().catch(() => void 0);
-    }
-  }
-};
-var createFilesystemRepositoryLinkResolver = (reader) => {
-  const host = getFilesystemLinkHost(reader);
-  if (host === void 0) return throwSource("INVALID_SOURCE_DATA", "create-reader", null, false);
-  return Object.freeze(new FilesystemRepositoryLinkResolver(host));
+  return { status: result.status, stdout: result.stdout };
 };
 
 // src/portable/instruction-link/instruction-link.ts
+var STAGED_ENTRY_PATTERN = /^([0-7]{6}) (?:[0-9a-f]{40}|[0-9a-f]{64}) [0-3]\t(.+)$/su;
+var decoder2 = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
+var REFUSALS = {
+  outside: "links outside the repository, and moldea only checks files in the repository. Replace an absolute link with a relative one, or move the instructions into the repository",
+  missing: "links to a file that isn't in the repository. If it exists locally, Git ignores it or it isn't committed yet: commit it, or point the link at a committed file. Otherwise fix or remove the link",
+  loop: "is a link loop. Fix the links",
+  "not-file": "doesn't link straight to a file. Point the link straight at a file in the repository",
+  unsupported: "doesn't link straight to a file. Point the link straight at a file in the repository"
+};
 var toHostPath = (repositoryRoot, path2) => join(repositoryRoot, ...path2.replace(/^\//u, "").split("/"));
 var lstatIfPresent = async (path2) => {
   try {
@@ -2115,41 +2006,104 @@ var lstatIfPresent = async (path2) => {
     throw error;
   }
 };
-var describeRefusal = (instructionPath, resolution) => {
-  switch (resolution.state) {
-    case "not-link":
-      return `${instructionPath} stopped being a link during the update`;
-    case "inside":
-    case "outside":
-      return resolution.targetType !== "file" ? `${instructionPath} links to a ${resolution.targetType === "directory" ? "directory" : "non-file entry"}, not a regular file` : `${instructionPath} links to a file outside the repository`;
-    case "broken":
-      return `${instructionPath} is a broken link`;
-    case "loop":
-      return `${instructionPath} is a link loop`;
-    case "denied":
-      return `${instructionPath} links to a target that cannot be accessed`;
-    case "unsafe":
-      return `${instructionPath} links to a network, device, or otherwise unsafe target`;
+var readGitStorage = (repositoryRoot, path2) => {
+  const relativePath = path2.slice(1);
+  const { stdout } = runGitCommand(
+    repositoryRoot,
+    [...INSTRUCTION_GIT_STORAGE_ARGUMENTS, relativePath],
+    { configScope: "cli", maxOutputBytes: INSTRUCTION_GIT_OUTPUT_BYTES }
+  );
+  let text;
+  try {
+    text = decoder2.decode(stdout);
+  } catch (error) {
+    throw new GitCommandError("Git returned path evidence that is not UTF-8.", { cause: error });
   }
+  if (text !== "" && !text.endsWith("\0"))
+    throw new GitCommandError("Git returned incomplete path evidence.");
+  let isUntracked = false;
+  const modes = [];
+  for (const record of text.split("\0").slice(0, -1)) {
+    if (record === relativePath) isUntracked = true;
+    const staged = STAGED_ENTRY_PATTERN.exec(record);
+    if (staged?.[2] === relativePath) modes.push(staged[1]);
+  }
+  return modes.length > 0 ? modes : isUntracked ? [] : null;
 };
-var resolveInstructionLink = async (repositoryRoot, instructionPath) => {
-  const logicalPath = parseRepositoryPath(`/${instructionPath}`);
+var readSymlinkSetting = (repositoryRoot) => {
+  const output = runGitCommand(repositoryRoot, INSTRUCTION_GIT_SYMLINK_SETTING_ARGUMENTS, {
+    configScope: "cli",
+    maxOutputBytes: INSTRUCTION_GIT_OUTPUT_BYTES
+  }).stdout.toString("utf8");
+  if (output !== "true\n" && output !== "false\n")
+    throw new GitCommandError("Git returned an invalid core.symlinks value.");
+  return output === "true\n";
+};
+var createWriterLinkSource = async (repositoryRoot) => {
   const reader = await createFilesystemRepositoryReader({
     rootDirectory: repositoryRoot,
-    selection: { kind: "paths", paths: [logicalPath] }
+    selection: { kind: "directory" }
   });
-  return createFilesystemRepositoryLinkResolver(reader).resolveLink(logicalPath);
+  const materializedLinks = /* @__PURE__ */ new Map();
+  let areSymlinksEnabled;
+  return {
+    getEntry: async (path2, options) => {
+      const entry = await reader.getEntry(path2, options);
+      if (entry?.type !== "file" && entry?.type !== "symlink") return entry;
+      const modes = readGitStorage(repositoryRoot, path2);
+      if (modes === null) return INSTRUCTION_PATHS.has(path2) ? entry : null;
+      if (entry.type === "symlink" || !modes.includes("120000")) return entry;
+      areSymlinksEnabled ??= readSymlinkSetting(repositoryRoot);
+      if (areSymlinksEnabled) return entry;
+      if (modes.some((mode) => mode === "100644" || mode === "100755"))
+        throw new Error(
+          `${path2.slice(1)} is stored in the Git index both as a link and as a file; resolve that conflict first`
+        );
+      materializedLinks.set(path2, entry.byteLength ?? 0);
+      return { ...entry, type: "symlink" };
+    },
+    readLinkText: async (path2, options) => {
+      const byteLength = materializedLinks.get(path2);
+      if (byteLength === void 0) return reader.readLinkText(path2, options);
+      if (byteLength > REPOSITORY_LINK_TEXT_MAX_BYTES) return null;
+      if (byteLength === 0) return "";
+      const page = await reader.readFilePage(path2, {
+        maxBytes: byteLength,
+        offset: 0,
+        ...options?.signal === void 0 ? {} : { signal: options.signal }
+      });
+      if (!page.isComplete || page.bytes.byteLength !== byteLength)
+        throw new Error(`${path2.slice(1)} changed during the update`);
+      try {
+        return decoder2.decode(page.bytes);
+      } catch {
+        return null;
+      }
+    }
+  };
 };
-var resolveLinkedTarget = async (repositoryRoot, instructionPath) => {
-  const resolution = await resolveInstructionLink(repositoryRoot, instructionPath);
-  if (resolution.state !== "inside" || resolution.targetType !== "file") {
-    throw new Error(describeRefusal(instructionPath, resolution));
+var resolveInstructionTarget = async (repositoryRoot, instructionPath) => {
+  let resolution;
+  try {
+    resolution = await resolveRepositoryLink(
+      await createWriterLinkSource(repositoryRoot),
+      parseRepositoryPath(`/${instructionPath}`)
+    );
+  } catch (error) {
+    if (error instanceof GitCommandError || error instanceof RangeError)
+      throw new Error(
+        `${instructionPath} was not updated: Git could not report how the repository stores this file`,
+        { cause: error }
+      );
+    throw error;
   }
+  if (resolution.state !== "file")
+    throw new Error(`${instructionPath} ${REFUSALS[resolution.state]}`);
   return resolution.targetPath;
 };
 var resolveInstructionWriteTarget = async (repositoryRoot, instructionPath) => {
-  const linkPath = toHostPath(repositoryRoot, instructionPath);
-  const ownTarget = { hostPath: linkPath, confirm: async () => {
+  const ownPath = toHostPath(repositoryRoot, instructionPath);
+  const ownTarget = { hostPath: ownPath, confirm: async () => {
   } };
   const segments = instructionPath.split("/");
   for (let index = 1; index < segments.length; index += 1) {
@@ -2159,14 +2113,15 @@ var resolveInstructionWriteTarget = async (repositoryRoot, instructionPath) => {
       throw new Error(`${segments.slice(0, index).join("/")} must be a regular directory`);
     }
   }
-  if ((await lstatIfPresent(linkPath))?.isSymbolicLink() !== true) {
+  const ownStats = await lstatIfPresent(ownPath);
+  if (ownStats === void 0 || !ownStats.isSymbolicLink() && !ownStats.isFile())
     return ownTarget;
-  }
-  const targetPath = await resolveLinkedTarget(repositoryRoot, instructionPath);
+  const targetPath = await resolveInstructionTarget(repositoryRoot, instructionPath);
+  if (targetPath === `/${instructionPath}`) return ownTarget;
   return {
     hostPath: toHostPath(repositoryRoot, targetPath),
     confirm: async () => {
-      if (await resolveLinkedTarget(repositoryRoot, instructionPath) !== targetPath) {
+      if (await resolveInstructionTarget(repositoryRoot, instructionPath) !== targetPath) {
         throw new Error(`${instructionPath} changed its link target during the update`);
       }
     }

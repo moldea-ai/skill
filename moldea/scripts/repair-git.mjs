@@ -1,16 +1,6 @@
 #!/usr/bin/env node
 
 // src/portable/repair-git/constants.ts
-var REPAIR_GIT_COMMON_CONFIGURATIONS = [
-  "core.attributesFile=/dev/null",
-  // empty disables the monitor on every supported Git; before Git 2.36, false names a hook
-  "core.fsmonitor=",
-  "core.pager=cat",
-  "filter.lfs.clean=",
-  "filter.lfs.process=",
-  "filter.lfs.required=false",
-  "filter.lfs.smudge="
-];
 var REPAIR_GIT_INDEX_ARGUMENTS = ["ls-files", "-z", "--", "."];
 var REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS = [
   "config",
@@ -25,13 +15,109 @@ var REPAIR_GIT_ATTRIBUTE_BYTES = 32768;
 var REPAIR_GIT_ATTRIBUTE_PATHS = 65536;
 
 // src/portable/repair-git/repair-git.ts
-import { spawnSync } from "node:child_process";
 import { lstat, realpath } from "node:fs/promises";
 import { dirname, isAbsolute, join, resolve } from "node:path";
+
+// src/portable/git-command/constants.ts
+var HARDENED_GIT_CONFIGURATIONS = [
+  "core.attributesFile=/dev/null",
+  // empty disables the monitor on every supported Git; before Git 2.36, false names a hook
+  "core.fsmonitor=",
+  "core.pager=cat",
+  "filter.lfs.clean=",
+  "filter.lfs.process=",
+  "filter.lfs.required=false",
+  "filter.lfs.smudge="
+];
+var HARDENED_GIT_DIFF_CONFIGURATION = "diff.external=";
+var REMOVED_GIT_ENVIRONMENT_NAMES = [
+  "GIT_DIR",
+  "GIT_WORK_TREE",
+  "GIT_COMMON_DIR",
+  "GIT_INDEX_FILE",
+  "GIT_OBJECT_DIRECTORY",
+  "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+  "GIT_ATTR_SOURCE",
+  "GIT_CONFIG",
+  "GIT_CONFIG_PARAMETERS",
+  "GIT_CONFIG_COUNT",
+  "GIT_GLOB_PATHSPECS",
+  "GIT_NOGLOB_PATHSPECS",
+  "GIT_ICASE_PATHSPECS"
+];
+var CLI_REMOVED_GIT_ENVIRONMENT_NAMES = [
+  "GIT_CEILING_DIRECTORIES",
+  "GIT_DISCOVERY_ACROSS_FILESYSTEM",
+  "GIT_NAMESPACE",
+  "GIT_SHALLOW_FILE",
+  "GIT_CONFIG_SYSTEM",
+  "GIT_CONFIG_GLOBAL",
+  "GIT_CONFIG_NOSYSTEM",
+  "GIT_EXEC_PATH",
+  "GIT_LITERAL_PATHSPECS"
+];
+
+// src/portable/git-command/git-command.ts
+import { spawnSync } from "node:child_process";
+var GitCommandError = class extends Error {
+};
+var createEnvironment = (repositoryRoot2, configScope) => {
+  const removedNames = new Set(
+    configScope === "cli" ? [...REMOVED_GIT_ENVIRONMENT_NAMES, ...CLI_REMOVED_GIT_ENVIRONMENT_NAMES] : REMOVED_GIT_ENVIRONMENT_NAMES
+  );
+  const environment = {};
+  for (const [name, value] of Object.entries(process.env)) {
+    const upperName = name.toUpperCase();
+    if (removedNames.has(upperName) || /^GIT_CONFIG_(?:KEY|VALUE)_/u.test(upperName) || configScope === "cli" && upperName.startsWith("GIT_TRACE"))
+      continue;
+    environment[name] = value;
+  }
+  return {
+    ...environment,
+    // reads never fetch missing objects; Git without GIT_NO_LAZY_FETCH needs the empty protocol list
+    GIT_ALLOW_PROTOCOL: "",
+    GIT_NO_LAZY_FETCH: "1",
+    GIT_OPTIONAL_LOCKS: "0",
+    GIT_WORK_TREE: repositoryRoot2,
+    GIT_LITERAL_PATHSPECS: "1",
+    ...configScope === "repository" ? { GIT_ATTR_NOSYSTEM: "1", GIT_CONFIG_GLOBAL: "/dev/null", GIT_CONFIG_NOSYSTEM: "1" } : {}
+  };
+};
+var runGitCommand = (repositoryRoot2, gitArguments, options) => {
+  if (process.platform === "win32" && repositoryRoot2.length >= 260)
+    throw new GitCommandError(
+      "The repository path exceeds Windows' 260-character working-directory limit for Git; move or clone it to a shorter path."
+    );
+  const configurations = [...HARDENED_GIT_CONFIGURATIONS];
+  if (gitArguments[0] === "diff") configurations.push(HARDENED_GIT_DIFF_CONFIGURATION);
+  const result = spawnSync(
+    "git",
+    [...configurations.flatMap((setting) => ["-c", setting]), "--no-pager", ...gitArguments],
+    {
+      cwd: repositoryRoot2,
+      encoding: "buffer",
+      env: createEnvironment(repositoryRoot2, options.configScope),
+      maxBuffer: options.maxOutputBytes,
+      timeout: 3e4,
+      windowsHide: true
+    }
+  );
+  if (result.error && "code" in result.error && result.error.code === "ENOBUFS")
+    throw new RangeError("Git output exceeds its bounded capture limit.");
+  const acceptedExitCodes = options.acceptedExitCodes ?? [0];
+  if (result.error || result.status === null || !acceptedExitCodes.includes(result.status)) {
+    const firstErrorLine = (result.stderr?.subarray(0, 512).toString("utf8") || result.error?.message || "").split(/[\r\n]/u, 1)[0].replace(/[\p{Cc}]/gu, " ").trim();
+    throw new GitCommandError(
+      `The bounded Git read failed or exceeded its limit.${firstErrorLine ? ` ${firstErrorLine}` : ""}`,
+      { cause: result.error }
+    );
+  }
+  return { status: result.status, stdout: result.stdout };
+};
+
+// src/portable/repair-git/repair-git.ts
 import { isPathWithin, readRepositoryFile } from "./repository-files.mjs";
 var OBJECT_ID_PATTERN = /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u;
-var RepairGitReadError = class extends Error {
-};
 var validateEvidencePath = (path) => {
   if (path.length === 0 || isAbsolute(path) || /^[a-z]:/iu.test(path) || path.includes("\0") || path.split("/").some((part) => !part || part === "." || part === "..")) {
     throw new Error("Git returned unsupported repository path evidence.");
@@ -45,66 +131,16 @@ var validatePath = (path) => {
   return path;
 };
 var readGit = (repositoryRoot2, arguments_2) => {
-  if (process.platform === "win32" && repositoryRoot2.length >= 260)
-    throw new RepairGitReadError(
-      "The repository path exceeds Windows' 260-character working-directory limit for Git; move or clone it to a shorter path."
-    );
-  const configurations = [...REPAIR_GIT_COMMON_CONFIGURATIONS];
-  if (arguments_2[0] === "diff") configurations.push("diff.external=");
-  const environment = { ...process.env };
-  for (const name of [
-    "GIT_DIR",
-    "GIT_WORK_TREE",
-    "GIT_COMMON_DIR",
-    "GIT_INDEX_FILE",
-    "GIT_OBJECT_DIRECTORY",
-    "GIT_ALTERNATE_OBJECT_DIRECTORIES",
-    "GIT_ATTR_SOURCE",
-    "GIT_CONFIG",
-    "GIT_CONFIG_PARAMETERS",
-    "GIT_CONFIG_COUNT",
-    "GIT_GLOB_PATHSPECS",
-    "GIT_NOGLOB_PATHSPECS",
-    "GIT_ICASE_PATHSPECS"
-  ])
-    delete environment[name];
-  for (const name of Object.keys(environment))
-    if (/^GIT_CONFIG_(?:KEY|VALUE)_/u.test(name)) delete environment[name];
-  const result = spawnSync(
-    "git",
-    [...configurations.flatMap((setting) => ["-c", setting]), "--no-pager", ...arguments_2],
-    {
-      cwd: repositoryRoot2,
-      encoding: "buffer",
-      env: {
-        ...environment,
-        // evidence reads never fetch missing objects; Git without GIT_NO_LAZY_FETCH needs the empty protocol list
-        GIT_ALLOW_PROTOCOL: "",
-        GIT_ATTR_NOSYSTEM: "1",
-        GIT_CONFIG_GLOBAL: "/dev/null",
-        GIT_CONFIG_NOSYSTEM: "1",
-        GIT_NO_LAZY_FETCH: "1",
-        GIT_OPTIONAL_LOCKS: "0",
-        GIT_WORK_TREE: repositoryRoot2,
-        GIT_LITERAL_PATHSPECS: "1"
-      },
-      maxBuffer: arguments_2[0] === "ls-files" ? REPAIR_GIT_INDEX_BYTES : REPAIR_GIT_OUTPUT_BYTES,
-      timeout: 3e4,
-      windowsHide: true
-    }
+  const isAttributeSourceRead = arguments_2.length === REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS.length && arguments_2.every(
+    (argument, index) => argument === REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS[index]
   );
-  if (!result.error && result.status === 1 && arguments_2.length === REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS.length && arguments_2.every((argument, index) => argument === REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS[index]))
-    return Buffer.alloc(0);
-  if (result.error && "code" in result.error && result.error.code === "ENOBUFS")
-    throw new RangeError("Repair Git output exceeds its bounded capture limit.");
-  if (result.error || result.status !== 0) {
-    const firstErrorLine = (result.stderr?.subarray(0, 512).toString("utf8") || result.error?.message || "").split(/[\r\n]/u, 1)[0].replace(/[\p{Cc}]/gu, " ").trim();
-    throw new RepairGitReadError(
-      `The bounded repair Git read failed or exceeded its limit.${firstErrorLine ? ` ${firstErrorLine}` : ""}`,
-      { cause: result.error }
-    );
-  }
-  return result.stdout;
+  const { status, stdout } = runGitCommand(repositoryRoot2, arguments_2, {
+    configScope: "repository",
+    maxOutputBytes: arguments_2[0] === "ls-files" ? REPAIR_GIT_INDEX_BYTES : REPAIR_GIT_OUTPUT_BYTES,
+    // an unset attribute source exits with 1, which means there is none
+    ...isAttributeSourceRead ? { acceptedExitCodes: [0, 1] } : {}
+  });
+  return status === 1 ? Buffer.alloc(0) : stdout;
 };
 var readPaths = (bytes) => {
   const text = bytes.toString("utf8");
@@ -343,7 +379,7 @@ var collectRepairGitEvidence = async (options) => {
     return evidence;
   } catch (error) {
     if (error instanceof RangeError) reasonCode = "output-limit";
-    if (error instanceof RepairGitReadError) reasonCode = "git-read";
+    if (error instanceof GitCommandError) reasonCode = "git-read";
     const reason = error instanceof Error ? error.message : "Repair Git evidence is unavailable.";
     return {
       kind: "moldea-repair-git",

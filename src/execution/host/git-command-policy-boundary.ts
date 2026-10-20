@@ -2,21 +2,44 @@ import { chmod, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import {
-  REPAIR_GIT_COMMON_CONFIGURATIONS,
+  HARDENED_GIT_CONFIGURATIONS,
+  HARDENED_GIT_DIFF_CONFIGURATION,
+} from '../../portable/git-command/index.ts';
+import {
+  INSTRUCTION_GIT_STORAGE_ARGUMENTS,
+  INSTRUCTION_GIT_SYMLINK_SETTING_ARGUMENTS,
+} from '../../portable/instruction-link/index.ts';
+import {
   REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS,
   REPAIR_GIT_INDEX_ARGUMENTS,
 } from '../../portable/repair-git/index.ts';
 
 const EXCLUDED_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
-const HARDENED_GIT_COMMON_CONFIGURATIONS = REPAIR_GIT_COMMON_CONFIGURATIONS;
-const HARDENED_GIT_DIFF_CONFIGURATION = 'diff.external=';
+
+const hasExactShape = (shape: readonly string[], expected: readonly string[]): boolean =>
+  shape.length === expected.length &&
+  shape.every((argument, index) => argument === expected[index]);
+
+/** Accepts one plain repository-relative path a helper names, never an excluded directory. */
+const isApprovedRepairPath = (path: string): boolean =>
+  !/^[-~]/u.test(path) &&
+  !/[:\\*?[\]{}\p{Cc}]/u.test(path) &&
+  path
+    .split('/')
+    .every(
+      (segment) =>
+        segment !== '' &&
+        segment !== '.' &&
+        segment !== '..' &&
+        !EXCLUDED_DIRECTORY_NAMES.has(segment),
+    );
 
 const createGitConfigurationArguments = (configurations: readonly string[]): string[] =>
   configurations.flatMap((configuration) => ['-c', configuration]);
 
 // exact status arguments accepted by the evaluator-owned Git boundary
 export const CODEX_EVALUATION_GIT_STATUS_ARGUMENTS = Object.freeze([
-  ...createGitConfigurationArguments(HARDENED_GIT_COMMON_CONFIGURATIONS),
+  ...createGitConfigurationArguments(HARDENED_GIT_CONFIGURATIONS),
   '--no-pager',
   'status',
   '--porcelain=v2',
@@ -27,7 +50,7 @@ export const CODEX_EVALUATION_GIT_STATUS_ARGUMENTS = Object.freeze([
 // exact prefix for a bounded diff followed by one or more repository-relative paths
 export const CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX = Object.freeze([
   ...createGitConfigurationArguments([
-    ...HARDENED_GIT_COMMON_CONFIGURATIONS,
+    ...HARDENED_GIT_CONFIGURATIONS,
     HARDENED_GIT_DIFF_CONFIGURATION,
   ]),
   '--no-pager',
@@ -52,8 +75,8 @@ export const isApprovedRepairGitArguments = (argumentsList: readonly string[]): 
   const command = argumentsList[index];
   const expectedConfigurations =
     command === 'diff'
-      ? [...HARDENED_GIT_COMMON_CONFIGURATIONS, HARDENED_GIT_DIFF_CONFIGURATION]
-      : HARDENED_GIT_COMMON_CONFIGURATIONS;
+      ? [...HARDENED_GIT_CONFIGURATIONS, HARDENED_GIT_DIFF_CONFIGURATION]
+      : HARDENED_GIT_CONFIGURATIONS;
   if (
     configurations.size !== expectedConfigurations.length ||
     !expectedConfigurations.every((configuration) => configurations.has(configuration))
@@ -62,10 +85,8 @@ export const isApprovedRepairGitArguments = (argumentsList: readonly string[]): 
   const shape = argumentsList.slice(index);
   if (command === 'config')
     return (
-      shape.length === REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS.length &&
-      shape.every(
-        (argument, position) => argument === REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS[position],
-      )
+      hasExactShape(shape, REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS) ||
+      hasExactShape(shape, INSTRUCTION_GIT_SYMLINK_SETTING_ARGUMENTS)
     );
   if (command === 'cat-file')
     return (
@@ -74,9 +95,11 @@ export const isApprovedRepairGitArguments = (argumentsList: readonly string[]): 
       /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u.test(shape[2] ?? '')
     );
   if (command === 'ls-files') {
+    // the writer asks about exactly one visited path
     return (
-      shape.length === REPAIR_GIT_INDEX_ARGUMENTS.length &&
-      shape.every((argument, position) => argument === REPAIR_GIT_INDEX_ARGUMENTS[position])
+      hasExactShape(shape, REPAIR_GIT_INDEX_ARGUMENTS) ||
+      (hasExactShape(shape.slice(0, -1), INSTRUCTION_GIT_STORAGE_ARGUMENTS) &&
+        isApprovedRepairPath(shape.at(-1) ?? ''))
     );
   }
   if (command === 'status') {
@@ -97,25 +120,7 @@ export const isApprovedRepairGitArguments = (argumentsList: readonly string[]): 
   if (!prefix.every((argument, position) => shape[position] === argument)) return false;
   const tail = shape.slice(prefix.length);
   if (tail[0] === '--') {
-    return (
-      tail.length > 1 &&
-      tail
-        .slice(1)
-        .every(
-          (path) =>
-            !/^[-~]/u.test(path) &&
-            !/[:\\*?[\]{}\p{Cc}]/u.test(path) &&
-            path
-              .split('/')
-              .every(
-                (segment) =>
-                  segment !== '' &&
-                  segment !== '.' &&
-                  segment !== '..' &&
-                  !EXCLUDED_DIRECTORY_NAMES.has(segment),
-              ),
-        )
-    );
+    return tail.length > 1 && tail.slice(1).every(isApprovedRepairPath);
   }
   const isChangedPaths = tail[0] === '--name-only' && tail[1] === '--no-renames';
   const remainder = isChangedPaths ? tail.slice(tail[2] === '-z' ? 3 : 2) : tail;
@@ -181,8 +186,10 @@ const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
   'const MAX_GIT_FILE_BYTES = 32_768;',
   'const MAX_GIT_INSPECTION_BYTES = 32_768;',
   "const SAFE_GIT_ARGUMENTS = ['-c', 'log.showSignature=false'];",
-  `const HARDENED_GIT_COMMON_CONFIGURATIONS = new Set(${JSON.stringify(HARDENED_GIT_COMMON_CONFIGURATIONS)});`,
+  `const HARDENED_GIT_CONFIGURATIONS = new Set(${JSON.stringify(HARDENED_GIT_CONFIGURATIONS)});`,
   `const HARDENED_GIT_DIFF_CONFIGURATION = ${JSON.stringify(HARDENED_GIT_DIFF_CONFIGURATION)};`,
+  `const INSTRUCTION_GIT_STORAGE_ARGUMENTS = ${JSON.stringify(INSTRUCTION_GIT_STORAGE_ARGUMENTS.slice(1))};`,
+  `const INSTRUCTION_GIT_SYMLINK_SETTING_ARGUMENTS = ${JSON.stringify(INSTRUCTION_GIT_SYMLINK_SETTING_ARGUMENTS.slice(1))};`,
   'const GIT_OBJECT_ID_PATTERN = /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u;',
   'const RELEASE_CLI_GIT_PREFIX = [',
   "  '--no-pager',",
@@ -397,6 +404,12 @@ const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
   '  argumentsList.length === expectedArguments.length &&',
   '  argumentsList.every((argument, index) => argument === expectedArguments[index]);',
   '',
+  '/** Accepts one plain repository-relative path a helper names, never an excluded directory. */',
+  'const isApprovedRepairPath = (path) =>',
+  '  !/^[-~]/u.test(path) &&',
+  '  !/[:\\\\*?[\\]{}\\p{Cc}]/u.test(path) &&',
+  "  path.split('/').every((segment) => segment !== '' && segment !== '.' && segment !== '..' && !EXCLUDED_DIRECTORY_NAMES.has(segment));",
+  '',
   '/** Identifies the one literal canonical pathspec emitted by selected release CLI reads. */',
   'const isApprovedReleaseCliPathspec = (pathspec) => {',
   "  const prefix = ':(top,literal)';",
@@ -518,7 +531,7 @@ const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
   "  if (argumentsList[index] !== '--no-pager') return false;",
   '  const subcommand = argumentsList[index + 1];',
   '  const subcommandArguments = argumentsList.slice(index + 2);',
-  '  const requiredConfigurations = new Set(HARDENED_GIT_COMMON_CONFIGURATIONS);',
+  '  const requiredConfigurations = new Set(HARDENED_GIT_CONFIGURATIONS);',
   "  if (subcommand === 'diff' || subcommand === 'show') {",
   '    requiredConfigurations.add(HARDENED_GIT_DIFF_CONFIGURATION);',
   '  }',
@@ -529,10 +542,10 @@ const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
   '    return false;',
   '  }',
   '',
-  "  if (subcommand === 'config') return hasExactArguments(subcommandArguments, ['--null', '--get', 'attr.tree']);",
+  "  if (subcommand === 'config') return hasExactArguments(subcommandArguments, ['--null', '--get', 'attr.tree']) || hasExactArguments(subcommandArguments, INSTRUCTION_GIT_SYMLINK_SETTING_ARGUMENTS);",
   "  if (subcommand === 'cat-file') return subcommandArguments.length === 2 && subcommandArguments[0] === '-t' && GIT_OBJECT_ID_PATTERN.test(subcommandArguments[1]);",
   "  if (subcommand === 'ls-files') {",
-  "    return hasExactArguments(subcommandArguments, ['-z', '--', '.']);",
+  "    return hasExactArguments(subcommandArguments, ['-z', '--', '.']) || (hasExactArguments(subcommandArguments.slice(0, -1), INSTRUCTION_GIT_STORAGE_ARGUMENTS) && isApprovedRepairPath(subcommandArguments.at(-1) ?? ''));",
   '  }',
   '',
   "  if (subcommand === 'status') {",

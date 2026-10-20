@@ -4,7 +4,7 @@
 
 [Get moldea on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or read the complete documentation at [skill.moldea.ai](https://skill.moldea.ai).
 
-This checkout targets release `8.3.0`. Install the latest published version from `main` inside each repository that will use it:
+This checkout targets release `9.0.0`. Install the latest published version from `main` inside each repository that will use it:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -13,7 +13,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the immutable release after publication:
 
 ```bash
-npx skills add "moldea-ai/skill#v8.3.0"
+npx skills add "moldea-ai/skill#v9.0.0"
 ```
 
 Both commands install the portable skill named `moldea`. They do not install the CLI globally or require a hosted account. See [Getting started](docs/getting-started.md) for initialization, updates, and removal.
@@ -73,12 +73,12 @@ Evaluation is read-only. Repair checks every owner, its material implementation 
 
 ## Compatibility
 
-Release `8.3.0` supports exactly:
+Release `9.0.0` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.17.0`
-- stable `@moldea.ai/core` releases satisfying `^7.1.0`
-- stable `@moldea.ai/cli` releases satisfying `^11.1.0`
+- stable `@moldea.ai/core` releases satisfying `^8.0.0`
+- stable `@moldea.ai/cli` releases satisfying `^12.0.0`
 - repository format version 1
 - CLI JSON schema 7
 
@@ -160,7 +160,7 @@ To prepare an exact published CLI release, run `npm run release:update-cli -- <v
 
 Before publication, `npm run candidate:prepare -- --artifacts <packed-closure-directory> --output <empty-directory-outside-this-repository>` prepares a complete isolated skill through the same updater against the candidate registry. An optional `--release-version <version>` selects the isolated skill version. The release-candidate workflow uses this full distribution for real manager and closed-launcher checks. Candidate registry URLs stay in the disposable output; they must not enter the official release lockfile. These checks establish tooling mechanics, not coding-agent repair effectiveness.
 
-The same release-candidate workflow is reusable by the packages trusted build. Its caller pins the skill workflow and tooling to the same immutable commit and supplies that run's public-package artifact and exact packages commit. It also passes its reviewed registry snapshot, so manager installs resolve third-party dependencies only from versions published before that instant; an empty snapshot resolves live. `src/packages/trusted-candidate.ts` verifies the recorded source identity, complete checksum manifest and package graph before copying the CLI closure. The full verified public set, including Website UI, prepares the isolated skill; the manager matrix then consumes the unchanged CLI closure tarballs. The workflow requires only read access and cannot publish packages.
+The same release-candidate workflow is reusable by the packages trusted build. Its caller pins the skill workflow and tooling to the same immutable commit and supplies that run's public-package artifact and exact packages commit. It also passes its reviewed registry snapshot, so manager installs resolve third-party dependencies only from versions published before that instant; an empty snapshot resolves live. `src/packages/trusted-candidate.ts` verifies the recorded source identity, complete checksum manifest and package graph before copying the CLI closure. The full verified public set, including Website UI, prepares the isolated skill; the manager matrix then consumes the unchanged CLI closure tarballs. A manual dispatch packs the CLI closure and Website UI from the selected packages ref and splits them the same way. The workflow requires only read access and cannot publish packages.
 
 Source and packed package candidates accept stable caret dependency minimums, including patch minimums such as `^2.0.3`. Candidate validation checks every resolved internal runtime package against its declared range; exact internal runtime dependency pins and incompatible versions are rejected.
 
@@ -207,7 +207,7 @@ The skill uses independent semantic versioning. Every release must:
 
 During prelaunch testing, skill tags require deterministic conformance, synchronized release identity, and installation checks. Semantic evaluation is a separate evidence-backed operation; a passing tag does not establish it. The selected 8.2.3 semantic recording contains 120 cases: 115 passed and five recovered. Its final cleanup reused verified full-recording and reserve trials without new model calls. Two unresolved cases remain private and are disclosed as not yet included. Historical evidence preserves its recorded versions, dates and sources and supplies no current-release assurance. See [Release evidence](docs/release-evidence.md) for the exact workflows.
 
-Release 8.3.0 retains the selected 8.2.3 semantic evidence. Its resource-counting clarification, ordinary final-validation exception, repair CLI update rule, direct repair reads, Yarn and repair corrections, repair Git, Claude Code integration and Yarn corrections, and Core-backed Claude Code check and link-aware writer were not re-evaluated; see [the 8.2.4](docs/release-evidence.md#skill-824-evidence-reuse), [8.2.5](docs/release-evidence.md#skill-825-evidence-reuse), [8.2.6](docs/release-evidence.md#skill-826-evidence-reuse), [8.2.7](docs/release-evidence.md#skill-827-evidence-reuse), [8.2.8](docs/release-evidence.md#skill-828-evidence-reuse) and [8.3.0](docs/release-evidence.md#skill-830-evidence-reuse) release qualifications.
+Release 9.0.0 retains the selected 8.2.3 semantic evidence. Its resource-counting clarification, ordinary final-validation exception, repair CLI update rule, direct repair reads, Yarn and repair corrections, repair Git, Claude Code integration and Yarn corrections, Core-backed Claude Code check and link-aware writer, and in-repository link rule were not re-evaluated; see [the 8.2.4](docs/release-evidence.md#skill-824-evidence-reuse), [8.2.5](docs/release-evidence.md#skill-825-evidence-reuse), [8.2.6](docs/release-evidence.md#skill-826-evidence-reuse), [8.2.7](docs/release-evidence.md#skill-827-evidence-reuse), [8.2.8](docs/release-evidence.md#skill-828-evidence-reuse), [8.3.0](docs/release-evidence.md#skill-830-evidence-reuse) and [9.0.0](docs/release-evidence.md#skill-900-evidence-reuse) release qualifications.
 
 ## License
 

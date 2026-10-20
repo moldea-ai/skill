@@ -135,6 +135,23 @@ These changes were not re-evaluated. Deterministic coverage:
 
 Whether a coding agent uses the new helper modes or follows the acceptance rule is not established by the selected evidence.
 
+## Skill 9.0.0 evidence reuse
+
+Skill 9.0.0 keeps the same 8.2.3 selection, recorded with CLI 11.0.6. It applies one rule to instruction links in Core 8.0.0, CLI 12.0.0 and the bundled writer:
+
+- `validate` follows a linked instruction file only inside the repository, by reading each link's stored text. Real links, Git links checked out as plain files and hosted repositories resolve the same way. A link that doesn't lead to a file in the repository reports `MOLDEA_INTEGRATION_LINK_UNRESOLVED`, which replaces `MOLDEA_INTEGRATION_UNVERIFIED`, with its reason (`outside`, `missing`, `loop`, `not-file` or `unsupported`) as the qualifier, and an acceptance matches only that reason.
+- `managed-agents.mjs` follows links exactly as `validate` does. It asks Git how each visited path is stored, with the configuration files the CLI reads, and refuses every other link with its reason and next step.
+- Repair guidance gives one next step per reason, including absolute links and links to ignored or uncommitted files.
+- The supported ranges rise to CLI `^12.0.0` and Core `^8.0.0`, and the repair target is CLI 12.0.0.
+
+These changes were not re-evaluated. Deterministic coverage:
+
+- Writer tests with real Git cover inside links, Git links checked out as plain files with their bytes unchanged, a committed link replaced by a real file, conflicting index modes, every refusal reason, absolute links, ignored targets and ignored instruction files, Git failures, a name with pathspec magic, exact-path output matching, global `core.symlinks` and `core.excludesFile` settings, the recorded Git calls and filesystem containment.
+- Disposable repositories driven through the launcher with the published CLI 12.0.0 cover initialization, repair, acceptance by reason, the three Claude Code link chains, absolute and ignored-target links with the writer's next steps, an ignored `CLAUDE.local.md` and a Git link checked out as a plain file.
+- The package-manager harness passed locally with the CLI 12.0.0 candidate closure, byte-identical to the published packages, on every release-candidate matrix entry and Yarn 3.8.7.
+
+Whether a coding agent follows the per-reason guidance is not established by the selected evidence.
+
 ## Evaluation protocol 50
 
 Protocol 50 meets the pre-run counting and final-validation requirements stated above: it grades each cycle on moldea's own work and recognizes the ordinary final-validation exception from ordered Codex events, as described in [resource accounting](/docs/semantic-evaluation/#resource-accounting). It corrects protocol 49, which no recording used, so that a patch whose paths cannot be read never earns that exception. It changes no selected evidence; it applies to the next recording.
@@ -142,6 +159,10 @@ Protocol 50 meets the pre-run counting and final-validation requirements stated 
 ## Evaluation protocol 51
 
 Protocol 51 recognizes the writer's `--claude <file>` and `--claude <file> --print` forms as bundled-helper operations, and the sandbox Git policy admits CLI 11.1.0's instruction-file probe. `setup-check-claude-instructions` now expects Core's warning and the exact `@../AGENTS.md` line. Resource accounting and evidence schema 15 are unchanged. It changes no selected evidence; it applies to the next recording.
+
+## Evaluation protocol 52
+
+Protocol 52 admits the bundled writer's two Git reads in the sandbox Git policy: how one visited path is stored, as `ls-files --cached --others --exclude-standard --stage -z --` with one plain path, and the `core.symlinks` setting. The wrapper still reads only the repository's own config. Resource accounting, evidence schema 15 and every case criterion are unchanged. It changes no selected evidence; it applies to the next recording.
 
 ## Check a release
 

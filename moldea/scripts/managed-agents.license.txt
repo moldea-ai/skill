@@ -1,4 +1,4 @@
-@moldea.ai/repository@2.1.0
+@moldea.ai/repository@3.0.0
 
 MIT License
 
@@ -22,7 +22,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-@moldea.ai/repository-fs@2.1.0
+@moldea.ai/repository-fs@3.0.0
 
 MIT License
 

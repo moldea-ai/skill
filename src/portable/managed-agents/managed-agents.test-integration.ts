@@ -15,7 +15,7 @@ import {
   writeFile,
 } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join, relative, resolve } from 'node:path';
+import { join, relative, resolve, sep } from 'node:path';
 import { expect, test } from 'vitest';
 
 import { readReleaseIdentity } from '../../release/index.ts';
@@ -28,6 +28,8 @@ const withInstallation = async (
 ): Promise<void> => {
   const root = await realpath(await mkdtemp(join(tmpdir(), 'moldea-agents-')));
   try {
+    // the writer asks Git how each instruction file is stored, as validation does
+    spawnSync('git', ['init', '-q'], { cwd: root });
     const skill = join(root, '.agents', 'skills', 'moldea');
     await mkdir(join(skill, 'scripts'), { recursive: true });
     await copyFile(join(SOURCE, 'SKILL.md'), join(skill, 'SKILL.md'));
@@ -418,12 +420,11 @@ test.each(['outside', 'broken', 'loop'])(
   },
 );
 
-test('bundled writer writes the file the OS opens through .. after a directory link', async () => {
+test('bundled writer refuses .. after a directory link and writes neither candidate', async () => {
   for (const isOutside of [false, true]) {
     const outside = await createOutsideDirectory();
     try {
       await withInstallation(async (root, run) => {
-        const block = run(['--print']).stdout;
         const nested = isOutside ? join(outside, 'nested') : join(root, 'deep', 'nested');
         await mkdir(nested, { recursive: true });
         await writeFile(join(nested, '..', 'shared.md'), '# Physical\n');
@@ -433,21 +434,18 @@ test('bundled writer writes the file the OS opens through .. after a directory l
           join(root, 'dir-link'),
           process.platform === 'win32' ? 'junction' : 'dir',
         );
-        await symlink(join('dir-link', '..', 'shared.md'), join(root, 'AGENTS.md'), fileLinkType);
-        const opened = await readFile(join(root, 'AGENTS.md'), 'utf8');
+        // join would collapse the `..`; the link must keep it after the folder
+        await symlink(
+          ['dir-link', '..', 'shared.md'].join(sep),
+          join(root, 'AGENTS.md'),
+          fileLinkType,
+        );
         const result = run();
 
-        if (isOutside && opened === '# Physical\n') {
-          expect(result.status).toBe(1);
-          expect(result.stderr).toContain('AGENTS.md links to a file outside the repository');
-          expect(await readFile(join(nested, '..', 'shared.md'), 'utf8')).toBe('# Physical\n');
-        } else {
-          expect(result.stdout).toBe('updated\n');
-          expect(await readFile(join(root, 'AGENTS.md'), 'utf8')).toBe(`${opened}\n${block}`);
-        }
-        if (opened === '# Physical\n') {
-          expect(await readFile(join(root, 'shared.md'), 'utf8')).toBe('# Lexical\n');
-        }
+        expect(result.status).toBe(1);
+        expect(result.stderr).toContain("AGENTS.md doesn't link straight to a file");
+        expect(await readFile(join(nested, '..', 'shared.md'), 'utf8')).toBe('# Physical\n');
+        expect(await readFile(join(root, 'shared.md'), 'utf8')).toBe('# Lexical\n');
       });
     } finally {
       await rm(outside, { recursive: true, force: true });
@@ -496,6 +494,6 @@ test.each([
     const result = run(flags);
     expect(result.status).toBe(1);
     expect(result.stderr).toContain('Usage: managed-agents.mjs');
-    expect((await readdir(root)).sort()).toStrictEqual(['.agents']);
+    expect((await readdir(root)).sort()).toStrictEqual(['.agents', '.git']);
   });
 });

@@ -147,8 +147,8 @@ Skill 9.0.0 keeps the same 8.2.3 selection, recorded with CLI 11.0.6. It applies
 These changes were not re-evaluated. Deterministic coverage:
 
 - Writer tests with real Git cover inside links, Git links checked out as plain files with their bytes unchanged, a committed link replaced by a real file, conflicting index modes, every refusal reason, absolute links, ignored targets and ignored instruction files, Git failures, a name with pathspec magic, exact-path output matching, global `core.symlinks` and `core.excludesFile` settings, the recorded Git calls and filesystem containment.
-- Disposable repositories driven through the launcher with the CLI 12.0.0 candidate cover initialization, repair, acceptance by reason, the three Claude Code link chains, absolute and ignored-target links with the writer's next steps, an ignored `CLAUDE.local.md` and a Git link checked out as a plain file.
-- The package-manager harness passed locally with the CLI 12.0.0 candidate closure on every release-candidate matrix entry and Yarn 3.8.7.
+- Disposable repositories driven through the launcher with the published CLI 12.0.0 cover initialization, repair, acceptance by reason, the three Claude Code link chains, absolute and ignored-target links with the writer's next steps, an ignored `CLAUDE.local.md` and a Git link checked out as a plain file.
+- The package-manager harness passed locally with the CLI 12.0.0 candidate closure, byte-identical to the published packages, on every release-candidate matrix entry and Yarn 3.8.7.
 
 Whether a coding agent follows the per-reason guidance is not established by the selected evidence.
 

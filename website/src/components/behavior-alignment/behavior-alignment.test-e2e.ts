@@ -66,6 +66,45 @@ test('traces the verified 30-day to 14-day maintenance story', async ({ page }) 
   expect(Math.abs((articleHeights[0] ?? 0) - (articleHeights[1] ?? 0))).toBeLessThan(2);
 });
 
+for (const colorScheme of ['light', 'dark'] as const) {
+  for (const width of [320, 1440]) {
+    test(`emphasizes only changed maintenance counts in ${colorScheme} at ${width}px`, async ({
+      page,
+    }) => {
+      await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' });
+      await page.setViewportSize({ width, height: 1000 });
+      await page.goto(toPublicPath('/'));
+
+      const behaviorAlignment = page.getByRole('region', {
+        name: 'Change one rule. See everything it affects.',
+      });
+      for (const owner of ['application', 'context', 'instruction']) {
+        const comparison = behaviorAlignment.locator(`[data-maintenance-diff="${owner}"]`);
+        await expect(comparison.locator('del[data-moldea-diff-change="removed"]')).toHaveText('30');
+        await expect(comparison.locator('ins[data-moldea-diff-change="added"]')).toHaveText('14');
+        await expect(comparison.locator('[data-moldea-diff-change]')).toHaveCount(2);
+      }
+      const application = behaviorAlignment.locator('[data-maintenance-diff="application"]');
+      await expect(application.locator('[data-diff-line="removed"] code')).toHaveText(
+        'return completedDays <= 30;',
+      );
+      await expect(application.locator('[data-diff-line="added"] code')).toHaveText(
+        'return completedDays <= 14;',
+      );
+      for (const owner of ['context', 'instruction']) {
+        const comparison = behaviorAlignment.locator(`[data-maintenance-diff="${owner}"]`);
+        await expect(comparison).toContainText('within 30 completed days');
+        await expect(comparison).toContainText('within 14 completed days');
+      }
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+        ),
+      ).toBe(true);
+    });
+  }
+}
+
 test('stacks the maintenance flow without overflow at 320px', async ({ page }) => {
   await page.setViewportSize({ height: 740, width: 320 });
   await page.goto(toPublicPath('/'));

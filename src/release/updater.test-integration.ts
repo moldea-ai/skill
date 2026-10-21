@@ -21,7 +21,13 @@ const BUNDLED_PACKAGES = [
   '@moldea.ai/repository',
   '@moldea.ai/repository-fs',
   'error-message-utils',
+  'jg-exception',
+  'jg-fs',
+  'jg-git-commands',
+  'jg-process',
+  'jg-utilities',
   'semver',
+  'uuid',
   'yaml',
   'zod',
 ] as const;

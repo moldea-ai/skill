@@ -1,4 +1,4 @@
-import { isEqual } from 'web-utils-kit';
+import { isEqual } from 'jg-utilities';
 
 import { getEvaluationConfirmationResolution } from '../../execution/confirmation/index.ts';
 import type { IJourneyCampaign, IJourneyResolution, IJourneyTrial } from '../index.ts';

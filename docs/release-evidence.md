@@ -164,6 +164,10 @@ Protocol 51 recognizes the writer's `--claude <file>` and `--claude <file> --pri
 
 Protocol 52 admits the bundled writer's two Git reads in the sandbox Git policy: how one visited path is stored, as `ls-files --cached --others --exclude-standard --stage -z --` with one plain path, and the `core.symlinks` setting. The wrapper still reads only the repository's own config. Resource accounting, evidence schema 15 and every case criterion are unchanged. It changes no selected evidence; it applies to the next recording.
 
+## Evaluation protocol 53
+
+Protocol 53 admits jg-git-commands' command lines in the sandbox Git policy, now that the bundled helpers read Git through it. The repair helper's reads still ignore the system and global config, and the writer asks how one visited path is stored with an index listing and an untracked listing of that plain path. The hardened status, diff and attribute-source commands an actor may type are classified as before. Resource accounting, evidence schema 15 and every case criterion are unchanged. It changes no selected evidence; it applies to the next recording.
+
 ## Check a release
 
 ```bash

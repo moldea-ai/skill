@@ -32,11 +32,11 @@ afterEach(() => {
   for (const root of temporaryRoots.splice(0)) rmSync(root, { force: true, recursive: true });
 });
 
-test('checks tracked and non-ignored paths without entering excluded directories', () => {
+test('checks tracked and non-ignored paths without entering excluded directories', async () => {
   const root = createRepository();
-  const result = checkRepositoryPathPortability(root);
+  const result = await checkRepositoryPathPortability(root);
 
   assert.equal(result.pathCount, 3);
   writeText(root, 'docs/README.md', 'Collision.\n');
-  assert.throws(() => checkRepositoryPathPortability(root), /collide on Windows/u);
+  await assert.rejects(checkRepositoryPathPortability(root), /collide on Windows/u);
 });

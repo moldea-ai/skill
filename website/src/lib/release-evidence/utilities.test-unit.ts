@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { expect, test } from 'vitest';
-import { expectToThrowCode } from 'web-utils-kit';
+import { expectToThrowCode } from 'jg-exception/testing';
 
 import { getPublicEvidenceHref } from './index.ts';
 

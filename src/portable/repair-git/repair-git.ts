@@ -1,7 +1,18 @@
 import { lstat, realpath } from 'node:fs/promises';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
+import { getErrorCode } from 'jg-exception';
+import { assertNoLinksBelow, ERRORS as FS_ERRORS } from 'jg-fs';
+import {
+  assertGitSucceeded,
+  readChangedPaths,
+  readIndexEntries,
+  readStatus,
+  resolveCommit,
+  runGit,
+} from 'jg-git-commands';
+import { ERRORS as PROCESS_ERRORS } from 'jg-process';
 
-import { GitCommandError, runGitCommand } from '../git-command/index.ts';
+import { createGitCommandOptions, isGitCommandError } from '../git-command/index.ts';
 import { isPathWithin, readRepositoryFile } from '../repository-files.ts';
 
 import {
@@ -9,13 +20,19 @@ import {
   REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS,
   REPAIR_GIT_INDEX_BYTES,
   REPAIR_GIT_ATTRIBUTE_PATHS,
-  REPAIR_GIT_INDEX_ARGUMENTS,
   REPAIR_GIT_OUTPUT_BYTES,
   REPAIR_GIT_RESPONSE_BYTES,
 } from './constants.ts';
 import type { IRepairGitEvidence, IRepairGitOptions } from './types.ts';
 
 const OBJECT_ID_PATTERN = /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u;
+
+// the jg-fs codes for a review path whose parent is a link or a file
+const LINKED_PARENT_ERROR_CODES = new Set<string>([
+  FS_ERRORS.NOT_A_DIRECTORY,
+  FS_ERRORS.PATH_NOT_CANONICAL,
+  FS_ERRORS.PATH_OUTSIDE_ROOT,
+]);
 
 /** Validates structural Git output without interpreting filename punctuation as arguments. */
 const validateEvidencePath = (path: string): string => {
@@ -39,32 +56,37 @@ const validatePath = (path: string): string => {
   return path;
 };
 
+// the options of a bounded Git read that sees the repository's own config, nothing global
+const createReadOptions = (repositoryRoot: string, maxOutputBytes = REPAIR_GIT_OUTPUT_BYTES) =>
+  createGitCommandOptions(repositoryRoot, 'repository', maxOutputBytes);
+
 /**
- * Captures only a fixed bounded Git read that sees the repository's own config, nothing global.
+ * Captures one fixed bounded Git read that sees the repository's own config, nothing global.
  * @throws If Git fails or its output exceeds the bounded capture limit.
  */
-const readGit = (repositoryRoot: string, arguments_: readonly string[]): Buffer => {
-  const isAttributeSourceRead =
-    arguments_.length === REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS.length &&
-    arguments_.every(
-      (argument, index) => argument === REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS[index],
-    );
-  const { status, stdout } = runGitCommand(repositoryRoot, arguments_, {
-    configScope: 'repository',
-    maxOutputBytes: arguments_[0] === 'ls-files' ? REPAIR_GIT_INDEX_BYTES : REPAIR_GIT_OUTPUT_BYTES,
-    // an unset attribute source exits with 1, which means there is none
-    ...(isAttributeSourceRead ? { acceptedExitCodes: [0, 1] } : {}),
+const readGit = async (repositoryRoot: string, arguments_: readonly string[]): Promise<Buffer> => {
+  const result = await runGit(arguments_, {
+    cwd: repositoryRoot,
+    encoding: 'buffer',
+    ...createReadOptions(repositoryRoot),
   });
-  return status === 1 ? Buffer.alloc(0) : stdout;
+  assertGitSucceeded(result, arguments_[0] ?? '');
+  return result.stdout;
 };
 
-/** Decodes complete NUL-delimited filenames without shell or Git quote interpretation. */
-const readPaths = (bytes: Buffer): string[] => {
-  const text = bytes.toString('utf8');
-  if (!Buffer.from(text).equals(bytes) || (text !== '' && !text.endsWith('\0'))) {
-    throw new Error('Git returned incomplete or unsupported path evidence.');
-  }
-  return text.split('\0').filter(Boolean).map(validateEvidencePath);
+/**
+ * Checks whether the repository stores an attribute source; an unset one exits with 1.
+ * @throws If Git fails or its output exceeds the bounded capture limit.
+ */
+const hasStoredAttributeSource = async (repositoryRoot: string): Promise<boolean> => {
+  const result = await runGit(REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS, {
+    cwd: repositoryRoot,
+    encoding: 'buffer',
+    ...createReadOptions(repositoryRoot),
+  });
+  if (result.exitCode === 1) return false;
+  assertGitSucceeded(result, 'config');
+  return result.stdout.length > 0;
 };
 
 /**
@@ -109,9 +131,13 @@ const assertAttributeSafety = async (repositoryRoot: string): Promise<void> => {
   }
   if (!(await lstat(commonDirectory)).isDirectory())
     throw new Error('Git common directory safety is unavailable.');
-  if (readGit(repositoryRoot, REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS).length > 0)
+  if (await hasStoredAttributeSource(repositoryRoot))
     throw new Error('Stored Git attribute sources cannot be verified safely.');
-  const paths = readPaths(readGit(repositoryRoot, REPAIR_GIT_INDEX_ARGUMENTS));
+  const entries = await readIndexEntries(
+    repositoryRoot,
+    createReadOptions(repositoryRoot, REPAIR_GIT_INDEX_BYTES),
+  );
+  const paths = new Set(entries.map(({ path }) => validateEvidencePath(path)));
   const attributes = new Set<string>([join(repositoryRoot, '.gitattributes')]);
   for (const path of paths) {
     if (path.split('/').at(-1) === '.gitattributes') {
@@ -161,39 +187,20 @@ const assertAttributeSafety = async (repositoryRoot: string): Promise<void> => {
   }
 };
 
-/** Parses branch identity and all status paths, including both sides of a rename. */
-const readStatus = (bytes: Buffer): { commit: string; paths: string[] } => {
-  const text = bytes.toString('utf8');
-  if (!Buffer.from(text).equals(bytes) || !text.endsWith('\0'))
-    throw new Error('Git status evidence is incomplete.');
-  const records = text.split('\0').slice(0, -1);
-  let commit: string | null = null;
-  const paths: string[] = [];
-  for (let index = 0; index < records.length; index += 1) {
-    const record = records[index]!;
-    if (record.startsWith('# branch.oid ')) {
-      const oid = record.slice('# branch.oid '.length);
-      if (!OBJECT_ID_PATTERN.test(oid)) {
-        if (oid === '(initial)') return { commit: '', paths: [] };
-        throw new Error('The checkpoint commit is unavailable.');
-      }
-      if (commit !== null) throw new Error('Git returned multiple commit identities.');
-      commit = oid;
-    } else if (record.startsWith('# ')) {
-      continue;
-    } else if (record.startsWith('? ')) {
-      paths.push(validateEvidencePath(record.slice(2).replace(/\/$/u, '')));
-    } else {
-      const fields = record[0] === '1' ? 7 : record[0] === '2' ? 8 : record[0] === 'u' ? 9 : null;
-      const match =
-        fields === null ? null : new RegExp(`^[12u](?: [^ ]+){${fields}} (.+)$`, 'su').exec(record);
-      if (match === null) throw new Error('Git returned unsupported status evidence.');
-      paths.push(validateEvidencePath(match[1]!));
-      if (record[0] === '2') paths.push(validateEvidencePath(records[++index] ?? ''));
-    }
-  }
-  if (commit === null) throw new Error('The checkpoint commit is unavailable.');
-  return { commit, paths: [...new Set(paths)].sort() };
+/**
+ * Reads the commit HEAD points at, null before the first commit, and every status path, both sides
+ * of a rename included. An untracked nested repository is its literal directory path.
+ * @throws If Git fails, its output exceeds the bounded capture limit, or a path is unsupported.
+ */
+const readCheckpointStatus = async (
+  repositoryRoot: string,
+): Promise<{ commit: string | null; paths: string[] }> => {
+  const { commit, entries } = await readStatus(repositoryRoot, createReadOptions(repositoryRoot));
+  const paths = entries.flatMap(({ index, path, originalPath }) => [
+    index === '?' ? path.replace(/\/$/u, '') : path,
+    ...(originalPath === null ? [] : [originalPath]),
+  ]);
+  return { commit, paths: [...new Set(paths.map(validateEvidencePath))].sort() };
 };
 
 /**
@@ -226,16 +233,11 @@ export const collectRepairGitEvidence = async (
     for (const path of paths) {
       if (!isPathWithin(repositoryRoot, resolve(repositoryRoot, path)))
         throw new Error('Written-file review path escapes the repository.');
-      let directory = repositoryRoot;
-      for (const component of path.split('/').slice(0, -1)) {
-        directory = join(directory, component);
-        try {
-          if (!(await lstat(directory)).isDirectory())
-            throw new Error('Written-file review cannot follow directory links.');
-        } catch (error) {
-          if (error instanceof Error && 'code' in error && error.code === 'ENOENT') break;
-          throw error;
-        }
+      try {
+        await assertNoLinksBelow(repositoryRoot, join(repositoryRoot, path));
+      } catch (error) {
+        if (!LINKED_PARENT_ERROR_CODES.has(getErrorCode(error) ?? '')) throw error;
+        throw new Error('Written-file review cannot follow directory links.', { cause: error });
       }
       try {
         const stat = await lstat(join(repositoryRoot, path));
@@ -250,8 +252,11 @@ export const collectRepairGitEvidence = async (
     reasonCode = 'git-read';
     if (options.mode === 'verify' || options.mode === 'continue') {
       if (
-        readGit(repositoryRoot, ['cat-file', '-t', options.checkpoint!]).toString('utf8').trim() !==
-        'commit'
+        (await resolveCommit(
+          repositoryRoot,
+          options.checkpoint!,
+          createReadOptions(repositoryRoot),
+        )) !== options.checkpoint
       )
         throw new Error('The supplied checkpoint does not name a commit object.');
       if (options.mode === 'verify')
@@ -259,7 +264,7 @@ export const collectRepairGitEvidence = async (
           kind: 'moldea-repair-git',
           mode: 'verify',
           status: 'available',
-          commit: options.checkpoint!,
+          commit: options.checkpoint,
           uncommittedPaths: [],
           changedPaths: [],
           manifestDiff: '',
@@ -267,17 +272,8 @@ export const collectRepairGitEvidence = async (
           writtenDiff: '',
         };
     }
-    const status = readStatus(
-      readGit(repositoryRoot, [
-        'status',
-        '--porcelain=v2',
-        '-z',
-        '--ignore-submodules=all',
-        '--untracked-files=all',
-        '--branch',
-      ]),
-    );
-    if (!status.commit)
+    const status = await readCheckpointStatus(repositoryRoot);
+    if (status.commit === null)
       return {
         kind: 'moldea-repair-git',
         mode: options.mode,
@@ -290,25 +286,23 @@ export const collectRepairGitEvidence = async (
     const uncommittedManifestDiff =
       options.mode === 'review'
         ? ''
-        : readGit(repositoryRoot, [
-            ...diffPrefix,
-            status.commit,
-            '--',
-            'moldea/moldea.yaml',
-          ]).toString('utf8');
+        : (
+            await readGit(repositoryRoot, [
+              ...diffPrefix,
+              status.commit,
+              '--',
+              'moldea/moldea.yaml',
+            ])
+          ).toString('utf8');
     const changedPaths =
       options.mode === 'continue'
-        ? readPaths(
-            readGit(repositoryRoot, [
-              ...diffPrefix,
-              '--name-only',
-              '--no-renames',
-              '-z',
+        ? (
+            await readChangedPaths(
+              repositoryRoot,
               options.checkpoint!,
-              '--',
-              '.',
-            ]),
-          )
+              createReadOptions(repositoryRoot),
+            )
+          ).map(validateEvidencePath)
         : [];
     const evidence: IRepairGitEvidence = {
       kind: 'moldea-repair-git',
@@ -319,17 +313,19 @@ export const collectRepairGitEvidence = async (
       changedPaths: [...new Set([...changedPaths, ...status.paths])].sort(),
       manifestDiff:
         options.mode === 'continue'
-          ? readGit(repositoryRoot, [
-              ...diffPrefix,
-              options.checkpoint!,
-              '--',
-              'moldea/moldea.yaml',
-            ]).toString('utf8')
+          ? (
+              await readGit(repositoryRoot, [
+                ...diffPrefix,
+                options.checkpoint!,
+                '--',
+                'moldea/moldea.yaml',
+              ])
+            ).toString('utf8')
           : '',
       uncommittedManifestDiff,
       writtenDiff:
         options.mode === 'review'
-          ? readGit(repositoryRoot, [...diffPrefix, '--', ...paths]).toString('utf8')
+          ? (await readGit(repositoryRoot, [...diffPrefix, '--', ...paths])).toString('utf8')
           : '',
     };
     if (Buffer.byteLength(JSON.stringify(evidence)) > REPAIR_GIT_RESPONSE_BYTES - 1) {
@@ -338,8 +334,12 @@ export const collectRepairGitEvidence = async (
     }
     return evidence;
   } catch (error) {
-    if (error instanceof RangeError) reasonCode = 'output-limit';
-    if (error instanceof GitCommandError) reasonCode = 'git-read';
+    if (
+      error instanceof RangeError ||
+      getErrorCode(error) === PROCESS_ERRORS.PROCESS_OUTPUT_TOO_LARGE
+    )
+      reasonCode = 'output-limit';
+    else if (isGitCommandError(error)) reasonCode = 'git-read';
     const reason = error instanceof Error ? error.message : 'Repair Git evidence is unavailable.';
     return {
       kind: 'moldea-repair-git',

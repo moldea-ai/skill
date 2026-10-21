@@ -132,8 +132,14 @@ const buildBundledNotices = async (
     JSON.parse(await readFile(path.join(rootDirectory, 'package-lock.json'), 'utf8')) as unknown,
   );
   const packageRoots = new Set<string>();
+  // inputs esbuild loaded but tree-shook away put no code in the output, so they need no notice
+  const includedInputs = Object.values(metafile.outputs).flatMap((output) =>
+    Object.entries(output.inputs)
+      .filter(([, { bytesInOutput }]) => bytesInOutput > 0)
+      .map(([input]) => input),
+  );
 
-  for (const input of Object.keys(metafile.inputs)) {
+  for (const input of includedInputs) {
     const marker = input.lastIndexOf('node_modules/');
     if (marker === -1) {
       if (!ownedSources.includes(input)) {

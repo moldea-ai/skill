@@ -14,12 +14,17 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'vitest';
 
+import { resolveInstructionWriteTarget } from '../../portable/instruction-link/index.ts';
+import { collectRepairGitEvidence } from '../../portable/repair-git/index.ts';
+
 import {
   CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX,
   CODEX_EVALUATION_GIT_STATUS_ARGUMENTS,
   isApprovedRepairGitArguments,
   prepareGitCommandPolicyBoundary,
 } from './git-command-policy-boundary.ts';
+import { projectGitInvocations } from './git-invocations.ts';
+
 const RELEASE_CLI_GIT_OPTIONS = [
   '--no-pager',
   '-c',
@@ -28,6 +33,23 @@ const RELEASE_CLI_GIT_OPTIONS = [
   'core.fsmonitor=false',
   '-c',
   'submodule.recurse=false',
+];
+
+// jg-git-commands 0.3.1's command prefix, which the writer's link queries use
+const JG_GIT_PREFIX = [
+  '-c',
+  'core.fsmonitor=',
+  '-c',
+  'core.askPass=',
+  '-c',
+  'core.pager=cat',
+  '-c',
+  'color.ui=false',
+  '-c',
+  'submodule.recurse=false',
+  '-c',
+  'credential.helper=',
+  '--no-pager',
 ];
 
 const runSystemGit = (repositoryPath: string, argumentsList: readonly string[]): void => {
@@ -141,27 +163,28 @@ test('Git command-policy boundary runs the writer link queries for one literal p
       realGitExecutable: '/usr/bin/git',
       invocationLogPath: join(testRoot, 'git-invocations.jsonl'),
     });
-    const hardened = CODEX_EVALUATION_GIT_STATUS_ARGUMENTS.slice(
-      0,
-      CODEX_EVALUATION_GIT_STATUS_ARGUMENTS.indexOf('status'),
-    );
-    const storage = [
-      ...hardened,
+    const index = [...JG_GIT_PREFIX, 'ls-files', '--cached', '--stage', '--full-name', '-z', '--'];
+    const untracked = [
+      ...JG_GIT_PREFIX,
       'ls-files',
-      '--cached',
       '--others',
       '--exclude-standard',
-      '--stage',
+      '--full-name',
       '-z',
       '--',
     ];
 
-    const storageResult = runWrappedGit(wrapperPath, repositoryPath, [...storage, 'AGENTS.md']);
-    assert.equal(storageResult.status, 0, storageResult.stderr);
-    assert.match(storageResult.stdout, /^100644 [0-9a-f]{40} 0\tAGENTS\.md\0$/u);
+    const indexResult = runWrappedGit(wrapperPath, repositoryPath, [...index, 'AGENTS.md']);
+    assert.equal(indexResult.status, 0, indexResult.stderr);
+    assert.match(indexResult.stdout, /^100644 [0-9a-f]{40} 0\tAGENTS\.md\0$/u);
+
+    writeFileSync(join(repositoryPath, 'CLAUDE.md'), '# Claude\n');
+    const untrackedResult = runWrappedGit(wrapperPath, repositoryPath, [...untracked, 'CLAUDE.md']);
+    assert.equal(untrackedResult.status, 0, untrackedResult.stderr);
+    assert.equal(untrackedResult.stdout, 'CLAUDE.md\0');
 
     const settingResult = runWrappedGit(wrapperPath, repositoryPath, [
-      ...hardened,
+      ...JG_GIT_PREFIX,
       'config',
       '--type=bool',
       '--default=true',
@@ -171,13 +194,102 @@ test('Git command-policy boundary runs the writer link queries for one literal p
     assert.equal(settingResult.status, 0, settingResult.stderr);
     assert.equal(settingResult.stdout, 'false\n');
 
-    const refusedResult = runWrappedGit(wrapperPath, repositoryPath, [
-      ...storage,
-      ':(top)AGENTS.md',
-    ]);
+    const refusedResult = runWrappedGit(wrapperPath, repositoryPath, [...index, ':(top)AGENTS.md']);
     assert.equal(refusedResult.status, 2);
     assert.match(refusedResult.stderr, /command shape is not evaluator-approved/u);
   } finally {
+    rmSync(testRoot, { force: true, recursive: true });
+  }
+});
+
+test('Git command-policy boundary admits the jg-git-commands reads of the bundled helpers', async () => {
+  const testRoot = mkdtempSync(join(tmpdir(), 'moldea-git-command-policy-jg-'));
+  const repositoryPath = join(testRoot, 'repository');
+  const shimPath = join(testRoot, 'shim');
+  const invocationLogPath = join(testRoot, 'git-invocations.jsonl');
+  const path = process.env['PATH'];
+
+  try {
+    mkdirSync(join(repositoryPath, 'moldea'), { recursive: true });
+    runSystemGit(repositoryPath, ['init', '--quiet']);
+    writeFileSync(join(repositoryPath, 'moldea', 'moldea.yaml'), 'version: 1\n');
+    writeFileSync(join(repositoryPath, 'AGENTS.md'), '# Rules\n');
+    // CLAUDE.md is a Git link to AGENTS.md checked out as a plain file
+    const linkObject = spawnSync('/usr/bin/git', ['hash-object', '-w', '--stdin'], {
+      cwd: repositoryPath,
+      encoding: 'utf8',
+      input: 'AGENTS.md',
+    });
+    assert.equal(linkObject.status, 0, linkObject.stderr);
+    runSystemGit(repositoryPath, [
+      'update-index',
+      '--add',
+      '--cacheinfo',
+      `120000,${linkObject.stdout.trim()},CLAUDE.md`,
+    ]);
+    runSystemGit(repositoryPath, ['config', 'core.symlinks', 'false']);
+    runSystemGit(repositoryPath, ['checkout', '--', 'CLAUDE.md']);
+    runSystemGit(repositoryPath, ['add', '--', 'AGENTS.md', 'moldea/moldea.yaml']);
+    runSystemGit(repositoryPath, [
+      '-c',
+      'user.name=moldea evaluation',
+      '-c',
+      'user.email=evaluation@invalid.example',
+      'commit',
+      '--quiet',
+      '-m',
+      'test: initialize jg-git-commands fixture',
+    ]);
+    const checkpoint = spawnSync('/usr/bin/git', ['rev-parse', 'HEAD'], {
+      cwd: repositoryPath,
+      encoding: 'utf8',
+    }).stdout.trim();
+    writeFileSync(join(repositoryPath, 'moldea', 'moldea.yaml'), 'version: 2\n');
+
+    // the wrapper answers as `git` on PATH, as it does in the sandbox
+    const wrapperPath = await prepareGitCommandPolicyBoundary(join(testRoot, 'bin'), {
+      realGitExecutable: '/usr/bin/git',
+      invocationLogPath,
+    });
+    mkdirSync(shimPath);
+    writeFileSync(
+      join(shimPath, 'git'),
+      `#!/bin/sh\nexec '${process.execPath}' '${wrapperPath}' "$@"\n`,
+    );
+    chmodSync(join(shimPath, 'git'), 0o755);
+    process.env['PATH'] = `${shimPath}:${path ?? ''}`;
+
+    for (const options of [
+      { mode: 'checkpoint' },
+      { mode: 'continue', checkpoint },
+      { mode: 'verify', checkpoint },
+      { mode: 'review', paths: ['moldea/moldea.yaml'] },
+    ] as const) {
+      const evidence = await collectRepairGitEvidence({
+        repositoryRoot: repositoryPath,
+        ...options,
+      });
+      assert.equal(evidence.status, 'available', JSON.stringify(evidence));
+    }
+    const target = await resolveInstructionWriteTarget(repositoryPath, 'CLAUDE.md');
+    assert.equal(target.hostPath, join(repositoryPath, 'AGENTS.md'));
+
+    // every read passed the policy and counts as a compliant repair read
+    const log = readFileSync(invocationLogPath, 'utf8');
+    const records = log
+      .trimEnd()
+      .split('\n')
+      .map((line) => JSON.parse(line) as { approved: boolean; releaseCli: boolean });
+    assert.ok(records.length > 0);
+    assert.ok(records.every(({ approved, releaseCli }) => approved && !releaseCli));
+    assert.deepEqual(projectGitInvocations(log).repair, {
+      compliantCount: records.length,
+      noncompliantCount: 0,
+      unverifiedCount: 0,
+      reasons: [],
+    });
+  } finally {
+    process.env['PATH'] = path;
     rmSync(testRoot, { force: true, recursive: true });
   }
 });

@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 
-import { stringifyJSONDeterministically } from 'web-utils-kit';
+import { stringifyJsonDeterministically } from 'jg-utilities';
 
 import { SemanticCaseDefinitionSchema } from './schema.ts';
 import type { ISemanticCase, ISemanticCaseDefinition, ISemanticCriterion } from './types.ts';
@@ -18,7 +18,7 @@ export const getSemanticCriterionLabels = (criteria: readonly ISemanticCriterion
 /** Hashes one serializable case definition independently of object key insertion order. */
 export const createSemanticCaseDefinitionDigest = (caseDefinition: ISemanticCase): string => {
   const parsedCase = parseSerializableCase(caseDefinition);
-  return createHash('sha256').update(stringifyJSONDeterministically(parsedCase)).digest('hex');
+  return createHash('sha256').update(stringifyJsonDeterministically(parsedCase)).digest('hex');
 };
 
 /** Hashes the complete case suite in stable case-id order. */
@@ -36,7 +36,7 @@ export const createSemanticCaseSuiteDigest = (
     throw new Error('Semantic evaluation case ids must be unique.');
   }
 
-  return createHash('sha256').update(stringifyJSONDeterministically(definitionsById)).digest('hex');
+  return createHash('sha256').update(stringifyJsonDeterministically(definitionsById)).digest('hex');
 };
 
 /** Validates the serializable case contract while preserving its established type. */

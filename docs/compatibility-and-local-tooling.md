@@ -72,7 +72,7 @@ When ordinary work reaches a limit, the coding agent completes the developer's t
 
 For practical handling, start with [Limitations](/docs/limitations/). Detailed input and worker defaults belong to the [Core resource reference](https://packages.moldea.ai/packages/core/repository-inspection/#resource-limits) and [CLI budgets](https://packages.moldea.ai/packages/cli/output-and-operations/#resource-budgets).
 
-The following numbers are release-evaluation measurements from the unchanged source-controlled profiles, not universal limits on developer tasks. The recorded 8.2.3 evaluation counted whole-trial host commands and tool output. Evaluation protocol 52 applies the moldea-only counting rule above to each cycle: `ordinary` limits cover launcher calls, bundled helpers and `moldea/` reads and writes, and `largeTraversal` limits also cover assessment source reads, except for aggregate `moldea` output. See [resource accounting](/docs/semantic-evaluation/#resource-accounting):
+The following numbers are release-evaluation measurements from the unchanged source-controlled profiles, not universal limits on developer tasks. The recorded 8.2.3 evaluation counted whole-trial host commands and tool output. Evaluation protocol 53 applies the moldea-only counting rule above to each cycle: `ordinary` limits cover launcher calls, bundled helpers and `moldea/` reads and writes, and `largeTraversal` limits also cover assessment source reads, except for aggregate `moldea` output. See [resource accounting](/docs/semantic-evaluation/#resource-accounting):
 
 | Limit                     | `ordinary` | `largeTraversal` |
 | ------------------------- | ---------: | ---------------: |
@@ -124,4 +124,4 @@ Explicit repair uses the bundled `repair-git.mjs` helper for checkpoint, continu
 
 Attribute inspection conservatively refuses any attribute file containing `filter`, including Git LFS declarations, macros and comments. LFS configuration is disabled as additional protection, not an exception to that refusal. These limitations stop Git-dependent repair; they are not evidence of project drift or permission to bypass repository controls. An unborn repository instead returns unavailable commit evidence and uses conservative owner reassessment.
 
-Failed Git reads, including reads during attribute inspection, return `git-read` with Git's first error line in a reason capped at 512 characters. Attribute-safety limitations remain distinct. The helper uses Git's `/dev/null` spelling for global configuration and attributes on every supported platform, including Windows.
+Failed Git reads, including reads during attribute inspection, return `git-read` with a reason that classifies the failure, such as Git refusing the repository's ownership, without Git's own output, capped at 512 characters. Attribute-safety limitations remain distinct. The helper ignores the system and global Git configuration and attributes on every supported platform, including Windows.

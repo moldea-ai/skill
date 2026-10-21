@@ -1,4 +1,4 @@
-import { extractFirstMarkdownHeadingName, truncateText } from 'web-utils-kit';
+import { extractFirstMarkdownHeadingName, truncateText } from 'jg-utilities';
 
 import {
   PROJECT_RUN_EXCERPT_LENGTH,

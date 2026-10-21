@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { stringifyJsonDeterministically } from 'jg-utilities';
 
 import type {
   ISemanticModelHostIdentity,
@@ -11,20 +12,11 @@ const SHA256_PATTERN = /^[a-f0-9]{64}$/u;
 const isPlainRecord = (input: unknown): input is Record<string, unknown> =>
   input !== null && typeof input === 'object' && !Array.isArray(input);
 
-/** Canonicalizes one JSON-compatible value without mutating the caller's object. */
-const canonicalizeJson = (input: unknown): unknown => {
-  if (Array.isArray(input)) return input.map(canonicalizeJson);
-  if (!isPlainRecord(input)) return input;
-  return Object.fromEntries(
-    Object.keys(input)
-      .sort((left, right) => left.localeCompare(right, 'en'))
-      .map((key) => [key, canonicalizeJson(input[key])]),
-  );
-};
-
 /** Serializes JSON-compatible evidence independently of object key insertion order. */
 export const serializeSemanticStageValue = (value: unknown): string =>
-  JSON.stringify(canonicalizeJson(value));
+  typeof value === 'object' && value !== null
+    ? stringifyJsonDeterministically(value)
+    : JSON.stringify(value);
 
 /** Hashes one JSON-compatible value independently of object key insertion order. */
 export const createSemanticStageValueDigest = (value: unknown): string =>

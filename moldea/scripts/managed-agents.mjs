@@ -3,41 +3,905 @@
 
 // src/portable/managed-agents/managed-agents.ts
 import { realpath as realpath2 } from "node:fs/promises";
-import { dirname as dirname2, isAbsolute as isAbsolute2, join as join3, relative, resolve as resolve2, sep } from "node:path";
+import { dirname as dirname2, isAbsolute as isAbsolute3, join as join4, relative as relative2, resolve as resolve3, sep as sep2 } from "node:path";
 import { fileURLToPath } from "node:url";
 
-// src/portable/instruction-link/constants.ts
-var INSTRUCTION_GIT_STORAGE_ARGUMENTS = [
-  "ls-files",
-  "--cached",
-  "--others",
-  "--exclude-standard",
-  "--stage",
-  "-z",
-  "--"
-];
-var INSTRUCTION_GIT_SYMLINK_SETTING_ARGUMENTS = [
-  "config",
-  "--type=bool",
-  "--default=true",
-  "--get",
-  "core.symlinks"
-];
-var INSTRUCTION_PATHS = /* @__PURE__ */ new Set([
-  "/AGENTS.md",
-  "/CLAUDE.md",
-  "/.claude/CLAUDE.md",
-  "/CLAUDE.local.md"
-]);
-var INSTRUCTION_GIT_OUTPUT_BYTES = 4096;
-
 // src/portable/instruction-link/instruction-link.ts
-import { lstat as lstat2 } from "node:fs/promises";
-import { join } from "node:path";
+import { lstat as lstat3 } from "node:fs/promises";
+import { join as join2, posix } from "node:path";
+
+// node_modules/jg-exception/dist/shared/constants.js
+var UNKNOWN_ERROR_CODE = "UNKNOWN_ERROR";
+var REDACTED_VALUE = "[redacted]";
+
+// node_modules/jg-exception/dist/error-handler/utilities.js
+var collectSensitiveRanges = (message, sensitiveValues) => {
+  const sensitiveRanges = [];
+  sensitiveValues.forEach((sensitiveValue) => {
+    let matchStart = message.indexOf(sensitiveValue);
+    while (matchStart !== -1) {
+      sensitiveRanges.push({
+        start: matchStart,
+        end: matchStart + sensitiveValue.length
+      });
+      matchStart = message.indexOf(sensitiveValue, matchStart + 1);
+    }
+  });
+  return sensitiveRanges;
+};
+var mergeOverlappingRanges = (sensitiveRanges) => {
+  const sortedSensitiveRanges = [...sensitiveRanges].sort((firstRange, secondRange) => firstRange.start - secondRange.start || secondRange.end - firstRange.end);
+  const mergedSensitiveRanges = [];
+  sortedSensitiveRanges.forEach((currentRange) => {
+    const previousRange = mergedSensitiveRanges.at(-1);
+    if (!previousRange || currentRange.start >= previousRange.end) {
+      mergedSensitiveRanges.push({ ...currentRange });
+      return;
+    }
+    if (currentRange.end > previousRange.end) {
+      previousRange.end = currentRange.end;
+    }
+  });
+  return mergedSensitiveRanges;
+};
+var redactSensitiveValues = (message, sensitiveValues) => {
+  const uniqueSensitiveValues = [
+    ...new Set(sensitiveValues.filter((sensitiveValue) => sensitiveValue.length > 0))
+  ];
+  if (!uniqueSensitiveValues.length) {
+    return message;
+  }
+  const sensitiveRanges = mergeOverlappingRanges(collectSensitiveRanges(message, uniqueSensitiveValues));
+  if (!sensitiveRanges.length) {
+    return message;
+  }
+  const redactedMessageParts = [];
+  let nextMessageIndex = 0;
+  sensitiveRanges.forEach((sensitiveRange) => {
+    redactedMessageParts.push(message.slice(nextMessageIndex, sensitiveRange.start), REDACTED_VALUE);
+    nextMessageIndex = sensitiveRange.end;
+  });
+  redactedMessageParts.push(message.slice(nextMessageIndex));
+  return redactedMessageParts.join("");
+};
+
+// node_modules/jg-exception/dist/error-handler/index.js
+var getErrorCode = (error) => {
+  if (typeof error !== "object" || error === null) {
+    return null;
+  }
+  const { code } = error;
+  return typeof code === "string" && code.length > 0 ? code : null;
+};
+
+// node_modules/jg-exception/dist/exception/constants.js
+var EXCEPTION_BRAND = /* @__PURE__ */ Symbol.for("jg-exception.Exception");
+var EXCEPTION_SEVERITIES = ["expected", "critical"];
+
+// node_modules/jg-exception/dist/exception/redaction.js
+var BUILT_PROPERTIES = /* @__PURE__ */ new Set(["name", "message", "stack", "cause"]);
+var VERBATIM_EXCEPTION_PROPERTIES = /* @__PURE__ */ new Set(["severity", "shouldLog"]);
+var MAX_PROTOTYPE_DEPTH = 32;
+var ARRAY_INDEX = /^(?:0|[1-9]\d*)$/;
+var findDescriptor = (target, key) => {
+  let current = target;
+  for (let depth = 0; current !== null && depth < MAX_PROTOTYPE_DEPTH; depth += 1) {
+    const descriptor = Reflect.getOwnPropertyDescriptor(current, key);
+    if (descriptor !== void 0) {
+      return descriptor;
+    }
+    current = Reflect.getPrototypeOf(current);
+  }
+  return {};
+};
+var ENGINE_STACK_GETTER = Reflect.get(findDescriptor(new Error(), "stack"), "get");
+var readDescriptor = (target, descriptor) => {
+  if ("value" in descriptor) {
+    return descriptor.value;
+  }
+  const getter = Reflect.get(descriptor, "get");
+  return typeof getter === "function" && getter === ENGINE_STACK_GETTER ? Reflect.apply(getter, target, []) : void 0;
+};
+var readProperty = (target, key, isInherited) => {
+  try {
+    return readDescriptor(target, isInherited ? findDescriptor(target, key) : Reflect.getOwnPropertyDescriptor(target, key) ?? {});
+  } catch {
+    return void 0;
+  }
+};
+var readDataEntries = (target) => {
+  let keys;
+  try {
+    keys = Reflect.ownKeys(target);
+  } catch {
+    return [];
+  }
+  return keys.flatMap((key) => {
+    if (typeof key !== "string") {
+      return [];
+    }
+    try {
+      const descriptor = Reflect.getOwnPropertyDescriptor(target, key);
+      return descriptor?.enumerable === true && "value" in descriptor ? [[key, descriptor.value]] : [];
+    } catch {
+      return [];
+    }
+  });
+};
+var defineValue = (target, key, value, enumerable) => {
+  Object.defineProperty(target, key, { value, enumerable, writable: true, configurable: true });
+};
+var isPrimitive = (value) => value === null || typeof value !== "object" && typeof value !== "function";
+var redactPrimitive = (value, values) => {
+  if (typeof value === "string") {
+    return redactSensitiveValues(value, values);
+  }
+  if (value === null || value === void 0) {
+    return value;
+  }
+  const text = String(value);
+  const redacted = redactSensitiveValues(text, values);
+  return redacted === text ? value : redacted;
+};
+var redactJson = (value, values, ancestors) => {
+  if (typeof value !== "object" || value === null) {
+    return typeof value === "function" || typeof value === "symbol" || typeof value === "bigint" ? void 0 : redactPrimitive(value, values);
+  }
+  if (ancestors.has(value)) {
+    return void 0;
+  }
+  ancestors.add(value);
+  try {
+    const entries = readDataEntries(value);
+    if (Array.isArray(value)) {
+      const copy2 = [];
+      for (const [key, item] of entries) {
+        if (ARRAY_INDEX.test(key)) {
+          copy2[Number(key)] = redactJson(item, values, ancestors) ?? null;
+        }
+      }
+      return copy2;
+    }
+    const copy = {};
+    for (const [key, item] of entries) {
+      const redacted = redactJson(item, values, ancestors);
+      if (redacted !== void 0) {
+        defineValue(copy, key, redacted, true);
+      }
+    }
+    return copy;
+  } finally {
+    ancestors.delete(value);
+  }
+};
+var redactData = (data, values) => {
+  try {
+    return redactJson(data, values, /* @__PURE__ */ new Set());
+  } catch {
+    return null;
+  }
+};
+var createSnapshot = (cause, context) => {
+  const { values, exceptionClass, snapshots } = context;
+  const isRecognisedException = readProperty(cause, EXCEPTION_BRAND, false) === true;
+  const message = readProperty(cause, "message", false);
+  const snapshot = Reflect.construct(Error, [typeof message === "string" ? redactSensitiveValues(message, values) : ""], isRecognisedException ? exceptionClass : Error);
+  snapshots.set(cause, snapshot);
+  const name = readProperty(cause, "name", true);
+  defineValue(snapshot, "name", typeof name === "string" ? redactSensitiveValues(name, values) : "Error", false);
+  const stack = readProperty(cause, "stack", true);
+  if (typeof stack === "string") {
+    defineValue(snapshot, "stack", redactSensitiveValues(stack, values), false);
+  } else {
+    Reflect.deleteProperty(snapshot, "stack");
+  }
+  for (const [key, value] of readDataEntries(cause)) {
+    const isBuilt = BUILT_PROPERTIES.has(key) || isRecognisedException && key === "data";
+    if (!isBuilt && isPrimitive(value)) {
+      const isVerbatim = isRecognisedException && VERBATIM_EXCEPTION_PROPERTIES.has(key);
+      defineValue(snapshot, key, isVerbatim ? value : redactPrimitive(value, values), true);
+    }
+  }
+  if (isRecognisedException) {
+    Object.defineProperty(snapshot, EXCEPTION_BRAND, { value: true });
+    const data = readProperty(cause, "data", false);
+    defineValue(snapshot, "data", data === void 0 ? void 0 : redactData(data, values), true);
+  }
+  let hasCause;
+  try {
+    hasCause = Reflect.getOwnPropertyDescriptor(cause, "cause") !== void 0;
+  } catch {
+    hasCause = false;
+  }
+  if (hasCause) {
+    defineValue(snapshot, "cause", redactCause(readProperty(cause, "cause", false), context), false);
+  }
+  return snapshot;
+};
+var redactCause = (cause, context) => {
+  if (isPrimitive(cause)) {
+    return redactPrimitive(cause, context.values);
+  }
+  if (context.snapshots.has(cause)) {
+    return context.snapshots.get(cause);
+  }
+  try {
+    return createSnapshot(cause, context);
+  } catch {
+    return void 0;
+  }
+};
+var toRedactionValues = (redact) => {
+  const values = /* @__PURE__ */ new Set();
+  try {
+    for (const value of Array.isArray(redact) ? redact : []) {
+      if (typeof value === "string" && value.length > 0) {
+        values.add(value);
+        try {
+          values.add(encodeURIComponent(value));
+        } catch {
+        }
+      }
+    }
+  } catch {
+  }
+  return [...values];
+};
+var redactExceptionParts = (parts, redact, exceptionClass) => {
+  const values = toRedactionValues(redact);
+  if (values.length === 0) {
+    return parts;
+  }
+  let message;
+  try {
+    message = redactSensitiveValues(new Error(parts.message).message, values);
+  } catch {
+    message = "";
+  }
+  return {
+    message,
+    data: parts.data === void 0 ? void 0 : redactData(parts.data, values),
+    cause: redactCause(parts.cause, { values, exceptionClass, snapshots: /* @__PURE__ */ new Map() })
+  };
+};
+
+// node_modules/jg-exception/dist/exception/exception.js
+var toSerializableData = (data) => {
+  try {
+    const serialized = JSON.stringify(data);
+    return serialized === void 0 ? null : JSON.parse(serialized);
+  } catch {
+    return null;
+  }
+};
+var isExceptionSeverity = (value) => EXCEPTION_SEVERITIES.includes(value);
+var Exception = class _Exception extends Error {
+  // the stable code callers handle the error by
+  code;
+  // context that helps whoever handles or debugs the error
+  data;
+  /**
+   * Creates an exception.
+   * @param message What failed, for people reading logs.
+   * @param options The code, and optionally the data, the error underneath as `cause`, the values
+   * to `redact`, and the throw site's `severity` and `shouldLog`.
+   */
+  constructor(message, options) {
+    const { code, data, cause, redact, severity, shouldLog } = options ?? {
+      code: ""
+    };
+    const parts = redactExceptionParts({ message, data, cause }, redact, _Exception);
+    super(parts.message, parts.cause === void 0 ? void 0 : { cause: parts.cause });
+    this.name = "Exception";
+    this.code = typeof code === "string" && code.length > 0 ? code : UNKNOWN_ERROR_CODE;
+    this.data = parts.data;
+    if (isExceptionSeverity(severity)) {
+      this.severity = severity;
+    }
+    if (shouldLog === true) {
+      this.shouldLog = true;
+    }
+    Object.defineProperty(this, EXCEPTION_BRAND, { value: true });
+  }
+  /**
+   * Converts the exception to a plain object, which `JSON.stringify` calls.
+   * @returns The name, code, message, and data, with `null` for data that is missing or can't be
+   * serialized.
+   * @example
+   * import { Exception } from 'jg-exception';
+   *
+   * const json = new Exception('Not found', { code: 'NOT_FOUND', data: { id: 1 } }).toJSON();
+   * json; // => { name: 'Exception', code: 'NOT_FOUND', message: 'Not found', data: { id: 1 } }
+   */
+  toJSON() {
+    return {
+      name: this.name,
+      code: this.code,
+      message: this.message,
+      data: toSerializableData(this.data)
+    };
+  }
+  /**
+   * Describes the exception in one line, with its code.
+   * @returns The name, code, and message, such as `Exception [NOT_FOUND]: Not found`.
+   */
+  toString() {
+    return `${this.name} [${this.code}]: ${this.message}`;
+  }
+};
+
+// node_modules/jg-fs/dist/shared/errors.js
+var ERRORS = {
+  NOT_A_DIRECTORY: "NOT_A_DIRECTORY",
+  NON_EXISTENT_DIRECTORY: "NON_EXISTENT_DIRECTORY",
+  DIRECTORY_ALREADY_EXISTS: "DIRECTORY_ALREADY_EXISTS",
+  NON_EXISTENT_FILE: "NON_EXISTENT_FILE",
+  NOT_A_FILE: "NOT_A_FILE",
+  FILE_CONTENT_IS_EMPTY_OR_INVALID: "FILE_CONTENT_IS_EMPTY_OR_INVALID",
+  FILE_TOO_LARGE: "FILE_TOO_LARGE",
+  LOCK_BUSY: "LOCK_BUSY",
+  LOCK_NOT_OWNED: "LOCK_NOT_OWNED",
+  LOCK_RELEASE_FAILED: "LOCK_RELEASE_FAILED",
+  LOCK_ACQUISITION_FAILED: "LOCK_ACQUISITION_FAILED",
+  FILE_NOT_PRIVATE: "FILE_NOT_PRIVATE",
+  DIRECTORY_NOT_PRIVATE: "DIRECTORY_NOT_PRIVATE",
+  PATH_NOT_CANONICAL: "PATH_NOT_CANONICAL",
+  PATH_OUTSIDE_ROOT: "PATH_OUTSIDE_ROOT",
+  FILE_ALREADY_EXISTS: "FILE_ALREADY_EXISTS",
+  FILE_CHANGED: "FILE_CHANGED"
+};
+
+// node_modules/jg-fs/dist/shared/paths.js
+import * as platformPath from "node:path";
+import { basename, extname, isAbsolute, relative, resolve, sep } from "node:path";
+
+// node_modules/jg-fs/dist/shared/private-files.js
+var HAS_POSIX_PERMISSIONS = process.platform !== "win32";
+var pathNotCanonical = (path2) => new Exception(`The path '${path2}' goes through a symbolic link.`, {
+  code: ERRORS.PATH_NOT_CANONICAL,
+  data: { path: path2 }
+});
+var pathOutsideRoot = (path2, rootPath) => new Exception(`The path '${path2}' is not inside '${rootPath}'.`, {
+  code: ERRORS.PATH_OUTSIDE_ROOT,
+  data: { path: path2, rootPath }
+});
+
+// node_modules/jg-fs/dist/shared/paths.js
+var isPathWithin = (rootPath, targetPath) => {
+  const relativePath = relative(resolve(rootPath), resolve(targetPath));
+  return relativePath === "" || relativePath !== ".." && !relativePath.startsWith(`..${sep}`) && !isAbsolute(relativePath);
+};
+var listDirectoriesBelow = (rootPath, path2) => {
+  const root = resolve(rootPath);
+  const target = resolve(path2);
+  if (target === root || !isPathWithin(root, target)) {
+    throw pathOutsideRoot(path2, rootPath);
+  }
+  const parts = relative(root, target).split(sep);
+  return parts.slice(0, -1).map((_, index) => platformPath.join(root, ...parts.slice(0, index + 1)));
+};
+
+// node_modules/jg-fs/dist/shared/validations.js
+var notADirectory = (path2) => new Exception(`The path '${path2}' is not a directory.`, { code: ERRORS.NOT_A_DIRECTORY });
+var isNotFoundError = (error) => error instanceof Error && "code" in error && error.code === "ENOENT";
+var isMissingPathError = (error) => isNotFoundError(error) || error instanceof Error && "code" in error && error.code === "ENOTDIR";
+
+// node_modules/jg-fs/dist/async/general/general.js
+import { access, lstat } from "node:fs/promises";
+var assertNoLinksBelow = async (rootPath, path2) => {
+  for (const directory of listDirectoriesBelow(rootPath, path2)) {
+    let stats;
+    try {
+      stats = await lstat(directory);
+    } catch (error) {
+      if (isMissingPathError(error)) {
+        return;
+      }
+      throw error;
+    }
+    if (stats.isSymbolicLink()) {
+      throw pathNotCanonical(directory);
+    }
+    if (!stats.isDirectory()) {
+      throw notADirectory(directory);
+    }
+  }
+};
+
+// node_modules/jg-git-commands/dist/shared/constants.js
+var GIT_NULL_DEVICE = "/dev/null";
+
+// node_modules/jg-git-commands/dist/shared/errors.js
+var ERRORS2 = {
+  GIT_NOT_FOUND: "GIT_NOT_FOUND",
+  GIT_COMMAND_FAILED: "GIT_COMMAND_FAILED",
+  GIT_INVALID_ARGUMENT: "GIT_INVALID_ARGUMENT",
+  GIT_OUTPUT_INVALID: "GIT_OUTPUT_INVALID",
+  GIT_REPOSITORY_NOT_FOUND: "GIT_REPOSITORY_NOT_FOUND",
+  GIT_ACCESS_DENIED: "GIT_ACCESS_DENIED"
+};
+
+// node_modules/jg-git-commands/dist/shared/utilities.js
+var invalidArgument = (name) => new Exception("An argument isn't valid.", {
+  code: ERRORS2.GIT_INVALID_ARGUMENT,
+  data: { argument: name }
+});
+var invalidOutput = (subcommand) => new Exception("Git's output isn't in the expected format.", {
+  code: ERRORS2.GIT_OUTPUT_INVALID,
+  data: { subcommand }
+});
+var isArgumentValid = (value) => typeof value === "string" && value.length > 0 && !value.includes("\0");
+
+// node_modules/jg-git-commands/dist/environment/constants.js
+var DEFAULT_GIT_SSH_COMMAND = "ssh -o BatchMode=yes -o ConnectTimeout=10";
+var NON_INTERACTIVE_VARIABLES = {
+  GIT_TERMINAL_PROMPT: "0",
+  GIT_ASKPASS: "",
+  GIT_OPTIONAL_LOCKS: "0",
+  GIT_NO_REPLACE_OBJECTS: "1",
+  GIT_NO_LAZY_FETCH: "1",
+  GIT_LITERAL_PATHSPECS: "1",
+  GIT_ALLOW_PROTOCOL: "",
+  LC_ALL: "C",
+  LANG: "C",
+  LANGUAGE: "C"
+};
+
+// node_modules/jg-git-commands/dist/environment/environment.js
+var SET_VARIABLES = new Set(Object.keys(NON_INTERACTIVE_VARIABLES));
+var isBaseVariableKept = (key) => {
+  const name = key.toUpperCase();
+  return !name.startsWith("GIT_") && !name.startsWith("SSH_ASKPASS") && !SET_VARIABLES.has(name);
+};
+var createGitEnvironment = ({ isolateConfig = false, sshCommand = DEFAULT_GIT_SSH_COMMAND, baseEnv = process.env } = {}) => ({
+  ...Object.fromEntries(Object.entries(baseEnv).filter(([key]) => isBaseVariableKept(key))),
+  ...NON_INTERACTIVE_VARIABLES,
+  GIT_SSH_COMMAND: sshCommand,
+  ...isolateConfig ? { GIT_CONFIG_NOSYSTEM: "1", GIT_CONFIG_GLOBAL: GIT_NULL_DEVICE, GIT_ATTR_NOSYSTEM: "1" } : {}
+});
+
+// node_modules/jg-git-commands/dist/run-git/constants.js
+var DEFAULT_GIT_TIMEOUT_SECONDS = 30;
+var DEFAULT_GIT_MAX_OUTPUT_BYTES = 1048576;
+var FIXED_CONFIG_ARGS = [
+  "-c",
+  "core.fsmonitor=",
+  "-c",
+  "core.askPass=",
+  "-c",
+  "core.pager=cat",
+  "-c",
+  "color.ui=false",
+  "-c",
+  "submodule.recurse=false"
+];
+var NO_CREDENTIAL_HELPERS_ARGS = ["-c", "credential.helper="];
+var WINDOWS_MAX_PATH = 260;
+var REPOSITORY_NOT_FOUND_PATTERN = /^fatal: not a git repository/mu;
+var ACCESS_DENIED_PATTERN = /^fatal: (?:detected dubious ownership in repository at |.*: Permission denied\r?$)/mu;
+
+// node_modules/jg-git-commands/dist/run-git/run-git.js
+import { stat } from "node:fs/promises";
+
+// node_modules/jg-process/dist/shared/constants.js
+var DEFAULT_MAX_OUTPUT_BYTES = 1048576;
+var DEFAULT_GRACE_PERIOD_SECONDS = 5;
+var MAX_TIMEOUT_SECONDS = 2147483;
+
+// node_modules/jg-process/dist/shared/errors.js
+var ERRORS3 = {
+  PROCESS_START_FAILED: "PROCESS_START_FAILED",
+  PROCESS_TIMED_OUT: "PROCESS_TIMED_OUT",
+  PROCESS_OUTPUT_TOO_LARGE: "PROCESS_OUTPUT_TOO_LARGE",
+  PROCESS_TREE_SURVIVED: "PROCESS_TREE_SURVIVED",
+  INVALID_PORT: "INVALID_PORT",
+  PORT_RESERVATION_FAILED: "PORT_RESERVATION_FAILED",
+  UNSUPPORTED_PACKAGE_MANAGER: "UNSUPPORTED_PACKAGE_MANAGER",
+  PACKAGE_MANAGER_NOT_FOUND: "PACKAGE_MANAGER_NOT_FOUND",
+  INVALID_READINESS_OPTIONS: "INVALID_READINESS_OPTIONS",
+  PROCESS_NOT_READY: "PROCESS_NOT_READY",
+  PROCESS_EXITED_BEFORE_READY: "PROCESS_EXITED_BEFORE_READY",
+  PROCESS_INTERRUPTED: "PROCESS_INTERRUPTED",
+  INVALID_SIGNAL: "INVALID_SIGNAL",
+  INVALID_PROCESS_OPTIONS: "INVALID_PROCESS_OPTIONS",
+  INVALID_PROCESS_ID: "INVALID_PROCESS_ID",
+  INVALID_ARGUMENTS: "INVALID_ARGUMENTS",
+  STDIN_TOO_LARGE: "STDIN_TOO_LARGE"
+};
+
+// node_modules/jg-process/dist/run-process/run-process.js
+import { spawn as spawn2 } from "node:child_process";
+
+// node_modules/jg-process/dist/process-tree/process-tree.js
+import { execFile, spawn } from "node:child_process";
+import { setTimeout as sleep } from "node:timers/promises";
+
+// node_modules/jg-process/dist/process-tree/constants.js
+var FORCED_STOP_SECONDS = 2;
+var WINDOWS_STOP_SECONDS = 10;
+var STOP_POLL_INTERVAL_MILLISECONDS = 50;
+
+// node_modules/jg-process/dist/process-tree/process-tree.js
+var IS_WINDOWS = process.platform === "win32";
+var hasExited = (child) => child.exitCode !== null || child.signalCode !== null;
+var exists = (target) => {
+  try {
+    process.kill(target, 0);
+    return true;
+  } catch (error) {
+    return error.code === "EPERM";
+  }
+};
+var sendSignal = (target, signal) => {
+  try {
+    process.kill(target, signal);
+    return true;
+  } catch {
+    return false;
+  }
+};
+var isTreeStopped = (child, pid) => hasExited(child) && !exists(-pid);
+var signalTree = (child, pid, signal) => {
+  if (!sendSignal(-pid, signal) && !hasExited(child)) {
+    sendSignal(pid, signal);
+  }
+};
+var waitFor = async (condition, milliseconds) => {
+  const deadline = Date.now() + milliseconds;
+  while (!condition()) {
+    if (Date.now() >= deadline) {
+      return false;
+    }
+    await sleep(STOP_POLL_INTERVAL_MILLISECONDS);
+  }
+  return true;
+};
+var treeSurvived = (pid) => new Exception(`The process tree of pid ${pid} is still running after it was force-stopped.`, {
+  code: ERRORS3.PROCESS_TREE_SURVIVED
+});
+var stopPosixTree = async (child, pid, gracePeriodSeconds) => {
+  const isStopped = () => isTreeStopped(child, pid);
+  if (isStopped()) {
+    return;
+  }
+  signalTree(child, pid, "SIGTERM");
+  if (await waitFor(isStopped, gracePeriodSeconds * 1e3)) {
+    return;
+  }
+  signalTree(child, pid, "SIGKILL");
+  if (await waitFor(isStopped, FORCED_STOP_SECONDS * 1e3)) {
+    return;
+  }
+  throw treeSurvived(pid);
+};
+var stopWindowsTree = async (child, pid) => {
+  if (hasExited(child)) {
+    return;
+  }
+  await new Promise((resolve4) => {
+    execFile("taskkill", ["/PID", String(pid), "/T", "/F"], { timeout: WINDOWS_STOP_SECONDS * 1e3, windowsHide: true }, () => resolve4());
+  });
+  if (!await waitFor(() => hasExited(child), WINDOWS_STOP_SECONDS * 1e3)) {
+    throw treeSurvived(pid);
+  }
+};
+var stopProcessTree = async (child, gracePeriodSeconds = DEFAULT_GRACE_PERIOD_SECONDS) => {
+  const { pid } = child;
+  if (pid === void 0) {
+    return;
+  }
+  if (IS_WINDOWS) {
+    await stopWindowsTree(child, pid);
+    return;
+  }
+  await stopPosixTree(child, pid, gracePeriodSeconds);
+};
+
+// node_modules/jg-process/dist/run-process/constants.js
+var IGNORED_STDIN_ERROR_CODES = ["EPIPE", "EOF", "ERR_STREAM_DESTROYED"];
+
+// node_modules/jg-process/dist/run-process/run-process.js
+var startFailed = (command, cause) => new Exception(`Unable to start '${command}'.`, {
+  code: ERRORS3.PROCESS_START_FAILED,
+  cause
+});
+var outputTooLarge = (command, maxOutputBytes) => new Exception(`The process '${command}' wrote more than ${maxOutputBytes} bytes of output.`, {
+  code: ERRORS3.PROCESS_OUTPUT_TOO_LARGE
+});
+var validateLimits = (timeoutSeconds, maxOutputBytes) => {
+  const isTimeoutValid = timeoutSeconds === void 0 || typeof timeoutSeconds === "number" && Number.isFinite(timeoutSeconds) && timeoutSeconds > 0 && timeoutSeconds <= MAX_TIMEOUT_SECONDS;
+  if (!isTimeoutValid || !Number.isSafeInteger(maxOutputBytes) || maxOutputBytes <= 0) {
+    throw new Exception("The timeout must be a positive number of at most 2,147,483 seconds, and the output limit a positive safe integer.", {
+      code: ERRORS3.INVALID_PROCESS_OPTIONS,
+      data: { timeoutSeconds: String(timeoutSeconds), maxOutputBytes: String(maxOutputBytes) }
+    });
+  }
+};
+var decodeOutput = (chunks, encoding) => {
+  const output = Buffer.concat(chunks);
+  return encoding === "buffer" ? output : output.toString("utf-8");
+};
+var destroyStdio = (child) => {
+  child.stdin?.destroy();
+  child.stdout?.destroy();
+  child.stderr?.destroy();
+};
+var waitForClose = (child, isClosed, milliseconds) => new Promise((resolve4) => {
+  if (isClosed()) {
+    resolve4(true);
+    return;
+  }
+  const onClose = () => {
+    clearTimeout(timer);
+    resolve4(true);
+  };
+  const timer = setTimeout(() => {
+    child.off("close", onClose);
+    resolve4(false);
+  }, milliseconds);
+  child.once("close", onClose);
+});
+var stopTree = async (child) => {
+  try {
+    await stopProcessTree(child);
+  } catch (error) {
+    destroyStdio(child);
+    throw error;
+  }
+};
+var runProcess = async (options) => {
+  const { command, args, cwd, env, input, timeoutSeconds, maxOutputBytes = DEFAULT_MAX_OUTPUT_BYTES, signal, encoding = "utf-8" } = options;
+  validateLimits(timeoutSeconds, maxOutputBytes);
+  signal?.throwIfAborted();
+  const startedAt = performance.now();
+  const child = spawn2(command, args, {
+    cwd,
+    env,
+    stdio: "pipe",
+    detached: process.platform !== "win32",
+    windowsHide: true
+  });
+  const stdout = [];
+  const stderr = [];
+  let outputBytes = 0;
+  let isClosed = false;
+  child.once("close", () => {
+    isClosed = true;
+  });
+  const outcome = await new Promise((resolve4) => {
+    let timer;
+    const onAbort = () => {
+      clearTimeout(timer);
+      resolve4({ kind: "failed", error: signal?.reason });
+    };
+    const settle = (value) => {
+      clearTimeout(timer);
+      signal?.removeEventListener("abort", onAbort);
+      resolve4(value);
+    };
+    const collect = (chunks) => (chunk) => {
+      outputBytes += chunk.length;
+      if (outputBytes > maxOutputBytes) {
+        settle({ kind: "failed", error: outputTooLarge(command, maxOutputBytes) });
+        return;
+      }
+      chunks.push(chunk);
+    };
+    child.stdout.on("data", collect(stdout));
+    child.stderr.on("data", collect(stderr));
+    child.stdout.on("error", () => void 0);
+    child.stderr.on("error", () => void 0);
+    child.on("error", (error) => settle({ kind: "failed", error: startFailed(command, error) }));
+    child.once("exit", (exitCode, signalCode) => settle({ kind: "exited", exitCode, signalCode }));
+    child.stdin.on("error", (error) => {
+      if (!IGNORED_STDIN_ERROR_CODES.includes(error.code ?? "")) {
+        settle({ kind: "failed", error: startFailed(command, error) });
+      }
+    });
+    if (timeoutSeconds !== void 0) {
+      timer = setTimeout(() => settle({
+        kind: "failed",
+        error: new Exception(`The process '${command}' didn't finish within ${timeoutSeconds} seconds.`, { code: ERRORS3.PROCESS_TIMED_OUT })
+      }), timeoutSeconds * 1e3);
+    }
+    signal?.addEventListener("abort", onAbort, { once: true });
+    child.stdin.end(input);
+  });
+  if (outcome.kind === "failed") {
+    await stopTree(child);
+    destroyStdio(child);
+    throw outcome.error;
+  }
+  await stopTree(child);
+  if (!await waitForClose(child, () => isClosed, DEFAULT_GRACE_PERIOD_SECONDS * 1e3)) {
+    destroyStdio(child);
+    throw new Exception(`A process started by '${command}' kept its output open after it exited.`, {
+      code: ERRORS3.PROCESS_TREE_SURVIVED
+    });
+  }
+  if (outputBytes > maxOutputBytes) {
+    throw outputTooLarge(command, maxOutputBytes);
+  }
+  return {
+    exitCode: outcome.exitCode,
+    signalCode: outcome.signalCode,
+    stdout: decodeOutput(stdout, encoding),
+    stderr: decodeOutput(stderr, encoding),
+    durationMs: Math.round(performance.now() - startedAt)
+  };
+};
+
+// node_modules/jg-git-commands/dist/run-git/run-git.js
+var isDirectory = async (path2) => {
+  try {
+    return (await stat(path2)).isDirectory();
+  } catch {
+    return false;
+  }
+};
+var areArgsValid = (args) => Array.isArray(args) && args.every((arg) => typeof arg === "string" && !arg.includes("\0"));
+var isCallerVariable = (key) => {
+  const name = key.toUpperCase();
+  return name !== "GIT_ASKPASS" && name !== "GIT_TERMINAL_PROMPT" && !name.startsWith("SSH_ASKPASS");
+};
+var runGit = async (args, { cwd, timeoutSeconds = DEFAULT_GIT_TIMEOUT_SECONDS, maxOutputBytes = DEFAULT_GIT_MAX_OUTPUT_BYTES, input, signal, isolateConfig = false, useCredentialHelpers = false, env, encoding }) => {
+  if (!areArgsValid(args)) {
+    throw invalidArgument("args");
+  }
+  if (!isArgumentValid(cwd) || !await isDirectory(cwd)) {
+    throw invalidArgument("cwd");
+  }
+  const gitEnv = {
+    ...createGitEnvironment({ isolateConfig }),
+    ...Object.fromEntries(Object.entries(env ?? {}).filter(([key]) => isCallerVariable(key)))
+  };
+  try {
+    return await runProcess({
+      command: "git",
+      args: [
+        ...FIXED_CONFIG_ARGS,
+        ...isolateConfig ? ["-c", `core.attributesFile=${GIT_NULL_DEVICE}`] : [],
+        ...useCredentialHelpers ? [] : NO_CREDENTIAL_HELPERS_ARGS,
+        "--no-pager",
+        ...args
+      ],
+      cwd,
+      env: gitEnv,
+      timeoutSeconds,
+      maxOutputBytes,
+      ...input === void 0 ? {} : { input },
+      ...signal === void 0 ? {} : { signal },
+      ...encoding === void 0 ? {} : { encoding }
+    });
+  } catch (error) {
+    const isNotFound = getErrorCode(error) === ERRORS3.PROCESS_START_FAILED && getErrorCode(error.cause) === "ENOENT";
+    if (isNotFound && process.platform === "win32" && cwd.length >= WINDOWS_MAX_PATH) {
+      throw invalidArgument("cwd");
+    }
+    if (isNotFound) {
+      throw new Exception("Git isn't installed, or isn't on the PATH.", {
+        code: ERRORS2.GIT_NOT_FOUND,
+        cause: error
+      });
+    }
+    throw error;
+  }
+};
+
+// node_modules/jg-git-commands/dist/run-git/assert-succeeded.js
+var assertGitSucceeded = (result, subcommand) => {
+  if (result.exitCode === 0) {
+    return;
+  }
+  const stderr = typeof result.stderr === "string" ? result.stderr : result.stderr.toString("utf8");
+  const data = { subcommand, exitCode: result.exitCode };
+  if (REPOSITORY_NOT_FOUND_PATTERN.test(stderr)) {
+    throw new Exception("The directory isn't in a Git repository.", {
+      code: ERRORS2.GIT_REPOSITORY_NOT_FOUND,
+      data
+    });
+  }
+  if (ACCESS_DENIED_PATTERN.test(stderr)) {
+    throw new Exception("Git can't access the repository.", {
+      code: ERRORS2.GIT_ACCESS_DENIED,
+      data
+    });
+  }
+  throw new Exception("The git command failed.", { code: ERRORS2.GIT_COMMAND_FAILED, data });
+};
+
+// node_modules/jg-git-commands/dist/commands/utilities.js
+var INDEX_ENTRY_HEADER_PATTERN = /^([0-7]{6}) [0-9a-f]{40,64} ([0-3])$/;
+var readSuccessfulOutput = (result, subcommand) => {
+  assertGitSucceeded(result, subcommand);
+  return result.stdout;
+};
+var readCompleteOutput = (result, subcommand) => {
+  const stdout = readSuccessfulOutput(result, subcommand);
+  if (result.stderr.length > 0) {
+    throw invalidOutput(subcommand);
+  }
+  return stdout;
+};
+var decodeText = (output, subcommand) => {
+  try {
+    return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(output);
+  } catch {
+    throw invalidOutput(subcommand);
+  }
+};
+var decodeRecords = (output, subcommand) => {
+  const text = decodeText(output, subcommand);
+  if (text === "") {
+    return [];
+  }
+  const records = text.split("\0");
+  if (records.pop() !== "") {
+    throw invalidOutput(subcommand);
+  }
+  return records;
+};
+var parseIndexEntries = (records) => records.map((record) => {
+  const tab = record.indexOf("	");
+  const header = tab === -1 ? null : INDEX_ENTRY_HEADER_PATTERN.exec(record.slice(0, tab));
+  if (header === null || tab === record.length - 1) {
+    throw invalidOutput("ls-files");
+  }
+  return {
+    mode: header[1],
+    stage: Number(header[2]),
+    path: record.slice(tab + 1)
+  };
+});
+
+// node_modules/jg-git-commands/dist/commands/commands.js
+var toPathspecArgs = (paths) => {
+  if (paths === void 0) {
+    return ["--"];
+  }
+  if (!Array.isArray(paths) || !paths.every(isArgumentValid)) {
+    throw invalidArgument("paths");
+  }
+  return ["--", ...paths];
+};
+var readIndexEntries = async (cwd, { paths, ...options } = {}) => {
+  const pathspec = toPathspecArgs(paths);
+  const output = readCompleteOutput(await runGit(["ls-files", "--cached", "--stage", "--full-name", "-z", ...pathspec], {
+    ...options,
+    cwd,
+    encoding: "buffer"
+  }), "ls-files");
+  return parseIndexEntries(decodeRecords(output, "ls-files"));
+};
+var listUntrackedFiles = async (cwd, { paths, ...options } = {}) => {
+  const pathspec = toPathspecArgs(paths);
+  const output = readCompleteOutput(await runGit(["ls-files", "--others", "--exclude-standard", "--full-name", "-z", ...pathspec], {
+    ...options,
+    cwd,
+    encoding: "buffer"
+  }), "ls-files");
+  return decodeRecords(output, "ls-files");
+};
+var readConfigBoolean = async (cwd, key, defaultValue, options = {}) => {
+  if (!isArgumentValid(key) || key.startsWith("-") || /\s/.test(key)) {
+    throw invalidArgument("key");
+  }
+  if (typeof defaultValue !== "boolean") {
+    throw invalidArgument("defaultValue");
+  }
+  const value = readSuccessfulOutput(await runGit(["config", "--type=bool", `--default=${String(defaultValue)}`, "--get", key], {
+    ...options,
+    cwd
+  }), "config");
+  if (value !== "true\n" && value !== "false\n") {
+    throw invalidOutput("config");
+  }
+  return value === "true\n";
+};
 
 // node_modules/error-message-utils/dist/shared/constants.js
 var CODE_WRAPPER = { prefix: "{(", suffix: ")}" };
-var DEFAULT_MESSAGE = "The error message could not be extracted, check the logs for more information.";
+var DEFAULT_MESSAGE2 = "The error message could not be extracted, check the logs for more information.";
 var DEFAULT_CODE = -1;
 
 // node_modules/zod/v4/core/core.js
@@ -313,7 +1177,7 @@ var unwrapCode = (t) => {
 
 // node_modules/error-message-utils/dist/error-handler/utilities.js
 var __extractPathFromZodError = (r) => r && Array.isArray(r.issues) && r.issues.length && Array.isArray(r.issues[0].path) && r.issues[0].path.length ? r.issues[0].path.join(".") : "Unknown path";
-var extractZodErrorMessage = (r) => r && Array.isArray(r.issues) && r.issues.length && Array.isArray(r.issues[0].path) && r.issues[0].message ? `${r.issues[0].message} (${__extractPathFromZodError(r)})` : DEFAULT_MESSAGE;
+var extractZodErrorMessage = (r) => r && Array.isArray(r.issues) && r.issues.length && Array.isArray(r.issues[0].path) && r.issues[0].message ? `${r.issues[0].message} (${__extractPathFromZodError(r)})` : DEFAULT_MESSAGE2;
 var __isErrorCodeCarrier = (r) => "object" == typeof r && null !== r && "code" in r && ("string" == typeof r.code || "number" == typeof r.code);
 var getDecodedErrorCode = (r, s) => s !== DEFAULT_CODE ? s : __isErrorCodeCarrier(r) ? r.code : DEFAULT_CODE;
 
@@ -322,7 +1186,7 @@ var __extractMessage = (r, e) => {
   if ("string" == typeof r && r.length) return r;
   if (r instanceof ZodError) return extractZodErrorMessage(r);
   if (r && "object" == typeof r) {
-    if (e.has(r)) return DEFAULT_MESSAGE;
+    if (e.has(r)) return DEFAULT_MESSAGE2;
     e.add(r);
   }
   if (r instanceof Error && r.message) return r.cause ? `${r.message}; [CAUSE]: ${__extractMessage(r.cause, e)}` : r.message;
@@ -344,17 +1208,17 @@ var __extractMessage = (r, e) => {
       console.error("Error during extractMessage:"), console.error("Original Error: ", r), console.error("JSON.stringify Error:", e2);
     }
   }
-  return DEFAULT_MESSAGE;
+  return DEFAULT_MESSAGE2;
 };
-var extractMessage = (r) => __extractMessage(r, /* @__PURE__ */ new WeakSet());
-var encodeError = (r, e) => `${extractMessage(r)}${wrapCode(e)}`;
+var extractMessage2 = (r) => __extractMessage(r, /* @__PURE__ */ new WeakSet());
+var encodeError = (r, e) => `${extractMessage2(r)}${wrapCode(e)}`;
 var decodeError = (r) => {
-  const e = extractMessage(r), { code: t, startsAt: s } = unwrapCode(e);
+  const e = extractMessage2(r), { code: t, startsAt: s } = unwrapCode(e);
   return { message: s > 0 ? e.slice(0, s) : e, code: getDecodedErrorCode(r, t), data: null !== r && "object" == typeof r && "data" in r ? r.data : null };
 };
 
 // node_modules/error-message-utils/dist/exception/exception.js
-var Exception = class extends Error {
+var Exception2 = class extends Error {
   code;
   data;
   constructor(e, r, t) {
@@ -396,7 +1260,7 @@ var attachCause = (exception, cause) => {
     writable: false
   });
 };
-var RepositoryPathException = class extends Exception {
+var RepositoryPathException = class extends Exception2 {
   code;
   /** Creates a safe path exception without exposing the rejected value. */
   constructor(options) {
@@ -406,7 +1270,7 @@ var RepositoryPathException = class extends Exception {
     attachCause(this, options?.cause);
   }
 };
-var RepositorySourceException = class extends Exception {
+var RepositorySourceException = class extends Exception2 {
   code;
   operation;
   path;
@@ -983,7 +1847,7 @@ var resolveRepositoryLink = async (source, path2, options) => {
 // node_modules/@moldea.ai/repository-fs/dist/index.js
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { constants } from "node:fs";
-import { lstat, open, opendir, readlink, realpath } from "node:fs/promises";
+import { lstat as lstat2, open, opendir, readlink, realpath } from "node:fs/promises";
 import path from "node:path";
 import { TextDecoder as TextDecoder2 } from "node:util";
 var DEFAULT_FILESYSTEM_REPOSITORY_RESOURCE_LIMITS = Object.freeze({
@@ -1217,7 +2081,7 @@ var hashParts = (parts) => {
   }
   return `sha256:${hash.digest("hex")}`;
 };
-var getErrorCode2 = (cause) => {
+var getErrorCode3 = (cause) => {
   if (typeof cause !== "object" || cause === null || !("code" in cause)) return;
   const code = cause.code;
   return typeof code === "string" ? code : void 0;
@@ -1233,7 +2097,7 @@ var throwSource = (code, operation, logicalPath, retryable, cause, resource) => 
   });
 };
 var throwMappedHostError = (cause, operation, logicalPath) => {
-  const code = getErrorCode2(cause);
+  const code = getErrorCode3(cause);
   if (code === "EACCES" || code === "EPERM") return throwSource("ACCESS_DENIED", operation, logicalPath, true, cause);
   if (operation !== "create-reader" && (code === "ENOENT" || code === "ENOTDIR" || code === "ELOOP")) return throwSource("SNAPSHOT_CHANGED", operation, logicalPath, true, cause);
   if (operation === "create-reader" && (code === "ENOENT" || code === "ENOTDIR")) return throwSource("ENTRY_NOT_FOUND", operation, logicalPath, true, cause);
@@ -1328,14 +2192,14 @@ var OperationGate = class {
       limit: this.#limits.maxQueuedOperations,
       observed: this.#waiters.length + 1
     });
-    await new Promise((resolve3, reject) => {
+    await new Promise((resolve4, reject) => {
       let isSettled = false;
       const resume = () => {
         if (isSettled) return;
         isSettled = true;
         signal?.removeEventListener("abort", abort);
         this.#active += 1;
-        resolve3();
+        resolve4();
       };
       const abort = () => {
         if (isSettled) return;
@@ -1754,7 +2618,7 @@ var FilesystemRepositoryReader = class {
         }
       }
       if (isSelectedName) {
-        const statistics = await lstat(this.#getHostPath(logicalPath), { bigint: true });
+        const statistics = await lstat2(this.#getHostPath(logicalPath), { bigint: true });
         if (!statistics.isDirectory() || getStatisticsIdentity(statistics, "directory") !== parentIdentity) throwSource("SNAPSHOT_CHANGED", operation, logicalPath, true);
         this.#selectedDirectoryProofs.set(logicalPath, {
           identity: parentIdentity,
@@ -1782,7 +2646,7 @@ var FilesystemRepositoryReader = class {
       if (!await this.#hasExactChildName(currentPath, segment, operation, parentIdentity, directoryFrames, signal)) return null;
       currentPath = parseRepositoryPath(currentPath === REPOSITORY_ROOT ? `/${segment}` : `${currentPath}/${segment}`);
       try {
-        statistics = await lstat(this.#getHostPath(currentPath), { bigint: true });
+        statistics = await lstat2(this.#getHostPath(currentPath), { bigint: true });
       } catch (cause) {
         return throwMappedHostError(cause, operation, currentPath);
       }
@@ -1796,7 +2660,7 @@ var FilesystemRepositoryReader = class {
       throwIfAborted2(signal, operation, logicalPath);
       let currentStatistics;
       try {
-        currentStatistics = await lstat(this.#getHostPath(parent.path), { bigint: true });
+        currentStatistics = await lstat2(this.#getHostPath(parent.path), { bigint: true });
       } catch (cause) {
         return throwMappedHostError(cause, operation, parent.path);
       }
@@ -1807,7 +2671,7 @@ var FilesystemRepositoryReader = class {
   }
   async #assertRootUnchanged(operation, logicalPath) {
     try {
-      const statistics = await lstat(this.#rootDirectory, { bigint: true });
+      const statistics = await lstat2(this.#rootDirectory, { bigint: true });
       const rootIdentity = this.#observations.get(REPOSITORY_ROOT);
       if (!statistics.isDirectory() || rootIdentity === void 0 || getStatisticsIdentity(statistics, "directory") !== rootIdentity) return throwSource("SNAPSHOT_CHANGED", operation, logicalPath, true);
       return statistics;
@@ -1870,7 +2734,7 @@ var prepareRoot = async (options) => {
   throwIfAborted2(options.signal, "create-reader", null);
   try {
     const rootDirectory = await realpath(options.rootDirectory);
-    const statistics = await lstat(rootDirectory, { bigint: true });
+    const statistics = await lstat2(rootDirectory, { bigint: true });
     if (!statistics.isDirectory()) throwSource("ENTRY_NOT_DIRECTORY", "create-reader", null, false);
     return {
       identity: getStatisticsIdentity(statistics, "directory"),
@@ -1891,104 +2755,58 @@ var createFilesystemRepositoryReader = async (rawOptions) => {
 };
 
 // src/portable/git-command/constants.ts
-var HARDENED_GIT_CONFIGURATIONS = [
-  "core.attributesFile=/dev/null",
-  // empty disables the monitor on every supported Git; before Git 2.36, false names a hook
-  "core.fsmonitor=",
-  "core.pager=cat",
-  "filter.lfs.clean=",
-  "filter.lfs.process=",
-  "filter.lfs.required=false",
-  "filter.lfs.smudge="
+var GIT_LFS_FILTER_CONFIGURATIONS = [
+  ["filter.lfs.clean", ""],
+  ["filter.lfs.process", ""],
+  ["filter.lfs.required", "false"],
+  ["filter.lfs.smudge", ""]
 ];
-var HARDENED_GIT_DIFF_CONFIGURATION = "diff.external=";
-var REMOVED_GIT_ENVIRONMENT_NAMES = [
-  "GIT_DIR",
-  "GIT_WORK_TREE",
-  "GIT_COMMON_DIR",
-  "GIT_INDEX_FILE",
-  "GIT_OBJECT_DIRECTORY",
-  "GIT_ALTERNATE_OBJECT_DIRECTORIES",
-  "GIT_ATTR_SOURCE",
-  "GIT_CONFIG",
-  "GIT_CONFIG_PARAMETERS",
-  "GIT_CONFIG_COUNT",
-  "GIT_GLOB_PATHSPECS",
-  "GIT_NOGLOB_PATHSPECS",
-  "GIT_ICASE_PATHSPECS"
-];
-var CLI_REMOVED_GIT_ENVIRONMENT_NAMES = [
-  "GIT_CEILING_DIRECTORIES",
-  "GIT_DISCOVERY_ACROSS_FILESYSTEM",
-  "GIT_NAMESPACE",
-  "GIT_SHALLOW_FILE",
-  "GIT_CONFIG_SYSTEM",
-  "GIT_CONFIG_GLOBAL",
-  "GIT_CONFIG_NOSYSTEM",
-  "GIT_EXEC_PATH",
-  "GIT_LITERAL_PATHSPECS"
-];
+var WINDOWS_MAX_GIT_DIRECTORY_LENGTH = 260;
 
 // src/portable/git-command/git-command.ts
-import { spawnSync } from "node:child_process";
 var GitCommandError = class extends Error {
 };
-var createEnvironment = (repositoryRoot, configScope) => {
-  const removedNames = new Set(
-    configScope === "cli" ? [...REMOVED_GIT_ENVIRONMENT_NAMES, ...CLI_REMOVED_GIT_ENVIRONMENT_NAMES] : REMOVED_GIT_ENVIRONMENT_NAMES
-  );
-  const environment = {};
-  for (const [name, value] of Object.entries(process.env)) {
-    const upperName = name.toUpperCase();
-    if (removedNames.has(upperName) || /^GIT_CONFIG_(?:KEY|VALUE)_/u.test(upperName) || configScope === "cli" && upperName.startsWith("GIT_TRACE"))
-      continue;
-    environment[name] = value;
-  }
-  return {
-    ...environment,
-    // reads never fetch missing objects; Git without GIT_NO_LAZY_FETCH needs the empty protocol list
-    GIT_ALLOW_PROTOCOL: "",
-    GIT_NO_LAZY_FETCH: "1",
-    GIT_OPTIONAL_LOCKS: "0",
-    GIT_WORK_TREE: repositoryRoot,
-    GIT_LITERAL_PATHSPECS: "1",
-    ...configScope === "repository" ? { GIT_ATTR_NOSYSTEM: "1", GIT_CONFIG_GLOBAL: "/dev/null", GIT_CONFIG_NOSYSTEM: "1" } : {}
-  };
-};
-var runGitCommand = (repositoryRoot, gitArguments, options) => {
-  if (process.platform === "win32" && repositoryRoot.length >= 260)
+var GIT_READ_ERROR_CODES = /* @__PURE__ */ new Set([
+  ...Object.values(ERRORS2),
+  ...Object.values(ERRORS3)
+]);
+var createGitCommandOptions = (repositoryRoot, configScope, maxOutputBytes) => {
+  if (process.platform === "win32" && repositoryRoot.length >= WINDOWS_MAX_GIT_DIRECTORY_LENGTH)
     throw new GitCommandError(
       "The repository path exceeds Windows' 260-character working-directory limit for Git; move or clone it to a shorter path."
     );
-  const configurations = [...HARDENED_GIT_CONFIGURATIONS];
-  if (gitArguments[0] === "diff") configurations.push(HARDENED_GIT_DIFF_CONFIGURATION);
-  const result = spawnSync(
-    "git",
-    [...configurations.flatMap((setting) => ["-c", setting]), "--no-pager", ...gitArguments],
-    {
-      cwd: repositoryRoot,
-      encoding: "buffer",
-      env: createEnvironment(repositoryRoot, options.configScope),
-      maxBuffer: options.maxOutputBytes,
-      timeout: 3e4,
-      windowsHide: true
+  return {
+    isolateConfig: configScope === "repository",
+    maxOutputBytes,
+    env: {
+      GIT_WORK_TREE: repositoryRoot,
+      GIT_CONFIG_COUNT: String(GIT_LFS_FILTER_CONFIGURATIONS.length),
+      ...Object.fromEntries(
+        GIT_LFS_FILTER_CONFIGURATIONS.flatMap(([key, value], index) => [
+          [`GIT_CONFIG_KEY_${index}`, key],
+          [`GIT_CONFIG_VALUE_${index}`, value]
+        ])
+      )
     }
-  );
-  if (result.error && "code" in result.error && result.error.code === "ENOBUFS")
-    throw new RangeError("Git output exceeds its bounded capture limit.");
-  const acceptedExitCodes = options.acceptedExitCodes ?? [0];
-  if (result.error || result.status === null || !acceptedExitCodes.includes(result.status)) {
-    const firstErrorLine = (result.stderr?.subarray(0, 512).toString("utf8") || result.error?.message || "").split(/[\r\n]/u, 1)[0].replace(/[\p{Cc}]/gu, " ").trim();
-    throw new GitCommandError(
-      `The bounded Git read failed or exceeded its limit.${firstErrorLine ? ` ${firstErrorLine}` : ""}`,
-      { cause: result.error }
-    );
-  }
-  return { status: result.status, stdout: result.stdout };
+  };
 };
+var isGitCommandError = (error) => error instanceof GitCommandError || GIT_READ_ERROR_CODES.has(getErrorCode(error) ?? "");
+
+// src/portable/instruction-link/constants.ts
+var INSTRUCTION_PATHS = /* @__PURE__ */ new Set([
+  "/AGENTS.md",
+  "/CLAUDE.md",
+  "/.claude/CLAUDE.md",
+  "/CLAUDE.local.md"
+]);
+var INSTRUCTION_GIT_OUTPUT_BYTES = 4096;
 
 // src/portable/instruction-link/instruction-link.ts
-var STAGED_ENTRY_PATTERN = /^([0-7]{6}) (?:[0-9a-f]{40}|[0-9a-f]{64}) [0-3]\t(.+)$/su;
+var LINKED_PARENT_ERROR_CODES = /* @__PURE__ */ new Set([
+  ERRORS.NOT_A_DIRECTORY,
+  ERRORS.PATH_NOT_CANONICAL,
+  ERRORS.PATH_OUTSIDE_ROOT
+]);
 var decoder2 = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
 var REFUSALS = {
   outside: "links outside the repository, and moldea only checks files in the repository. Replace an absolute link with a relative one, or move the instructions into the repository",
@@ -1997,48 +2815,31 @@ var REFUSALS = {
   "not-file": "doesn't link straight to a file. Point the link straight at a file in the repository",
   unsupported: "doesn't link straight to a file. Point the link straight at a file in the repository"
 };
-var toHostPath = (repositoryRoot, path2) => join(repositoryRoot, ...path2.replace(/^\//u, "").split("/"));
+var toHostPath = (repositoryRoot, path2) => join2(repositoryRoot, ...path2.replace(/^\//u, "").split("/"));
 var lstatIfPresent = async (path2) => {
   try {
-    return await lstat2(path2);
+    return await lstat3(path2);
   } catch (error) {
     if (error instanceof Error && "code" in error && error.code === "ENOENT") return void 0;
     throw error;
   }
 };
-var readGitStorage = (repositoryRoot, path2) => {
+var readGitStorage = async (repositoryRoot, path2) => {
   const relativePath = path2.slice(1);
-  const { stdout } = runGitCommand(
-    repositoryRoot,
-    [...INSTRUCTION_GIT_STORAGE_ARGUMENTS, relativePath],
-    { configScope: "cli", maxOutputBytes: INSTRUCTION_GIT_OUTPUT_BYTES }
-  );
-  let text;
-  try {
-    text = decoder2.decode(stdout);
-  } catch (error) {
-    throw new GitCommandError("Git returned path evidence that is not UTF-8.", { cause: error });
-  }
-  if (text !== "" && !text.endsWith("\0"))
-    throw new GitCommandError("Git returned incomplete path evidence.");
-  let isUntracked = false;
-  const modes = [];
-  for (const record of text.split("\0").slice(0, -1)) {
-    if (record === relativePath) isUntracked = true;
-    const staged = STAGED_ENTRY_PATTERN.exec(record);
-    if (staged?.[2] === relativePath) modes.push(staged[1]);
-  }
-  return modes.length > 0 ? modes : isUntracked ? [] : null;
+  const options = {
+    ...createGitCommandOptions(repositoryRoot, "cli", INSTRUCTION_GIT_OUTPUT_BYTES),
+    paths: [relativePath]
+  };
+  const modes = (await readIndexEntries(repositoryRoot, options)).filter((entry) => entry.path === relativePath).map(({ mode }) => mode);
+  if (modes.length > 0) return modes;
+  return (await listUntrackedFiles(repositoryRoot, options)).includes(relativePath) ? [] : null;
 };
-var readSymlinkSetting = (repositoryRoot) => {
-  const output = runGitCommand(repositoryRoot, INSTRUCTION_GIT_SYMLINK_SETTING_ARGUMENTS, {
-    configScope: "cli",
-    maxOutputBytes: INSTRUCTION_GIT_OUTPUT_BYTES
-  }).stdout.toString("utf8");
-  if (output !== "true\n" && output !== "false\n")
-    throw new GitCommandError("Git returned an invalid core.symlinks value.");
-  return output === "true\n";
-};
+var readSymlinkSetting = (repositoryRoot) => readConfigBoolean(
+  repositoryRoot,
+  "core.symlinks",
+  true,
+  createGitCommandOptions(repositoryRoot, "cli", INSTRUCTION_GIT_OUTPUT_BYTES)
+);
 var createWriterLinkSource = async (repositoryRoot) => {
   const reader = await createFilesystemRepositoryReader({
     rootDirectory: repositoryRoot,
@@ -2050,10 +2851,10 @@ var createWriterLinkSource = async (repositoryRoot) => {
     getEntry: async (path2, options) => {
       const entry = await reader.getEntry(path2, options);
       if (entry?.type !== "file" && entry?.type !== "symlink") return entry;
-      const modes = readGitStorage(repositoryRoot, path2);
+      const modes = await readGitStorage(repositoryRoot, path2);
       if (modes === null) return INSTRUCTION_PATHS.has(path2) ? entry : null;
       if (entry.type === "symlink" || !modes.includes("120000")) return entry;
-      areSymlinksEnabled ??= readSymlinkSetting(repositoryRoot);
+      areSymlinksEnabled ??= await readSymlinkSetting(repositoryRoot);
       if (areSymlinksEnabled) return entry;
       if (modes.some((mode) => mode === "100644" || mode === "100755"))
         throw new Error(
@@ -2090,7 +2891,7 @@ var resolveInstructionTarget = async (repositoryRoot, instructionPath) => {
       parseRepositoryPath(`/${instructionPath}`)
     );
   } catch (error) {
-    if (error instanceof GitCommandError || error instanceof RangeError)
+    if (isGitCommandError(error))
       throw new Error(
         `${instructionPath} was not updated: Git could not report how the repository stores this file`,
         { cause: error }
@@ -2105,13 +2906,13 @@ var resolveInstructionWriteTarget = async (repositoryRoot, instructionPath) => {
   const ownPath = toHostPath(repositoryRoot, instructionPath);
   const ownTarget = { hostPath: ownPath, confirm: async () => {
   } };
-  const segments = instructionPath.split("/");
-  for (let index = 1; index < segments.length; index += 1) {
-    const parentStats = await lstatIfPresent(join(repositoryRoot, ...segments.slice(0, index)));
-    if (parentStats === void 0) return ownTarget;
-    if (!parentStats.isDirectory()) {
-      throw new Error(`${segments.slice(0, index).join("/")} must be a regular directory`);
-    }
+  try {
+    await assertNoLinksBelow(repositoryRoot, ownPath);
+  } catch (error) {
+    if (!LINKED_PARENT_ERROR_CODES.has(getErrorCode(error) ?? "")) throw error;
+    throw new Error(`${posix.dirname(instructionPath)} must be a regular directory`, {
+      cause: error
+    });
   }
   const ownStats = await lstatIfPresent(ownPath);
   if (ownStats === void 0 || !ownStats.isSymbolicLink() && !ownStats.isFile())
@@ -2131,8 +2932,8 @@ var resolveInstructionWriteTarget = async (repositoryRoot, instructionPath) => {
 // src/portable/managed-block/managed-block.ts
 import { randomUUID } from "node:crypto";
 import { constants as constants2 } from "node:fs";
-import { chmod, lstat as lstat3, open as open2, rename, rm, writeFile } from "node:fs/promises";
-import { basename, dirname, isAbsolute, join as join2, resolve } from "node:path";
+import { chmod, lstat as lstat4, open as open2, rename, rm, writeFile } from "node:fs/promises";
+import { basename as basename2, dirname, isAbsolute as isAbsolute2, join as join3, resolve as resolve2 } from "node:path";
 var MAX_DOCUMENT_BYTES = 2 * 1024 * 1024;
 var MAX_MANAGED_BLOCK_BYTES = 4 * 1024;
 var START_MARKER = "<!-- moldea:start -->";
@@ -2303,18 +3104,18 @@ var createManagedBlockBytes = (documentBytes, block, fileName = "README.md") => 
   return updatedBytes;
 };
 var readManagedFile = async (filePath) => {
-  const pathStats = await lstat3(filePath);
+  const pathStats = await lstat4(filePath);
   if (!pathStats.isFile()) {
-    throw new Error(`${basename(filePath)} must be a regular file`);
+    throw new Error(`${basename2(filePath)} must be a regular file`);
   }
   if (pathStats.size > MAX_DOCUMENT_BYTES) {
-    throw new Error(`${basename(filePath)} exceeds the ${MAX_DOCUMENT_BYTES}-byte limit`);
+    throw new Error(`${basename2(filePath)} exceeds the ${MAX_DOCUMENT_BYTES}-byte limit`);
   }
   const fileHandle = await open2(filePath, constants2.O_RDONLY | (constants2.O_NOFOLLOW ?? 0));
   try {
     const openStats = await fileHandle.stat();
     if (!openStats.isFile() || openStats.dev !== pathStats.dev || openStats.ino !== pathStats.ino) {
-      throw new Error(`${basename(filePath)} changed while it was being opened`);
+      throw new Error(`${basename2(filePath)} changed while it was being opened`);
     }
     const boundedBytes = Buffer.allocUnsafe(MAX_DOCUMENT_BYTES + 1);
     let bytesRead = 0;
@@ -2331,7 +3132,7 @@ var readManagedFile = async (filePath) => {
       bytesRead += result.bytesRead;
     }
     if (bytesRead > MAX_DOCUMENT_BYTES) {
-      throw new Error(`${basename(filePath)} exceeds the ${MAX_DOCUMENT_BYTES}-byte limit`);
+      throw new Error(`${basename2(filePath)} exceeds the ${MAX_DOCUMENT_BYTES}-byte limit`);
     }
     return {
       bytes: Buffer.from(boundedBytes.subarray(0, bytesRead)),
@@ -2344,9 +3145,9 @@ var readManagedFile = async (filePath) => {
   }
 };
 var writeManagedFileAtomically = async (filePath, bytes, mode, expected) => {
-  const temporaryPath = join2(
+  const temporaryPath = join3(
     dirname(filePath),
-    `.${basename(filePath)}.${process.pid}.${randomUUID()}.tmp`
+    `.${basename2(filePath)}.${process.pid}.${randomUUID()}.tmp`
   );
   try {
     await writeFile(temporaryPath, bytes, { flag: "wx", mode });
@@ -2358,7 +3159,7 @@ var writeManagedFileAtomically = async (filePath, bytes, mode, expected) => {
       if (!isMissingFile(error)) throw error;
     }
     if (expected === void 0 ? observed !== void 0 : observed === void 0 || observed.dev !== expected.dev || observed.ino !== expected.ino || observed.mode !== expected.mode || !observed.bytes.equals(expected.bytes)) {
-      throw new Error(`${basename(filePath)} changed before replacement`);
+      throw new Error(`${basename2(filePath)} changed before replacement`);
     }
     await rename(temporaryPath, filePath);
   } finally {
@@ -2366,10 +3167,10 @@ var writeManagedFileAtomically = async (filePath, bytes, mode, expected) => {
   }
 };
 var updateManagedFile = async (repositoryRoot, block, fileName = "README.md", resolveWriteTarget) => {
-  if (typeof repositoryRoot !== "string" || !isAbsolute(repositoryRoot) || resolve(repositoryRoot) !== repositoryRoot) {
+  if (typeof repositoryRoot !== "string" || !isAbsolute2(repositoryRoot) || resolve2(repositoryRoot) !== repositoryRoot) {
     throw new Error("The repository root must be a normalized absolute path");
   }
-  const rootStats = await lstat3(repositoryRoot);
+  const rootStats = await lstat4(repositoryRoot);
   if (!rootStats.isDirectory() || rootStats.isSymbolicLink()) {
     throw new Error("The repository root must be a regular directory");
   }
@@ -2379,7 +3180,7 @@ var updateManagedFile = async (repositoryRoot, block, fileName = "README.md", re
     fileName === "README.md"
   );
   const target = await resolveWriteTarget?.();
-  const targetPath = target?.hostPath ?? join2(repositoryRoot, fileName);
+  const targetPath = target?.hostPath ?? join3(repositoryRoot, fileName);
   let currentBytes = Buffer.alloc(0);
   let currentMode = 420;
   let status = "created";
@@ -2477,33 +3278,33 @@ var updateClaudeImport = async (repositoryRoot, subject) => {
 };
 
 // src/portable/managed-agents/managed-agents.ts
-import { isPathWithin, resolveRepositoryFile } from "./repository-files.mjs";
+import { isPathWithin as isPathWithin2, resolveRepositoryFile } from "./repository-files.mjs";
 var MANAGED_AGENTS_TEMPLATE = "<!-- moldea:start -->\n\nWhen installed in this repository, moldea provides project context. Explicit moldea operations, direct agent or skill work, changes to what an in-app model decides or says (including inline calls), and project-context work use only the exact <repo-root>/{{skill-path}}/SKILL.md. If it is missing, continue without moldea and without searching for another copy, installing, or initializing; for an explicit moldea operation, report the unavailable installation. Otherwise, first read it unless its complete unchanged instructions are available, then follow its routing before repository checks. For other repository planning, implementation, or review, once you know the involved files, check only the exact files <repo-root>/{{skill-path}}/SKILL.md and <repo-root>/{{skill-path}}/scripts/relevance-gate.mjs. If either is missing, skip this section silently without searching for another copy, installing, or initializing moldea. Otherwise, before editing or giving conclusions, run:\n\nnode \"<repo-root>/{{skill-path}}/scripts/relevance-gate.mjs\" --repository \"<repo-root>\" --path \"<file>\" [--path \"<file>\" ...]\n\n<repo-root> is the absolute repository root. Pass file paths relative to that root, even from a subdirectory. Use only already-known paths; do not scan or run Git for this. With no known paths, skip this precheck.\n\n- Output 1: read <repo-root>/{{skill-path}}/SKILL.md unless its complete unchanged instructions are already available; retain the checked paths and result.\n- Output 0 or an error: continue without moldea and do not mention it.\n\nIf the task involves new files later, check only that new batch once before acting. Reuse unchanged results.\n<!-- moldea:end -->\n";
 var renderManagedAgentsBlock = async (repositoryRoot) => {
-  if (!isAbsolute2(repositoryRoot)) throw new Error("The repository root must be an absolute path.");
+  if (!isAbsolute3(repositoryRoot)) throw new Error("The repository root must be an absolute path.");
   const root = await realpath2(repositoryRoot);
-  const skillRoot = await realpath2(resolve2(dirname2(fileURLToPath(import.meta.url)), ".."));
-  if (root === skillRoot || !isPathWithin(root, skillRoot))
+  const skillRoot = await realpath2(resolve3(dirname2(fileURLToPath(import.meta.url)), ".."));
+  if (root === skillRoot || !isPathWithin2(root, skillRoot))
     throw new Error("The skill must be installed inside the repository.");
   await Promise.all(
     ["SKILL.md", "scripts/relevance-gate.mjs"].map(
-      (file) => resolveRepositoryFile(root, join3(skillRoot, file), 2097152)
+      (file) => resolveRepositoryFile(root, join4(skillRoot, file), 2097152)
     )
   );
-  const skillPath = relative(root, skillRoot).split(sep).join("/");
+  const skillPath = relative2(root, skillRoot).split(sep2).join("/");
   if (!/^[A-Za-z0-9._/-]+$/u.test(skillPath))
     throw new Error("The skill installation path cannot be represented safely in the command.");
   const block = MANAGED_AGENTS_TEMPLATE.replaceAll("{{skill-path}}", skillPath);
   assertManagedBlock(block, "AGENTS.md", false);
   return block;
 };
-var isDirectExecution = process.argv[1] !== void 0 && await realpath2(resolve2(process.argv[1])) === await realpath2(fileURLToPath(import.meta.url));
+var isDirectExecution = process.argv[1] !== void 0 && await realpath2(resolve3(process.argv[1])) === await realpath2(fileURLToPath(import.meta.url));
 if (isDirectExecution) {
   const arguments_ = process.argv.slice(2);
   const claudeSubject = arguments_[2] === "--claude" ? arguments_[3] : void 0;
   try {
     const optionCount = claudeSubject === void 0 ? 2 : 4;
-    if (arguments_[0] !== "--repository" || arguments_[1] === void 0 || !isAbsolute2(arguments_[1]) || arguments_[2] === "--claude" && !isClaudeInstructionSubject(claudeSubject) || arguments_.length < optionCount || arguments_.length > optionCount + 1 || arguments_.length === optionCount + 1 && arguments_[optionCount] !== "--print")
+    if (arguments_[0] !== "--repository" || arguments_[1] === void 0 || !isAbsolute3(arguments_[1]) || arguments_[2] === "--claude" && !isClaudeInstructionSubject(claudeSubject) || arguments_.length < optionCount || arguments_.length > optionCount + 1 || arguments_.length === optionCount + 1 && arguments_[optionCount] !== "--print")
       throw new Error(
         `Usage: managed-agents.mjs --repository <absolute-root> [--claude ${CLAUDE_INSTRUCTION_SUBJECTS.join("|")}] [--print]`
       );

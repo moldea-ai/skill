@@ -1,46 +1,15 @@
 import { appendFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { readChangedPaths, resolveCommit } from 'jg-git-commands';
 import { z } from 'zod';
 
-import { executeProcess } from '../process/index.ts';
-
-import { PRESENTATION_DIRECTORIES } from './constants.ts';
+import { CHANGED_PATHS_MAX_OUTPUT_BYTES, PRESENTATION_DIRECTORIES } from './constants.ts';
 import type { IChangeComparison } from './types.ts';
 
 const CommitShaSchema = z.string().regex(/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/);
 
-/**
- * Decodes complete Git name-status output, retaining both rename/copy paths.
- * @returns Every changed path, or null when the output cannot be trusted.
- */
-export const parseChangedPaths = (output: string): string[] | null => {
-  if (output === '') return [];
-  if (!output.endsWith('\0')) return null;
-  const fields = output.slice(0, -1).split('\0');
-  const paths: string[] = [];
-  for (let index = 0; index < fields.length;) {
-    const status = fields[index++];
-    if (status === undefined || !/^(?:[ADMT]|[RC](?:100|0?\d{1,2}))$/.test(status)) return null;
-    const pathCount = /^[RC]/.test(status) ? 2 : 1;
-    for (let count = 0; count < pathCount; count++) {
-      const changedPath = fields[index++];
-      if (
-        changedPath === undefined ||
-        changedPath === '' ||
-        changedPath.startsWith('/') ||
-        changedPath.includes('\\') ||
-        changedPath.split('/').some((part) => part === '.' || part === '..' || part === '')
-      )
-        return null;
-      paths.push(changedPath);
-    }
-  }
-  return paths;
-};
-
 /** Selects full conformance unless a nonempty complete batch is presentation-only. */
-export const requiresFullConformance = (paths: string[] | null): boolean =>
-  paths === null ||
+export const requiresFullConformance = (paths: readonly string[]): boolean =>
   paths.length === 0 ||
   paths.some(
     (changedPath) =>
@@ -61,29 +30,15 @@ export const classifyChanges = async (comparison: IChangeComparison): Promise<bo
   const tested = CommitShaSchema.safeParse(comparison.testedSha);
   if (!base.success || !tested.success) return true;
   for (const sha of [base.data, tested.data]) {
-    await executeProcess({
-      command: 'git',
-      args: ['cat-file', '-e', `${sha}^{commit}`],
-      cwd: comparison.repositoryRoot,
-    });
+    if ((await resolveCommit(comparison.repositoryRoot, sha)) !== sha)
+      throw new Error(`The commit ${sha} is unavailable for change classification.`);
   }
-  const result = await executeProcess({
-    command: 'git',
-    args: [
-      'diff',
-      '--no-ext-diff',
-      '--name-status',
-      '-z',
-      '--find-renames',
-      '--find-copies',
-      '--find-copies-harder',
-      base.data,
-      tested.data,
-      '--',
-    ],
-    cwd: comparison.repositoryRoot,
+  // a rename lists its old path as deleted and its new path as added
+  const paths = await readChangedPaths(comparison.repositoryRoot, base.data, {
+    to: tested.data,
+    maxOutputBytes: CHANGED_PATHS_MAX_OUTPUT_BYTES,
   });
-  return requiresFullConformance(parseChangedPaths(result.stdout));
+  return requiresFullConformance(paths);
 };
 
 if (process.argv[1] !== undefined && resolve(process.argv[1]) === import.meta.filename) {

@@ -1,14 +1,19 @@
 {
   "dependencies": {
     "semver": "7.8.5",
-    "@moldea.ai/core": "^8.0.0",
-    "@moldea.ai/repository": "^3.0.0",
-    "@moldea.ai/repository-fs": "^3.0.0"
+    "jg-crypto": "0.3.0",
+    "jg-process": "1.6.0",
+    "jg-exception": "1.7.0",
+    "jg-utilities": "1.7.0",
+    "@moldea.ai/core": "^9.0.0",
+    "jg-git-commands": "0.3.1",
+    "@moldea.ai/repository": "^4.0.0",
+    "@moldea.ai/repository-fs": "^4.0.0"
   },
   "moldeaRelease": {
     "cliJsonSchemaVersion": 7
   },
-  "version": "12.0.0",
+  "version": "13.0.0",
   "name": "@moldea.ai/cli",
   "private": true,
   "bin": {

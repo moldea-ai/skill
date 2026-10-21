@@ -1,8 +1,8 @@
 import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { isMainModule } from 'jg-process';
+import { writeJsonFile } from 'jg-fs';
 
-import { writeJsonFileAtomically } from '../../filesystem/index.ts';
 import { JourneyStepsSchema } from '../index.ts';
 
 import { isolatedEnvironment, readJson, readState, runCommand, verifyBundle } from './shared.ts';
@@ -55,14 +55,14 @@ export const nextRequest = async (workspace: string): Promise<string> => {
         await runCommand('git', ['rev-parse', 'HEAD'], repository, environment)
       ).stdout.trim(),
     };
-    await writeJsonFileAtomically(path.join(workspace, 'state.json'), state);
+    await writeJsonFile(path.join(workspace, 'state.json'), state);
   }
   const captureDirectory = path.join(workspace, 'capture', journey.id, step.id);
   await mkdir(captureDirectory, { recursive: true });
   return `${reissued ? 'RE-ISSUED\n' : ''}journey: ${journey.id}\nstep: ${step.id}\nrepository: ${repository}\ncapture-directory: ${captureDirectory}\nrequest:\n${step.request}\n`;
 };
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (isMainModule(import.meta.url)) {
   if (process.argv.length !== 2) throw new Error('next takes no arguments.');
   process.stdout.write(await nextRequest(process.cwd()));
 }

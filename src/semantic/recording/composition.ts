@@ -1,5 +1,4 @@
-import { createHash } from 'node:crypto';
-
+import { hashValue } from 'jg-crypto';
 import { z } from 'zod';
 
 import { readCompletedEvidenceRun, type IEvidenceBundle } from '../../evidence/index.ts';
@@ -52,10 +51,7 @@ export interface ISemanticSourceRun {
   evidenceSha256: string;
 }
 
-const createJsonSha256 = (input: unknown): string =>
-  createHash('sha256')
-    .update(`${JSON.stringify(input)}\n`)
-    .digest('hex');
+const createJsonSha256 = (input: unknown): string => hashValue(`${JSON.stringify(input)}\n`);
 
 const readArtifact = (bundle: IEvidenceBundle, artifactPath: string): unknown => {
   const file = bundle.artifacts.files.find(({ path }) => path === artifactPath);

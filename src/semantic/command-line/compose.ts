@@ -1,5 +1,7 @@
-import { createHash, randomUUID } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import path from 'node:path';
+import { hashValue } from 'jg-crypto';
+import { parseStrictArgs } from 'jg-process';
 
 import { readJsonFile, resolveContainedPath } from '../../filesystem/index.ts';
 import { storeCompletedEvidenceRun } from '../../evidence/index.ts';
@@ -20,38 +22,28 @@ import {
 const REPOSITORY_ROOT = path.resolve(import.meta.dirname, '../../..');
 const CASES_ROOT = path.join(REPOSITORY_ROOT, 'src', 'semantic', 'cases');
 
+/**
+ * Parses the composition's sources, review, case selection and preview flag.
+ * @throws
+ * - INVALID_ARGUMENTS: an unknown option, a positional argument, a missing or empty value, a
+ * repeated option, or a missing required one
+ * - The sources or the cases are not distinct identifiers.
+ */
 const parseArguments = (arguments_: readonly string[]) => {
-  const values = new Map<string, string>();
-  let isPreview = false;
-  for (let index = 0; index < arguments_.length; index += 1) {
-    const option = arguments_[index];
-    if (option === '--preview' && !isPreview) {
-      isPreview = true;
-      continue;
-    }
-    if (
-      option === undefined ||
-      !['--sources', '--review', '--cases'].includes(option) ||
-      values.has(option)
-    ) {
-      throw new Error(`Unsupported or duplicate semantic composition option: ${String(option)}.`);
-    }
-    const value = arguments_[index + 1];
-    if (value === undefined || value.startsWith('--')) {
-      throw new Error(`${option} requires one value.`);
-    }
-    values.set(option, value);
-    index += 1;
-  }
-  const sources = values.get('--sources')?.split(',') ?? [];
+  const values = parseStrictArgs(arguments_, {
+    cases: { type: 'string' },
+    preview: { type: 'boolean' },
+    review: { type: 'string' },
+    sources: { type: 'string', required: true },
+  });
+  const sources = values.sources.split(',');
   if (
-    sources.length === 0 ||
     new Set(sources).size !== sources.length ||
     sources.some((attemptId) => !/^sem-[a-z0-9-]+$/u.test(attemptId))
   ) {
     throw new Error('Semantic composition requires distinct attempt IDs in --sources.');
   }
-  const caseIds = values.get('--cases')?.split(',') ?? null;
+  const caseIds = values.cases?.split(',') ?? null;
   if (
     caseIds !== null &&
     (caseIds.length === 0 ||
@@ -60,13 +52,10 @@ const parseArguments = (arguments_: readonly string[]) => {
   ) {
     throw new Error('Semantic composition requires distinct case IDs in --cases.');
   }
-  return { caseIds, isPreview, reviewPath: values.get('--review') ?? null, sources };
+  return { caseIds, isPreview: values.preview, reviewPath: values.review ?? null, sources };
 };
 
-const createJsonSha256 = (input: unknown): string =>
-  createHash('sha256')
-    .update(`${JSON.stringify(input)}\n`)
-    .digest('hex');
+const createJsonSha256 = (input: unknown): string => hashValue(`${JSON.stringify(input)}\n`);
 
 const createAttemptId = (): string =>
   `sem-${new Date()

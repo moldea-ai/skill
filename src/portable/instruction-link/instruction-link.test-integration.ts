@@ -13,21 +13,29 @@ import fsPromises, {
 import { syncBuiltinESMExports } from 'node:module';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import type * as GitCommands from 'jg-git-commands';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
-
-import type * as GitCommand from '../git-command/index.ts';
-import { isPathWithin } from '../repository-files.ts';
+import { isPathWithin } from 'jg-fs';
 
 import { resolveInstructionWriteTarget } from './index.ts';
 
+// each Git read the writer runs: the read's name, then the paths or the key it asks about
 const { gitCalls } = vi.hoisted(() => ({ gitCalls: [] as string[][] }));
-vi.mock('../git-command/index.ts', async (importOriginal) => {
-  const original = await importOriginal<typeof GitCommand>();
+vi.mock('jg-git-commands', async (importOriginal) => {
+  const original = await importOriginal<typeof GitCommands>();
   return {
     ...original,
-    runGitCommand: (...parameters: Parameters<typeof original.runGitCommand>) => {
-      gitCalls.push([...parameters[1]]);
-      return original.runGitCommand(...parameters);
+    listUntrackedFiles: (...parameters: Parameters<typeof original.listUntrackedFiles>) => {
+      gitCalls.push(['listUntrackedFiles', ...(parameters[1]?.paths ?? [])]);
+      return original.listUntrackedFiles(...parameters);
+    },
+    readConfigBoolean: (...parameters: Parameters<typeof original.readConfigBoolean>) => {
+      gitCalls.push(['readConfigBoolean', parameters[1]]);
+      return original.readConfigBoolean(...parameters);
+    },
+    readIndexEntries: (...parameters: Parameters<typeof original.readIndexEntries>) => {
+      gitCalls.push(['readIndexEntries', ...(parameters[1]?.paths ?? [])]);
+      return original.readIndexEntries(...parameters);
     },
   };
 });
@@ -241,15 +249,11 @@ test('queries a target name with pathspec characters literally', async () => {
   const target = await resolveInstructionWriteTarget(root, 'AGENTS.md');
 
   expect(target.hostPath).toBe(join(root, name));
-  expect(gitCalls).toContainEqual([
-    'ls-files',
-    '--cached',
-    '--others',
-    '--exclude-standard',
-    '--stage',
-    '-z',
-    '--',
-    name,
+  expect(gitCalls).toStrictEqual([
+    ['readIndexEntries', 'AGENTS.md'],
+    ['listUntrackedFiles', 'AGENTS.md'],
+    ['readIndexEntries', name],
+    ['listUntrackedFiles', name],
   ]);
 });
 
@@ -261,25 +265,22 @@ test('asks Git only about visited paths, and about core.symlinks only after a li
   await link(join('docs', 'AGENTS.md'), join(root, 'AGENTS.md'));
 
   await resolveInstructionWriteTarget(root, 'AGENTS.md');
-  expect(gitCalls.map((call) => call.at(-1))).toStrictEqual(['AGENTS.md', 'docs/AGENTS.md']);
+  expect(gitCalls).toStrictEqual([
+    ['readIndexEntries', 'AGENTS.md'],
+    ['listUntrackedFiles', 'AGENTS.md'],
+    ['readIndexEntries', 'docs/AGENTS.md'],
+    ['listUntrackedFiles', 'docs/AGENTS.md'],
+  ]);
 
   gitCalls.length = 0;
   await rm(join(root, 'AGENTS.md'));
   materialize(root, 'AGENTS.md', 'docs/AGENTS.md');
   await resolveInstructionWriteTarget(root, 'AGENTS.md');
   expect(gitCalls).toStrictEqual([
-    ['ls-files', '--cached', '--others', '--exclude-standard', '--stage', '-z', '--', 'AGENTS.md'],
-    ['config', '--type=bool', '--default=true', '--get', 'core.symlinks'],
-    [
-      'ls-files',
-      '--cached',
-      '--others',
-      '--exclude-standard',
-      '--stage',
-      '-z',
-      '--',
-      'docs/AGENTS.md',
-    ],
+    ['readIndexEntries', 'AGENTS.md'],
+    ['readConfigBoolean', 'core.symlinks'],
+    ['readIndexEntries', 'docs/AGENTS.md'],
+    ['listUntrackedFiles', 'docs/AGENTS.md'],
   ]);
 });
 

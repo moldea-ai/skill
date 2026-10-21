@@ -3,6 +3,8 @@ import { readFile, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
+import { expectToRejectCode } from 'jg-exception/testing';
+import { ERRORS as PROCESS_ERRORS } from 'jg-process';
 import { describe, expect, test } from 'vitest';
 
 import { MAX_PROCESS_OUTPUT_BYTES } from './constants.ts';
@@ -84,9 +86,10 @@ setInterval(() => {}, 1_000);`,
         });
         processIds = JSON.parse(await readReadinessFile(readinessPath)) as number[];
 
-        abortController.abort();
+        const reason = new Error('stopped by the test');
+        abortController.abort(reason);
 
-        await expect(execution).rejects.toThrow('Process execution was aborted.');
+        await expect(execution).rejects.toBe(reason);
         expect(processIds.every((processId) => !isProcessRunning(processId))).toBe(true);
       } finally {
         for (const processId of processIds) {
@@ -121,9 +124,7 @@ setInterval(() => {}, 1_000);`,
       });
       processId = Number(await readReadinessFile(readinessPath));
 
-      await expect(execution).rejects.toThrow(
-        `Command output exceeded ${MAX_PROCESS_OUTPUT_BYTES} bytes and was stopped.`,
-      );
+      await expectToRejectCode(execution, PROCESS_ERRORS.PROCESS_OUTPUT_TOO_LARGE);
       await expect(readFile(terminationPath, 'utf8')).resolves.toBe('terminated');
       expect(isProcessRunning(processId)).toBe(false);
     } finally {

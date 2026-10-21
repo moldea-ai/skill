@@ -1,12 +1,9 @@
 import { mkdir, readFile, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
+import { writeJsonFile } from 'jg-fs';
 
-import {
-  readJsonFile,
-  resolveContainedPath,
-  writeJsonFileAtomically,
-} from '../filesystem/index.ts';
+import { readJsonFile, resolveContainedPath } from '../filesystem/index.ts';
 import { EVIDENCE_SELECTION_RELATIVE_PATH } from './constants.ts';
 import {
   EvidenceSelectionSchema,
@@ -58,7 +55,7 @@ export const updateEvidenceSelection = async (
       ...currentSelection,
       [kind]: reference,
     });
-    await writeJsonFileAtomically(selectionPath, updatedSelection);
+    await writeJsonFile(selectionPath, updatedSelection);
     return updatedSelection;
   } finally {
     await rm(lockPath, { force: true, recursive: true });
@@ -73,7 +70,7 @@ export const createEmptyEvidenceSelection = async (selectionPath: string): Promi
   } catch (error) {
     if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw error;
   }
-  await writeJsonFileAtomically(selectionPath, {
+  await writeJsonFile(selectionPath, {
     formatVersion: 1,
     semantic: null,
     journeys: null,

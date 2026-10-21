@@ -12,7 +12,19 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import {
+  assertGitSucceeded,
+  listUntrackedFiles,
+  readConfigBoolean,
+  readGitVersion,
+  readIndexEntries,
+  readTopLevel,
+  runGit,
+} from 'jg-git-commands';
 import { test } from 'vitest';
+
+import { resolveInstructionWriteTarget } from '../../portable/instruction-link/index.ts';
+import { collectRepairGitEvidence } from '../../portable/repair-git/index.ts';
 
 import {
   CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX,
@@ -20,14 +32,23 @@ import {
   isApprovedRepairGitArguments,
   prepareGitCommandPolicyBoundary,
 } from './git-command-policy-boundary.ts';
-const RELEASE_CLI_GIT_OPTIONS = [
-  '--no-pager',
+import { projectGitInvocations } from './git-invocations.ts';
+
+// jg-git-commands 0.3.1's command prefix, which the release CLI and the writer's queries use
+const JG_GIT_PREFIX = [
+  '-c',
+  'core.fsmonitor=',
+  '-c',
+  'core.askPass=',
+  '-c',
+  'core.pager=cat',
   '-c',
   'color.ui=false',
   '-c',
-  'core.fsmonitor=false',
-  '-c',
   'submodule.recurse=false',
+  '-c',
+  'credential.helper=',
+  '--no-pager',
 ];
 
 const runSystemGit = (repositoryPath: string, argumentsList: readonly string[]): void => {
@@ -141,27 +162,28 @@ test('Git command-policy boundary runs the writer link queries for one literal p
       realGitExecutable: '/usr/bin/git',
       invocationLogPath: join(testRoot, 'git-invocations.jsonl'),
     });
-    const hardened = CODEX_EVALUATION_GIT_STATUS_ARGUMENTS.slice(
-      0,
-      CODEX_EVALUATION_GIT_STATUS_ARGUMENTS.indexOf('status'),
-    );
-    const storage = [
-      ...hardened,
+    const index = [...JG_GIT_PREFIX, 'ls-files', '--cached', '--stage', '--full-name', '-z', '--'];
+    const untracked = [
+      ...JG_GIT_PREFIX,
       'ls-files',
-      '--cached',
       '--others',
       '--exclude-standard',
-      '--stage',
+      '--full-name',
       '-z',
       '--',
     ];
 
-    const storageResult = runWrappedGit(wrapperPath, repositoryPath, [...storage, 'AGENTS.md']);
-    assert.equal(storageResult.status, 0, storageResult.stderr);
-    assert.match(storageResult.stdout, /^100644 [0-9a-f]{40} 0\tAGENTS\.md\0$/u);
+    const indexResult = runWrappedGit(wrapperPath, repositoryPath, [...index, 'AGENTS.md']);
+    assert.equal(indexResult.status, 0, indexResult.stderr);
+    assert.match(indexResult.stdout, /^100644 [0-9a-f]{40} 0\tAGENTS\.md\0$/u);
+
+    writeFileSync(join(repositoryPath, 'CLAUDE.md'), '# Claude\n');
+    const untrackedResult = runWrappedGit(wrapperPath, repositoryPath, [...untracked, 'CLAUDE.md']);
+    assert.equal(untrackedResult.status, 0, untrackedResult.stderr);
+    assert.equal(untrackedResult.stdout, 'CLAUDE.md\0');
 
     const settingResult = runWrappedGit(wrapperPath, repositoryPath, [
-      ...hardened,
+      ...JG_GIT_PREFIX,
       'config',
       '--type=bool',
       '--default=true',
@@ -171,13 +193,152 @@ test('Git command-policy boundary runs the writer link queries for one literal p
     assert.equal(settingResult.status, 0, settingResult.stderr);
     assert.equal(settingResult.stdout, 'false\n');
 
-    const refusedResult = runWrappedGit(wrapperPath, repositoryPath, [
-      ...storage,
-      ':(top)AGENTS.md',
-    ]);
+    const refusedResult = runWrappedGit(wrapperPath, repositoryPath, [...index, ':(top)AGENTS.md']);
     assert.equal(refusedResult.status, 2);
     assert.match(refusedResult.stderr, /command shape is not evaluator-approved/u);
   } finally {
+    rmSync(testRoot, { force: true, recursive: true });
+  }
+});
+
+test('Git command-policy boundary admits the jg-git-commands reads of the helpers and the release CLI', async () => {
+  const testRoot = mkdtempSync(join(tmpdir(), 'moldea-git-command-policy-jg-'));
+  const repositoryPath = join(testRoot, 'repository');
+  const shimPath = join(testRoot, 'shim');
+  const invocationLogPath = join(testRoot, 'git-invocations.jsonl');
+  const path = process.env['PATH'];
+  const instructionPaths = ['AGENTS.md', 'CLAUDE.md', '.claude/CLAUDE.md', 'CLAUDE.local.md'];
+
+  try {
+    mkdirSync(join(repositoryPath, 'moldea'), { recursive: true });
+    runSystemGit(repositoryPath, ['init', '--quiet']);
+    writeFileSync(join(repositoryPath, 'moldea', 'moldea.yaml'), 'version: 1\n');
+    writeFileSync(join(repositoryPath, 'AGENTS.md'), '# Rules\n');
+    // CLAUDE.md is a Git link to AGENTS.md checked out as a plain file
+    const linkObject = spawnSync('/usr/bin/git', ['hash-object', '-w', '--stdin'], {
+      cwd: repositoryPath,
+      encoding: 'utf8',
+      input: 'AGENTS.md',
+    });
+    assert.equal(linkObject.status, 0, linkObject.stderr);
+    runSystemGit(repositoryPath, [
+      'update-index',
+      '--add',
+      '--cacheinfo',
+      `120000,${linkObject.stdout.trim()},CLAUDE.md`,
+    ]);
+    runSystemGit(repositoryPath, ['config', 'core.symlinks', 'false']);
+    runSystemGit(repositoryPath, ['checkout', '--', 'CLAUDE.md']);
+    runSystemGit(repositoryPath, ['add', '--', 'AGENTS.md', 'moldea/moldea.yaml']);
+    runSystemGit(repositoryPath, [
+      '-c',
+      'user.name=moldea evaluation',
+      '-c',
+      'user.email=evaluation@invalid.example',
+      'commit',
+      '--quiet',
+      '-m',
+      'test: initialize jg-git-commands fixture',
+    ]);
+    const checkpoint = spawnSync('/usr/bin/git', ['rev-parse', 'HEAD'], {
+      cwd: repositoryPath,
+      encoding: 'utf8',
+    }).stdout.trim();
+    writeFileSync(join(repositoryPath, 'moldea', 'moldea.yaml'), 'version: 2\n');
+
+    // the wrapper answers as `git` on PATH, as it does in the sandbox
+    const wrapperPath = await prepareGitCommandPolicyBoundary(join(testRoot, 'bin'), {
+      realGitExecutable: '/usr/bin/git',
+      invocationLogPath,
+    });
+    mkdirSync(shimPath);
+    writeFileSync(
+      join(shimPath, 'git'),
+      `#!/bin/sh\nexec '${process.execPath}' '${wrapperPath}' "$@"\n`,
+    );
+    chmodSync(join(shimPath, 'git'), 0o755);
+    process.env['PATH'] = `${shimPath}:${path ?? ''}`;
+
+    // the release CLI's reads, with CLI 13's options
+    const cliOptions = { maxOutputBytes: 1_048_576, timeoutSeconds: 300 };
+    await readGitVersion(repositoryPath, cliOptions);
+    assert.equal(await readTopLevel(repositoryPath, cliOptions), repositoryPath);
+    for (const identityArgument of ['--absolute-git-dir', '--git-common-dir']) {
+      assertGitSucceeded(
+        await runGit(['rev-parse', identityArgument], { cwd: repositoryPath, ...cliOptions }),
+        'rev-parse',
+      );
+    }
+    assert.equal(
+      await readConfigBoolean(repositoryPath, 'core.sparseCheckout', false, cliOptions),
+      false,
+    );
+    assert.equal(await readConfigBoolean(repositoryPath, 'core.symlinks', true, cliOptions), false);
+    assert.equal((await readIndexEntries(repositoryPath, cliOptions)).length, 3);
+    await readIndexEntries(repositoryPath, { ...cliOptions, paths: ['moldea/moldea.yaml'] });
+    await listUntrackedFiles(repositoryPath, { ...cliOptions, paths: instructionPaths });
+    assertGitSucceeded(
+      await runGit(
+        [
+          'ls-files',
+          '--others',
+          '--ignored',
+          '--exclude-standard',
+          '--full-name',
+          '--no-recurse-submodules',
+          '-z',
+          '--',
+          ...instructionPaths,
+        ],
+        { cwd: repositoryPath, ...cliOptions },
+      ),
+      'ls-files',
+    );
+    assertGitSucceeded(
+      await runGit(['check-attr', '--stdin', '-z', 'filter', 'working-tree-encoding', 'ident'], {
+        cwd: repositoryPath,
+        input: 'AGENTS.md\0',
+        ...cliOptions,
+      }),
+      'check-attr',
+    );
+    const cliInvocationCount = 12;
+
+    // the bundled helpers' reads
+    for (const options of [
+      { mode: 'checkpoint' },
+      { mode: 'continue', checkpoint },
+      { mode: 'verify', checkpoint },
+      { mode: 'review', paths: ['moldea/moldea.yaml'] },
+    ] as const) {
+      const evidence = await collectRepairGitEvidence({
+        repositoryRoot: repositoryPath,
+        ...options,
+      });
+      assert.equal(evidence.status, 'available', JSON.stringify(evidence));
+    }
+    const target = await resolveInstructionWriteTarget(repositoryPath, 'CLAUDE.md');
+    assert.equal(target.hostPath, join(repositoryPath, 'AGENTS.md'));
+
+    const log = readFileSync(invocationLogPath, 'utf8');
+    const records = log
+      .trimEnd()
+      .split('\n')
+      .map((line) => JSON.parse(line) as { approved: boolean; releaseCli: boolean });
+    assert.ok(records.length > cliInvocationCount);
+    assert.ok(records.every(({ approved }) => approved));
+    assert.ok(records.slice(0, cliInvocationCount).every(({ releaseCli }) => releaseCli));
+    const helperInvocationCount = records
+      .slice(cliInvocationCount)
+      .filter(({ releaseCli }) => !releaseCli).length;
+    assert.deepEqual(projectGitInvocations(log).repair, {
+      compliantCount: helperInvocationCount,
+      noncompliantCount: 0,
+      unverifiedCount: 0,
+      reasons: [],
+    });
+  } finally {
+    process.env['PATH'] = path;
     rmSync(testRoot, { force: true, recursive: true });
   }
 });
@@ -221,9 +382,7 @@ test('Git command-policy boundary suppresses helpers and refuses filter attribut
     assert.match(reviewResult.stdout, /state = "changed"/u);
 
     const releaseCliResult = runWrappedGit(wrapperPath, repositoryPath, [
-      ...RELEASE_CLI_GIT_OPTIONS,
-      '-C',
-      repositoryPath,
+      ...JG_GIT_PREFIX,
       'rev-parse',
       '--show-toplevel',
     ]);
@@ -232,29 +391,33 @@ test('Git command-policy boundary suppresses helpers and refuses filter attribut
     assert.equal(releaseCliResult.stdout.trim(), repositoryPath);
 
     const selectedInventoryArguments = [
-      ...RELEASE_CLI_GIT_OPTIONS,
-      '-C',
-      repositoryPath,
+      ...JG_GIT_PREFIX,
       'ls-files',
       '--cached',
       '--stage',
       '--full-name',
-      '--no-abbrev',
-      '--no-recurse-submodules',
       '-z',
       '--',
     ];
     const selectedManifestResult = runWrappedGit(wrapperPath, repositoryPath, [
       ...selectedInventoryArguments,
-      ':(top,literal)moldea/moldea.yaml',
+      'moldea/moldea.yaml',
     ]);
 
     assert.equal(selectedManifestResult.status, 0, selectedManifestResult.stderr);
 
+    // one other plain path is the writer's link query, which uses the same command line
+    const writerQueryResult = runWrappedGit(wrapperPath, repositoryPath, [
+      ...selectedInventoryArguments,
+      'README.md',
+    ]);
+
+    assert.equal(writerQueryResult.status, 0, writerQueryResult.stderr);
+
     for (const rejectedPathspec of [
-      ':(top,literal)README.md',
-      ':(top,literal)moldea/context/../project.md',
-      ':(top,literal)moldea/context/*.md',
+      'moldea/context/../project.md',
+      'moldea/context/*.md',
+      ':(top,literal)moldea/moldea.yaml',
     ]) {
       const rejectedSelectionResult = runWrappedGit(wrapperPath, repositoryPath, [
         ...selectedInventoryArguments,
@@ -267,23 +430,16 @@ test('Git command-policy boundary suppresses helpers and refuses filter attribut
 
     const multipleSelectionResult = runWrappedGit(wrapperPath, repositoryPath, [
       ...selectedInventoryArguments,
-      ':(top,literal)moldea/project.md',
-      ':(top,literal)moldea/moldea.yaml',
+      'moldea/project.md',
+      'moldea/moldea.yaml',
     ]);
 
     assert.equal(multipleSelectionResult.status, 2);
     assert.match(multipleSelectionResult.stderr, /command shape is not evaluator-approved/u);
 
-    const instructionPathspecs = [
-      ':(top,literal)AGENTS.md',
-      ':(top,literal)CLAUDE.md',
-      ':(top,literal).claude/CLAUDE.md',
-      ':(top,literal)CLAUDE.local.md',
-    ];
+    const instructionPathspecs = ['AGENTS.md', 'CLAUDE.md', '.claude/CLAUDE.md', 'CLAUDE.local.md'];
     const ignoredInventoryArguments = [
-      ...RELEASE_CLI_GIT_OPTIONS,
-      '-C',
-      repositoryPath,
+      ...JG_GIT_PREFIX,
       'ls-files',
       '--others',
       '--ignored',
@@ -304,9 +460,17 @@ test('Git command-policy boundary suppresses helpers and refuses filter attribut
 
     for (const rejectedArguments of [
       ignoredInventoryArguments,
-      [...ignoredInventoryArguments, ':(top,literal)moldea/moldea.yaml'],
+      [...ignoredInventoryArguments, 'moldea/moldea.yaml'],
       [...ignoredInventoryArguments, ...instructionPathspecs.slice(0, 3)],
-      [...ignoredInventoryArguments, ...instructionPathspecs, ':(top,literal)README.md'],
+      [...ignoredInventoryArguments, ...instructionPathspecs, 'README.md'],
+      [
+        ...JG_GIT_PREFIX.slice(0, -1),
+        '-C',
+        repositoryPath,
+        '--no-pager',
+        'rev-parse',
+        '--show-toplevel',
+      ],
     ]) {
       const rejectedIgnoredResult = runWrappedGit(wrapperPath, repositoryPath, rejectedArguments);
 

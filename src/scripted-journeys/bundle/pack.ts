@@ -2,8 +2,8 @@ import { randomBytes } from 'node:crypto';
 import { mkdir, mkdtemp, readFile, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import { writeJsonFile } from 'jg-fs';
 
-import { writeJsonFileAtomically } from '../../filesystem/index.ts';
 import { generateRuntimeArtifacts } from '../../portable/index.ts';
 import { EVALUATION_CONFIRMATION_POLICY } from '../../execution/confirmation/index.ts';
 import { createAssessorFingerprint, createFixtureFingerprint } from '../identity/index.ts';
@@ -86,7 +86,7 @@ export const packJourneys = async (input: {
         cliVersion,
         home: path.join(scratch, 'fixture-home'),
       });
-      await writeJsonFileAtomically(
+      await writeJsonFile(
         path.join(destination, 'steps.json'),
         definition.steps.map(({ id, request, dependsOn }) => ({ id, request, dependsOn })),
       );
@@ -106,7 +106,7 @@ export const packJourneys = async (input: {
         ([name]) => !name.startsWith('npm-cache/'),
       ),
     );
-    await writeJsonFileAtomically(
+    await writeJsonFile(
       path.join(root, 'manifest.json'),
       JourneysBundleSchema.parse({
         bundleFormatVersion: 2,

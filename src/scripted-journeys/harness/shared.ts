@@ -1,6 +1,7 @@
-import { createHash } from 'node:crypto';
 import { cp, lstat, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { hashValue } from 'jg-crypto';
+import { type IStrictArgOption, parseStrictArgs } from 'jg-process';
 import { z } from 'zod';
 
 import { executeProcess } from '../../process/index.ts';
@@ -95,8 +96,7 @@ export const containedPath = (
 };
 
 /** Hashes exchange bytes without interpreting their contents. */
-export const sha256 = (bytes: string | Uint8Array): string =>
-  createHash('sha256').update(bytes).digest('hex');
+export const sha256 = (bytes: string | Uint8Array): string => hashValue(bytes);
 
 /** Inventories bounded regular files; refuses links and special files before reading. */
 export const treeHashes = async (
@@ -333,25 +333,34 @@ export const selectJourneys = (
   return inventory.filter((journey) => ids.includes(journey.id)).map((journey) => journey.id);
 };
 
-/** Parses strict name/value flags, rejecting duplicates and unknown inputs. */
+/**
+ * Parses strict name/value flags, rejecting duplicates and unknown inputs.
+ * @returns The given flags by name, `true` for a boolean one.
+ * @throws
+ * - INVALID_ARGUMENTS: an unknown option, a positional argument, a missing or empty value, a
+ * repeated option, or a missing required one
+ */
 export const parseFlags = (
   argv: string[],
   names: string[],
   booleans: string[] = [],
 ): Record<string, string> => {
-  const flags: Record<string, string> = {};
-  for (let index = 0; index < argv.length; index++) {
-    const flag = argv[index];
-    if (flag === undefined || !names.includes(flag) || flags[flag] !== undefined)
-      throw new Error(`Unsupported or duplicate argument: ${flag}`);
-    if (booleans.includes(flag)) flags[flag] = 'true';
-    else {
-      const argument = argv[++index];
-      if (!argument || argument.startsWith('--')) throw new Error(`Missing value: ${flag}`);
-      flags[flag] = argument;
-    }
-  }
-  return flags;
+  const options: Record<string, IStrictArgOption> = Object.fromEntries(
+    names.map((name) => [
+      name.slice(2),
+      booleans.includes(name) ? { type: 'boolean' } : { type: 'string' },
+    ]),
+  );
+  const values: Record<string, unknown> = parseStrictArgs(argv, options);
+  return Object.fromEntries(
+    Object.entries(values).flatMap(([name, value]) =>
+      value === true
+        ? [[`--${name}`, 'true']]
+        : typeof value === 'string'
+          ? [[`--${name}`, value]]
+          : [],
+    ),
+  );
 };
 
 /** Reads the workspace state with its strict schema. */

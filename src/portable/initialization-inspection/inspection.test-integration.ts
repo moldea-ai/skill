@@ -1,11 +1,21 @@
 // @vitest-environment node
 import { execFileSync, spawnSync } from 'node:child_process';
-import { chmod, mkdir, mkdtemp, opendir, readFile, rm, symlink, writeFile } from 'node:fs/promises';
+import {
+  chmod,
+  lstat,
+  mkdir,
+  mkdtemp,
+  opendir,
+  readFile,
+  readdir,
+  readlink,
+  rm,
+  symlink,
+  writeFile,
+} from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, join, relative, resolve } from 'node:path';
 import { afterEach, expect, test } from 'vitest';
-
-import { calculateDirectoryFingerprint } from '../../filesystem/index.ts';
 
 import { collectInitializationInspection } from './index.ts';
 
@@ -62,9 +72,27 @@ test('inventory separates the selected installation and leaves other skill owner
   });
 });
 
+// every path below a root with its mode and its bytes or link text, so a read can prove it wrote nothing
+const snapshotTree = async (root: string): Promise<string[]> => {
+  const entries = await readdir(root, { recursive: true, withFileTypes: true });
+  const records = await Promise.all(
+    entries.map(async (entry) => {
+      const path = join(entry.parentPath, entry.name);
+      const { mode } = await lstat(path);
+      const content = entry.isFile()
+        ? (await readFile(path)).toString('base64')
+        : entry.isSymbolicLink()
+          ? await readlink(path)
+          : '';
+      return `${relative(root, path)} ${mode} ${content}`;
+    }),
+  );
+  return records.sort();
+};
+
 test('source packets batch known files without inventory traversal or repository writes', async () => {
   const options = await fixture();
-  const fingerprint = await calculateDirectoryFingerprint(options.repositoryRoot);
+  const snapshot = await snapshotTree(options.repositoryRoot);
   const paths = ['src/agent.js', 'src/loader.js'];
   const before = await Promise.all(
     paths.map((path) => readFile(join(options.repositoryRoot, path), 'utf8')),
@@ -79,7 +107,7 @@ test('source packets batch known files without inventory traversal or repository
   expect(
     await Promise.all(paths.map((path) => readFile(join(options.repositoryRoot, path), 'utf8'))),
   ).toStrictEqual(before);
-  expect(await calculateDirectoryFingerprint(options.repositoryRoot)).toBe(fingerprint);
+  expect(await snapshotTree(options.repositoryRoot)).toStrictEqual(snapshot);
 });
 
 test('bundled inventory includes archive and backup folders but skips Git and dependencies', async () => {

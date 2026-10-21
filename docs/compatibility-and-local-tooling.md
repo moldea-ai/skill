@@ -8,16 +8,16 @@ order: 180
 
 # Compatibility and local tooling
 
-Release `9.0.0` supports exactly:
+Release `10.0.0` supports exactly:
 
-- Git `>=2.30.0`
+- Git `>=2.32.0`
 - Node.js `>=22.17.0`
-- stable `@moldea.ai/core` releases satisfying `^8.0.0`
-- stable `@moldea.ai/cli` releases satisfying `^12.0.0`
+- stable `@moldea.ai/core` releases satisfying `^9.0.0`
+- stable `@moldea.ai/cli` releases satisfying `^13.0.0`
 - repository format version 1
 - CLI JSON schema 7
 
-The CLI is a repository-root-local development dependency. Its declaration and installed stable version must satisfy `^12.0.0`; compatible CLI 12 patches and minors do not require a skill release. Installed Core must satisfy both the CLI's declared Core range and `moldea`'s supported `^8.0.0` range. Other CLI majors, prereleases, malformed declarations, incompatible installed versions, and incompatible Core versions fail closed. The skill never selects a global CLI, runs a transient download, or searches unrelated workspaces for a provider.
+The CLI is a repository-root-local development dependency. Its declaration and installed stable version must satisfy `^13.0.0`; compatible CLI 13 patches and minors do not require a skill release. Installed Core must satisfy both the CLI's declared Core range and `moldea`'s supported `^9.0.0` range. Other CLI majors, prereleases, malformed declarations, incompatible installed versions, and incompatible Core versions fail closed. The skill never selects a global CLI, runs a transient download, or searches unrelated workspaces for a provider.
 
 ## Tooling ownership
 
@@ -31,13 +31,13 @@ Yarn setup depends on the executing Yarn line. Yarn Classic 1.x installs and rem
 
 During initialization, sufficient project context comes before dependency changes. A known missing CLI is installed before canonical or managed README writes and before validation, without a deliberate failing probe. Installation failure stops those writes and validation while preserving and reporting any package-manager changes. An existing compatible CLI needs no reinstall or extra availability check.
 
-Every CLI operation uses the installed portable skill's `scripts/moldea-cli.mjs` launcher. From inert package metadata, the launcher validates package identity, exact installed stable version, the supported root declaration (a root `devDependencies` entry that is the exact installed stable version, or a caret range on a stable 11.x version the installed CLI satisfies), the CLI's Core dependency range against installed Core, the binary declaration, and repository-local containment. The resolved dependency must remain inside the repository; npm and pnpm layouts within that boundary are supported. It invokes Node with an argument array and no shell. Package management and repository setup or CI own lockfile consistency; the launcher does not read target-project lockfiles. Agents do not reproduce package, executable-link, `PATH`, or parent-workspace probes around the launcher. Metadata and containment do not authenticate executable contents or replace host execution controls.
+Every CLI operation uses the installed portable skill's `scripts/moldea-cli.mjs` launcher. From inert package metadata, the launcher validates package identity, exact installed stable version, the supported root declaration (a root `devDependencies` entry that is the exact installed stable version, or a caret range on a stable 13.x version the installed CLI satisfies), the CLI's Core dependency range against installed Core, the binary declaration, and repository-local containment. The resolved dependency must remain inside the repository; npm and pnpm layouts within that boundary are supported. It invokes Node with an argument array and no shell. Package management and repository setup or CI own lockfile consistency; the launcher does not read target-project lockfiles. Agents do not reproduce package, executable-link, `PATH`, or parent-workspace probes around the launcher. Metadata and containment do not authenticate executable contents or replace host execution controls.
 
 The pre-activation gate instead uses the Core matcher bundled with the installed skill. Ordinary mode emits exactly `0` or `1` plus LF and executes no repository dependencies. AGENTS.md invokes it with repeatable `--path` arguments relative to the absolute repository root, without reading stdin. NUL-delimited batches share the 2 MiB input allowance. Opt-in `--diagnose` keeps healthy hit/miss results but reports malformed or failed execution through nonzero exit and compact stderr. README and AGENTS.md are not adoption prerequisites. Core validation checks the AGENTS.md integration block and the installed skill assets; a diagnostic gate smoke test checks the displayed command separately. Missing or stale integration warns without changing canonical validity. Foundation reads reject file links and directory symlinks or junctions below the resolved repository root. Repository-contained dependency links remain supported by the launcher.
 
 ## Machine output
 
-Compatible stable CLI 12 releases emit schema 7 JSON. Paged commands use `--json --max-output-bytes 65536`; `composition` uses the launcher's fixed 65,536-byte boundary. The envelope contains `schemaVersion`, the exact installed `cliVersion`, `command`, `status`, `result`, and `error`.
+Compatible stable CLI 13 releases emit schema 7 JSON. Paged commands use `--json --max-output-bytes 65536`; `composition` uses the launcher's fixed 65,536-byte boundary. The envelope contains `schemaVersion`, the exact installed `cliVersion`, `command`, `status`, `result`, and `error`.
 
 Exit codes are:
 
@@ -54,13 +54,13 @@ Command boundaries stay explicit:
 - `scope` accepts one `--path` or one NUL-delimited UTF-8 path set of at most 2 MiB and returns relationship matches after the two-byte gate establishes relevance.
 - `content` returns chunks only for one explicit canonical `/moldea/**` path. CLI/Core still reject noncanonical targets.
 
-Release `9.0.0` accepts bare repository-relative and leading-slash repository-logical paths. The development scripts also normalize leading `./` and native absolute paths contained beneath the supplied or physically resolved repository root. The gate's argv and stdin modes and the launcher's `scope` and `content` use the same normalization. Relative paths always start at the repository root, regardless of the working directory. Normalization preserves input order, duplicates, casing, and Unicode, with the same raw 2 MiB batch allowance and no target-file lookup.
+Release `10.0.0` accepts bare repository-relative and leading-slash repository-logical paths. The development scripts also normalize leading `./` and native absolute paths contained beneath the supplied or physically resolved repository root. The gate's argv and stdin modes and the launcher's `scope` and `content` use the same normalization. Relative paths always start at the repository root, regardless of the working directory. Normalization preserves input order, duplicates, casing, and Unicode, with the same raw 2 MiB batch allowance and no target-file lookup.
 
 On POSIX, contained absolute paths take precedence; other leading-slash paths retain their repository-logical meaning, and backslashes remain errors. Windows paths accept either separator in relative paths and convert contained drive-absolute paths. Traversal, internal dot segments, repeated separators, repository-root-only selections, drive-relative paths, and UNC/device forms remain errors. Normalization does not replace canonical filesystem checks.
 
 Paged commands accept launcher-only `--save-response <absolute-temporary-file>` and `--cursor-from-response <absolute-temporary-file>` options. Create the private task directory with `node <installed-skill-root>/scripts/response-directory.mjs --repository <absolute-repository-root>`. It returns an absolute path beneath the resolved host temporary root, outside the repository, with owner-only POSIX access. Windows uses the host temporary storage permissions. The directory holds one exact raw response. The next call extracts its opaque cursor mechanically and fetches one page with unchanged filters and budget. File and directory links are rejected; new targets must be unused unless replacing the explicitly loaded checkpoint. `composition` does not support these options, and a saved cursor cannot be combined with `--cursor`. Complete valid/invalid pages can be saved; error and interrupted output cannot replace a checkpoint. The coding agent removes owned scratch files when finished. Hosts that prohibit scratch writes retain that constraint.
 
-When the host truncates or loses a response saved with `--save-response`, read the saved file instead of rerunning the command. Cancellation before atomic rename submission preserves the prior checkpoint. A rename already submitted may complete with the new page, but the cancelled invocation still returns 3 with no stdout. Continuation never aggregates pages, automatically fetches more, or resets the shared resource budget within a cycle.
+When the host truncates or loses a response saved with `--save-response`, read the saved file instead of rerunning the command. Cancellation before the atomic write starts preserves the prior checkpoint. A write already started may complete with the new page, but the cancelled invocation still returns 3 with no stdout. Continuation never aggregates pages, automatically fetches more, or resets the shared resource budget within a cycle.
 
 ## Resource profiles
 
@@ -72,7 +72,7 @@ When ordinary work reaches a limit, the coding agent completes the developer's t
 
 For practical handling, start with [Limitations](/docs/limitations/). Detailed input and worker defaults belong to the [Core resource reference](https://packages.moldea.ai/packages/core/repository-inspection/#resource-limits) and [CLI budgets](https://packages.moldea.ai/packages/cli/output-and-operations/#resource-budgets).
 
-The following numbers are release-evaluation measurements from the unchanged source-controlled profiles, not universal limits on developer tasks. The recorded 8.2.3 evaluation counted whole-trial host commands and tool output. Evaluation protocol 52 applies the moldea-only counting rule above to each cycle: `ordinary` limits cover launcher calls, bundled helpers and `moldea/` reads and writes, and `largeTraversal` limits also cover assessment source reads, except for aggregate `moldea` output. See [resource accounting](/docs/semantic-evaluation/#resource-accounting):
+The following numbers are release-evaluation measurements from the unchanged source-controlled profiles, not universal limits on developer tasks. The recorded 8.2.3 evaluation counted whole-trial host commands and tool output. Evaluation protocol 53 applies the moldea-only counting rule above to each cycle: `ordinary` limits cover launcher calls, bundled helpers and `moldea/` reads and writes, and `largeTraversal` limits also cover assessment source reads, except for aggregate `moldea` output. See [resource accounting](/docs/semantic-evaluation/#resource-accounting):
 
 | Limit                     | `ordinary` | `largeTraversal` |
 | ------------------------- | ---------: | ---------------: |
@@ -124,4 +124,4 @@ Explicit repair uses the bundled `repair-git.mjs` helper for checkpoint, continu
 
 Attribute inspection conservatively refuses any attribute file containing `filter`, including Git LFS declarations, macros and comments. LFS configuration is disabled as additional protection, not an exception to that refusal. These limitations stop Git-dependent repair; they are not evidence of project drift or permission to bypass repository controls. An unborn repository instead returns unavailable commit evidence and uses conservative owner reassessment.
 
-Failed Git reads, including reads during attribute inspection, return `git-read` with Git's first error line in a reason capped at 512 characters. Attribute-safety limitations remain distinct. The helper uses Git's `/dev/null` spelling for global configuration and attributes on every supported platform, including Windows.
+Failed Git reads, including reads during attribute inspection, return `git-read` with a reason that classifies the failure, such as Git refusing the repository's ownership, without Git's own output, capped at 512 characters. Attribute-safety limitations remain distinct. The helper ignores the system and global Git configuration and attributes on every supported platform, including Windows.

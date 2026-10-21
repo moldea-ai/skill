@@ -2,9 +2,9 @@ import { randomBytes } from 'node:crypto';
 import { mkdir, readFile, readdir } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { isMainModule } from 'jg-process';
+import { writeJsonFile } from 'jg-fs';
 
-import { writeJsonFileAtomically } from '../../filesystem/index.ts';
 import { JourneyStepsSchema, type IJourneyPlatform } from '../index.ts';
 
 import {
@@ -180,10 +180,10 @@ export const setupWorkspace = async (workspace: string, options: ISetupOptions):
       environment,
     );
   }
-  await writeJsonFileAtomically(path.join(workspace, 'state.json'), state);
+  await writeJsonFile(path.join(workspace, 'state.json'), state);
 };
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (isMainModule(import.meta.url)) {
   const args = process.argv.slice(2);
   const journeys: string[] = [];
   const remaining: string[] = [];

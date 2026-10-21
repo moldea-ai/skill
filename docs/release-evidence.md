@@ -152,6 +152,24 @@ These changes were not re-evaluated. Deterministic coverage:
 
 Whether a coding agent follows the per-reason guidance is not established by the selected evidence.
 
+## Skill 10.0.0 evidence reuse
+
+Skill 10.0.0 keeps the same 8.2.3 selection, recorded with CLI 11.0.6. It moves the bundled helpers, CLI 13.0.0 and Core 9.0.0 onto JG Packages:
+
+- The bundled helpers read Git through jg-git-commands, and write files, run processes and parse their arguments through jg-fs, jg-process and jg-utilities. A failed repair Git read reports jg-git-commands' failure message instead of Git's own output.
+- A cancelled `--save-response` capture stops before its atomic write starts; a write already started may complete, and the invocation still fails with no stdout.
+- Git 2.32.0 or later is required, up from 2.30.0.
+- The supported ranges rise to CLI `^13.0.0` and Core `^9.0.0`, and the repair target is CLI 13.0.0.
+
+These changes were not re-evaluated. Deterministic coverage:
+
+- Recomputing the 6 journey definition digests, the 125 case definition digests and the case suite digest with the new deterministic JSON serialization reproduces the 9.0.0 values.
+- Repair Git and writer integration tests run on current Git on Linux, Windows and macOS and, in a conformance job that builds Git 2.32.7 from source, on the new minimum.
+- The sandbox Git policy tests run jg-git-commands' reads of the bundled helpers and of CLI 13 through the wrapper, and the integration suite drives the published CLI 13.0.0 through the launcher and the evaluator's sandbox.
+- The package-manager harness passed in the release-candidate workflow with the CLI 13.0.0 candidate closure, byte-identical to the published packages, on every matrix entry.
+
+Whether a coding agent follows the reworded cancellation rule is not established by the selected evidence.
+
 ## Evaluation protocol 50
 
 Protocol 50 meets the pre-run counting and final-validation requirements stated above: it grades each cycle on moldea's own work and recognizes the ordinary final-validation exception from ordered Codex events, as described in [resource accounting](/docs/semantic-evaluation/#resource-accounting). It corrects protocol 49, which no recording used, so that a patch whose paths cannot be read never earns that exception. It changes no selected evidence; it applies to the next recording.
@@ -163,6 +181,10 @@ Protocol 51 recognizes the writer's `--claude <file>` and `--claude <file> --pri
 ## Evaluation protocol 52
 
 Protocol 52 admits the bundled writer's two Git reads in the sandbox Git policy: how one visited path is stored, as `ls-files --cached --others --exclude-standard --stage -z --` with one plain path, and the `core.symlinks` setting. The wrapper still reads only the repository's own config. Resource accounting, evidence schema 15 and every case criterion are unchanged. It changes no selected evidence; it applies to the next recording.
+
+## Evaluation protocol 53
+
+Protocol 53 admits jg-git-commands' command lines in the sandbox Git policy, now that the bundled helpers and CLI 13 read Git through it. The repair helper's reads still ignore the system and global config, and the writer asks how one visited path is stored with an index listing and an untracked listing of that plain path. CLI 13's reads run in the repository with plain paths instead of `-C` and `:(top,literal)` pathspecs, and CLI 12's command lines are no longer admitted. The hardened status, diff and attribute-source commands an actor may type are classified as before. Resource accounting, evidence schema 15 and every case criterion are unchanged. It changes no selected evidence; it applies to the next recording.
 
 ## Check a release
 

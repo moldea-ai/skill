@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
-import { access, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
+import { pathExists } from 'jg-fs';
+import { isMainModule, resolvePackageManagerCommand } from 'jg-process';
 import { z } from 'zod';
 import { parseAllDocuments } from 'yaml';
 
@@ -43,15 +45,6 @@ const readLockedGraph = (source: string): unknown[] =>
     return document.toJS() as unknown;
   });
 
-const pathExists = async (candidatePath: string): Promise<boolean> => {
-  try {
-    await access(candidatePath);
-    return true;
-  } catch {
-    return false;
-  }
-};
-
 /** Reads the exact package-manager matrix selection supplied by release-candidate CI. */
 const readConformanceEnvironment = (): IConformanceEnvironment =>
   EnvironmentSchema.parse({
@@ -73,9 +66,14 @@ const isYarnClassic = (
   return major === 1;
 };
 
-/** Returns the package-manager executable installed by the workflow matrix. */
-const getManagerExecutable = (manager: IConformanceEnvironment['manager']): string =>
-  process.platform === 'win32' ? `${manager}.cmd` : manager;
+/** Builds the shell-free command for the package manager the workflow matrix installed. */
+const createManagerCommand = (
+  manager: IConformanceEnvironment['manager'],
+  args: readonly string[],
+  cwd: string,
+  environment: NodeJS.ProcessEnv = process.env,
+): { args: string[]; command: string } =>
+  resolvePackageManagerCommand([...args], { packageManager: manager, env: environment, cwd });
 
 /** Runs one bounded shell-free command and returns trimmed standard output. */
 const runCommand = async (options: {
@@ -88,6 +86,16 @@ const runCommand = async (options: {
   const result = await executeProcess(options);
   return { stderr: result.stderr, stdout: result.stdout.trim() };
 };
+
+/** Runs the matrix package manager like runCommand. */
+const runManagerCommand = (
+  manager: IConformanceEnvironment['manager'],
+  options: { args: readonly string[]; cwd: string; environment?: NodeJS.ProcessEnv },
+): Promise<{ stderr: string; stdout: string }> =>
+  runCommand({
+    ...options,
+    ...createManagerCommand(manager, options.args, options.cwd, options.environment),
+  });
 
 /** Writes manager-specific local registry configuration without changing global state. */
 const configureCandidateRegistry = async (
@@ -342,16 +350,14 @@ const verifyBrokenInstallation = async (options: {
   });
   assert.equal(rejected.stdout, '');
   const recoveryEnvironment = createScriptlessEnvironment(options.environment);
-  await runCommand({
-    command: getManagerExecutable(options.manager),
+  await runManagerCommand(options.manager, {
     args: createRemoveArguments(options.manager, options.managerVersion),
     cwd: options.clientDirectory,
     environment: recoveryEnvironment,
   });
   // this fixture has no extraneous application packages; pruning removes only the removed CLI closure
   if (options.manager === 'pnpm') {
-    await runCommand({
-      command: getManagerExecutable(options.manager),
+    await runManagerCommand(options.manager, {
       args: ['prune'],
       cwd: options.clientDirectory,
       environment: recoveryEnvironment,
@@ -364,8 +370,7 @@ const verifyBrokenInstallation = async (options: {
   });
   // some pnpm versions reuse damaged materialization even after scoped cleanup.
   if (options.manager === 'pnpm') reinstallArguments.push('--force');
-  await runCommand({
-    command: getManagerExecutable(options.manager),
+  await runManagerCommand(options.manager, {
     args: reinstallArguments,
     cwd: options.clientDirectory,
     environment: recoveryEnvironment,
@@ -412,21 +417,26 @@ const verifyInterruptedInstallation = async (options: {
   };
   options.registry.server.once('request', interrupt);
   const timeout = setTimeout(() => controller.abort(), 30_000);
+  const interruptedEnvironment = {
+    ...options.environment,
+    npm_config_cache: path.join(interruptedDirectory, '.npm-cache'),
+    XDG_CACHE_HOME: path.join(interruptedDirectory, '.cache'),
+  };
   try {
     await assert.rejects(
       executeProcess({
-        args: createInstallArguments({
-          manager: options.manager,
-          managerVersion: options.managerVersion,
-          packageIdentity: `@moldea.ai/cli@${options.targetVersion}`,
-        }),
-        command: getManagerExecutable(options.manager),
+        ...createManagerCommand(
+          options.manager,
+          createInstallArguments({
+            manager: options.manager,
+            managerVersion: options.managerVersion,
+            packageIdentity: `@moldea.ai/cli@${options.targetVersion}`,
+          }),
+          interruptedDirectory,
+          interruptedEnvironment,
+        ),
         cwd: interruptedDirectory,
-        environment: {
-          ...options.environment,
-          npm_config_cache: path.join(interruptedDirectory, '.npm-cache'),
-          XDG_CACHE_HOME: path.join(interruptedDirectory, '.cache'),
-        },
+        environment: interruptedEnvironment,
         signal: controller.signal,
       }),
       /aborted/u,
@@ -475,13 +485,12 @@ const verifyOlderInstallation = async (options: {
     'https://registry.npmjs.org',
   );
   // this exact historical package is installation input only, never execution evidence
-  await runCommand({
+  await runManagerCommand(options.manager, {
     args: createInstallArguments({
       manager: options.manager,
       managerVersion: options.managerVersion,
       packageIdentity: '@moldea.ai/cli@9.0.1',
     }),
-    command: getManagerExecutable(options.manager),
     cwd: olderDirectory,
     environment: options.environment,
   });
@@ -499,20 +508,18 @@ const verifyOlderInstallation = async (options: {
   );
   // only this fixture switches registries; pnpm install recreates its registry metadata.
   if (options.manager === 'pnpm') {
-    await runCommand({
+    await runManagerCommand(options.manager, {
       args: ['install', '--force', '--ignore-scripts'],
-      command: getManagerExecutable(options.manager),
       cwd: olderDirectory,
       environment: options.environment,
     });
   }
-  await runCommand({
+  await runManagerCommand(options.manager, {
     args: createInstallArguments({
       manager: options.manager,
       managerVersion: options.managerVersion,
       packageIdentity: `@moldea.ai/cli@${options.targetVersion}`,
     }),
-    command: getManagerExecutable(options.manager),
     cwd: olderDirectory,
     environment: options.environment,
   });
@@ -569,13 +576,12 @@ const verifyDeclarationMigration = async (options: {
   );
   const packageIdentity = `@moldea.ai/cli@${options.targetVersion}`;
   // the same exact scriptless add without the development flag declares a regular dependency
-  await runCommand({
+  await runManagerCommand(options.manager, {
     args: createInstallArguments({
       manager: options.manager,
       managerVersion: options.managerVersion,
       packageIdentity,
     }).filter((argument) => argument !== '--save-dev' && argument !== '--dev'),
-    command: getManagerExecutable(options.manager),
     cwd: migrationDirectory,
     environment: options.environment,
   });
@@ -598,19 +604,17 @@ const verifyDeclarationMigration = async (options: {
   assert.notDeepEqual(lockedBefore, []);
 
   const scriptlessEnvironment = createScriptlessEnvironment(options.environment);
-  await runCommand({
+  await runManagerCommand(options.manager, {
     args: createRemoveArguments(options.manager, options.managerVersion),
-    command: getManagerExecutable(options.manager),
     cwd: migrationDirectory,
     environment: scriptlessEnvironment,
   });
-  await runCommand({
+  await runManagerCommand(options.manager, {
     args: createInstallArguments({
       manager: options.manager,
       managerVersion: options.managerVersion,
       packageIdentity,
     }),
-    command: getManagerExecutable(options.manager),
     cwd: migrationDirectory,
     environment: scriptlessEnvironment,
   });
@@ -693,7 +697,6 @@ export const verifyPackageManagerCandidate = async (
   const lifecycleSentinelSource =
     "import { appendFileSync } from 'node:fs';\nappendFileSync(process.env.MOLDEA_LIFECYCLE_SENTINEL, `${process.argv[2] ?? 'unknown'}\\n`);\n";
   const lifecycleDependencyDirectory = path.join(clientDirectory, UNRELATED_DEPENDENCY_NAME);
-  const executable = getManagerExecutable(environment.manager);
   const managerEnvironment: NodeJS.ProcessEnv = {
     ...process.env,
     HOME: managerHomeDirectory,
@@ -774,9 +777,8 @@ export const verifyPackageManagerCandidate = async (
       registry.registryUrl,
     );
 
-    const versionResult = await runCommand({
+    const versionResult = await runManagerCommand(environment.manager, {
       args: ['--version'],
-      command: executable,
       cwd: clientDirectory,
       environment: managerEnvironment,
     });
@@ -784,25 +786,23 @@ export const verifyPackageManagerCandidate = async (
 
     if (environment.existingVitestVersion !== undefined) {
       assert.equal(environment.manager, 'pnpm');
-      await runCommand({
+      await runManagerCommand(environment.manager, {
         args: createInstallArguments({
           manager: environment.manager,
           managerVersion: environment.managerVersion,
           packageIdentity: `vitest@${environment.existingVitestVersion}`,
         }),
-        command: executable,
         cwd: clientDirectory,
         environment: managerEnvironment,
       });
     }
 
-    const installation = await runCommand({
+    const installation = await runManagerCommand(environment.manager, {
       args: createInstallArguments({
         manager: environment.manager,
         managerVersion: environment.managerVersion,
         packageIdentity: `@moldea.ai/cli@${candidate.cliVersion}`,
       }),
-      command: executable,
       cwd: clientDirectory,
       environment: managerEnvironment,
     });
@@ -971,11 +971,7 @@ const run = async (): Promise<void> => {
   process.stdout.write('Package-manager candidate conformance passed.\n');
 };
 
-const isDirectExecution =
-  process.argv[1] !== undefined &&
-  pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url;
-
-if (isDirectExecution) {
+if (isMainModule(import.meta.url)) {
   try {
     await run();
   } catch (error) {

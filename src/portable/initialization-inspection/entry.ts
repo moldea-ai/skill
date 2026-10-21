@@ -2,26 +2,34 @@
 
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { hasErrorCode } from 'jg-exception';
+import { ERRORS as PROCESS_ERRORS, parseStrictArgs } from 'jg-process';
 
 import { collectInitializationInspection } from './index.ts';
 import { INITIALIZATION_INSPECTION_LIMITS } from './constants.ts';
 
-const [flag, repositoryRoot, ...remaining] = process.argv.slice(2);
-try {
-  if (
-    flag !== '--repository' ||
-    !repositoryRoot ||
-    remaining.length % 2 !== 0 ||
-    remaining.some((part, index) => index % 2 === 0 && part !== '--path')
-  ) {
+/** Parses the repository root and the known files to read, or throws the usage. */
+const parseArguments = (): { path: string[]; repository: string } => {
+  try {
+    return parseStrictArgs(process.argv.slice(2), {
+      path: { type: 'string', multiple: true },
+      repository: { type: 'string', required: true },
+    });
+  } catch (error) {
+    if (!hasErrorCode(error, PROCESS_ERRORS.INVALID_ARGUMENTS)) throw error;
     throw new Error(
       'Usage: initialization-inspection --repository <absolute-root> [--path <known-relative-file> ...]',
+      { cause: error },
     );
   }
+};
+
+try {
+  const { path: paths, repository } = parseArguments();
   const result = await collectInitializationInspection({
-    repositoryRoot,
+    repositoryRoot: repository,
     installedSkillRoot: resolve(dirname(fileURLToPath(import.meta.url)), '..'),
-    paths: remaining.filter((_, index) => index % 2 === 1),
+    paths,
   });
   const output = `${JSON.stringify(result)}\n`;
   if (Buffer.byteLength(output) > INITIALIZATION_INSPECTION_LIMITS.outputBytes)

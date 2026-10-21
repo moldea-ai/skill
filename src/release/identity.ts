@@ -1,7 +1,7 @@
-import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
+import { hashValue } from 'jg-crypto';
 import semver from 'semver';
 import { isScalar, parseDocument } from 'yaml';
 import { z } from 'zod';
@@ -138,7 +138,7 @@ export const readReleaseIdentity = (repositoryRoot: string): IReleaseIdentity =>
     coreVersion,
     coreVersionRange,
     packageLock,
-    packageLockSha256: createHash('sha256').update(packageLockText).digest('hex'),
+    packageLockSha256: hashValue(packageLockText),
     packageManifest,
     releaseVersion,
   };

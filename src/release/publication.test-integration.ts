@@ -3,8 +3,8 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, test } from 'vitest';
+import { writeFileAtomic, writeJsonFile } from 'jg-fs';
 
-import { writeBufferFileAtomically, writeJsonFileAtomically } from '../filesystem/index.ts';
 import {
   createEvidenceBundle,
   EVIDENCE_RELEASE_REPOSITORY,
@@ -41,7 +41,7 @@ class FakeGitHubReleaseClient implements IGitHubReleaseClient {
     this.events.push('download');
     const content = this.assets.get(options.assetName);
     if (content === undefined) throw new Error('Missing fake GitHub asset.');
-    await writeBufferFileAtomically(options.destinationPath, content);
+    await writeFileAtomic(options.destinationPath, content);
   }
 
   public async getRelease(_repository: string, _tag: string): Promise<IGitHubRelease | null> {
@@ -202,7 +202,7 @@ describe('GitHub evidence release assets', () => {
         temporaryDirectory: root,
       });
       const selectionPath = path.join(root, 'selection.json');
-      await writeJsonFileAtomically(selectionPath, {
+      await writeJsonFile(selectionPath, {
         formatVersion: 1,
         journeys: null,
         semantic: null,
@@ -239,7 +239,7 @@ describe('GitHub evidence release assets', () => {
       tag: 'evidence-semantic-attempt-1',
     };
     const selectionPath = path.join(root, 'selection.json');
-    await writeJsonFileAtomically(selectionPath, {
+    await writeJsonFile(selectionPath, {
       formatVersion: 1,
       journeys: null,
       semantic: null,
@@ -271,7 +271,7 @@ describe('GitHub evidence release assets', () => {
       temporaryDirectory: root,
     });
     const selectionPath = path.join(root, 'selection.json');
-    await writeJsonFileAtomically(selectionPath, {
+    await writeJsonFile(selectionPath, {
       formatVersion: 1,
       journeys: null,
       semantic: null,

@@ -12,8 +12,8 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
-import { pathToFileURL } from 'node:url';
 
+import { isMainModule, parseStrictArgs } from 'jg-process';
 import { z } from 'zod';
 
 import { PORTABLE_ARTIFACT_PATHS } from '../portable/index.ts';
@@ -107,7 +107,7 @@ export const prepareSkillCandidate = async (options: {
     mkdirSync(dirname(destination), { recursive: true });
     cpSync(join(options.repositoryRoot, relativePath), destination);
   }
-  for (const relativePath of ['moldea', 'src/portable', 'src/filesystem/atomic-bytes']) {
+  for (const relativePath of ['moldea', 'src/portable']) {
     cpSync(
       join(options.repositoryRoot, relativePath),
       join(options.outputDirectory, relativePath),
@@ -243,28 +243,15 @@ export const prepareSkillCandidate = async (options: {
 };
 
 const run = async (): Promise<void> => {
-  const argumentsList = process.argv.slice(2);
-  assert.ok(
-    argumentsList.length === 4 || argumentsList.length === 6,
-    'Usage: skill-candidate.ts --artifacts <directory> --output <directory> [--release-version <version>]',
-  );
-  const argumentsMap = new Map<string, string>();
-  for (let index = 0; index < argumentsList.length; index += 2) {
-    const name = argumentsList[index];
-    const argument = argumentsList[index + 1];
-    assert.ok(
-      name &&
-        ['--artifacts', '--output', '--release-version'].includes(name) &&
-        argument &&
-        !argumentsMap.has(name),
-      'Invalid skill candidate arguments.',
-    );
-    argumentsMap.set(name, argument);
-  }
-  const artifactDirectory = argumentsMap.get('--artifacts');
-  const outputDirectory = argumentsMap.get('--output');
-  const releaseVersion = argumentsMap.get('--release-version');
-  assert.ok(artifactDirectory && outputDirectory);
+  const {
+    artifacts: artifactDirectory,
+    output: outputDirectory,
+    'release-version': releaseVersion,
+  } = parseStrictArgs(process.argv.slice(2), {
+    artifacts: { type: 'string', required: true },
+    output: { type: 'string', required: true },
+    'release-version': { type: 'string' },
+  });
   await prepareSkillCandidate({
     artifactDirectory: resolve(artifactDirectory),
     outputDirectory: resolve(outputDirectory),
@@ -274,7 +261,7 @@ const run = async (): Promise<void> => {
   process.stdout.write('Complete skill candidate prepared and installed.\n');
 };
 
-if (process.argv[1] && pathToFileURL(resolve(process.argv[1])).href === import.meta.url) {
+if (isMainModule(import.meta.url)) {
   try {
     await run();
   } catch (error) {

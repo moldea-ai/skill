@@ -1,4 +1,4 @@
-import { isEqual } from 'web-utils-kit';
+import { isEqual } from 'jg-utilities';
 
 import { deriveCampaignStatus, resolveJourneyTrials } from '../confirmation/index.ts';
 import { deriveJourneyOutcome, deriveStepOutcome } from '../assessment/index.ts';

@@ -3,9 +3,10 @@ import { chmod, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises
 import os from 'node:os';
 import path from 'node:path';
 import { expect, test } from 'vitest';
+import { writeJsonFile } from 'jg-fs';
 
 import { getCompletedEvidenceRunPath, readCompletedEvidenceRun } from '../../evidence/index.ts';
-import { writeJsonFileAtomically } from '../../filesystem/index.ts';
+
 import { createArchive } from '../bundle/index.ts';
 import {
   copyTree,
@@ -49,13 +50,13 @@ test('a missing initialization lockfile fails its criterion without suppressing 
         await writeFile(path.join(repository, 'moldea/project.md'), '# Parcel desk\n');
         await writeFile(path.join(repository, 'README.md'), '<!-- moldea:start -->\n');
         await writeFile(path.join(repository, 'AGENTS.md'), '<!-- moldea:start -->\n');
-        await writeJsonFileAtomically(path.join(repository, 'package.json'), {
+        await writeJsonFile(path.join(repository, 'package.json'), {
           devDependencies: { '@moldea.ai/cli': '11.0.0' },
         });
       }
       const capture = path.join(workspace, 'capture/new-project', step.id);
       await writeFile(path.join(capture, 'reply.md'), 'Check the pickup code.');
-      await writeJsonFileAtomically(path.join(capture, 'activity.json'), {
+      await writeJsonFile(path.join(capture, 'activity.json'), {
         commands: [],
         reads: [],
         writes: [],
@@ -187,7 +188,7 @@ test('assessment reconstructs real harness exports, carries provenance, and reje
       if (mutation === 'harness') {
         const manifest = JourneysExportSchema.parse(await readJson(manifestPath));
         manifest.harnessHashes['harness/next.mjs'] = '0'.repeat(64);
-        await writeJsonFileAtomically(manifestPath, manifest);
+        await writeJsonFile(manifestPath, manifest);
       }
       if (mutation === 'transient-symlink')
         await writeFile(
@@ -195,7 +196,7 @@ test('assessment reconstructs real harness exports, carries provenance, and reje
           'diff --git a/link b/link\nnew file mode 120000\n--- /dev/null\n+++ b/link\n@@ -0,0 +1 @@\n+outside\n',
         );
       if (mutation !== 'hash-list')
-        await writeJsonFileAtomically(
+        await writeJsonFile(
           path.join(directory, 'files.json'),
           await treeHashes(directory, ['files.json']),
         );
@@ -220,8 +221,8 @@ test('assessment reconstructs real harness exports, carries provenance, and reje
     );
     passingManifest.platform = 'claude';
     passingManifest.trialId = 'd'.repeat(32);
-    await writeJsonFileAtomically(path.join(secondPassing, 'manifest.json'), passingManifest);
-    await writeJsonFileAtomically(
+    await writeJsonFile(path.join(secondPassing, 'manifest.json'), passingManifest);
+    await writeJsonFile(
       path.join(secondPassing, 'files.json'),
       await treeHashes(secondPassing, ['files.json']),
     );
@@ -286,7 +287,7 @@ test('assessment blocks failed prerequisites and rejects a contradictory validat
       path.join(exported, 'steps/first/report/reply.md'),
       'The result is valid and invalid.',
     );
-    await writeJsonFileAtomically(
+    await writeJsonFile(
       path.join(exported, 'files.json'),
       await treeHashes(exported, ['files.json']),
     );
@@ -490,7 +491,7 @@ test.each([
         };
         Object.values(payload.websiteModel.sources[0]!.captures)[0]!.patch =
           'forged local presentation';
-        await writeJsonFileAtomically(recordPath, inconsistent);
+        await writeJsonFile(recordPath, inconsistent);
         const inconsistentBytes = await readFile(recordPath);
         await expect(
           assessJourneys({ ...input, exportPaths, operatorRecord: { trials } }),

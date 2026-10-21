@@ -70,11 +70,11 @@ Structural validity is not proof that every runtime behavior works.
 
 ## Quick comparison
 
-| Need                                            | Operation | Writes | Semantic assessment  |
-| ----------------------------------------------- | --------- | ------ | -------------------- |
-| Check repository-format structure               | Validate  | No     | No                   |
-| Investigate structural and behavioral alignment | Evaluate  | No     | Yes                  |
-| Correct established drift                       | Reconcile | Yes    | Yes                  |
+| Need                                            | Operation | Writes | Semantic assessment                                                   |
+| ----------------------------------------------- | --------- | ------ | --------------------------------------------------------------------- |
+| Check repository-format structure               | Validate  | No     | No                                                                    |
+| Investigate structural and behavioral alignment | Evaluate  | No     | Yes                                                                   |
+| Correct established drift                       | Reconcile | Yes    | Yes                                                                   |
 | Check and repair the existing project setup     | Repair    | Yes    | Every completed owner and agent connection; incomplete scope reported |
 
 Repair reports name the actual checks and material gaps for their scope. Reports distinguish structural checks from static alignment within the assessed scope. When an agent or runtime is in scope, they also separate instruction consumption from untested live behavior. A setup without agents or runtimes, or a documentation-format repair, can report its scoped checks without an unrelated live-behavior disclaimer; structural validation alone never establishes project health.

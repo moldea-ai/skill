@@ -3,8 +3,9 @@ import { createRequire } from 'node:module';
 import { isAbsolute, join, relative, sep } from 'node:path';
 import semver from 'semver';
 import { z } from 'zod';
+import { isPathWithin } from 'jg-fs';
 
-import { isPathWithin, readRepositoryFile } from './repository-files.ts';
+import { readRepositoryFile } from './repository-files.ts';
 
 export interface IResolvedRepositoryCli {
   cliBinaryPath: string;
@@ -15,8 +16,8 @@ export interface IResolvedRepositoryCli {
 }
 
 // package identities accepted by this portable skill release
-export const EXPECTED_CLI_RANGE = '^12.0.0';
-export const SUPPORTED_CORE_RANGE = '^8.0.0';
+export const EXPECTED_CLI_RANGE = '^13.0.0';
+export const SUPPORTED_CORE_RANGE = '^9.0.0';
 
 const MAXIMUM_PACKAGE_MANIFEST_BYTES = 65_536;
 const utf8Decoder = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true });

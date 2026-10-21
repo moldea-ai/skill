@@ -1,8 +1,8 @@
 import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { isMainModule } from 'jg-process';
+import { writeJsonFile } from 'jg-fs';
 
-import { writeJsonFileAtomically } from '../../filesystem/index.ts';
 import { MAXIMUM_REPLY_BYTES } from '../index.ts';
 import { JourneyActivitySchema, JourneyStepsSchema } from '../index.ts';
 
@@ -82,8 +82,8 @@ export const recordStep = async (
   await mkdir(directory, { recursive: true });
   await writeFile(path.join(directory, 'changes.patch'), patch);
   await writeFile(path.join(directory, 'reply.md'), reply);
-  await writeJsonFileAtomically(path.join(directory, 'activity.json'), activity);
-  await writeJsonFileAtomically(path.join(directory, 'changes.json'), changes);
+  await writeJsonFile(path.join(directory, 'activity.json'), activity);
+  await writeJsonFile(path.join(directory, 'changes.json'), changes);
   let cliPresent = false;
   try {
     await access(path.join(repository, 'node_modules/@moldea.ai/cli/package.json'));
@@ -106,13 +106,13 @@ export const recordStep = async (
     ),
   );
   if (complete) state.completedJourneys.push(pending.journeyId);
-  await writeJsonFileAtomically(path.join(workspace, 'state.json'), state);
+  await writeJsonFile(path.join(workspace, 'state.json'), state);
   return complete
     ? `CHECKPOINT REQUIRED\nnode ${JSON.stringify(path.join(state.bundleDirectory, 'harness/export.mjs'))}\n`
     : 'Step recorded. Run next.mjs.\n';
 };
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (isMainModule(import.meta.url)) {
   const flags = parseFlags(process.argv.slice(2), ['--reply', '--activity']);
   if (!flags['--reply'] || !flags['--activity'])
     throw new Error('record requires --reply and --activity.');

@@ -1,6 +1,9 @@
 import type { Stats } from 'node:fs';
 import { lstat } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, posix } from 'node:path';
+import { getErrorCode } from 'jg-exception';
+import { assertNoLinksBelow, ERRORS as FS_ERRORS } from 'jg-fs';
+import { listUntrackedFiles, readConfigBoolean, readIndexEntries } from 'jg-git-commands';
 
 import {
   REPOSITORY_LINK_TEXT_MAX_BYTES,
@@ -12,14 +15,9 @@ import {
 } from '@moldea.ai/repository';
 import { createFilesystemRepositoryReader } from '@moldea.ai/repository-fs';
 
-import { GitCommandError, runGitCommand } from '../git-command/index.ts';
+import { createGitCommandOptions, isGitCommandError } from '../git-command/index.ts';
 
-import {
-  INSTRUCTION_GIT_OUTPUT_BYTES,
-  INSTRUCTION_GIT_STORAGE_ARGUMENTS,
-  INSTRUCTION_GIT_SYMLINK_SETTING_ARGUMENTS,
-  INSTRUCTION_PATHS,
-} from './constants.ts';
+import { INSTRUCTION_GIT_OUTPUT_BYTES, INSTRUCTION_PATHS } from './constants.ts';
 
 // coding-agent instruction files the helpers may update, as repository-relative paths
 export type IInstructionPath = 'AGENTS.md' | 'CLAUDE.md' | '.claude/CLAUDE.md' | 'CLAUDE.local.md';
@@ -30,8 +28,12 @@ export interface IInstructionWriteTarget {
   readonly confirm: () => Promise<void>;
 }
 
-// one index entry printed by `ls-files --stage -z`: mode, object ID, stage, and path
-const STAGED_ENTRY_PATTERN = /^([0-7]{6}) (?:[0-9a-f]{40}|[0-9a-f]{64}) [0-3]\t(.+)$/su;
+// the jg-fs codes for an instruction file whose parent is a link or a file
+const LINKED_PARENT_ERROR_CODES = new Set<string>([
+  FS_ERRORS.NOT_A_DIRECTORY,
+  FS_ERRORS.PATH_NOT_CANONICAL,
+  FS_ERRORS.PATH_OUTSIDE_ROOT,
+]);
 const decoder = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true });
 
 // the reason and next step for every link that doesn't lead to a file in the repository
@@ -61,50 +63,39 @@ const lstatIfPresent = async (path: string): Promise<Stats | undefined> => {
 
 /**
  * Asks Git how it stores one path, as the CLI sees it: the index modes of a tracked path, an empty
- * list for an untracked path Git doesn't ignore, or `null` when Git ignores it. Only lines naming
+ * list for an untracked path Git doesn't ignore, or `null` when Git ignores it. Only entries naming
  * exactly this path count, so entries under a same-named folder are skipped.
  * @throws
- * - GitCommandError when Git fails or prints output it never prints for this query.
+ * - A jg-git-commands or jg-process error when Git fails or prints output it never prints.
  */
-const readGitStorage = (repositoryRoot: string, path: IRepositoryPath): string[] | null => {
+const readGitStorage = async (
+  repositoryRoot: string,
+  path: IRepositoryPath,
+): Promise<string[] | null> => {
   const relativePath = path.slice(1);
-  const { stdout } = runGitCommand(
-    repositoryRoot,
-    [...INSTRUCTION_GIT_STORAGE_ARGUMENTS, relativePath],
-    { configScope: 'cli', maxOutputBytes: INSTRUCTION_GIT_OUTPUT_BYTES },
-  );
-  let text: string;
-  try {
-    text = decoder.decode(stdout);
-  } catch (error) {
-    throw new GitCommandError('Git returned path evidence that is not UTF-8.', { cause: error });
-  }
-  if (text !== '' && !text.endsWith('\0'))
-    throw new GitCommandError('Git returned incomplete path evidence.');
-  let isUntracked = false;
-  const modes: string[] = [];
-  for (const record of text.split('\0').slice(0, -1)) {
-    if (record === relativePath) isUntracked = true;
-    const staged = STAGED_ENTRY_PATTERN.exec(record);
-    if (staged?.[2] === relativePath) modes.push(staged[1]!);
-  }
-  return modes.length > 0 ? modes : isUntracked ? [] : null;
+  const options = {
+    ...createGitCommandOptions(repositoryRoot, 'cli', INSTRUCTION_GIT_OUTPUT_BYTES),
+    paths: [relativePath],
+  };
+  const modes = (await readIndexEntries(repositoryRoot, options))
+    .filter((entry) => entry.path === relativePath)
+    .map(({ mode }) => mode);
+  if (modes.length > 0) return modes;
+  return (await listUntrackedFiles(repositoryRoot, options)).includes(relativePath) ? [] : null;
 };
 
 /**
  * Reads Git's effective `core.symlinks` setting, as the CLI reads it.
  * @throws
- * - GitCommandError when Git fails or prints something other than a boolean.
+ * - A jg-git-commands or jg-process error when Git fails or prints something other than a boolean.
  */
-const readSymlinkSetting = (repositoryRoot: string): boolean => {
-  const output = runGitCommand(repositoryRoot, INSTRUCTION_GIT_SYMLINK_SETTING_ARGUMENTS, {
-    configScope: 'cli',
-    maxOutputBytes: INSTRUCTION_GIT_OUTPUT_BYTES,
-  }).stdout.toString('utf8');
-  if (output !== 'true\n' && output !== 'false\n')
-    throw new GitCommandError('Git returned an invalid core.symlinks value.');
-  return output === 'true\n';
-};
+const readSymlinkSetting = (repositoryRoot: string): Promise<boolean> =>
+  readConfigBoolean(
+    repositoryRoot,
+    'core.symlinks',
+    true,
+    createGitCommandOptions(repositoryRoot, 'cli', INSTRUCTION_GIT_OUTPUT_BYTES),
+  );
 
 /**
  * Creates the link source the writer resolves through: the files validation sees, with Git links
@@ -126,10 +117,10 @@ const createWriterLinkSource = async (repositoryRoot: string): Promise<IReposito
     getEntry: async (path, options) => {
       const entry = await reader.getEntry(path, options);
       if (entry?.type !== 'file' && entry?.type !== 'symlink') return entry;
-      const modes = readGitStorage(repositoryRoot, path);
+      const modes = await readGitStorage(repositoryRoot, path);
       if (modes === null) return INSTRUCTION_PATHS.has(path) ? entry : null;
       if (entry.type === 'symlink' || !modes.includes('120000')) return entry;
-      areSymlinksEnabled ??= readSymlinkSetting(repositoryRoot);
+      areSymlinksEnabled ??= await readSymlinkSetting(repositoryRoot);
       if (areSymlinksEnabled) return entry;
       if (modes.some((mode) => mode === '100644' || mode === '100755'))
         throw new Error(
@@ -177,7 +168,7 @@ const resolveInstructionTarget = async (
       parseRepositoryPath(`/${instructionPath}`),
     );
   } catch (error) {
-    if (error instanceof GitCommandError || error instanceof RangeError)
+    if (isGitCommandError(error))
       throw new Error(
         `${instructionPath} was not updated: Git could not report how the repository stores this file`,
         { cause: error },
@@ -208,14 +199,15 @@ export const resolveInstructionWriteTarget = async (
 ): Promise<IInstructionWriteTarget> => {
   const ownPath = toHostPath(repositoryRoot, instructionPath);
   const ownTarget: IInstructionWriteTarget = { hostPath: ownPath, confirm: async () => {} };
-  const segments = instructionPath.split('/');
 
-  for (let index = 1; index < segments.length; index += 1) {
-    const parentStats = await lstatIfPresent(join(repositoryRoot, ...segments.slice(0, index)));
-    if (parentStats === undefined) return ownTarget;
-    if (!parentStats.isDirectory()) {
-      throw new Error(`${segments.slice(0, index).join('/')} must be a regular directory`);
-    }
+  // a missing parent ends the check, and the absent file is then itself
+  try {
+    await assertNoLinksBelow(repositoryRoot, ownPath);
+  } catch (error) {
+    if (!LINKED_PARENT_ERROR_CODES.has(getErrorCode(error) ?? '')) throw error;
+    throw new Error(`${posix.dirname(instructionPath)} must be a regular directory`, {
+      cause: error,
+    });
   }
 
   // only a link, or a file Git may store as one, can lead elsewhere; the reader reports the rest

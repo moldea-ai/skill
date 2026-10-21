@@ -2,8 +2,9 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import path from 'node:path';
 
 import { z } from 'zod';
+import { writeFileAtomic } from 'jg-fs';
 
-import { ensureDirectory, writeBufferFileAtomically } from '../filesystem/index.ts';
+import { ensureDirectory } from '../filesystem/index.ts';
 import { executeProcess } from '../process/index.ts';
 import type { IGitHubRelease, IGitHubReleaseClient } from './types.ts';
 
@@ -61,7 +62,7 @@ export const createGitHubReleaseClient = (): IGitHubReleaseClient => ({
         '--dir',
         downloadDirectory,
       ]);
-      await writeBufferFileAtomically(
+      await writeFileAtomic(
         destinationPath,
         await readFile(path.join(downloadDirectory, assetName)),
       );

@@ -3,8 +3,8 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, expect, test } from 'vitest';
+import { writeJsonFile } from 'jg-fs';
 
-import { writeJsonFileAtomically } from '../filesystem/index.ts';
 import { readEvidenceSelection, updateEvidenceSelection } from './selection.ts';
 import type { IEvidenceSelection, IEvidenceSelectionReference } from './types.ts';
 
@@ -28,7 +28,7 @@ test('serializes concurrent selection updates and retains the last completed ref
   const root = await mkdtemp(path.join(tmpdir(), 'moldea-evidence-selection-'));
   temporaryRoots.push(root);
   const selectionPath = path.join(root, 'selection.json');
-  await writeJsonFileAtomically(selectionPath, {
+  await writeJsonFile(selectionPath, {
     formatVersion: 1,
     journeys: null,
     semantic: null,
@@ -58,7 +58,7 @@ test('retains both independently selected evidence kinds during concurrent updat
   const root = await mkdtemp(path.join(tmpdir(), 'moldea-evidence-selection-'));
   temporaryRoots.push(root);
   const selectionPath = path.join(root, 'selection.json');
-  await writeJsonFileAtomically(selectionPath, {
+  await writeJsonFile(selectionPath, {
     formatVersion: 1,
     semantic: null,
     journeys: null,

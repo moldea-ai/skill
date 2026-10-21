@@ -15,20 +15,40 @@ test('portable generation reproduces every committed runtime', async () => {
   assert.equal(result.status, 'current');
   assert.deepEqual(result.artifacts, [
     'moldea/scripts/initialization-inspection.mjs',
+    'moldea/scripts/initialization-inspection.license.txt',
     'moldea/scripts/repair-git.mjs',
+    'moldea/scripts/repair-git.license.txt',
     'moldea/scripts/response-directory.mjs',
+    'moldea/scripts/response-directory.license.txt',
     'moldea/scripts/managed-agents.mjs',
     'moldea/scripts/managed-agents.license.txt',
     'moldea/scripts/managed-readme.mjs',
+    'moldea/scripts/managed-readme.license.txt',
     'moldea/scripts/moldea-cli.mjs',
     'moldea/scripts/moldea-cli.license.txt',
     'moldea/scripts/relevance-gate.mjs',
+    'moldea/scripts/relevance-gate.license.txt',
     'moldea/scripts/repository-files.mjs',
+    'moldea/scripts/repository-files.license.txt',
     'moldea/scripts/repository-package.mjs',
     'moldea/scripts/repository-package.license.txt',
     'moldea/scripts/manifest-scope.cjs',
     'moldea/scripts/manifest-scope.license.txt',
   ]);
+  // every script that inlines a package names it, with its license, next to the script
+  for (const [script, packageName] of [
+    ['repair-git', 'jg-git-commands'],
+    ['relevance-gate', 'jg-process'],
+    ['response-directory', 'jg-fs'],
+    ['initialization-inspection', 'jg-fs'],
+  ] as const) {
+    const source = readFileSync(path.join(ROOT_DIRECTORY, `moldea/scripts/${script}.mjs`), 'utf8');
+    assert.match(source, new RegExp(`See ${script}\\.license\\.txt\\.`, 'u'));
+    assert.match(
+      readFileSync(path.join(ROOT_DIRECTORY, `moldea/scripts/${script}.license.txt`), 'utf8'),
+      new RegExp(`^${packageName}@\\d+\\.\\d+\\.\\d+\\n\\nMIT License`, 'mu'),
+    );
+  }
   assert.match(
     readFileSync(path.join(ROOT_DIRECTORY, 'moldea/scripts/moldea-cli.license.txt'), 'utf8'),
     /^zod@4\.3\.6$/mu,
@@ -64,8 +84,14 @@ test('portable generation reproduces every committed runtime', async () => {
 
 test('portable bundles omit TypeScript and keep the matcher within its reviewed size cap', () => {
   for (const artifact of [
-    'moldea/scripts/moldea-cli.license.txt',
+    'moldea/scripts/initialization-inspection.license.txt',
+    'moldea/scripts/repair-git.license.txt',
+    'moldea/scripts/response-directory.license.txt',
     'moldea/scripts/managed-agents.license.txt',
+    'moldea/scripts/managed-readme.license.txt',
+    'moldea/scripts/moldea-cli.license.txt',
+    'moldea/scripts/relevance-gate.license.txt',
+    'moldea/scripts/repository-files.license.txt',
     'moldea/scripts/repository-package.license.txt',
     'moldea/scripts/manifest-scope.license.txt',
   ]) {

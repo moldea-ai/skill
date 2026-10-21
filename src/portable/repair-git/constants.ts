@@ -1,5 +1,3 @@
-export const REPAIR_GIT_INDEX_ARGUMENTS = ['ls-files', '-z', '--', '.'] as const;
-
 export const REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS = [
   'config',
   '--null',

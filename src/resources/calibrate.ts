@@ -4,6 +4,7 @@ import { mkdir, mkdtemp, readdir, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { parseStrictArgs } from 'jg-process';
 import { z } from 'zod';
 
 import {
@@ -123,14 +124,25 @@ writeFileSync(3, JSON.stringify({
 }));
 `;
 
+/**
+ * Parses one calibration run: `--record` with an optional `--samples` count, or `--check`.
+ * @throws
+ * - INVALID_ARGUMENTS: an unknown option, a positional argument, a missing or empty value, a
+ * repeated option, or a missing required one
+ * - The run is not exactly one of `--record` or `--check`, or the sample count is out of range.
+ */
 const parseArguments = (arguments_: string[]): { mode: 'check' | 'record'; samples: number } => {
-  const mode = arguments_.includes('--record') ? 'record' : 'check';
-  const sampleIndex = arguments_.indexOf('--samples');
-  const samples = sampleIndex === -1 ? 1 : Number(arguments_[sampleIndex + 1]);
-  if (!Number.isSafeInteger(samples) || samples < 1 || samples > 8) {
+  const { check, record, samples } = parseStrictArgs(arguments_, {
+    check: { type: 'boolean' },
+    record: { type: 'boolean' },
+    samples: { type: 'string' },
+  });
+  if (check === record) throw new Error('Calibration requires exactly one of --record or --check.');
+  const sampleCount = samples === undefined ? 1 : Number(samples);
+  if (!Number.isSafeInteger(sampleCount) || sampleCount < 1 || sampleCount > 8) {
     throw new Error('--samples must be an integer from 1 through 8.');
   }
-  return { mode, samples };
+  return { mode: record ? 'record' : 'check', samples: sampleCount };
 };
 
 const execute = (

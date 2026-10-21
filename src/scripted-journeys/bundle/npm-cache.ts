@@ -2,8 +2,8 @@ import { mkdir, mkdtemp, readFile, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { z } from 'zod';
+import { writeJsonFile } from 'jg-fs';
 
-import { writeJsonFileAtomically } from '../../filesystem/index.ts';
 import {
   copyTree,
   isolatedEnvironment,
@@ -24,7 +24,7 @@ export const buildNpmCache = async (
     const project = path.join(scratch, 'project');
     const cache = path.join(scratch, 'npm-cache');
     await mkdir(project);
-    await writeJsonFileAtomically(path.join(project, 'package.json'), {
+    await writeJsonFile(path.join(project, 'package.json'), {
       name: 'journeys-cache',
       version: '1.0.0',
       private: true,

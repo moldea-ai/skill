@@ -3,9 +3,8 @@ import { spawnSync } from 'node:child_process';
 import { lstat, mkdtemp, realpath, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { isPathWithin } from 'jg-fs';
 import { expect, test } from 'vitest';
-
-import { isPathWithin } from '../repository-files.ts';
 
 import { createResponseDirectory } from './response-directory.ts';
 

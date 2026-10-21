@@ -1,6 +1,6 @@
-import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join, posix } from 'node:path';
+import { hashValue } from 'jg-crypto';
 import { z } from 'zod';
 
 import { CLI_PACKAGE_NAME, parseStableVersion } from '../release/index.ts';
@@ -185,6 +185,4 @@ export const createCliClosureIdentity = (repositoryRoot: string): ICliClosureIde
 
 /** Hashes the exact CLI declaration, schema version, package identities, and dependency edges. */
 export const createCliClosureDigest = (repositoryRoot: string): string =>
-  createHash('sha256')
-    .update(`${JSON.stringify(createCliClosureIdentity(repositoryRoot))}\n`)
-    .digest('hex');
+  hashValue(`${JSON.stringify(createCliClosureIdentity(repositoryRoot))}\n`);

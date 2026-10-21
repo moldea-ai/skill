@@ -1,4 +1,3 @@
-import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { accessSync, constants, existsSync, readFileSync, realpathSync } from 'node:fs';
 import {
@@ -17,6 +16,8 @@ import {
 } from 'node:fs/promises';
 import path, { join, relative } from 'node:path';
 
+import { hashValue } from 'jg-crypto';
+import { isPathWithin } from 'jg-fs';
 import { z } from 'zod';
 
 import { createManagedBlockBytes } from '../../portable/managed-block/index.ts';
@@ -136,12 +137,6 @@ const writeScenarioFile = async (
   const absolutePath = path.join(repositoryPath, relativePath);
   await mkdir(path.dirname(absolutePath), { recursive: true });
   await writeFile(absolutePath, content, 'utf8');
-};
-
-/** Returns whether a path remains inside its expected parent directory. */
-const isPathWithin = (parentPath: string, candidatePath: string): boolean => {
-  const relativePath = path.relative(parentPath, candidatePath);
-  return relativePath === '' || (!relativePath.startsWith('..') && !path.isAbsolute(relativePath));
 };
 
 /** Resolves one installed dependency from the package that declares it. */
@@ -2876,7 +2871,7 @@ export const snapshotSemanticWorkspace = async (
           content,
           mode: stats.mode,
           omission,
-          sha256: createHash('sha256').update(fileContent).digest('hex'),
+          sha256: hashValue(fileContent),
           type: 'file',
         });
       }

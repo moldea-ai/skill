@@ -2,6 +2,7 @@
 
 import { realpath } from 'node:fs/promises';
 import { isAbsolute, join, resolve } from 'node:path';
+import { parseStrictArgs } from 'jg-process';
 
 import { matchManifestScope, type IManifestScopeInput } from './manifest-scope.ts';
 import { readRepositoryFile, resolveRepositoryFile } from './repository-files.ts';
@@ -36,28 +37,21 @@ const parseArguments = (): {
   repositoryRoot: string;
   paths: string[] | undefined;
 } => {
-  const arguments_ = process.argv.slice(2);
-  if (arguments_[0] !== '--repository' || arguments_[1] === undefined || !isAbsolute(arguments_[1]))
-    throw new Error('Invalid gate arguments.');
-  let isAdoptionOnly = false;
-  let hasDiagnosticFlag = false;
-  const paths: string[] = [];
-  for (let index = 2; index < arguments_.length; index++) {
-    const argument = arguments_[index];
-    if (argument === '--adoption-only' && !isAdoptionOnly) isAdoptionOnly = true;
-    else if (argument === '--diagnose' && !hasDiagnosticFlag) hasDiagnosticFlag = true;
-    else if (
-      argument === '--path' &&
-      arguments_[index + 1] !== undefined &&
-      !arguments_[index + 1]!.startsWith('--')
-    )
-      paths.push(arguments_[++index]!);
-    else throw new Error('Invalid gate arguments.');
-  }
+  const {
+    'adoption-only': isAdoptionOnly,
+    path: paths,
+    repository,
+  } = parseStrictArgs(process.argv.slice(2), {
+    'adoption-only': { type: 'boolean' },
+    diagnose: { type: 'boolean' },
+    path: { type: 'string', multiple: true },
+    repository: { type: 'string', required: true },
+  });
+  if (!isAbsolute(repository)) throw new Error('Invalid gate arguments.');
   if (isAdoptionOnly && paths.length > 0) throw new Error('Adoption-only does not accept paths.');
   return {
     isAdoptionOnly,
-    repositoryRoot: resolve(arguments_[1]),
+    repositoryRoot: resolve(repository),
     paths: paths.length === 0 ? undefined : paths,
   };
 };
@@ -78,7 +72,7 @@ const evaluateGate = async (): Promise<boolean> => {
       MAX_FOUNDATION_BYTES,
       'reject',
     ),
-    argvPaths ?? readScopePathInput(process.stdin, context),
+    argvPaths ?? readScopePathInput(context),
   ]);
   const result = await matchManifestScope({
     manifest: {

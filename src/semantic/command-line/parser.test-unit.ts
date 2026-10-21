@@ -1,4 +1,6 @@
 // @vitest-environment node
+import { expectToThrowCode } from 'jg-exception/testing';
+import { ERRORS as PROCESS_ERRORS } from 'jg-process';
 import { describe, expect, test } from 'vitest';
 
 import { parseSemanticEvaluationArguments } from './parser.ts';
@@ -87,5 +89,24 @@ describe('semantic evaluation argument parsing', () => {
     expect(() => parseSemanticEvaluationArguments(['--preflight', '--record'])).toThrow(
       /without other options/u,
     );
+  });
+
+  test.each([
+    [['--record', '--unknown']],
+    [['--record', '--workers', '2', '--workers', '4']],
+    [['--record', 'extra']],
+    [['--case']],
+    [['--case', '--record']],
+  ])('rejects unknown, repeated, positional and missing values %o', (arguments_) => {
+    expectToThrowCode(
+      () => parseSemanticEvaluationArguments(arguments_),
+      PROCESS_ERRORS.INVALID_ARGUMENTS,
+    );
+  });
+
+  test('accepts an option value written with an equals sign', () => {
+    expect(parseSemanticEvaluationArguments(['--case=unrelated-review'])).toMatchObject({
+      requestedCaseId: 'unrelated-review',
+    });
   });
 });

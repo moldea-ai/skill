@@ -1,24 +1,114 @@
 import { chmod, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
-import {
-  HARDENED_GIT_CONFIGURATIONS,
-  HARDENED_GIT_DIFF_CONFIGURATION,
-} from '../../portable/git-command/index.ts';
-import {
-  INSTRUCTION_GIT_STORAGE_ARGUMENTS,
-  INSTRUCTION_GIT_SYMLINK_SETTING_ARGUMENTS,
-} from '../../portable/instruction-link/index.ts';
-import {
-  REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS,
-  REPAIR_GIT_INDEX_ARGUMENTS,
-} from '../../portable/repair-git/index.ts';
+import { REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS } from '../../portable/repair-git/index.ts';
 
 const EXCLUDED_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
+
+// fixed read-only Git configuration of the hardened commands an actor may type
+const HARDENED_GIT_CONFIGURATIONS = [
+  'core.attributesFile=/dev/null',
+  // empty disables the monitor on every supported Git; before Git 2.36, false names a hook
+  'core.fsmonitor=',
+  'core.pager=cat',
+  'filter.lfs.clean=',
+  'filter.lfs.process=',
+  'filter.lfs.required=false',
+  'filter.lfs.smudge=',
+] as const;
+
+// extra configuration for hardened diff reads, so no external diff program runs
+const HARDENED_GIT_DIFF_CONFIGURATION = 'diff.external=';
+
+/*
+ * The arguments jg-git-commands puts before every command it runs: its fixed configuration, an
+ * empty credential helper list, and no pager. The release CLI and the writer's link queries run
+ * with them.
+ */
+const JG_GIT_PREFIX = [
+  '-c',
+  'core.fsmonitor=',
+  '-c',
+  'core.askPass=',
+  '-c',
+  'core.pager=cat',
+  '-c',
+  'color.ui=false',
+  '-c',
+  'submodule.recurse=false',
+  '-c',
+  'credential.helper=',
+  '--no-pager',
+];
+
+// the same arguments with `isolateConfig`, which also empties the attributes file, for repair reads
+const JG_ISOLATED_GIT_PREFIX = [
+  ...JG_GIT_PREFIX.slice(0, -3),
+  '-c',
+  'core.attributesFile=/dev/null',
+  ...JG_GIT_PREFIX.slice(-3),
+];
+
+// jg-git-commands' index and untracked listings, which the writer limits to one visited path
+const JG_GIT_INDEX_ARGUMENTS = ['ls-files', '--cached', '--stage', '--full-name', '-z', '--'];
+const JG_GIT_UNTRACKED_ARGUMENTS = [
+  'ls-files',
+  '--others',
+  '--exclude-standard',
+  '--full-name',
+  '-z',
+  '--',
+];
+
+// jg-git-commands' read of whether links are checked out as links, the CLI's own query
+const JG_GIT_SYMLINK_SETTING_ARGUMENTS = [
+  'config',
+  '--type=bool',
+  '--default=true',
+  '--get',
+  'core.symlinks',
+];
+
+// the repair helper's fixed reads: the stored attribute source, the index, and the status
+const REPAIR_GIT_FIXED_ARGUMENTS = [
+  REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS,
+  JG_GIT_INDEX_ARGUMENTS,
+  [
+    'status',
+    '--porcelain=v2',
+    '-z',
+    '--branch',
+    '--untracked-files=all',
+    '--ignore-submodules=all',
+  ],
+];
+
+// the repair helper's diff options; the changed-path listing is jg-git-commands' own
+const REPAIR_GIT_DIFF_ARGUMENTS = [
+  'diff',
+  '--no-ext-diff',
+  '--no-textconv',
+  '--ignore-submodules=all',
+];
+const REPAIR_GIT_CHANGED_PATHS_ARGUMENTS = [
+  'diff',
+  '--no-ext-diff',
+  '--no-textconv',
+  '--no-renames',
+  '--ignore-submodules=all',
+  '--name-only',
+  '-z',
+  '--end-of-options',
+];
+
+const GIT_OBJECT_ID_PATTERN = /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u;
 
 const hasExactShape = (shape: readonly string[], expected: readonly string[]): boolean =>
   shape.length === expected.length &&
   shape.every((argument, index) => argument === expected[index]);
+
+const hasPrefix = (shape: readonly string[], prefix: readonly string[]): boolean =>
+  shape.length > prefix.length && prefix.every((argument, index) => shape[index] === argument);
 
 /** Accepts one plain repository-relative path a helper names, never an excluded directory. */
 const isApprovedRepairPath = (path: string): boolean =>
@@ -61,8 +151,42 @@ export const CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX = Object.freeze([
   '--',
 ]);
 
-/** Checks the complete hardened argument contract for a repair checkpoint Git read. */
-export const isApprovedRepairGitArguments = (argumentsList: readonly string[]): boolean => {
+/** Checks one repair helper read after jg-git-commands' isolated prefix. */
+const isApprovedRepairCommand = (shape: readonly string[]): boolean => {
+  if (REPAIR_GIT_FIXED_ARGUMENTS.some((expected) => hasExactShape(shape, expected))) return true;
+  if (shape[0] === 'rev-parse') {
+    // the checkpoint check names one full object ID that must peel to itself
+    const revision = shape[4] ?? '';
+    return (
+      hasExactShape(shape, ['rev-parse', '--verify', '--quiet', '--end-of-options', revision]) &&
+      revision.endsWith('^{commit}') &&
+      GIT_OBJECT_ID_PATTERN.test(revision.slice(0, -'^{commit}'.length))
+    );
+  }
+  if (hasPrefix(shape, REPAIR_GIT_CHANGED_PATHS_ARGUMENTS)) {
+    const [commit, separator, ...paths] = shape.slice(REPAIR_GIT_CHANGED_PATHS_ARGUMENTS.length);
+    return GIT_OBJECT_ID_PATTERN.test(commit ?? '') && separator === '--' && paths.length === 0;
+  }
+  if (!hasPrefix(shape, REPAIR_GIT_DIFF_ARGUMENTS)) return false;
+  const [commit, separator, ...paths] = shape.slice(REPAIR_GIT_DIFF_ARGUMENTS.length);
+  if (commit === '--')
+    return separator !== undefined && [separator, ...paths].every(isApprovedRepairPath);
+  return (
+    GIT_OBJECT_ID_PATTERN.test(commit ?? '') &&
+    separator === '--' &&
+    hasExactShape(paths, ['moldea/moldea.yaml'])
+  );
+};
+
+/** Checks one writer link query after jg-git-commands' prefix: one visited path, or the setting. */
+const isApprovedWriterCommand = (shape: readonly string[]): boolean =>
+  hasExactShape(shape, JG_GIT_SYMLINK_SETTING_ARGUMENTS) ||
+  ((hasExactShape(shape.slice(0, -1), JG_GIT_INDEX_ARGUMENTS) ||
+    hasExactShape(shape.slice(0, -1), JG_GIT_UNTRACKED_ARGUMENTS)) &&
+    isApprovedRepairPath(shape.at(-1) ?? ''));
+
+/** Checks a hardened status, diff or attribute-source read, as an actor may type it. */
+const isApprovedHardenedGitArguments = (argumentsList: readonly string[]): boolean => {
   const configurations = new Set<string>();
   let index = 0;
   while (argumentsList[index] === '-c') {
@@ -83,25 +207,7 @@ export const isApprovedRepairGitArguments = (argumentsList: readonly string[]): 
   )
     return false;
   const shape = argumentsList.slice(index);
-  if (command === 'config')
-    return (
-      hasExactShape(shape, REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS) ||
-      hasExactShape(shape, INSTRUCTION_GIT_SYMLINK_SETTING_ARGUMENTS)
-    );
-  if (command === 'cat-file')
-    return (
-      shape.length === 3 &&
-      shape[1] === '-t' &&
-      /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u.test(shape[2] ?? '')
-    );
-  if (command === 'ls-files') {
-    // the writer asks about exactly one visited path
-    return (
-      hasExactShape(shape, REPAIR_GIT_INDEX_ARGUMENTS) ||
-      (hasExactShape(shape.slice(0, -1), INSTRUCTION_GIT_STORAGE_ARGUMENTS) &&
-        isApprovedRepairPath(shape.at(-1) ?? ''))
-    );
-  }
+  if (command === 'config') return hasExactShape(shape, REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS);
   if (command === 'status') {
     const expected = [
       'status',
@@ -111,10 +217,7 @@ export const isApprovedRepairGitArguments = (argumentsList: readonly string[]): 
       '--untracked-files=all',
       '--branch',
     ];
-    return (
-      shape.length === expected.length &&
-      shape.every((argument, position) => argument === expected[position])
-    );
+    return hasExactShape(shape, expected);
   }
   const prefix = ['diff', '--no-ext-diff', '--no-textconv', '--ignore-submodules=all'];
   if (!prefix.every((argument, position) => shape[position] === argument)) return false;
@@ -136,6 +239,18 @@ export const isApprovedRepairGitArguments = (argumentsList: readonly string[]): 
     separator === '--' &&
     path === (isChangedPaths ? '.' : 'moldea/moldea.yaml')
   );
+};
+
+/**
+ * Checks the complete argument contract of a repair Git read: the repair helper's and the writer's
+ * jg-git-commands command lines, and the hardened status, diff and attribute-source reads.
+ */
+export const isApprovedRepairGitArguments = (argumentsList: readonly string[]): boolean => {
+  if (hasPrefix(argumentsList, JG_ISOLATED_GIT_PREFIX))
+    return isApprovedRepairCommand(argumentsList.slice(JG_ISOLATED_GIT_PREFIX.length));
+  if (hasPrefix(argumentsList, JG_GIT_PREFIX))
+    return isApprovedWriterCommand(argumentsList.slice(JG_GIT_PREFIX.length));
+  return isApprovedHardenedGitArguments(argumentsList);
 };
 
 /**
@@ -188,18 +303,17 @@ const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
   "const SAFE_GIT_ARGUMENTS = ['-c', 'log.showSignature=false'];",
   `const HARDENED_GIT_CONFIGURATIONS = new Set(${JSON.stringify(HARDENED_GIT_CONFIGURATIONS)});`,
   `const HARDENED_GIT_DIFF_CONFIGURATION = ${JSON.stringify(HARDENED_GIT_DIFF_CONFIGURATION)};`,
-  `const INSTRUCTION_GIT_STORAGE_ARGUMENTS = ${JSON.stringify(INSTRUCTION_GIT_STORAGE_ARGUMENTS.slice(1))};`,
-  `const INSTRUCTION_GIT_SYMLINK_SETTING_ARGUMENTS = ${JSON.stringify(INSTRUCTION_GIT_SYMLINK_SETTING_ARGUMENTS.slice(1))};`,
+  `const JG_GIT_PREFIX = ${JSON.stringify(JG_GIT_PREFIX)};`,
+  `const JG_ISOLATED_GIT_PREFIX = ${JSON.stringify(JG_ISOLATED_GIT_PREFIX)};`,
+  `const JG_GIT_INDEX_ARGUMENTS = ${JSON.stringify(JG_GIT_INDEX_ARGUMENTS)};`,
+  `const JG_GIT_UNTRACKED_ARGUMENTS = ${JSON.stringify(JG_GIT_UNTRACKED_ARGUMENTS)};`,
+  `const JG_GIT_SYMLINK_SETTING_ARGUMENTS = ${JSON.stringify(JG_GIT_SYMLINK_SETTING_ARGUMENTS)};`,
+  `const REPAIR_GIT_FIXED_ARGUMENTS = ${JSON.stringify(REPAIR_GIT_FIXED_ARGUMENTS)};`,
+  `const REPAIR_GIT_DIFF_ARGUMENTS = ${JSON.stringify(REPAIR_GIT_DIFF_ARGUMENTS)};`,
+  `const REPAIR_GIT_CHANGED_PATHS_ARGUMENTS = ${JSON.stringify(REPAIR_GIT_CHANGED_PATHS_ARGUMENTS)};`,
   'const GIT_OBJECT_ID_PATTERN = /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u;',
-  'const RELEASE_CLI_GIT_PREFIX = [',
-  "  '--no-pager',",
-  "  '-c',",
-  "  'color.ui=false',",
-  "  '-c',",
-  "  'core.fsmonitor=false',",
-  "  '-c',",
-  "  'submodule.recurse=false',",
-  '];',
+  '// the release CLI runs every Git command through jg-git-commands, without `isolateConfig`',
+  'const RELEASE_CLI_GIT_PREFIX = JG_GIT_PREFIX;',
   '',
   'const readFileWithinLimit = (path) => {',
   '  const descriptor = openSync(',
@@ -410,11 +524,8 @@ const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
   '  !/[:\\\\*?[\\]{}\\p{Cc}]/u.test(path) &&',
   "  path.split('/').every((segment) => segment !== '' && segment !== '.' && segment !== '..' && !EXCLUDED_DIRECTORY_NAMES.has(segment));",
   '',
-  '/** Identifies the one literal canonical pathspec emitted by selected release CLI reads. */',
-  'const isApprovedReleaseCliPathspec = (pathspec) => {',
-  "  const prefix = ':(top,literal)';",
-  '  if (!pathspec.startsWith(prefix)) return false;',
-  '  const path = pathspec.slice(prefix.length);',
+  '/** Identifies the one canonical path selected release CLI reads emit, which Git reads literally. */',
+  'const isApprovedReleaseCliPath = (path) => {',
   '  if (',
   "    path.length === 0 || path.endsWith('/') || path.includes('\\\\') || /[\\0-\\x1f\\x7f?*[\\]{}]/u.test(path)",
   '  ) {',
@@ -434,21 +545,16 @@ const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
   '};',
   '',
   '// the release CLI instruction probe selects exactly these coding-agent instruction files',
-  'const RELEASE_CLI_INSTRUCTION_PATHSPECS = [',
-  "  ':(top,literal)AGENTS.md',",
-  "  ':(top,literal)CLAUDE.md',",
-  "  ':(top,literal).claude/CLAUDE.md',",
-  "  ':(top,literal)CLAUDE.local.md',",
-  '];',
+  "const RELEASE_CLI_INSTRUCTION_PATHS = ['AGENTS.md', 'CLAUDE.md', '.claude/CLAUDE.md', 'CLAUDE.local.md'];",
   '',
-  '/** Matches a fixed release CLI inventory command with one canonical or the instruction selection. */',
+  '/** Matches a release CLI inventory listing of everything, one canonical path, or the instruction selection. */',
   'const hasApprovedReleaseCliInventoryArguments = (argumentsList, expectedArguments) =>',
   '  hasExactArguments(argumentsList, expectedArguments) ||',
-  '  hasExactArguments(argumentsList, [...expectedArguments, ...RELEASE_CLI_INSTRUCTION_PATHSPECS]) ||',
+  '  hasExactArguments(argumentsList, [...expectedArguments, ...RELEASE_CLI_INSTRUCTION_PATHS]) ||',
   '  (',
   '    argumentsList.length === expectedArguments.length + 1 &&',
   '    expectedArguments.every((argument, index) => argumentsList[index] === argument) &&',
-  '    isApprovedReleaseCliPathspec(argumentsList.at(-1))',
+  '    isApprovedReleaseCliPath(argumentsList.at(-1))',
   '  );',
   '',
   "/** Allows the release CLI's finite read-only Git discovery and inventory commands. */",
@@ -460,40 +566,19 @@ const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
   '    return false;',
   '  }',
   '  const commandArguments = argumentsList.slice(RELEASE_CLI_GIT_PREFIX.length);',
-  "  if (hasExactArguments(commandArguments, ['--version'])) return true;",
-  "  if (commandArguments[0] !== '-C' || !commandArguments[1]) return false;",
-  '  const repositoryArguments = commandArguments.slice(2);',
-  '  const exactRepositoryCommands = [',
+  '  const exactCommands = [',
+  "    ['version'],",
   "    ['rev-parse', '--is-inside-work-tree'],",
   "    ['rev-parse', '--show-toplevel'],",
   "    ['rev-parse', '--absolute-git-dir'],",
   "    ['rev-parse', '--git-common-dir'],",
   "    ['config', '--type=bool', '--default=false', '--get', 'core.sparseCheckout'],",
-  "    ['config', '--type=bool', '--default=true', '--get', 'core.symlinks'],",
-  '    [',
-  "      'ls-files',",
-  "      '--cached',",
-  "      '--stage',",
-  "      '--full-name',",
-  "      '--no-abbrev',",
-  "      '--no-recurse-submodules',",
-  "      '-z',",
-  "      '--',",
-  '    ],',
-  '    [',
-  "      'ls-files',",
-  "      '--others',",
-  "      '--exclude-standard',",
-  "      '--full-name',",
-  "      '--no-recurse-submodules',",
-  "      '-z',",
-  "      '--',",
-  '    ],',
+  '    JG_GIT_SYMLINK_SETTING_ARGUMENTS,',
   "    ['check-attr', '--stdin', '-z', 'filter', 'working-tree-encoding', 'ident'],",
   '  ];',
   '  // ignored files are listed only for the instruction selection',
   '  if (',
-  '    hasExactArguments(repositoryArguments, [',
+  '    hasExactArguments(commandArguments, [',
   "      'ls-files',",
   "      '--others',",
   "      '--ignored',",
@@ -502,23 +587,71 @@ const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
   "      '--no-recurse-submodules',",
   "      '-z',",
   "      '--',",
-  '      ...RELEASE_CLI_INSTRUCTION_PATHSPECS,',
+  '      ...RELEASE_CLI_INSTRUCTION_PATHS,',
   '    ])',
   '  ) {',
   '    return true;',
   '  }',
-  '  return exactRepositoryCommands.some((expectedArguments) =>',
-  "    expectedArguments[0] === 'ls-files'",
-  '      ? hasApprovedReleaseCliInventoryArguments(repositoryArguments, expectedArguments)',
-  '      : hasExactArguments(repositoryArguments, expectedArguments),',
+  '  return (',
+  '    exactCommands.some((expectedArguments) => hasExactArguments(commandArguments, expectedArguments)) ||',
+  '    [JG_GIT_INDEX_ARGUMENTS, JG_GIT_UNTRACKED_ARGUMENTS].some((expectedArguments) =>',
+  '      hasApprovedReleaseCliInventoryArguments(commandArguments, expectedArguments),',
+  '    )',
   '  );',
   '};',
+  '',
+  'const hasPrefix = (argumentsList, prefix) =>',
+  '  argumentsList.length > prefix.length && prefix.every((argument, index) => argumentsList[index] === argument);',
+  '',
+  "/** Allows one repair helper read after jg-git-commands' isolated prefix. */",
+  'const isApprovedRepairCommand = (shape) => {',
+  '  if (REPAIR_GIT_FIXED_ARGUMENTS.some((expectedArguments) => hasExactArguments(shape, expectedArguments))) {',
+  '    return true;',
+  '  }',
+  "  if (shape[0] === 'rev-parse') {",
+  '    // the checkpoint check names one full object ID that must peel to itself',
+  "    const revision = shape[4] ?? '';",
+  '    return (',
+  "      hasExactArguments(shape, ['rev-parse', '--verify', '--quiet', '--end-of-options', revision]) &&",
+  "      revision.endsWith('^{commit}') &&",
+  "      GIT_OBJECT_ID_PATTERN.test(revision.slice(0, -'^{commit}'.length))",
+  '    );',
+  '  }',
+  '  if (hasPrefix(shape, REPAIR_GIT_CHANGED_PATHS_ARGUMENTS)) {',
+  '    const [commit, separator, ...paths] = shape.slice(REPAIR_GIT_CHANGED_PATHS_ARGUMENTS.length);',
+  "    return GIT_OBJECT_ID_PATTERN.test(commit ?? '') && separator === '--' && paths.length === 0;",
+  '  }',
+  '  if (!hasPrefix(shape, REPAIR_GIT_DIFF_ARGUMENTS)) return false;',
+  '  const [commit, separator, ...paths] = shape.slice(REPAIR_GIT_DIFF_ARGUMENTS.length);',
+  "  if (commit === '--') return separator !== undefined && [separator, ...paths].every(isApprovedRepairPath);",
+  '  return (',
+  "    GIT_OBJECT_ID_PATTERN.test(commit ?? '') &&",
+  "    separator === '--' &&",
+  "    hasExactArguments(paths, ['moldea/moldea.yaml'])",
+  '  );',
+  '};',
+  '',
+  "/** Allows one writer link query after jg-git-commands' prefix: one visited path, or the setting. */",
+  'const isApprovedWriterCommand = (shape) =>',
+  '  hasExactArguments(shape, JG_GIT_SYMLINK_SETTING_ARGUMENTS) ||',
+  '  ((hasExactArguments(shape.slice(0, -1), JG_GIT_INDEX_ARGUMENTS) ||',
+  '    hasExactArguments(shape.slice(0, -1), JG_GIT_UNTRACKED_ARGUMENTS)) &&',
+  "    isApprovedRepairPath(shape.at(-1) ?? ''));",
+  '',
+  "/** Allows the repair helper's and the writer's jg-git-commands command lines. */",
+  'const isApprovedHelperGitCommand = (argumentsList) =>',
+  '  hasPrefix(argumentsList, JG_ISOLATED_GIT_PREFIX)',
+  '    ? isApprovedRepairCommand(argumentsList.slice(JG_ISOLATED_GIT_PREFIX.length))',
+  '    : hasPrefix(argumentsList, JG_GIT_PREFIX) &&',
+  '      isApprovedWriterCommand(argumentsList.slice(JG_GIT_PREFIX.length));',
   '',
   '/** Allows only Git shapes whose helper and output behavior the evaluator bounds. */',
   'const isApprovedGitCommand = (argumentsList) => {',
   "  if (argumentsList.length === 1 && argumentsList[0] === '--version') return true;",
   '  if (isApprovedReleaseCliGitCommand(argumentsList)) return true;',
+  '  if (isApprovedHelperGitCommand(argumentsList)) return true;',
   '',
+  '  // the hardened commands an actor may type',
   '  const configurations = new Set();',
   '  let index = 0;',
   "  while (argumentsList[index] === '-c') {",
@@ -542,12 +675,7 @@ const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
   '    return false;',
   '  }',
   '',
-  "  if (subcommand === 'config') return hasExactArguments(subcommandArguments, ['--null', '--get', 'attr.tree']) || hasExactArguments(subcommandArguments, INSTRUCTION_GIT_SYMLINK_SETTING_ARGUMENTS);",
-  "  if (subcommand === 'cat-file') return subcommandArguments.length === 2 && subcommandArguments[0] === '-t' && GIT_OBJECT_ID_PATTERN.test(subcommandArguments[1]);",
-  "  if (subcommand === 'ls-files') {",
-  "    return hasExactArguments(subcommandArguments, ['-z', '--', '.']) || (hasExactArguments(subcommandArguments.slice(0, -1), INSTRUCTION_GIT_STORAGE_ARGUMENTS) && isApprovedRepairPath(subcommandArguments.at(-1) ?? ''));",
-  '  }',
-  '',
+  "  if (subcommand === 'config') return hasExactArguments(subcommandArguments, ['--null', '--get', 'attr.tree']);",
   "  if (subcommand === 'status') {",
   '    return (',
   "      subcommandArguments.includes('--porcelain=v2') &&",

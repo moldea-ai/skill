@@ -1,4 +1,4 @@
-import { capitalizeFirst } from 'web-utils-kit';
+import { capitalizeFirst } from 'jg-utilities';
 
 import type { IEvaluationReplayModel } from '@moldea.ai/website-ui/evaluation-replay-model';
 

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { isEqual } from 'web-utils-kit';
+import { isEqual } from 'jg-utilities';
 
 import {
   createEvidenceBundle,

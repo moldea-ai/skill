@@ -1,5 +1,5 @@
-import { createHash } from 'node:crypto';
 import { posix } from 'node:path';
+import { hashValue } from 'jg-crypto';
 
 import {
   hasValidRepairGitCommandEvidence,
@@ -566,7 +566,7 @@ const projectManagedAgentsResult = (
     if (block !== null && source.replaceAll('\r\n', '\n') === `${block}\n`) {
       return {
         kind: 'managed-agents-print-result',
-        blockSha256: createHash('sha256').update(block).digest('hex'),
+        blockSha256: hashValue(block),
       };
     }
   }
@@ -606,7 +606,7 @@ export const hasVerifiedManagedAgentsHandoff = (
 ): boolean => {
   const block = extractManagedBlock(actorResponse);
   if (block === null) return false;
-  const blockSha256 = createHash('sha256').update(block).digest('hex');
+  const blockSha256 = hashValue(block);
   return executionEvidence.some(
     ({ item }) =>
       item.exitCode === 0 &&

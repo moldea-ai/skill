@@ -1,5 +1,5 @@
 import { resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { isMainModule, parseStrictArgs } from 'jg-process';
 
 import { packSourceWorkspaceCandidate } from './workspace.ts';
 import type { IPackSourceWorkspaceCandidateOptions } from './types.ts';
@@ -8,6 +8,9 @@ import type { IPackSourceWorkspaceCandidateOptions } from './types.ts';
  * Parses the source candidate packer command line.
  * @param argumentsList Command-line arguments excluding Node and the script path.
  * @returns Validated workspace, output, and selected package roots.
+ * @throws
+ * - INVALID_ARGUMENTS: an unknown option, a positional argument, a missing or empty value, a
+ * repeated option, or a missing required one
  */
 export const parsePackArguments = (
   argumentsList: string[],
@@ -17,32 +20,15 @@ export const parsePackArguments = (
     'artifactDirectory' | 'selectedRootPackageNames' | 'workspaceRoot'
   >
 > => {
-  let artifactDirectory: string | undefined;
-  let workspaceRoot: string | undefined;
-  const selectedRootPackageNames: string[] = [];
-
-  for (let index = 0; index < argumentsList.length; index += 1) {
-    const argument = argumentsList[index];
-    const optionValue = argumentsList[index + 1];
-    if (argument === undefined || !['--output', '--root', '--workspace'].includes(argument)) {
-      throw new Error(`Unknown candidate packer option: ${argument}`);
-    }
-    if (!optionValue || optionValue.startsWith('--')) {
-      throw new Error(`${argument} requires a value.`);
-    }
-    index += 1;
-
-    if (argument === '--output') artifactDirectory = resolve(optionValue);
-    if (argument === '--workspace') workspaceRoot = resolve(optionValue);
-    if (argument === '--root') selectedRootPackageNames.push(optionValue);
-  }
-
-  if (!workspaceRoot) throw new Error('--workspace is required.');
-  if (!artifactDirectory) throw new Error('--output is required.');
+  const { output, root, workspace } = parseStrictArgs(argumentsList, {
+    output: { type: 'string', required: true },
+    root: { type: 'string', multiple: true },
+    workspace: { type: 'string', required: true },
+  });
   return {
-    artifactDirectory,
-    selectedRootPackageNames,
-    workspaceRoot,
+    artifactDirectory: resolve(output),
+    selectedRootPackageNames: root,
+    workspaceRoot: resolve(workspace),
   };
 };
 
@@ -63,9 +49,7 @@ const main = (): void => {
   );
 };
 
-const isDirectExecution =
-  process.argv[1] && pathToFileURL(resolve(process.argv[1])).href === import.meta.url;
-if (isDirectExecution) {
+if (isMainModule(import.meta.url)) {
   try {
     main();
   } catch (error) {

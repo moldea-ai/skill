@@ -3,8 +3,8 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, test } from 'vitest';
+import { writeJsonFile } from 'jg-fs';
 
-import { writeJsonFileAtomically } from '../../filesystem/index.ts';
 import { parseSemanticEvaluationHostOutput, summarizeSemanticCycles } from '../execution/index.ts';
 import {
   archiveSemanticDiagnosticCheckpoint,
@@ -126,7 +126,7 @@ describe('semantic checkpoint storage', () => {
       malformed.caseCheckpoints[
         'case-one'
       ]!.activeTrial!.actorEvidence!.commandPolicyEvidence.completedCommandCount = 1;
-      await writeJsonFileAtomically(getSemanticCheckpointPath(root), malformed);
+      await writeJsonFile(getSemanticCheckpointPath(root), malformed);
       await expect(readSemanticCheckpoint(root)).rejects.toThrow(
         'invalid actor execution evidence',
       );
@@ -135,21 +135,21 @@ describe('semantic checkpoint storage', () => {
         ...cycle,
         developerRequest: 'Different request',
       }));
-      await writeJsonFileAtomically(getSemanticCheckpointPath(root), mismatched);
+      await writeJsonFile(getSemanticCheckpointPath(root), mismatched);
       await expect(readSemanticCheckpoint(root)).rejects.toThrow(
         'active cycle evidence does not match',
       );
       const missing = structuredClone(checkpoint);
       missing.caseCheckpoints['case-one']!.activeTrial!.actorEvidence!.cycles = [];
-      await writeJsonFileAtomically(getSemanticCheckpointPath(root), missing);
+      await writeJsonFile(getSemanticCheckpointPath(root), missing);
       await expect(readSemanticCheckpoint(root)).rejects.toThrow();
       const reordered = structuredClone(checkpoint);
       reordered.caseCheckpoints['case-one']!.activeTrial!.actorEvidence!.cycles.reverse();
-      await writeJsonFileAtomically(getSemanticCheckpointPath(root), reordered);
+      await writeJsonFile(getSemanticCheckpointPath(root), reordered);
       await expect(readSemanticCheckpoint(root)).rejects.toThrow(
         'invalid actor execution evidence',
       );
-      await writeJsonFileAtomically(getSemanticCheckpointPath(root), {
+      await writeJsonFile(getSemanticCheckpointPath(root), {
         ...checkpoint,
         schemaVersion: 2,
       });
@@ -200,7 +200,7 @@ describe('semantic checkpoint storage', () => {
   test('rejects duplicate selected ids before resuming', async () => {
     const root = await mkdtemp(path.join(tmpdir(), 'moldea-semantic-checkpoint-'));
     temporaryRoots.push(root);
-    await writeJsonFileAtomically(getSemanticCheckpointPath(root), {
+    await writeJsonFile(getSemanticCheckpointPath(root), {
       ...createCheckpoint(),
       selectedCaseIds: ['case-one', 'case-one'],
     });
@@ -359,7 +359,7 @@ test('round trips projected Git and print evidence and rejects malformed command
   if (entry === undefined) throw new Error('Expected captured command.');
   const item: Record<string, unknown> = { ...entry.item };
   delete item['repairGit'];
-  await writeJsonFileAtomically(getSemanticCheckpointPath(root), {
+  await writeJsonFile(getSemanticCheckpointPath(root), {
     ...checkpoint,
     caseCheckpoints: {
       'case-one': {

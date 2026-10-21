@@ -8,12 +8,434 @@ var __export = (target, all) => {
 
 // src/portable/moldea-cli.ts
 import { spawn } from "node:child_process";
-import { isAbsolute as isAbsolute2, resolve as resolve2 } from "node:path";
+import { isAbsolute as isAbsolute3, resolve as resolve3 } from "node:path";
 
 // src/portable/response-page/response-page.ts
-import { lstat, realpath } from "node:fs/promises";
+import { lstat as lstat2, realpath as realpath2 } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
+import { basename as basename2, dirname as dirname2, isAbsolute as isAbsolute2, join as join2, relative as relative2, resolve as resolve2, sep as sep2 } from "node:path";
+
+// node_modules/jg-fs/dist/shared/constants.js
+var RENAME_RETRY_DELAYS_MS = [
+  10,
+  20,
+  40,
+  80,
+  160,
+  320,
+  640,
+  1e3,
+  1e3,
+  1e3
+];
+
+// node_modules/jg-fs/dist/shared/paths.js
+import { basename, extname, isAbsolute, relative, resolve, sep } from "node:path";
+
+// node_modules/jg-exception/dist/shared/constants.js
+var UNKNOWN_ERROR_CODE = "UNKNOWN_ERROR";
+var REDACTED_VALUE = "[redacted]";
+
+// node_modules/jg-exception/dist/error-handler/utilities.js
+var collectSensitiveRanges = (message, sensitiveValues) => {
+  const sensitiveRanges = [];
+  sensitiveValues.forEach((sensitiveValue) => {
+    let matchStart = message.indexOf(sensitiveValue);
+    while (matchStart !== -1) {
+      sensitiveRanges.push({
+        start: matchStart,
+        end: matchStart + sensitiveValue.length
+      });
+      matchStart = message.indexOf(sensitiveValue, matchStart + 1);
+    }
+  });
+  return sensitiveRanges;
+};
+var mergeOverlappingRanges = (sensitiveRanges) => {
+  const sortedSensitiveRanges = [...sensitiveRanges].sort((firstRange, secondRange) => firstRange.start - secondRange.start || secondRange.end - firstRange.end);
+  const mergedSensitiveRanges = [];
+  sortedSensitiveRanges.forEach((currentRange) => {
+    const previousRange = mergedSensitiveRanges.at(-1);
+    if (!previousRange || currentRange.start >= previousRange.end) {
+      mergedSensitiveRanges.push({ ...currentRange });
+      return;
+    }
+    if (currentRange.end > previousRange.end) {
+      previousRange.end = currentRange.end;
+    }
+  });
+  return mergedSensitiveRanges;
+};
+var redactSensitiveValues = (message, sensitiveValues) => {
+  const uniqueSensitiveValues = [
+    ...new Set(sensitiveValues.filter((sensitiveValue) => sensitiveValue.length > 0))
+  ];
+  if (!uniqueSensitiveValues.length) {
+    return message;
+  }
+  const sensitiveRanges = mergeOverlappingRanges(collectSensitiveRanges(message, uniqueSensitiveValues));
+  if (!sensitiveRanges.length) {
+    return message;
+  }
+  const redactedMessageParts = [];
+  let nextMessageIndex = 0;
+  sensitiveRanges.forEach((sensitiveRange) => {
+    redactedMessageParts.push(message.slice(nextMessageIndex, sensitiveRange.start), REDACTED_VALUE);
+    nextMessageIndex = sensitiveRange.end;
+  });
+  redactedMessageParts.push(message.slice(nextMessageIndex));
+  return redactedMessageParts.join("");
+};
+
+// node_modules/jg-exception/dist/error-handler/index.js
+var getErrorCode = (error48) => {
+  if (typeof error48 !== "object" || error48 === null) {
+    return null;
+  }
+  const { code } = error48;
+  return typeof code === "string" && code.length > 0 ? code : null;
+};
+var hasErrorCode = (error48, code) => code.length > 0 && (typeof error48 === "string" ? error48 : getErrorCode(error48)) === code;
+
+// node_modules/jg-exception/dist/exception/constants.js
+var EXCEPTION_BRAND = /* @__PURE__ */ Symbol.for("jg-exception.Exception");
+var EXCEPTION_SEVERITIES = ["expected", "critical"];
+
+// node_modules/jg-exception/dist/exception/redaction.js
+var BUILT_PROPERTIES = /* @__PURE__ */ new Set(["name", "message", "stack", "cause"]);
+var VERBATIM_EXCEPTION_PROPERTIES = /* @__PURE__ */ new Set(["severity", "shouldLog"]);
+var MAX_PROTOTYPE_DEPTH = 32;
+var ARRAY_INDEX = /^(?:0|[1-9]\d*)$/;
+var findDescriptor = (target, key) => {
+  let current = target;
+  for (let depth = 0; current !== null && depth < MAX_PROTOTYPE_DEPTH; depth += 1) {
+    const descriptor = Reflect.getOwnPropertyDescriptor(current, key);
+    if (descriptor !== void 0) {
+      return descriptor;
+    }
+    current = Reflect.getPrototypeOf(current);
+  }
+  return {};
+};
+var ENGINE_STACK_GETTER = Reflect.get(findDescriptor(new Error(), "stack"), "get");
+var readDescriptor = (target, descriptor) => {
+  if ("value" in descriptor) {
+    return descriptor.value;
+  }
+  const getter = Reflect.get(descriptor, "get");
+  return typeof getter === "function" && getter === ENGINE_STACK_GETTER ? Reflect.apply(getter, target, []) : void 0;
+};
+var readProperty = (target, key, isInherited) => {
+  try {
+    return readDescriptor(target, isInherited ? findDescriptor(target, key) : Reflect.getOwnPropertyDescriptor(target, key) ?? {});
+  } catch {
+    return void 0;
+  }
+};
+var readDataEntries = (target) => {
+  let keys;
+  try {
+    keys = Reflect.ownKeys(target);
+  } catch {
+    return [];
+  }
+  return keys.flatMap((key) => {
+    if (typeof key !== "string") {
+      return [];
+    }
+    try {
+      const descriptor = Reflect.getOwnPropertyDescriptor(target, key);
+      return descriptor?.enumerable === true && "value" in descriptor ? [[key, descriptor.value]] : [];
+    } catch {
+      return [];
+    }
+  });
+};
+var defineValue = (target, key, value, enumerable) => {
+  Object.defineProperty(target, key, { value, enumerable, writable: true, configurable: true });
+};
+var isPrimitive = (value) => value === null || typeof value !== "object" && typeof value !== "function";
+var redactPrimitive = (value, values) => {
+  if (typeof value === "string") {
+    return redactSensitiveValues(value, values);
+  }
+  if (value === null || value === void 0) {
+    return value;
+  }
+  const text = String(value);
+  const redacted = redactSensitiveValues(text, values);
+  return redacted === text ? value : redacted;
+};
+var redactJson = (value, values, ancestors) => {
+  if (typeof value !== "object" || value === null) {
+    return typeof value === "function" || typeof value === "symbol" || typeof value === "bigint" ? void 0 : redactPrimitive(value, values);
+  }
+  if (ancestors.has(value)) {
+    return void 0;
+  }
+  ancestors.add(value);
+  try {
+    const entries = readDataEntries(value);
+    if (Array.isArray(value)) {
+      const copy2 = [];
+      for (const [key, item] of entries) {
+        if (ARRAY_INDEX.test(key)) {
+          copy2[Number(key)] = redactJson(item, values, ancestors) ?? null;
+        }
+      }
+      return copy2;
+    }
+    const copy = {};
+    for (const [key, item] of entries) {
+      const redacted = redactJson(item, values, ancestors);
+      if (redacted !== void 0) {
+        defineValue(copy, key, redacted, true);
+      }
+    }
+    return copy;
+  } finally {
+    ancestors.delete(value);
+  }
+};
+var redactData = (data, values) => {
+  try {
+    return redactJson(data, values, /* @__PURE__ */ new Set());
+  } catch {
+    return null;
+  }
+};
+var createSnapshot = (cause, context) => {
+  const { values, exceptionClass, snapshots } = context;
+  const isRecognisedException = readProperty(cause, EXCEPTION_BRAND, false) === true;
+  const message = readProperty(cause, "message", false);
+  const snapshot = Reflect.construct(Error, [typeof message === "string" ? redactSensitiveValues(message, values) : ""], isRecognisedException ? exceptionClass : Error);
+  snapshots.set(cause, snapshot);
+  const name = readProperty(cause, "name", true);
+  defineValue(snapshot, "name", typeof name === "string" ? redactSensitiveValues(name, values) : "Error", false);
+  const stack = readProperty(cause, "stack", true);
+  if (typeof stack === "string") {
+    defineValue(snapshot, "stack", redactSensitiveValues(stack, values), false);
+  } else {
+    Reflect.deleteProperty(snapshot, "stack");
+  }
+  for (const [key, value] of readDataEntries(cause)) {
+    const isBuilt = BUILT_PROPERTIES.has(key) || isRecognisedException && key === "data";
+    if (!isBuilt && isPrimitive(value)) {
+      const isVerbatim = isRecognisedException && VERBATIM_EXCEPTION_PROPERTIES.has(key);
+      defineValue(snapshot, key, isVerbatim ? value : redactPrimitive(value, values), true);
+    }
+  }
+  if (isRecognisedException) {
+    Object.defineProperty(snapshot, EXCEPTION_BRAND, { value: true });
+    const data = readProperty(cause, "data", false);
+    defineValue(snapshot, "data", data === void 0 ? void 0 : redactData(data, values), true);
+  }
+  let hasCause;
+  try {
+    hasCause = Reflect.getOwnPropertyDescriptor(cause, "cause") !== void 0;
+  } catch {
+    hasCause = false;
+  }
+  if (hasCause) {
+    defineValue(snapshot, "cause", redactCause(readProperty(cause, "cause", false), context), false);
+  }
+  return snapshot;
+};
+var redactCause = (cause, context) => {
+  if (isPrimitive(cause)) {
+    return redactPrimitive(cause, context.values);
+  }
+  if (context.snapshots.has(cause)) {
+    return context.snapshots.get(cause);
+  }
+  try {
+    return createSnapshot(cause, context);
+  } catch {
+    return void 0;
+  }
+};
+var toRedactionValues = (redact) => {
+  const values = /* @__PURE__ */ new Set();
+  try {
+    for (const value of Array.isArray(redact) ? redact : []) {
+      if (typeof value === "string" && value.length > 0) {
+        values.add(value);
+        try {
+          values.add(encodeURIComponent(value));
+        } catch {
+        }
+      }
+    }
+  } catch {
+  }
+  return [...values];
+};
+var redactExceptionParts = (parts, redact, exceptionClass) => {
+  const values = toRedactionValues(redact);
+  if (values.length === 0) {
+    return parts;
+  }
+  let message;
+  try {
+    message = redactSensitiveValues(new Error(parts.message).message, values);
+  } catch {
+    message = "";
+  }
+  return {
+    message,
+    data: parts.data === void 0 ? void 0 : redactData(parts.data, values),
+    cause: redactCause(parts.cause, { values, exceptionClass, snapshots: /* @__PURE__ */ new Map() })
+  };
+};
+
+// node_modules/jg-exception/dist/exception/exception.js
+var toSerializableData = (data) => {
+  try {
+    const serialized = JSON.stringify(data);
+    return serialized === void 0 ? null : JSON.parse(serialized);
+  } catch {
+    return null;
+  }
+};
+var isExceptionSeverity = (value) => EXCEPTION_SEVERITIES.includes(value);
+var Exception = class _Exception extends Error {
+  // the stable code callers handle the error by
+  code;
+  // context that helps whoever handles or debugs the error
+  data;
+  /**
+   * Creates an exception.
+   * @param message What failed, for people reading logs.
+   * @param options The code, and optionally the data, the error underneath as `cause`, the values
+   * to `redact`, and the throw site's `severity` and `shouldLog`.
+   */
+  constructor(message, options) {
+    const { code, data, cause, redact, severity, shouldLog } = options ?? {
+      code: ""
+    };
+    const parts = redactExceptionParts({ message, data, cause }, redact, _Exception);
+    super(parts.message, parts.cause === void 0 ? void 0 : { cause: parts.cause });
+    this.name = "Exception";
+    this.code = typeof code === "string" && code.length > 0 ? code : UNKNOWN_ERROR_CODE;
+    this.data = parts.data;
+    if (isExceptionSeverity(severity)) {
+      this.severity = severity;
+    }
+    if (shouldLog === true) {
+      this.shouldLog = true;
+    }
+    Object.defineProperty(this, EXCEPTION_BRAND, { value: true });
+  }
+  /**
+   * Converts the exception to a plain object, which `JSON.stringify` calls.
+   * @returns The name, code, message, and data, with `null` for data that is missing or can't be
+   * serialized.
+   * @example
+   * import { Exception } from 'jg-exception';
+   *
+   * const json = new Exception('Not found', { code: 'NOT_FOUND', data: { id: 1 } }).toJSON();
+   * json; // => { name: 'Exception', code: 'NOT_FOUND', message: 'Not found', data: { id: 1 } }
+   */
+  toJSON() {
+    return {
+      name: this.name,
+      code: this.code,
+      message: this.message,
+      data: toSerializableData(this.data)
+    };
+  }
+  /**
+   * Describes the exception in one line, with its code.
+   * @returns The name, code, and message, such as `Exception [NOT_FOUND]: Not found`.
+   */
+  toString() {
+    return `${this.name} [${this.code}]: ${this.message}`;
+  }
+};
+
+// node_modules/jg-fs/dist/shared/paths.js
+var isPathWithin = (rootPath, targetPath) => {
+  const relativePath = relative(resolve(rootPath), resolve(targetPath));
+  return relativePath === "" || relativePath !== ".." && !relativePath.startsWith(`..${sep}`) && !isAbsolute(relativePath);
+};
+
+// node_modules/jg-fs/dist/shared/validations.js
+var isNotFoundError = (error48) => error48 instanceof Error && "code" in error48 && error48.code === "ENOENT";
+var isBusyRenameError = (error48, platform = process.platform) => platform === "win32" && error48 instanceof Error && "code" in error48 && (error48.code === "EACCES" || error48.code === "EBUSY" || error48.code === "EPERM");
+
+// node_modules/jg-fs/dist/async/files/files.js
+import { randomUUID } from "node:crypto";
+import { copyFile as copyFileNode, mkdir, open as open2, readFile as readFileNode, rm, symlink, unlink, writeFile as writeFileNode } from "node:fs/promises";
+import { dirname, join } from "node:path";
+
+// node_modules/jg-fs/dist/async/files/utilities.js
+import { constants, lstat, open, realpath, rename, stat } from "node:fs/promises";
+var readPermissionBits = async (path) => {
+  try {
+    return (await stat(path)).mode & 511;
+  } catch (error48) {
+    if (isNotFoundError(error48)) {
+      return void 0;
+    }
+    throw error48;
+  }
+};
+var renameReplacing = async (from, to) => {
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      await rename(from, to);
+      return;
+    } catch (error48) {
+      const delay = RENAME_RETRY_DELAYS_MS[attempt];
+      if (delay === void 0 || !isBusyRenameError(error48)) {
+        throw error48;
+      }
+      await new Promise((resolve4) => {
+        setTimeout(resolve4, delay);
+      });
+    }
+  }
+};
+var syncDirectory = async (path) => {
+  const handle = await open(path, "r");
+  try {
+    await handle.sync();
+  } finally {
+    await handle.close();
+  }
+};
+
+// node_modules/jg-fs/dist/async/files/files.js
+var writeAtomically = async (path, data, mode, beforeRename) => {
+  const directory = dirname(path);
+  await mkdir(directory, { recursive: true });
+  const finalMode = mode ?? await readPermissionBits(path);
+  const tempPath = join(directory, `.${randomUUID()}.tmp`);
+  let isRenamed = false;
+  try {
+    const handle = await open2(tempPath, "wx", finalMode === void 0 ? 438 : 384);
+    try {
+      if (finalMode !== void 0) {
+        await handle.chmod(finalMode);
+      }
+      await handle.writeFile(data);
+      await handle.sync();
+    } finally {
+      await handle.close();
+    }
+    await beforeRename?.();
+    await renameReplacing(tempPath, path);
+    isRenamed = true;
+  } finally {
+    if (!isRenamed) {
+      await rm(tempPath, { force: true });
+    }
+  }
+  if (process.platform !== "win32") {
+    await syncDirectory(directory);
+  }
+};
+var writeFileAtomic = (path, data, mode) => writeAtomically(path, data, mode);
 
 // node_modules/zod/v4/classic/external.js
 var external_exports = {};
@@ -782,10 +1204,10 @@ function mergeDefs(...defs) {
 function cloneDef(schema) {
   return mergeDefs(schema._zod.def);
 }
-function getElementAtPath(obj, path2) {
-  if (!path2)
+function getElementAtPath(obj, path) {
+  if (!path)
     return obj;
-  return path2.reduce((acc, key) => acc?.[key], obj);
+  return path.reduce((acc, key) => acc?.[key], obj);
 }
 function promiseAllObject(promisesObj) {
   const keys = Object.keys(promisesObj);
@@ -1168,11 +1590,11 @@ function aborted(x, startIndex = 0) {
   }
   return false;
 }
-function prefixIssues(path2, issues) {
+function prefixIssues(path, issues) {
   return issues.map((iss) => {
     var _a2;
     (_a2 = iss).path ?? (_a2.path = []);
-    iss.path.unshift(path2);
+    iss.path.unshift(path);
     return iss;
   });
 }
@@ -1355,7 +1777,7 @@ function formatError(error48, mapper = (issue2) => issue2.message) {
 }
 function treeifyError(error48, mapper = (issue2) => issue2.message) {
   const result = { errors: [] };
-  const processError = (error49, path2 = []) => {
+  const processError = (error49, path = []) => {
     var _a2, _b;
     for (const issue2 of error49.issues) {
       if (issue2.code === "invalid_union" && issue2.errors.length) {
@@ -1365,7 +1787,7 @@ function treeifyError(error48, mapper = (issue2) => issue2.message) {
       } else if (issue2.code === "invalid_element") {
         processError({ issues: issue2.issues }, issue2.path);
       } else {
-        const fullpath = [...path2, ...issue2.path];
+        const fullpath = [...path, ...issue2.path];
         if (fullpath.length === 0) {
           result.errors.push(mapper(issue2));
           continue;
@@ -1397,8 +1819,8 @@ function treeifyError(error48, mapper = (issue2) => issue2.message) {
 }
 function toDotPath(_path) {
   const segs = [];
-  const path2 = _path.map((seg) => typeof seg === "object" ? seg.key : seg);
-  for (const seg of path2) {
+  const path = _path.map((seg) => typeof seg === "object" ? seg.key : seg);
+  for (const seg of path) {
     if (typeof seg === "number")
       segs.push(`[${seg}]`);
     else if (typeof seg === "symbol")
@@ -13375,13 +13797,13 @@ function resolveRef(ref, ctx) {
   if (!ref.startsWith("#")) {
     throw new Error("External $ref is not supported, only local refs (#/...) are allowed");
   }
-  const path2 = ref.slice(1).split("/").filter(Boolean);
-  if (path2.length === 0) {
+  const path = ref.slice(1).split("/").filter(Boolean);
+  if (path.length === 0) {
     return ctx.rootSchema;
   }
   const defsKey = ctx.version === "draft-2020-12" ? "$defs" : "definitions";
-  if (path2[0] === defsKey) {
-    const key = path2[1];
+  if (path[0] === defsKey) {
+    const key = path[1];
     if (!key || !ctx.defs[key]) {
       throw new Error(`Reference not found: ${ref}`);
     }
@@ -13783,26 +14205,8 @@ function date4(params) {
 // node_modules/zod/v4/classic/external.js
 config(en_default());
 
-// src/filesystem/atomic-bytes/atomic-bytes.ts
-import { randomUUID } from "node:crypto";
-import { mkdir, rename, rm, writeFile } from "node:fs/promises";
-import path from "node:path";
-var writeBufferFileAtomically = async (filePath, content, signal) => {
-  signal?.throwIfAborted();
-  await mkdir(path.dirname(filePath), { recursive: true });
-  const temporaryPath = path.join(path.dirname(filePath), `.${randomUUID()}.tmp`);
-  try {
-    signal?.throwIfAborted();
-    await writeFile(temporaryPath, content, { flag: "wx", signal });
-    signal?.throwIfAborted();
-    await rename(temporaryPath, filePath);
-  } finally {
-    await rm(temporaryPath, { force: true });
-  }
-};
-
 // src/portable/response-page/response-page.ts
-import { isPathWithin, readRepositoryFile } from "./repository-files.mjs";
+import { readRepositoryFile } from "./repository-files.mjs";
 
 // src/portable/response-page/types.ts
 var responseIdentity = {
@@ -13910,24 +14314,24 @@ var parseResponsePage = (bytes, identity) => {
   return { status: page.status, cursor: readContinuationCursor(page) };
 };
 var resolveResponsePath = async (filePath, repositoryRoot) => {
-  const temporaryRoot = await realpath(tmpdir());
-  const hostTemporaryRoot = resolve(tmpdir());
-  const requestedPath = resolve(filePath);
-  const resolvedPath = isPathWithin(hostTemporaryRoot, requestedPath) ? join(temporaryRoot, relative(hostTemporaryRoot, requestedPath)) : requestedPath;
-  const fileName = basename(resolvedPath);
-  if (!isAbsolute(filePath) || !isPathWithin(temporaryRoot, resolvedPath) || isPathWithin(repositoryRoot, resolvedPath) || dirname(resolvedPath) === temporaryRoot || !/^[a-z0-9][a-z0-9._-]{0,63}$/u.test(fileName) || fileName.endsWith(".") || /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/iu.test(fileName)) {
+  const temporaryRoot = await realpath2(tmpdir());
+  const hostTemporaryRoot = resolve2(tmpdir());
+  const requestedPath = resolve2(filePath);
+  const resolvedPath = isPathWithin(hostTemporaryRoot, requestedPath) ? join2(temporaryRoot, relative2(hostTemporaryRoot, requestedPath)) : requestedPath;
+  const fileName = basename2(resolvedPath);
+  if (!isAbsolute2(filePath) || !isPathWithin(temporaryRoot, resolvedPath) || isPathWithin(repositoryRoot, resolvedPath) || dirname2(resolvedPath) === temporaryRoot || !/^[a-z0-9][a-z0-9._-]{0,63}$/u.test(fileName) || fileName.endsWith(".") || /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/iu.test(fileName)) {
     throw new Error(
       "Response files require an absolute portable path in private temporary storage outside the repository."
     );
   }
   let directory = temporaryRoot;
-  for (const component of relative(temporaryRoot, dirname(resolvedPath)).split(sep)) {
-    directory = join(directory, component);
-    if (!(await lstat(directory)).isDirectory()) {
+  for (const component of relative2(temporaryRoot, dirname2(resolvedPath)).split(sep2)) {
+    directory = join2(directory, component);
+    if (!(await lstat2(directory)).isDirectory()) {
       throw new Error("Response directories must exist and must not be links.");
     }
   }
-  const parent = await lstat(dirname(resolvedPath));
+  const parent = await lstat2(dirname2(resolvedPath));
   if (process.platform !== "win32" && ((parent.mode & 63) !== 0 || parent.uid !== process.getuid?.())) {
     throw new Error("Response files require a task-owned private temporary directory.");
   }
@@ -13943,7 +14347,7 @@ var prepareResponseFiles = async (repositoryRoot, identity, cursorPath, savePath
     files.checkpointPath = await resolveResponsePath(cursorPath, repositoryRoot);
     const page = parseResponsePage(
       await readRepositoryFile(
-        await realpath(tmpdir()),
+        await realpath2(tmpdir()),
         files.checkpointPath,
         MAXIMUM_RESPONSE_BYTES,
         "reject"
@@ -13974,7 +14378,8 @@ var verifyAndSaveResponse = async (files, repositoryRoot, bytes, identity, exitC
   if (files.savePath === void 0 || page.status === "error") return;
   readContinuationCursor(page);
   const checked = await prepareCapturePath(files.savePath, files.checkpointPath, repositoryRoot);
-  await writeBufferFileAtomically(checked, bytes, signal);
+  signal.throwIfAborted();
+  await writeFileAtomic(checked, bytes);
 };
 var prepareCapturePath = async (requestedPath, checkpointPath, repositoryRoot) => {
   const savePath = await resolveResponsePath(requestedPath, repositoryRoot);
@@ -13985,7 +14390,7 @@ var prepareCapturePath = async (requestedPath, checkpointPath, repositoryRoot) =
   }
   return savePath;
 };
-var readOptionalFileStat = async (filePath) => lstat(filePath).catch((error48) => {
+var readOptionalFileStat = async (filePath) => lstat2(filePath).catch((error48) => {
   if (error48 instanceof Error && "code" in error48 && error48.code === "ENOENT") return void 0;
   throw error48;
 });
@@ -13995,15 +14400,92 @@ import { resolveRepositoryCli } from "./repository-package.mjs";
 
 // src/portable/scope-path-input.ts
 import { posix, win32 } from "node:path";
+
+// node_modules/jg-process/dist/shared/errors.js
+var ERRORS = {
+  PROCESS_START_FAILED: "PROCESS_START_FAILED",
+  PROCESS_TIMED_OUT: "PROCESS_TIMED_OUT",
+  PROCESS_OUTPUT_TOO_LARGE: "PROCESS_OUTPUT_TOO_LARGE",
+  PROCESS_TREE_SURVIVED: "PROCESS_TREE_SURVIVED",
+  INVALID_PORT: "INVALID_PORT",
+  PORT_RESERVATION_FAILED: "PORT_RESERVATION_FAILED",
+  UNSUPPORTED_PACKAGE_MANAGER: "UNSUPPORTED_PACKAGE_MANAGER",
+  PACKAGE_MANAGER_NOT_FOUND: "PACKAGE_MANAGER_NOT_FOUND",
+  INVALID_READINESS_OPTIONS: "INVALID_READINESS_OPTIONS",
+  PROCESS_NOT_READY: "PROCESS_NOT_READY",
+  PROCESS_EXITED_BEFORE_READY: "PROCESS_EXITED_BEFORE_READY",
+  PROCESS_INTERRUPTED: "PROCESS_INTERRUPTED",
+  INVALID_SIGNAL: "INVALID_SIGNAL",
+  INVALID_PROCESS_OPTIONS: "INVALID_PROCESS_OPTIONS",
+  INVALID_PROCESS_ID: "INVALID_PROCESS_ID",
+  INVALID_ARGUMENTS: "INVALID_ARGUMENTS",
+  STDIN_TOO_LARGE: "STDIN_TOO_LARGE"
+};
+
+// node_modules/jg-process/dist/command-line/stdin.js
+var readStdin = ({ maxBytes, signal }) => new Promise((resolve4, reject) => {
+  if (!Number.isSafeInteger(maxBytes) || maxBytes <= 0) {
+    reject(new Exception("The stdin limit must be a positive safe integer.", {
+      code: ERRORS.INVALID_PROCESS_OPTIONS,
+      data: { maxBytes: String(maxBytes) }
+    }));
+    return;
+  }
+  const { stdin } = process;
+  const chunks = [];
+  let byteLength = 0;
+  const cleanUp = () => {
+    stdin.off("data", onData);
+    stdin.off("end", onEnd);
+    stdin.off("error", onError);
+    signal?.removeEventListener("abort", onAbort);
+  };
+  const fail = (error48) => {
+    cleanUp();
+    stdin.destroy();
+    reject(error48);
+  };
+  const onData = (chunk) => {
+    byteLength += chunk.length;
+    if (byteLength > maxBytes) {
+      fail(new Exception(`The input on stdin is larger than ${maxBytes} bytes.`, {
+        code: ERRORS.STDIN_TOO_LARGE,
+        data: { maxBytes }
+      }));
+      return;
+    }
+    chunks.push(chunk);
+  };
+  const onEnd = () => {
+    cleanUp();
+    resolve4(Buffer.concat(chunks));
+  };
+  const onError = (error48) => {
+    fail(error48);
+  };
+  const onAbort = () => {
+    fail(signal?.reason);
+  };
+  if (signal?.aborted) {
+    fail(signal.reason);
+    return;
+  }
+  signal?.addEventListener("abort", onAbort, { once: true });
+  stdin.on("data", onData);
+  stdin.once("end", onEnd);
+  stdin.once("error", onError);
+});
+
+// src/portable/scope-path-input.ts
 var MAXIMUM_PATH_INPUT_BYTES = 2097152;
 var utf8Decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
-var normalizeScopePath = (path2, context) => {
+var normalizeScopePath = (path, context) => {
   const usesWindowsPaths = /^[A-Za-z]:[\\/]|^\\\\/u.test(context.resolvedRepositoryRoot);
-  if (usesWindowsPaths) path2 = path2.replaceAll("\\", "/");
-  const isDriveAbsolute = /^[A-Za-z]:[\\/]/u.test(path2);
-  const normalizedPath = path2.replace(/^(?:\.\/)+/u, "");
+  if (usesWindowsPaths) path = path.replaceAll("\\", "/");
+  const isDriveAbsolute = /^[A-Za-z]:[\\/]/u.test(path);
+  const normalizedPath = path.replace(/^(?:\.\/)+/u, "");
   const segments = normalizedPath.split(isDriveAbsolute ? /[\\/]/u : "/");
-  if (normalizedPath.length === 0 || path2.includes("\0") || path2.startsWith("./") && normalizedPath.startsWith("/") || normalizedPath.startsWith("//") || !isDriveAbsolute && (normalizedPath.includes("\\") || /^[A-Za-z]:/u.test(normalizedPath)) || segments.some(
+  if (normalizedPath.length === 0 || path.includes("\0") || path.startsWith("./") && normalizedPath.startsWith("/") || normalizedPath.startsWith("//") || !isDriveAbsolute && (normalizedPath.includes("\\") || /^[A-Za-z]:/u.test(normalizedPath)) || segments.some(
     (segment, index) => segment === "." || segment === ".." || segment === "" && !(index === 0 && normalizedPath.startsWith("/"))
   )) {
     throw new Error("Invalid scope path input.");
@@ -14022,18 +14504,7 @@ var normalizeScopePath = (path2, context) => {
   }
   return normalizedPath.startsWith("/") ? normalizedPath : `/${normalizedPath}`;
 };
-var readScopePathInput = async (inputStream, context) => {
-  const chunks = [];
-  let byteLength = 0;
-  for await (const chunk of inputStream) {
-    const inputChunk = typeof chunk === "string" ? Buffer.from(chunk) : chunk;
-    byteLength += inputChunk.byteLength;
-    if (byteLength > MAXIMUM_PATH_INPUT_BYTES) {
-      throw new Error("Scope path input exceeds its byte limit.");
-    }
-    chunks.push(inputChunk);
-  }
-  const input = Buffer.concat(chunks, byteLength);
+var parseScopePathInput = (input, context) => {
   if (input.byteLength === 0 || input.at(-1) !== 0) {
     throw new Error("Invalid scope path input.");
   }
@@ -14043,7 +14514,17 @@ var readScopePathInput = async (inputStream, context) => {
   } catch (error48) {
     throw new Error("Invalid scope path input.", { cause: error48 });
   }
-  return text.split("\0").map((path2) => normalizeScopePath(path2, context));
+  return text.split("\0").map((path) => normalizeScopePath(path, context));
+};
+var readScopePathInput = async (context) => {
+  let input;
+  try {
+    input = await readStdin({ maxBytes: MAXIMUM_PATH_INPUT_BYTES });
+  } catch (error48) {
+    if (!hasErrorCode(error48, ERRORS.STDIN_TOO_LARGE)) throw error48;
+    throw new Error("Scope path input exceeds its byte limit.", { cause: error48 });
+  }
+  return parseScopePathInput(input, context);
 };
 
 // src/portable/moldea-cli.ts
@@ -14101,7 +14582,7 @@ var isLauncherCommand = (command) => command !== void 0 && Object.hasOwn(COMMAND
 var parseArguments = () => {
   const arguments_ = process.argv.slice(2);
   const repositoryRoot = arguments_[1];
-  if (arguments_.length < 5 || arguments_[0] !== "--repository" || repositoryRoot === void 0 || !isAbsolute2(repositoryRoot) || arguments_[2] !== "--") {
+  if (arguments_.length < 5 || arguments_[0] !== "--repository" || repositoryRoot === void 0 || !isAbsolute3(repositoryRoot) || arguments_[2] !== "--") {
     throw new Error("Usage: moldea-cli --repository <absolute-path> -- <command> [arguments].");
   }
   const command = arguments_[3];
@@ -14171,7 +14652,7 @@ var runCli = async () => {
   const parsed = parseArguments();
   const resolvedCli = await resolveRepositoryCli(parsed.repositoryRoot);
   const context = {
-    repositoryRoot: resolve2(parsed.repositoryRoot),
+    repositoryRoot: resolve3(parsed.repositoryRoot),
     resolvedRepositoryRoot: resolvedCli.repositoryRoot
   };
   const pathIndex = parsed.commandArguments.indexOf("--path");
@@ -14181,7 +14662,7 @@ var runCli = async () => {
       context
     );
   }
-  const scopeInput = parsed.command === "scope" && parsed.commandArguments.includes("--paths-stdin") ? Buffer.from(`${(await readScopePathInput(process.stdin, context)).join("\0")}\0`, "utf8") : void 0;
+  const scopeInput = parsed.command === "scope" && parsed.commandArguments.includes("--paths-stdin") ? Buffer.from(`${(await readScopePathInput(context)).join("\0")}\0`, "utf8") : void 0;
   const responseFiles = parsed.command === "composition" ? {} : await prepareResponseFiles(
     resolvedCli.repositoryRoot,
     { command: parsed.command, cliVersion: resolvedCli.cliVersion },

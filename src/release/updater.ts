@@ -1,20 +1,13 @@
-import { spawnSync } from 'node:child_process';
-import {
-  cpSync,
-  mkdirSync,
-  mkdtempSync,
-  readFileSync,
-  renameSync,
-  rmSync,
-  statSync,
-  writeFileSync,
-} from 'node:fs';
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join } from 'node:path';
-
+import { hasErrorCode } from 'jg-exception';
+import { ERRORS as FS_ERRORS, writeFileAtomic, writeFileAtomicIfUnchanged } from 'jg-fs';
+import { resolvePackageManagerCommand, runProcess } from 'jg-process';
 import { z } from 'zod';
 
 import { generatePortableArtifacts, PORTABLE_ARTIFACT_PATHS } from '../portable/index.ts';
+import { MAX_PROCESS_OUTPUT_BYTES } from '../process/index.ts';
 
 import {
   CLI_JSON_SCHEMA_VERSION_TEXT_PATHS,
@@ -31,7 +24,12 @@ import {
   parseStableVersion,
 } from './versions.ts';
 
-const NPM_EXECUTABLE = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+// npm settings for every release call: no audit, funding or update notices
+const NPM_ENVIRONMENT = {
+  npm_config_audit: 'false',
+  npm_config_fund: 'false',
+  npm_config_update_notifier: 'false',
+};
 const StringRecordSchema = z.record(z.string(), z.string());
 const PublishedRegistryManifestSchema = z.object({
   dependencies: StringRecordSchema,
@@ -196,7 +194,9 @@ const replaceCliRangeReferences = ({
     markers: CLI_RANGE_MARKERS,
     nextRange: nextCliRange,
     previousRange: previousCliRange,
-  }).replaceAll(`CLI ${previousCliMajor}`, `CLI ${nextCliMajor}`);
+  })
+    .replaceAll(`CLI ${previousCliMajor}`, `CLI ${nextCliMajor}`)
+    .replaceAll(`stable ${previousCliMajor}.x`, `stable ${nextCliMajor}.x`);
 };
 
 const updateConformanceCases = ({
@@ -302,37 +302,58 @@ const parsePublishedManifest = (
   return manifest;
 };
 
-/** Resolves one exact stable CLI manifest from the public npm registry. */
-export const resolvePublishedCliManifest = (version: string): IPublishedCliManifest => {
-  parseStableVersion(version);
-  const result = spawnSync(
-    NPM_EXECUTABLE,
-    [
-      'view',
-      `${CLI_PACKAGE_NAME}@${version}`,
-      'version',
-      'dependencies',
-      'dist.integrity',
-      'dist.shasum',
-      '--json',
-    ],
-    { encoding: 'utf8' },
-  );
-
-  if (result.status !== 0) {
-    throw new Error(
-      [`Unable to resolve ${CLI_PACKAGE_NAME}@${version}.`, result.stdout, result.stderr]
-        .filter(Boolean)
-        .join('\n'),
-    );
+/**
+ * Runs npm without a shell, on Windows through its JavaScript entry, and returns its stdout.
+ * @param args The npm arguments.
+ * @param cwd The directory npm runs in.
+ * @param failure The message that leads the error when npm exits with a code other than 0.
+ * @returns A promise that resolves to npm's stdout.
+ * @throws
+ * - PACKAGE_MANAGER_NOT_FOUND: The package manager's executable couldn't be found.
+ * - PROCESS_START_FAILED: Unable to start the command
+ * - PROCESS_OUTPUT_TOO_LARGE: The process wrote more output than allowed
+ * - PROCESS_TREE_SURVIVED: The process tree is still running after it was force-stopped
+ * - The failure message, with npm's output, when npm fails.
+ */
+const runNpm = async (args: string[], cwd: string, failure: string): Promise<string> => {
+  const env = { ...process.env, ...NPM_ENVIRONMENT };
+  const result = await runProcess({
+    ...resolvePackageManagerCommand(args, { packageManager: 'npm', env, cwd }),
+    cwd,
+    env,
+    maxOutputBytes: MAX_PROCESS_OUTPUT_BYTES,
+  });
+  if (result.exitCode !== 0) {
+    throw new Error([failure, result.stdout, result.stderr].filter(Boolean).join('\n'));
   }
+  return result.stdout;
+};
 
-  const publishedManifest = parsePublishedManifest(result.stdout, version);
+/** Resolves one exact stable CLI manifest from the public npm registry. */
+export const resolvePublishedCliManifest = async (
+  version: string,
+): Promise<IPublishedCliManifest> => {
+  parseStableVersion(version);
+  const publishedManifest = parsePublishedManifest(
+    await runNpm(
+      [
+        'view',
+        `${CLI_PACKAGE_NAME}@${version}`,
+        'version',
+        'dependencies',
+        'dist.integrity',
+        'dist.shasum',
+        '--json',
+      ],
+      process.cwd(),
+      `Unable to resolve ${CLI_PACKAGE_NAME}@${version}.`,
+    ),
+    version,
+  );
   const temporaryRoot = mkdtempSync(join(tmpdir(), 'moldea-release-cli-probe-'));
 
   try {
-    const probe = spawnSync(
-      NPM_EXECUTABLE,
+    const composition = await runNpm(
       [
         'exec',
         '--yes',
@@ -343,39 +364,20 @@ export const resolvePublishedCliManifest = (version: string): IPublishedCliManif
         '--json',
         '--no-color',
       ],
-      {
-        cwd: temporaryRoot,
-        encoding: 'utf8',
-        env: {
-          ...process.env,
-          npm_config_audit: 'false',
-          npm_config_fund: 'false',
-          npm_config_update_notifier: 'false',
-        },
-      },
+      temporaryRoot,
+      `Unable to probe ${CLI_PACKAGE_NAME}@${version} composition output.`,
     );
-    if (probe.status !== 0) {
-      throw new Error(
-        [
-          `Unable to probe ${CLI_PACKAGE_NAME}@${version} composition output.`,
-          probe.stdout,
-          probe.stderr,
-        ]
-          .filter(Boolean)
-          .join('\n'),
-      );
-    }
 
     return PublishedCliManifestSchema.parse({
       ...publishedManifest,
-      jsonSchemaVersion: parseCliJsonSchemaVersion(probe.stdout, version),
+      jsonSchemaVersion: parseCliJsonSchemaVersion(composition, version),
     });
   } finally {
     rmSync(temporaryRoot, { force: true, recursive: true });
   }
 };
 
-const createUpdatedRootManifests = ({
+const createUpdatedRootManifests = async ({
   packageLock,
   packageManifest,
   repositoryRoot,
@@ -385,23 +387,21 @@ const createUpdatedRootManifests = ({
   packageManifest: IReleasePackageManifest;
   repositoryRoot: string;
   version: string;
-}): IUpdatedRootManifests => {
+}): Promise<IUpdatedRootManifests> => {
   const temporaryRoot = mkdtempSync(join(tmpdir(), 'moldea-release-cli-'));
 
   try {
-    writeFileSync(
+    await writeFileAtomic(
       join(temporaryRoot, RELEASE_PATHS.packageManifest),
       `${JSON.stringify(packageManifest, null, 2)}\n`,
-      'utf8',
     );
-    writeFileSync(join(temporaryRoot, RELEASE_PATHS.packageLock), packageLock, 'utf8');
+    await writeFileAtomic(join(temporaryRoot, RELEASE_PATHS.packageLock), packageLock);
     for (const relativePath of ['website/package.json']) {
       const destination = join(temporaryRoot, relativePath);
       mkdirSync(dirname(destination), { recursive: true });
       cpSync(join(repositoryRoot, relativePath), destination);
     }
-    const result = spawnSync(
-      NPM_EXECUTABLE,
+    await runNpm(
       [
         'install',
         '--package-lock-only',
@@ -410,25 +410,9 @@ const createUpdatedRootManifests = ({
         '--save-exact',
         `${CLI_PACKAGE_NAME}@${version}`,
       ],
-      {
-        cwd: temporaryRoot,
-        encoding: 'utf8',
-        env: {
-          ...process.env,
-          npm_config_audit: 'false',
-          npm_config_fund: 'false',
-          npm_config_update_notifier: 'false',
-        },
-      },
+      temporaryRoot,
+      'Unable to create the updated package lock.',
     );
-
-    if (result.status !== 0) {
-      throw new Error(
-        ['Unable to create the updated package lock.', result.stdout, result.stderr]
-          .filter(Boolean)
-          .join('\n'),
-      );
-    }
 
     return {
       packageLock: readFileSync(join(temporaryRoot, RELEASE_PATHS.packageLock), 'utf8'),
@@ -604,38 +588,18 @@ export const createCliReleaseUpdate = ({
   return updatedFiles;
 };
 
-const writeFileAtomically = (path: string, content: string, mode: number | undefined): void => {
-  const temporaryPath = join(
-    dirname(path),
-    `.${basename(path)}.${process.pid}.${Date.now()}.temporary`,
-  );
-  try {
-    writeFileSync(temporaryPath, content, { encoding: 'utf8', mode });
-    renameSync(temporaryPath, path);
-  } finally {
-    rmSync(temporaryPath, { force: true });
-  }
-};
-
 /** Installs the updated lock in an isolated generation root. */
-const installReleaseDependencies = (temporaryRoot: string): void => {
-  const result = spawnSync(NPM_EXECUTABLE, ['ci', '--ignore-scripts', '--no-audit', '--no-fund'], {
-    cwd: temporaryRoot,
-    encoding: 'utf8',
-    env: { ...process.env, npm_config_update_notifier: 'false' },
-  });
-  if (result.status !== 0) {
-    throw new Error(
-      ['Unable to install the updated release closure.', result.stdout, result.stderr]
-        .filter(Boolean)
-        .join('\n'),
-    );
-  }
+const installReleaseDependencies = async (temporaryRoot: string): Promise<void> => {
+  await runNpm(
+    ['ci', '--ignore-scripts', '--no-audit', '--no-fund'],
+    temporaryRoot,
+    'Unable to install the updated release closure.',
+  );
 };
 
 /** Copies generator inputs without reading excluded historical directories. */
 const stagePortableSource = (repositoryRoot: string, temporaryRoot: string): void => {
-  for (const relativePath of ['src/portable', 'src/filesystem/atomic-bytes']) {
+  for (const relativePath of ['src/portable']) {
     cpSync(join(repositoryRoot, relativePath), join(temporaryRoot, relativePath), {
       recursive: true,
       filter: (sourcePath) =>
@@ -764,16 +728,28 @@ export const updateCliRelease = async ({
   const artifactPaths = new Set<string>(PORTABLE_ARTIFACT_PATHS);
   const writtenFiles = new Map<string, string>();
   const temporaryRoot = mkdtempSync(join(tmpdir(), 'moldea-release-portable-'));
-  const writeOwnedFile = (relativePath: string, expected: string, content: string): void => {
+  const writeOwnedFile = async (
+    relativePath: string,
+    expected: string,
+    content: string,
+  ): Promise<void> => {
     const filePath = join(repositoryRoot, relativePath);
+    const changedError = new Error(
+      `${relativePath} changed while the CLI update was being applied.`,
+    );
     if (
       readFileSync(filePath, 'utf8') !== expected ||
       (statSync(filePath).mode & 0o777) !== fileModes.get(relativePath)
     ) {
-      throw new Error(`${relativePath} changed while the CLI update was being applied.`);
+      throw changedError;
     }
     if (content === expected) return;
-    writeFileAtomically(filePath, content, fileModes.get(relativePath));
+    try {
+      await writeFileAtomicIfUnchanged(filePath, content, Buffer.from(expected, 'utf8'));
+    } catch (error) {
+      if (hasErrorCode(error, FS_ERRORS.FILE_CHANGED)) throw changedError;
+      throw error;
+    }
     writtenFiles.set(relativePath, content);
   };
 
@@ -785,10 +761,9 @@ export const updateCliRelease = async ({
       RELEASE_PATHS.sourceRepositoryPackage,
       'src/portable/response-page/types.ts',
     ]) {
-      writeFileAtomically(
+      await writeFileAtomic(
         join(temporaryRoot, relativePath),
         requireFile(updatedFiles, relativePath),
-        undefined,
       );
     }
     await installDependencies(temporaryRoot);
@@ -801,11 +776,11 @@ export const updateCliRelease = async ({
     }
     for (const [relativePath, content] of updatedFiles) {
       if (!artifactPaths.has(relativePath)) {
-        writeOwnedFile(relativePath, requireFile(currentFiles, relativePath), content);
+        await writeOwnedFile(relativePath, requireFile(currentFiles, relativePath), content);
       }
     }
     for (const relativePath of generation.artifacts) {
-      writeOwnedFile(
+      await writeOwnedFile(
         relativePath,
         requireFile(currentFiles, relativePath),
         readFileSync(join(temporaryRoot, relativePath), 'utf8'),
@@ -824,10 +799,10 @@ export const updateCliRelease = async ({
           conflicts.push(relativePath);
           continue;
         }
-        writeFileAtomically(
+        await writeFileAtomicIfUnchanged(
           filePath,
           requireFile(currentFiles, relativePath),
-          fileModes.get(relativePath),
+          Buffer.from(writtenContent, 'utf8'),
         );
       } catch {
         conflicts.push(relativePath);

@@ -1,6 +1,5 @@
 import { spawn, spawnSync } from 'node:child_process';
 import type { ChildProcess } from 'node:child_process';
-import { createHash } from 'node:crypto';
 import { accessSync, constants, existsSync, readFileSync, realpathSync } from 'node:fs';
 import { chmod, copyFile, mkdir, rm, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
@@ -8,6 +7,7 @@ import { basename, delimiter, dirname, isAbsolute, join, relative, resolve } fro
 import type { Readable } from 'node:stream';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
+import { hashValue } from 'jg-crypto';
 import { z } from 'zod';
 
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../resources/index.ts';
@@ -60,9 +60,9 @@ const CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS =
 const CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_CONFIG = JSON.stringify(
   CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS,
 );
-export const CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256 = createHash('sha256')
-  .update(CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS)
-  .digest('hex');
+export const CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256 = hashValue(
+  CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS,
+);
 
 export const CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS = 900_000;
 export const CODEX_EVALUATION_DEFAULT_ALLOWED_EGRESS_HOSTS = [
@@ -655,11 +655,11 @@ export const identifyCodexEvaluationHostConfiguration = ({
   modelEndpoint: process.env['OPENAI_BASE_URL']
     ? {
         origin: new URL(process.env['OPENAI_BASE_URL']).origin,
-        sha256: createHash('sha256').update(process.env['OPENAI_BASE_URL']).digest('hex'),
+        sha256: hashValue(process.env['OPENAI_BASE_URL']),
       }
     : null,
   sslCertificateFileSha256: process.env['SSL_CERT_FILE']
-    ? createHash('sha256').update(readFileSync(process.env['SSL_CERT_FILE'])).digest('hex')
+    ? hashValue(readFileSync(process.env['SSL_CERT_FILE']))
     : null,
 });
 

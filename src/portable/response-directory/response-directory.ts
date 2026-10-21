@@ -1,8 +1,7 @@
 import { chmod, lstat, mkdtemp, realpath, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { isAbsolute, join } from 'node:path';
-
-import { isPathWithin } from '../repository-files.ts';
+import { isPathWithin } from 'jg-fs';
 
 /**
  * Creates one private response directory outside the repository, owned by this task.

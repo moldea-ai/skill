@@ -62,35 +62,40 @@ test('CLI classification uses the candidate SHA when the GitHub merge object is 
   expect(await readFile(output, 'utf8')).toBe('full=true\n');
 });
 
-test.each(['presentation', 'mixed', 'rename-out', 'rename-in', 'copy-out', 'copy-in'])(
-  'classifies a real %s Git diff conservatively',
-  async (scenario) => {
-    const fixture = await createRepository();
-    if (scenario === 'presentation' || scenario === 'mixed') {
-      await fixture.write('website/src/pages/index.astro', 'page\n');
-      if (scenario === 'mixed') await fixture.write('src/new.ts', 'new\n');
+test.each([
+  ['presentation', false],
+  ['mixed', true],
+  ['rename-out', true],
+  ['rename-in', true],
+  ['copy-out', true],
+  // the copy's unchanged source is no change, so a copy into presentation stays narrow
+  ['copy-in', false],
+] as const)('classifies a real %s Git diff conservatively', async (scenario, isFull) => {
+  const fixture = await createRepository();
+  if (scenario === 'presentation' || scenario === 'mixed') {
+    await fixture.write('website/src/pages/index.astro', 'page\n');
+    if (scenario === 'mixed') await fixture.write('src/new.ts', 'new\n');
+  } else {
+    const movesOut = scenario.endsWith('out');
+    const source = movesOut ? 'website/public/original.svg' : 'src/shared.ts';
+    const target = movesOut ? 'src/copied.svg' : 'website/public/copied.ts';
+    if (scenario.startsWith('rename')) {
+      await fixture.git('mv', source, target);
     } else {
-      const movesOut = scenario.endsWith('out');
-      const source = movesOut ? 'website/public/original.svg' : 'src/shared.ts';
-      const target = movesOut ? 'src/copied.svg' : 'website/public/copied.ts';
-      if (scenario.startsWith('rename')) {
-        await fixture.git('mv', source, target);
-      } else {
-        await fixture.write(target, movesOut ? 'original\n' : 'shared\n');
-      }
+      await fixture.write(target, movesOut ? 'original\n' : 'shared\n');
     }
-    const testedSha = await fixture.commit();
-    expect(
-      await classifyChanges({
-        repositoryRoot: fixture.root,
-        eventName: 'pull_request',
-        refType: 'branch',
-        baseSha: fixture.baseSha,
-        testedSha,
-      }),
-    ).toBe(scenario !== 'presentation');
-  },
-);
+  }
+  const testedSha = await fixture.commit();
+  expect(
+    await classifyChanges({
+      repositoryRoot: fixture.root,
+      eventName: 'pull_request',
+      refType: 'branch',
+      baseSha: fixture.baseSha,
+      testedSha,
+    }),
+  ).toBe(isFull);
+});
 
 test('compares the event base with the exact tested merge commit', async () => {
   const fixture = await createRepository();

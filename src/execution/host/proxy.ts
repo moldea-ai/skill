@@ -1,10 +1,48 @@
 import { lookup } from 'node:dns/promises';
-import { realpath } from 'node:fs/promises';
 import { createServer, type IncomingMessage } from 'node:http';
-import { connect, isIP } from 'node:net';
-import { resolve } from 'node:path';
+import { BlockList, connect, isIP } from 'node:net';
 import type { Duplex } from 'node:stream';
-import { fileURLToPath } from 'node:url';
+import { isMainModule } from 'jg-process';
+
+// IANA special-purpose IPv4 ranges that aren't globally reachable, with multicast and the
+// reserved space after it
+const NON_PUBLIC_IPV4_SUBNETS = [
+  ['0.0.0.0', 8],
+  ['10.0.0.0', 8],
+  ['100.64.0.0', 10],
+  ['127.0.0.0', 8],
+  ['169.254.0.0', 16],
+  ['172.16.0.0', 12],
+  ['192.0.0.0', 24],
+  ['192.0.2.0', 24],
+  ['192.88.99.0', 24],
+  ['192.168.0.0', 16],
+  ['198.18.0.0', 15],
+  ['198.51.100.0', 24],
+  ['203.0.113.0', 24],
+  ['224.0.0.0', 3],
+] as const;
+
+// IANA special-purpose IPv6 ranges inside global unicast, 2000::/3, the only public IPv6 space
+const NON_PUBLIC_GLOBAL_IPV6_SUBNETS = [
+  ['2001::', 23],
+  ['2001:db8::', 32],
+  ['2002::', 16],
+  ['3fff::', 20],
+] as const;
+
+const NON_PUBLIC_ADDRESSES = new BlockList();
+for (const [network, prefix] of NON_PUBLIC_IPV4_SUBNETS)
+  NON_PUBLIC_ADDRESSES.addSubnet(network, prefix, 'ipv4');
+for (const [network, prefix] of NON_PUBLIC_GLOBAL_IPV6_SUBNETS)
+  NON_PUBLIC_ADDRESSES.addSubnet(network, prefix, 'ipv6');
+
+const GLOBAL_UNICAST_IPV6 = new BlockList();
+GLOBAL_UNICAST_IPV6.addSubnet('2000::', 3, 'ipv6');
+
+// IPv4-mapped IPv6 addresses, which BlockList checks against the IPv4 ranges in any notation
+const IPV4_MAPPED_IPV6 = new BlockList();
+IPV4_MAPPED_IPV6.addSubnet('::ffff:0:0', 96, 'ipv6');
 
 /**
  * Returns whether an IP address is globally routable.
@@ -13,35 +51,10 @@ import { fileURLToPath } from 'node:url';
  */
 export const isPublicIpAddress = (address: string): boolean => {
   const family = isIP(address);
-  if (family === 4) {
-    const [first = 0, second = 0] = address.split('.').map(Number);
-    return !(
-      first === 0 ||
-      first === 10 ||
-      first === 127 ||
-      (first === 100 && second >= 64 && second <= 127) ||
-      (first === 169 && second === 254) ||
-      (first === 172 && second >= 16 && second <= 31) ||
-      (first === 192 && second === 168) ||
-      (first === 198 && (second === 18 || second === 19)) ||
-      first >= 224
-    );
-  }
-  if (family === 6) {
-    const normalizedAddress = address.toLowerCase();
-    if (normalizedAddress.startsWith('::ffff:')) {
-      return isPublicIpAddress(normalizedAddress.slice('::ffff:'.length));
-    }
-    return !(
-      normalizedAddress === '::' ||
-      normalizedAddress === '::1' ||
-      normalizedAddress.startsWith('fc') ||
-      normalizedAddress.startsWith('fd') ||
-      /^fe[89ab]/.test(normalizedAddress) ||
-      normalizedAddress.startsWith('ff')
-    );
-  }
-  return false;
+  if (family === 4) return !NON_PUBLIC_ADDRESSES.check(address, 'ipv4');
+  if (family !== 6) return false;
+  if (IPV4_MAPPED_IPV6.check(address, 'ipv6')) return !NON_PUBLIC_ADDRESSES.check(address, 'ipv6');
+  return GLOBAL_UNICAST_IPV6.check(address, 'ipv6') && !NON_PUBLIC_ADDRESSES.check(address, 'ipv6');
 };
 
 /**
@@ -161,10 +174,7 @@ export const runCodexEvaluationProxy = async (): Promise<void> => {
   });
 };
 
-const isDirectExecution =
-  process.argv[1] !== undefined &&
-  (await realpath(resolve(process.argv[1]))) === (await realpath(fileURLToPath(import.meta.url)));
-if (isDirectExecution) {
+if (isMainModule(import.meta.url)) {
   runCodexEvaluationProxy().catch((error) => {
     process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
     process.exitCode = 1;

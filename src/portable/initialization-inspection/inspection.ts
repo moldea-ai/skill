@@ -1,7 +1,8 @@
 import { lstat, opendir, realpath } from 'node:fs/promises';
 import { isAbsolute, join, relative, resolve, sep } from 'node:path';
+import { isPathWithin } from 'jg-fs';
 
-import { isPathWithin, readRepositoryFile, resolveRepositoryFile } from '../repository-files.ts';
+import { readRepositoryFile, resolveRepositoryFile } from '../repository-files.ts';
 
 import {
   INITIALIZATION_INSPECTION_LIMITS as LIMITS,

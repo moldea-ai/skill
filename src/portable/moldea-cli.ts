@@ -193,7 +193,7 @@ const runCli = async (): Promise<void> => {
   }
   const scopeInput =
     parsed.command === 'scope' && parsed.commandArguments.includes('--paths-stdin')
-      ? Buffer.from(`${(await readScopePathInput(process.stdin, context)).join('\0')}\0`, 'utf8')
+      ? Buffer.from(`${(await readScopePathInput(context)).join('\0')}\0`, 'utf8')
       : undefined;
   const responseFiles =
     parsed.command === 'composition'

@@ -29,10 +29,61 @@ const symlinkSetting = [
   'core.symlinks',
 ];
 
+// jg-git-commands 0.3.1's command prefix, and the same with `isolateConfig`
+const jgPrefix = [
+  '-c',
+  'core.fsmonitor=',
+  '-c',
+  'core.askPass=',
+  '-c',
+  'core.pager=cat',
+  '-c',
+  'color.ui=false',
+  '-c',
+  'submodule.recurse=false',
+  '-c',
+  'credential.helper=',
+  '--no-pager',
+];
+const jgIsolatedPrefix = [
+  ...jgPrefix.slice(0, 10),
+  '-c',
+  'core.attributesFile=/dev/null',
+  ...jgPrefix.slice(10),
+];
+const commit = 'a'.repeat(40);
+const repairDiff = [
+  ...jgIsolatedPrefix,
+  'diff',
+  '--no-ext-diff',
+  '--no-textconv',
+  '--ignore-submodules=all',
+];
+const changedPaths = [
+  ...jgIsolatedPrefix,
+  'diff',
+  '--no-ext-diff',
+  '--no-textconv',
+  '--no-renames',
+  '--ignore-submodules=all',
+  '--name-only',
+  '-z',
+  '--end-of-options',
+];
+const index = [...jgPrefix, 'ls-files', '--cached', '--stage', '--full-name', '-z', '--'];
+const untracked = [
+  ...jgPrefix,
+  'ls-files',
+  '--others',
+  '--exclude-standard',
+  '--full-name',
+  '-z',
+  '--',
+];
+
 test.each([
   status,
   [...status.slice(0, status.indexOf('status')), 'config', '--null', '--get', 'attr.tree'],
-  [...status.slice(0, status.indexOf('status')), 'ls-files', '-z', '--', '.'],
   [...diff, '--name-only', '--no-renames', '-z', 'a'.repeat(40), '--', '.'],
   [...diff, '--name-only', '--no-renames', 'a'.repeat(40), '--', '.'],
   [...diff, 'HEAD', '--', 'moldea/moldea.yaml'],
@@ -42,9 +93,32 @@ test.each([
   [...diff, '--', 'moldea/context/a.md'],
   [...diff, '--', 'README.md', 'src/owner-a.js'],
   [...diff, '--', 'src/file with spaces.js'],
-  [...storage, 'AGENTS.md'],
-  [...storage, 'docs/shared agents.md'],
-  symlinkSetting,
+  [...jgIsolatedPrefix, 'config', '--null', '--get', 'attr.tree'],
+  [...jgIsolatedPrefix, 'ls-files', '--cached', '--stage', '--full-name', '-z', '--'],
+  [
+    ...jgIsolatedPrefix,
+    'status',
+    '--porcelain=v2',
+    '-z',
+    '--branch',
+    '--untracked-files=all',
+    '--ignore-submodules=all',
+  ],
+  [
+    ...jgIsolatedPrefix,
+    'rev-parse',
+    '--verify',
+    '--quiet',
+    '--end-of-options',
+    `${commit}^{commit}`,
+  ],
+  [...changedPaths, commit, '--'],
+  [...changedPaths, 'b'.repeat(64), '--'],
+  [...repairDiff, commit, '--', 'moldea/moldea.yaml'],
+  [...repairDiff, '--', 'README.md', 'src/file with spaces.js'],
+  [...index, 'AGENTS.md'],
+  [...untracked, 'docs/shared agents.md'],
+  [...jgPrefix, 'config', '--type=bool', '--default=true', '--get', 'core.symlinks'],
 ])('accepts a complete approved repair shape %o', (...argumentsList) => {
   expect(isApprovedRepairGitArguments(argumentsList)).toBe(true);
 });
@@ -107,6 +181,52 @@ test.each([
   symlinkSetting.slice(0, -1),
   [...symlinkSetting.slice(0, -1), 'core.hooksPath'],
   [...hardened, 'config', '--get', 'core.symlinks'],
+  // the hardened forms of reads the helpers now run through jg-git-commands
+  [...hardened, 'ls-files', '-z', '--', '.'],
+  [...hardened, 'cat-file', '-t', commit],
+  [...storage, 'AGENTS.md'],
+  symlinkSetting,
+  // jg-git-commands command lines outside the helpers' exact reads
+  [
+    ...jgPrefix.slice(0, -3),
+    '--no-pager',
+    'ls-files',
+    '--cached',
+    '--stage',
+    '--full-name',
+    '-z',
+    '--',
+    'AGENTS.md',
+  ],
+  [...jgPrefix, 'config', '--null', '--get', 'attr.tree'],
+  [
+    ...jgPrefix,
+    'status',
+    '--porcelain=v2',
+    '-z',
+    '--branch',
+    '--untracked-files=all',
+    '--ignore-submodules=all',
+  ],
+  [...jgIsolatedPrefix, 'ls-files', '--cached', '--stage', '--full-name', '-z', '--', 'AGENTS.md'],
+  [...jgIsolatedPrefix, 'rev-parse', '--verify', '--quiet', '--end-of-options', 'HEAD^{commit}'],
+  [...jgIsolatedPrefix, 'rev-parse', '--verify', '--quiet', '--end-of-options', commit],
+  [...jgIsolatedPrefix, 'rev-parse', '--verify', '--end-of-options', `${commit}^{commit}`],
+  [...changedPaths, 'HEAD', '--'],
+  [...changedPaths, commit, '--', '.'],
+  [...changedPaths, commit],
+  [...repairDiff, 'HEAD', '--', 'moldea/moldea.yaml'],
+  [...repairDiff, commit, '--', 'moldea/project.md'],
+  [...repairDiff, '--'],
+  [...repairDiff, '--', '.'],
+  [...repairDiff, '--', ':(top)README.md'],
+  [...repairDiff, '--', 'src/_backup/a.js'],
+  index,
+  [...index, 'AGENTS.md', 'CLAUDE.md'],
+  [...index, ':(top)AGENTS.md'],
+  [...untracked, '../AGENTS.md'],
+  [...untracked.slice(0, -1), '--ignored', '--', 'AGENTS.md'],
+  [...jgPrefix, 'config', '--type=bool', '--default=true', '--get', 'core.hooksPath'],
 ])('rejects a nonapproved repair shape %o', (...argumentsList) => {
   expect(isApprovedRepairGitArguments(argumentsList)).toBe(false);
 });

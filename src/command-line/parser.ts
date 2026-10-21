@@ -1,42 +1,25 @@
+import { parseStrictArgs } from 'jg-process';
+
 import type { IEvidenceKind } from '../evidence/index.ts';
 import type { IEvidenceCommand } from './types.ts';
 
-const getOption = (arguments_: readonly string[], name: string): string => {
-  const optionIndex = arguments_.indexOf(name);
-  const optionValue = arguments_[optionIndex + 1];
+// a required single-value option
+const REQUIRED_OPTION = { type: 'string', required: true } as const;
 
-  if (optionIndex === -1 || optionValue === undefined || optionValue.startsWith('--')) {
-    throw new Error(`Missing required ${name} option.`);
-  }
-
-  if (arguments_.indexOf(name, optionIndex + 1) !== -1) {
-    throw new Error(`Option ${name} must be provided once.`);
-  }
-
-  return optionValue;
-};
-
-const getEvidenceKind = (arguments_: readonly string[]): IEvidenceKind => {
-  const kind = getOption(arguments_, '--scope');
+const parseEvidenceKind = (kind: string): IEvidenceKind => {
   if (kind !== 'semantic' && kind !== 'journeys') {
     throw new Error('Evidence kind must be semantic or journeys.');
   }
   return kind;
 };
 
-const assertExactOptions = (
-  arguments_: readonly string[],
-  optionNames: readonly string[],
-): void => {
-  if (
-    arguments_.length !== optionNames.length * 2 ||
-    arguments_.some((argument, index) => index % 2 === 0 && !optionNames.includes(argument))
-  ) {
-    throw new Error(`Expected options: ${optionNames.join(', ')}.`);
-  }
-};
-
-/** Parses the small explicit maintainer command surface for evidence assets. */
+/**
+ * Parses the small explicit maintainer command surface for evidence assets.
+ * @throws
+ * - INVALID_ARGUMENTS: an unknown option, a positional argument, a missing or empty value, a
+ * repeated option, or a missing required one
+ * - The command is unknown, takes no arguments, or names an unsupported evidence kind.
+ */
 export const parseEvidenceCommand = (
   commandName: string,
   arguments_: readonly string[],
@@ -47,32 +30,28 @@ export const parseEvidenceCommand = (
   }
 
   if (commandName === 'pack') {
-    const evidenceKind = getEvidenceKind(arguments_);
-    assertExactOptions(arguments_, ['--scope', '--run']);
-    return {
-      kind: 'pack',
-      evidenceKind,
-      runId: getOption(arguments_, '--run'),
-    };
+    const { run, scope } = parseStrictArgs(arguments_, {
+      run: REQUIRED_OPTION,
+      scope: REQUIRED_OPTION,
+    });
+    return { kind: 'pack', evidenceKind: parseEvidenceKind(scope), runId: run };
   }
 
   if (commandName === 'publish') {
-    assertExactOptions(arguments_, ['--bundle', '--tag']);
-    return {
-      kind: 'publish',
-      bundlePath: getOption(arguments_, '--bundle'),
-      tag: getOption(arguments_, '--tag'),
-    };
+    const { bundle, tag } = parseStrictArgs(arguments_, {
+      bundle: REQUIRED_OPTION,
+      tag: REQUIRED_OPTION,
+    });
+    return { kind: 'publish', bundlePath: bundle, tag };
   }
 
   if (commandName === 'pin') {
-    assertExactOptions(arguments_, ['--scope', '--release', '--asset']);
-    return {
-      kind: 'pin',
-      evidenceKind: getEvidenceKind(arguments_),
-      assetName: getOption(arguments_, '--asset'),
-      release: getOption(arguments_, '--release'),
-    };
+    const { asset, release, scope } = parseStrictArgs(arguments_, {
+      asset: REQUIRED_OPTION,
+      release: REQUIRED_OPTION,
+      scope: REQUIRED_OPTION,
+    });
+    return { kind: 'pin', evidenceKind: parseEvidenceKind(scope), assetName: asset, release };
   }
 
   throw new Error(`Unknown evidence command: ${commandName}`);

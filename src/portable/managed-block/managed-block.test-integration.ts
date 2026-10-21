@@ -12,9 +12,9 @@ import {
   symlink,
   writeFile,
 } from 'node:fs/promises';
-import type * as FileSystem from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import type * as JgFs from 'jg-fs';
 import { expect, test, vi } from 'vitest';
 
 import { resolveInstructionWriteTarget } from '../instruction-link/index.ts';
@@ -24,14 +24,16 @@ import { updateManagedFile } from './index.ts';
 const injection = vi.hoisted(() => ({
   beforeReplace: undefined as (() => Promise<void>) | undefined,
 }));
-vi.mock('node:fs/promises', async (importOriginal) => {
-  const original = await importOriginal<typeof FileSystem>();
+// a concurrent edit lands after the writer read the target and before the replacement compares it
+vi.mock('jg-fs', async (importOriginal) => {
+  const original = await importOriginal<typeof JgFs>();
   return {
     ...original,
-    writeFile: async (...arguments_: Parameters<typeof original.writeFile>) => {
-      await original.writeFile(...arguments_);
-      if (typeof arguments_[0] === 'string' && arguments_[0].endsWith('.tmp'))
-        await injection.beforeReplace?.();
+    writeFileAtomicIfUnchanged: async (
+      ...arguments_: Parameters<typeof original.writeFileAtomicIfUnchanged>
+    ) => {
+      await injection.beforeReplace?.();
+      await original.writeFileAtomicIfUnchanged(...arguments_);
     },
   };
 });

@@ -119,7 +119,7 @@ export const updateClaudeImport = async (
 ): Promise<'unchanged' | 'updated'> => {
   const instructionPath = CLAUDE_INSTRUCTION_PATHS[subject];
   const target = await resolveInstructionWriteTarget(repositoryRoot, instructionPath);
-  let current: Awaited<ReturnType<typeof readManagedFile>>;
+  let current: Buffer;
   try {
     current = await readManagedFile(target.hostPath);
   } catch (error) {
@@ -132,10 +132,10 @@ export const updateClaudeImport = async (
     throw error;
   }
 
-  const updatedBytes = createClaudeImportBytes(current.bytes, subject);
-  if (updatedBytes.equals(current.bytes)) return 'unchanged';
+  const updatedBytes = createClaudeImportBytes(current, subject);
+  if (updatedBytes.equals(current)) return 'unchanged';
 
-  await writeManagedFileAtomically(target.hostPath, updatedBytes, current.mode, current);
+  await writeManagedFileAtomically(target.hostPath, updatedBytes, current);
   await target.confirm();
   return 'updated';
 };

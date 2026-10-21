@@ -6,3 +6,6 @@ export const PRESENTATION_DIRECTORIES = [
   'website/src/styles/',
   'website/public/',
 ] as const;
+
+// bytes the changed-path listing may take, far above any reviewed change (64 MiB)
+export const CHANGED_PATHS_MAX_OUTPUT_BYTES = 67_108_864;

@@ -1,6 +1,6 @@
-import { createHash } from 'node:crypto';
 import { gunzipSync } from 'node:zlib';
 
+import { hashValue } from 'jg-crypto';
 import { z } from 'zod';
 
 import {
@@ -266,7 +266,7 @@ export const loadProjectSession = async (
   }
   if (size !== asset.sizeBytes) throw new Error('Session asset size differs from its record.');
   const bytes = Buffer.concat(chunks);
-  if (createHash('sha256').update(bytes).digest('hex') !== asset.sha256)
+  if (hashValue(bytes) !== asset.sha256)
     throw new Error('Session asset digest differs from its record.');
   const entries = parseProjectSession(bytes);
   if (

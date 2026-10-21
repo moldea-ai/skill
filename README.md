@@ -4,7 +4,7 @@
 
 [Get moldea on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or read the complete documentation at [skill.moldea.ai](https://skill.moldea.ai).
 
-This checkout targets release `9.0.0`. Install the latest published version from `main` inside each repository that will use it:
+This checkout targets release `10.0.0`. Install the latest published version from `main` inside each repository that will use it:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -13,7 +13,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the immutable release after publication:
 
 ```bash
-npx skills add "moldea-ai/skill#v9.0.0"
+npx skills add "moldea-ai/skill#v10.0.0"
 ```
 
 Both commands install the portable skill named `moldea`. They do not install the CLI globally or require a hosted account. See [Getting started](docs/getting-started.md) for initialization, updates, and removal.
@@ -73,12 +73,12 @@ Evaluation is read-only. Repair checks every owner, its material implementation 
 
 ## Compatibility
 
-Release `9.0.0` supports exactly:
+Release `10.0.0` supports exactly:
 
-- Git `>=2.30.0`
+- Git `>=2.32.0`
 - Node.js `>=22.17.0`
-- stable `@moldea.ai/core` releases satisfying `^8.0.0`
-- stable `@moldea.ai/cli` releases satisfying `^12.0.0`
+- stable `@moldea.ai/core` releases satisfying `^9.0.0`
+- stable `@moldea.ai/cli` releases satisfying `^13.0.0`
 - repository format version 1
 - CLI JSON schema 7
 
@@ -182,7 +182,7 @@ npm run docs:check
 npm run website:check
 ```
 
-Conformance runs root correctness once on development Node, every portable integration file on all three supported Node versions on Linux, the same portable files on Windows and macOS, and the repair Git helper's integration tests on Git 2.30, the minimum supported Git. Windows also checks deep-path cloning and installation. Only PR changes entirely within `website/src/components/`, `website/src/layouts/`, `website/src/pages/`, `website/src/styles/`, or `website/public/` skip heavy conformance; the global path check and full website verification still run. Shared, unknown, mixed, and tag changes receive full conformance. `Conformance result` and `Verify Website` report selected-check failures and unexpected skips; configuring them as required checks is a separate repository setting. PR website verification owns website typechecking; tag conformance retains that check. PRs and Pages share read-only website quality and artifact verification. Recorded-browser and clean-development browser suites run locally before merging. Pages verification and the official production build run independently after shared configuration preflight; deployment requires both to succeed. `typecheck:root` checks root tooling, while `typecheck` still checks all workspaces.
+Conformance runs root correctness once on development Node, every portable integration file on all three supported Node versions on Linux, the same portable files on Windows and macOS, and the repair Git helper's integration tests on Git 2.32, the minimum supported Git, built from its checksum-pinned source. Windows also checks deep-path cloning and installation. Only PR changes entirely within `website/src/components/`, `website/src/layouts/`, `website/src/pages/`, `website/src/styles/`, or `website/public/` skip heavy conformance; the global path check and full website verification still run. Shared, unknown, mixed, and tag changes receive full conformance. `Conformance result` and `Verify Website` report selected-check failures and unexpected skips; configuring them as required checks is a separate repository setting. PR website verification owns website typechecking; tag conformance retains that check. PRs and Pages share read-only website quality and artifact verification. Recorded-browser and clean-development browser suites run locally before merging. Pages verification and the official production build run independently after shared configuration preflight; deployment requires both to succeed. `typecheck:root` checks root tooling, while `typecheck` still checks all workspaces.
 
 `npm test` includes the website browser suite. Production `website:build`, `release:check`, and Pages deployment require the semantic evidence selection to be populated and prepared. Development website checks exercise both the clean current catalogs without recorded results and isolated synthetic evidence.
 
@@ -207,7 +207,7 @@ The skill uses independent semantic versioning. Every release must:
 
 During prelaunch testing, skill tags require deterministic conformance, synchronized release identity, and installation checks. Semantic evaluation is a separate evidence-backed operation; a passing tag does not establish it. The selected 8.2.3 semantic recording contains 120 cases: 115 passed and five recovered. Its final cleanup reused verified full-recording and reserve trials without new model calls. Two unresolved cases remain private and are disclosed as not yet included. Historical evidence preserves its recorded versions, dates and sources and supplies no current-release assurance. See [Release evidence](docs/release-evidence.md) for the exact workflows.
 
-Release 9.0.0 retains the selected 8.2.3 semantic evidence. Its resource-counting clarification, ordinary final-validation exception, repair CLI update rule, direct repair reads, Yarn and repair corrections, repair Git, Claude Code integration and Yarn corrections, Core-backed Claude Code check and link-aware writer, and in-repository link rule were not re-evaluated; see [the 8.2.4](docs/release-evidence.md#skill-824-evidence-reuse), [8.2.5](docs/release-evidence.md#skill-825-evidence-reuse), [8.2.6](docs/release-evidence.md#skill-826-evidence-reuse), [8.2.7](docs/release-evidence.md#skill-827-evidence-reuse), [8.2.8](docs/release-evidence.md#skill-828-evidence-reuse), [8.3.0](docs/release-evidence.md#skill-830-evidence-reuse) and [9.0.0](docs/release-evidence.md#skill-900-evidence-reuse) release qualifications.
+Release 10.0.0 retains the selected 8.2.3 semantic evidence. Its resource-counting clarification, ordinary final-validation exception, repair CLI update rule, direct repair reads, Yarn and repair corrections, repair Git, Claude Code integration and Yarn corrections, Core-backed Claude Code check and link-aware writer, in-repository link rule, and move to JG Packages were not re-evaluated; see [the 8.2.4](docs/release-evidence.md#skill-824-evidence-reuse), [8.2.5](docs/release-evidence.md#skill-825-evidence-reuse), [8.2.6](docs/release-evidence.md#skill-826-evidence-reuse), [8.2.7](docs/release-evidence.md#skill-827-evidence-reuse), [8.2.8](docs/release-evidence.md#skill-828-evidence-reuse), [8.3.0](docs/release-evidence.md#skill-830-evidence-reuse), [9.0.0](docs/release-evidence.md#skill-900-evidence-reuse) and [10.0.0](docs/release-evidence.md#skill-1000-evidence-reuse) release qualifications.
 
 ## License
 

@@ -1,8 +1,8 @@
 import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { isMainModule } from 'jg-process';
+import { writeJsonFile } from 'jg-fs';
 
-import { writeJsonFileAtomically } from '../../filesystem/index.ts';
 import { JourneysExportSchema } from '../index.ts';
 
 import { copyTree, parseFlags, readState, treeHashes, verifyBundle } from './shared.ts';
@@ -49,15 +49,15 @@ export const exportWorkspace = async (workspace: string, final = false): Promise
     complete,
     checkpoint,
   });
-  await writeJsonFileAtomically(path.join(directory, 'manifest.json'), manifest);
-  await writeJsonFileAtomically(path.join(directory, 'files.json'), await treeHashes(directory));
+  await writeJsonFile(path.join(directory, 'manifest.json'), manifest);
+  await writeJsonFile(path.join(directory, 'files.json'), await treeHashes(directory));
   state.checkpoint = checkpoint;
   state.checkpointedJourneys = [...state.completedJourneys];
-  await writeJsonFileAtomically(path.join(workspace, 'state.json'), state);
+  await writeJsonFile(path.join(workspace, 'state.json'), state);
   return directory;
 };
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (isMainModule(import.meta.url)) {
   const flags = parseFlags(process.argv.slice(2), ['--final'], ['--final']);
   await mkdir(path.join(process.cwd(), 'exports'), { recursive: true });
   const directory = await exportWorkspace(process.cwd(), flags['--final'] === 'true');

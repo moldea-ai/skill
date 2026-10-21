@@ -1,4 +1,4 @@
-import { isEqual } from 'web-utils-kit';
+import { isEqual } from 'jg-utilities';
 import { z } from 'zod';
 
 import {

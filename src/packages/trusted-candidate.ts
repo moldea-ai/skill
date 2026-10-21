@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
-import { createHash } from 'node:crypto';
 import { copyFileSync, readFileSync, readdirSync, realpathSync, writeFileSync } from 'node:fs';
-import { isAbsolute, join, relative, resolve, sep } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { isAbsolute, join, relative, sep } from 'node:path';
+import { hashValue } from 'jg-crypto';
+import { isMainModule } from 'jg-process';
 
 import { z } from 'zod';
 
@@ -46,9 +46,7 @@ export const prepareTrustedCandidate = (options: {
     .sort((left, right) => (left.name < right.name ? -1 : left.name > right.name ? 1 : 0))
     .map(({ name }) => {
       assert.match(name, /^[a-z0-9.-]+\.tgz$/u, 'Unsafe trusted archive name.');
-      return `${createHash('sha256')
-        .update(readFileSync(join(input, name)))
-        .digest('hex')}  ${name}`;
+      return `${hashValue(readFileSync(join(input, name)))}  ${name}`;
     });
   assert.equal(
     readFileSync(join(input, CHECKSUM_FILE_NAME), 'utf8'),
@@ -72,7 +70,7 @@ export const prepareTrustedCandidate = (options: {
   );
 };
 
-if (process.argv[1] && pathToFileURL(resolve(process.argv[1])).href === import.meta.url) {
+if (isMainModule(import.meta.url)) {
   const [artifactDirectory, outputDirectory, packagesCommit] = process.argv.slice(2);
   assert.ok(
     process.argv.length === 5 && artifactDirectory && outputDirectory && packagesCommit,

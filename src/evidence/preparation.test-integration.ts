@@ -4,12 +4,9 @@ import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, test } from 'vitest';
+import { writeFileAtomic, writeJsonFile } from 'jg-fs';
 
-import {
-  calculateSha256,
-  writeBufferFileAtomically,
-  writeJsonFileAtomically,
-} from '../filesystem/index.ts';
+import { calculateSha256 } from '../filesystem/index.ts';
 import { createSyntheticJourneysBundle } from '../../website/scripts/evidence-fixture/journeys.ts';
 import { createJourneysEvidenceBundle } from '../scripted-journeys/public-evidence/index.ts';
 import {
@@ -126,7 +123,7 @@ describe('selected evidence preparation', () => {
       journeys.reference.sha256 = calculateSha256(encoded);
       const semantic = createAsset('semantic', 'campaign');
       const selectionPath = path.join(root, 'selection.json');
-      await writeJsonFileAtomically(selectionPath, {
+      await writeJsonFile(selectionPath, {
         formatVersion: 1,
         semantic: semantic.reference,
         journeys: journeys.reference,
@@ -136,7 +133,7 @@ describe('selected evidence preparation', () => {
         cacheDirectory: path.join(root, 'cache'),
         preparedDirectory: path.join(root, 'prepared'),
         downloadAsset: async (reference: IEvidenceSelectionReference, destination: string) => {
-          await writeBufferFileAtomically(
+          await writeFileAtomic(
             destination,
             reference.assetName === semantic.reference.assetName ? semantic.encoded : encoded,
           );
@@ -161,7 +158,7 @@ describe('selected evidence preparation', () => {
       const semantic = createAsset('semantic', 'a');
       const journeys = createAsset('journeys', 'a', 'official', status);
       const selectionPath = path.join(root, 'selection.json');
-      await writeJsonFileAtomically(selectionPath, {
+      await writeJsonFile(selectionPath, {
         formatVersion: 1,
         semantic: semantic.reference,
         journeys: journeys.reference,
@@ -176,22 +173,19 @@ describe('selected evidence preparation', () => {
         downloadAsset: async (reference: IEvidenceSelectionReference, destination: string) => {
           const bytes = assets.get(reference.assetName);
           if (!bytes) throw new Error('Missing test asset.');
-          await writeBufferFileAtomically(destination, bytes);
+          await writeFileAtomic(destination, bytes);
         },
       };
       const manifest = await prepareSelectedEvidence(options);
       expect(manifest.journeys?.bundleSha256).toBe(journeys.reference.sha256);
       if (status === 'passed') {
         await expect(verifyPreparedReleaseEvidence(options)).resolves.toStrictEqual(manifest);
-        await writeJsonFileAtomically(path.join(options.preparedDirectory, 'manifest.json'), {
+        await writeJsonFile(path.join(options.preparedDirectory, 'manifest.json'), {
           ...manifest,
           journeys: null,
         });
         await expect(verifyPreparedReleaseEvidence(options)).rejects.toThrow('selection presence');
-        await writeJsonFileAtomically(
-          path.join(options.preparedDirectory, 'manifest.json'),
-          manifest,
-        );
+        await writeJsonFile(path.join(options.preparedDirectory, 'manifest.json'), manifest);
         if (!manifest.journeys) throw new Error('Missing journeys section.');
         await expect(
           readFile(
@@ -203,7 +197,7 @@ describe('selected evidence preparation', () => {
             'utf8',
           ),
         ).resolves.toBe('journeys-a\n');
-        await writeJsonFileAtomically(selectionPath, {
+        await writeJsonFile(selectionPath, {
           formatVersion: 1,
           semantic: semantic.reference,
           journeys: null,
@@ -226,7 +220,7 @@ describe('selected evidence preparation', () => {
     const root = await mkdtemp(path.join(tmpdir(), 'moldea-evidence-journeys-'));
     temporaryRoots.push(root);
     const selectionPath = path.join(root, 'selection.json');
-    await writeJsonFileAtomically(selectionPath, {
+    await writeJsonFile(selectionPath, {
       formatVersion: 1,
       semantic: null,
       journeys: createAsset('journeys', 'a').reference,
@@ -285,12 +279,9 @@ describe('selected evidence preparation', () => {
     const semanticA = createAsset('semantic', 'a');
     const semanticB = createAsset('semantic', 'b');
     for (const asset of [semanticA, semanticB]) {
-      await writeBufferFileAtomically(
-        path.join(assetsDirectory, asset.reference.assetName),
-        asset.encoded,
-      );
+      await writeFileAtomic(path.join(assetsDirectory, asset.reference.assetName), asset.encoded);
     }
-    await writeJsonFileAtomically(selectionPath, {
+    await writeJsonFile(selectionPath, {
       formatVersion: 1,
       journeys: null,
       semantic: semanticA.reference,
@@ -349,7 +340,7 @@ describe('selected evidence preparation', () => {
       [semanticA.reference.assetName, semanticA.encoded],
       [semanticB.reference.assetName, semanticB.encoded],
     ]);
-    await writeJsonFileAtomically(selectionPath, {
+    await writeJsonFile(selectionPath, {
       formatVersion: 1,
       journeys: null,
       semantic: semanticA.reference,
@@ -359,7 +350,7 @@ describe('selected evidence preparation', () => {
       downloadAsset: async (reference: IEvidenceSelectionReference, destinationPath: string) => {
         const content = assetByName.get(reference.assetName);
         if (content === undefined) throw new Error('Missing test asset.');
-        await writeBufferFileAtomically(destinationPath, content);
+        await writeFileAtomic(destinationPath, content);
       },
       preparedDirectory: path.join(root, 'prepared'),
       selectionPath,
@@ -376,7 +367,7 @@ describe('selected evidence preparation', () => {
         ...options,
         downloadAsset: async (reference, destinationPath) => {
           if (reference.assetName === semanticB.reference.assetName) {
-            await writeBufferFileAtomically(destinationPath, Buffer.from('corrupt'));
+            await writeFileAtomic(destinationPath, Buffer.from('corrupt'));
             return;
           }
           await options.downloadAsset(reference, destinationPath);
@@ -397,7 +388,7 @@ describe('selected evidence preparation', () => {
     temporaryRoots.push(root);
     const selectionPath = path.join(root, 'selection.json');
     const semantic = createAsset('semantic', 'a');
-    await writeJsonFileAtomically(selectionPath, {
+    await writeJsonFile(selectionPath, {
       formatVersion: 1,
       journeys: null,
       semantic: semantic.reference,
@@ -407,7 +398,7 @@ describe('selected evidence preparation', () => {
       prepareSelectedEvidence({
         cacheDirectory: path.join(root, 'cache'),
         downloadAsset: async (_reference, destinationPath) => {
-          await writeBufferFileAtomically(destinationPath, Buffer.from('changed'));
+          await writeFileAtomic(destinationPath, Buffer.from('changed'));
         },
         preparedDirectory: path.join(root, 'prepared'),
         selectionPath,
@@ -426,7 +417,7 @@ describe('selected evidence preparation', () => {
       const selectionPath = path.join(root, 'selection.json');
       const semanticFixture = createAsset(kind, 'fixture', 'fixture');
       const semantic = createAsset('semantic', 'a');
-      await writeJsonFileAtomically(selectionPath, {
+      await writeJsonFile(selectionPath, {
         formatVersion: 1,
         journeys: kind === 'journeys' ? semanticFixture.reference : null,
         semantic: kind === 'semantic' ? semanticFixture.reference : semantic.reference,
@@ -441,7 +432,7 @@ describe('selected evidence preparation', () => {
           downloadAsset: async (reference, destinationPath) => {
             const content = assetByName.get(reference.assetName);
             if (content === undefined) throw new Error('Missing test asset.');
-            await writeBufferFileAtomically(destinationPath, content);
+            await writeFileAtomic(destinationPath, content);
           },
           preparedDirectory: path.join(root, 'prepared'),
           selectionPath,

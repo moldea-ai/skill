@@ -135,44 +135,60 @@ test('unborn repositories explicitly require conservative reassessment', () => {
   });
 });
 
-test('bundled helper reports the first Git error during attribute inspection as a Git read failure', () => {
+test('bundled helper reports a Git error during attribute inspection as a Git read failure', () => {
   const root = repository();
   writeFileSync(join(root, '.git', 'config'), '[invalid\n');
   const result = runHelper(root, 'checkpoint');
   expect(result.status).toBe(1);
   expect(result.stderr).toBe('');
-  const evidence = JSON.parse(result.stdout) as IRepairGitEvidence;
-  expect(evidence).toMatchObject({
+  // Git's own message stays out of the reason, as it can name private paths or remotes
+  expect(JSON.parse(result.stdout)).toStrictEqual({
+    kind: 'moldea-repair-git',
+    mode: 'checkpoint',
     status: 'unavailable',
     reasonCode: 'git-read',
+    reason: 'The git command failed.',
   });
-  if (evidence.status !== 'unavailable') throw new Error('Expected unavailable Git evidence.');
-  expect(evidence.reason).toContain('fatal: bad config line 1');
 });
 
-test('Git ownership refusal is reported as git-read with its bounded reason', () => {
-  const root = repository();
-  const result = spawnSync(
-    process.env['MOLDEA_TEST_NODE'] ?? process.execPath,
-    [
-      resolve(import.meta.dirname, '../../../moldea/scripts/repair-git.mjs'),
-      '--repository',
-      root,
-      '--',
-      'checkpoint',
-    ],
-    {
-      encoding: 'utf8',
-      timeout: 30_000,
-      env: { ...process.env, GIT_TEST_ASSUME_DIFFERENT_OWNER: '1' },
-    },
-  );
-  expect(result.status).toBe(1);
-  const evidence = JSON.parse(result.stdout) as IRepairGitEvidence;
-  expect(evidence).toMatchObject({ status: 'unavailable', reasonCode: 'git-read' });
-  if (evidence.status !== 'unavailable') throw new Error('Expected ownership refusal.');
-  expect(evidence.reason).toContain('dubious ownership');
-});
+// the executable fake-Git shim uses POSIX sh; macOS supports it, Windows does not
+test.skipIf(process.platform === 'win32')(
+  'Git ownership refusal is reported as git-read with its bounded reason',
+  () => {
+    const root = repository();
+    const tools = join(root, 'fake-tools');
+    mkdirSync(tools);
+    const executable = join(tools, 'git');
+    writeFileSync(
+      executable,
+      `#!/bin/sh\nprintf "fatal: detected dubious ownership in repository at '%s'\\n" "$PWD" >&2\nexit 128\n`,
+    );
+    chmodSync(executable, 0o755);
+    const result = spawnSync(
+      process.env['MOLDEA_TEST_NODE'] ?? process.execPath,
+      [
+        resolve(import.meta.dirname, '../../../moldea/scripts/repair-git.mjs'),
+        '--repository',
+        root,
+        '--',
+        'checkpoint',
+      ],
+      {
+        encoding: 'utf8',
+        timeout: 30_000,
+        env: { ...process.env, PATH: tools + ':' + process.env['PATH'] },
+      },
+    );
+    expect(result.status).toBe(1);
+    expect(JSON.parse(result.stdout)).toStrictEqual({
+      kind: 'moldea-repair-git',
+      mode: 'checkpoint',
+      status: 'unavailable',
+      reasonCode: 'git-read',
+      reason: "Git can't access the repository.",
+    });
+  },
+);
 
 test('a configured failing file monitor is suppressed without executing its hook', () => {
   const root = repository();

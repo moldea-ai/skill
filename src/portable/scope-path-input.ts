@@ -1,4 +1,6 @@
 import { posix, win32 } from 'node:path';
+import { hasErrorCode } from 'jg-exception';
+import { ERRORS as PROCESS_ERRORS, readStdin } from 'jg-process';
 
 const MAXIMUM_PATH_INPUT_BYTES = 2_097_152;
 const utf8Decoder = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true });
@@ -56,28 +58,12 @@ export const normalizeScopePath = (path: string, context: IScopePathContext): st
 };
 
 /**
- * Reads and normalizes one bounded NUL-delimited UTF-8 batch for the gate or launcher.
+ * Decodes and normalizes one complete NUL-delimited UTF-8 batch.
  * @returns Repository-logical paths in their original order, including duplicates.
  * @throws
  * - Invalid scope path input.
- * - Scope path input exceeds its byte limit.
  */
-export const readScopePathInput = async (
-  inputStream: AsyncIterable<Buffer | string>,
-  context: IScopePathContext,
-): Promise<string[]> => {
-  const chunks: Buffer[] = [];
-  let byteLength = 0;
-  for await (const chunk of inputStream) {
-    const inputChunk = typeof chunk === 'string' ? Buffer.from(chunk) : chunk;
-    byteLength += inputChunk.byteLength;
-    if (byteLength > MAXIMUM_PATH_INPUT_BYTES) {
-      throw new Error('Scope path input exceeds its byte limit.');
-    }
-    chunks.push(inputChunk);
-  }
-
-  const input = Buffer.concat(chunks, byteLength);
+const parseScopePathInput = (input: Buffer, context: IScopePathContext): string[] => {
   if (input.byteLength === 0 || input.at(-1) !== 0) {
     throw new Error('Invalid scope path input.');
   }
@@ -89,6 +75,25 @@ export const readScopePathInput = async (
   }
 
   return text.split('\0').map((path) => normalizeScopePath(path, context));
+};
+
+/**
+ * Reads and normalizes one bounded NUL-delimited UTF-8 batch from stdin for the gate.
+ * @returns A promise that resolves to repository-logical paths in their original order,
+ * including duplicates.
+ * @throws
+ * - Invalid scope path input.
+ * - Scope path input exceeds its byte limit.
+ */
+export const readScopePathInput = async (context: IScopePathContext): Promise<string[]> => {
+  let input: Buffer;
+  try {
+    input = await readStdin({ maxBytes: MAXIMUM_PATH_INPUT_BYTES });
+  } catch (error) {
+    if (!hasErrorCode(error, PROCESS_ERRORS.STDIN_TOO_LARGE)) throw error;
+    throw new Error('Scope path input exceeds its byte limit.', { cause: error });
+  }
+  return parseScopePathInput(input, context);
 };
 
 /**

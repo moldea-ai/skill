@@ -42,6 +42,42 @@ test('shows exact requests and replies with file changes and separate local chec
   );
 });
 
+for (const colorScheme of ['light', 'dark'] as const) {
+  for (const width of [320, 1440]) {
+    test(`emphasizes recorded boolean changes in ${colorScheme} at ${width}px`, async ({
+      page,
+    }) => {
+      await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' });
+      await page.setViewportSize({ width, height: 1000 });
+      await page.goto(toPublicPath('/evidence/journeys/everyday-work/'));
+
+      const result = page.locator('[data-journey-provider="claude"] [data-journey-result]');
+      const disclosure = result.locator('[data-journey-diff] > summary');
+      await disclosure.focus();
+      await expect(disclosure).toBeFocused();
+      await disclosure.press('Enter');
+      await expect(result.locator('[data-journey-diff]')).toHaveAttribute('open', '');
+
+      const rows = result.locator('[data-diff-line]:visible').filter({
+        hasText: 'export const allowGovernmentId =',
+      });
+      await expect(rows).toHaveCount(2);
+      await expect(rows.locator('code')).toHaveText([
+        'export const allowGovernmentId = false;',
+        'export const allowGovernmentId = true;',
+      ]);
+      await expect(rows.locator('del[data-moldea-diff-change="removed"]')).toHaveText('false');
+      await expect(rows.locator('ins[data-moldea-diff-change="added"]')).toHaveText('true');
+      await expect(rows.locator('[data-moldea-diff-change]')).toHaveCount(2);
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+        ),
+      ).toBe(true);
+    });
+  }
+}
+
 test('sanitizes untrusted replies in the dedicated preserve fixture', async ({ page }) => {
   await page.goto(toPublicPath('/evidence/journeys/preserve/'));
   const reply = page.locator(

@@ -1,7 +1,7 @@
 // @vitest-environment node
 import assert from 'node:assert/strict';
 import { Readable } from 'node:stream';
-import { test } from 'vitest';
+import { afterEach, test, vi } from 'vitest';
 
 import {
   type IScopePathContext,
@@ -18,6 +18,21 @@ const WINDOWS_CONTEXT: IScopePathContext = {
   repositoryRoot: 'D:\\work\\project',
   resolvedRepositoryRoot: 'C:\\real\\project',
 };
+
+// reads the paths as the gate does, from a stdin that yields the given chunks
+const readFromStdin = (
+  input: Iterable<Buffer> | AsyncIterable<Buffer>,
+  context: IScopePathContext,
+): Promise<string[]> => {
+  vi.spyOn(process, 'stdin', 'get').mockReturnValue(
+    Readable.from(input) as unknown as typeof process.stdin,
+  );
+  return readScopePathInput(context);
+};
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 test.each([
   ['src/agent.ts', '/src/agent.ts'],
@@ -102,7 +117,7 @@ test('decodes a mixed batch without changing order, duplicates, casing, or Unico
     './Src/Éclair plan.ts\0/work/project/src/agent.ts\0Src/Éclair plan.ts\0',
   );
   const chunks = [input.subarray(0, 7), input.subarray(7, 12), input.subarray(12)];
-  assert.deepEqual(await readScopePathInput(Readable.from(chunks), POSIX_CONTEXT), [
+  assert.deepEqual(await readFromStdin(chunks, POSIX_CONTEXT), [
     '/Src/Éclair plan.ts',
     '/src/agent.ts',
     '/Src/Éclair plan.ts',
@@ -118,16 +133,13 @@ test.each([
   Buffer.from('C:agent.ts\0'),
   Buffer.from('\\\\host\\share\0'),
 ])('rejects malformed stdin %o', async (input) => {
-  await assert.rejects(
-    readScopePathInput(Readable.from([input]), POSIX_CONTEXT),
-    /Invalid scope path input/u,
-  );
+  await assert.rejects(readFromStdin([input], POSIX_CONTEXT), /Invalid scope path input/u);
 });
 
 test('retains the input byte allowance when adding the logical prefix', async () => {
   const input = Buffer.alloc(2_097_152, 0x61);
   input[input.length - 1] = 0;
-  const [path] = await readScopePathInput(Readable.from([input]), POSIX_CONTEXT);
+  const [path] = await readFromStdin([input], POSIX_CONTEXT);
   assert.ok(path !== undefined);
   assert.equal(Buffer.byteLength(path), input.length);
   assert.equal(path[0], '/');
@@ -145,7 +157,7 @@ test('stops consuming stdin when the original byte boundary is exceeded', async 
       yield Buffer.from('must not be read');
     },
   };
-  await assert.rejects(readScopePathInput(inputStream, POSIX_CONTEXT), /exceeds its byte limit/u);
+  await assert.rejects(readFromStdin(inputStream, POSIX_CONTEXT), /exceeds its byte limit/u);
   assert.equal(reads, 2);
 });
 
@@ -175,15 +187,9 @@ test('counts absolute path bytes before removing the repository root', async () 
   const path = prefix + 'a'.repeat(2_097_151 - Buffer.byteLength(prefix));
   const expected = `/${path.slice(prefix.length)}`;
   assert.deepEqual(normalizeScopePathArguments([path], POSIX_CONTEXT), [expected]);
-  assert.deepEqual(
-    await readScopePathInput(Readable.from([Buffer.from(`${path}\0`)]), POSIX_CONTEXT),
-    [expected],
-  );
+  assert.deepEqual(await readFromStdin([Buffer.from(`${path}\0`)], POSIX_CONTEXT), [expected]);
   assert.throws(() => normalizeScopePathArguments([`${path}a`], POSIX_CONTEXT), /exceeds/u);
-  await assert.rejects(
-    readScopePathInput(Readable.from([Buffer.from(`${path}a\0`)]), POSIX_CONTEXT),
-    /exceeds/u,
-  );
+  await assert.rejects(readFromStdin([Buffer.from(`${path}a\0`)], POSIX_CONTEXT), /exceeds/u);
 });
 
 test('normalizes a bounded batch with many leading relative dot segments', () => {

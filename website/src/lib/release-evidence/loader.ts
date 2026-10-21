@@ -1,7 +1,7 @@
-import { createHash } from 'node:crypto';
 import { cpSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync } from 'node:fs';
 import path from 'node:path';
 
+import { hashValue } from 'jg-crypto';
 import { z } from 'zod';
 
 import {
@@ -71,7 +71,7 @@ const readPreparedBundle = (
     throw new Error(`Prepared ${kind} evidence path escapes its owned directory.`);
   }
   const source = readFileSync(bundlePath, 'utf8');
-  const preparedSha256 = createHash('sha256').update(source).digest('hex');
+  const preparedSha256 = hashValue(source);
   if (preparedSha256 !== section.preparedSha256) {
     throw new Error(`Prepared ${kind} evidence digest does not match its manifest.`);
   }
@@ -158,9 +158,7 @@ export const loadReleaseEvidenceWebsiteState = (
       ),
     ) as unknown,
   );
-  const selectionSha256 = createHash('sha256')
-    .update(`${JSON.stringify(selection)}\n`)
-    .digest('hex');
+  const selectionSha256 = hashValue(`${JSON.stringify(selection)}\n`);
   if (manifest.selectionSha256 !== selectionSha256) {
     throw new Error('Prepared evidence does not match the current maintainer selection.');
   }

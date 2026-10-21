@@ -10,7 +10,7 @@ order: 180
 
 Release `9.0.0` supports exactly:
 
-- Git `>=2.30.0`
+- Git `>=2.32.0`
 - Node.js `>=22.17.0`
 - stable `@moldea.ai/core` releases satisfying `^8.0.0`
 - stable `@moldea.ai/cli` releases satisfying `^12.0.0`
@@ -60,7 +60,7 @@ On POSIX, contained absolute paths take precedence; other leading-slash paths re
 
 Paged commands accept launcher-only `--save-response <absolute-temporary-file>` and `--cursor-from-response <absolute-temporary-file>` options. Create the private task directory with `node <installed-skill-root>/scripts/response-directory.mjs --repository <absolute-repository-root>`. It returns an absolute path beneath the resolved host temporary root, outside the repository, with owner-only POSIX access. Windows uses the host temporary storage permissions. The directory holds one exact raw response. The next call extracts its opaque cursor mechanically and fetches one page with unchanged filters and budget. File and directory links are rejected; new targets must be unused unless replacing the explicitly loaded checkpoint. `composition` does not support these options, and a saved cursor cannot be combined with `--cursor`. Complete valid/invalid pages can be saved; error and interrupted output cannot replace a checkpoint. The coding agent removes owned scratch files when finished. Hosts that prohibit scratch writes retain that constraint.
 
-When the host truncates or loses a response saved with `--save-response`, read the saved file instead of rerunning the command. Cancellation before atomic rename submission preserves the prior checkpoint. A rename already submitted may complete with the new page, but the cancelled invocation still returns 3 with no stdout. Continuation never aggregates pages, automatically fetches more, or resets the shared resource budget within a cycle.
+When the host truncates or loses a response saved with `--save-response`, read the saved file instead of rerunning the command. Cancellation before the atomic write starts preserves the prior checkpoint. A write already started may complete with the new page, but the cancelled invocation still returns 3 with no stdout. Continuation never aggregates pages, automatically fetches more, or resets the shared resource budget within a cycle.
 
 ## Resource profiles
 

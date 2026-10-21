@@ -3,6 +3,8 @@
 import { realpath } from 'node:fs/promises';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isMainModule } from 'jg-process';
+import { isPathWithin } from 'jg-fs';
 
 import {
   CLAUDE_INSTRUCTION_SUBJECTS,
@@ -12,7 +14,7 @@ import {
 } from '../claude-import/index.ts';
 import { resolveInstructionWriteTarget } from '../instruction-link/index.ts';
 import { assertManagedBlock, updateManagedFile } from '../managed-block/index.ts';
-import { isPathWithin, resolveRepositoryFile } from '../repository-files.ts';
+import { resolveRepositoryFile } from '../repository-files.ts';
 
 const MANAGED_AGENTS_TEMPLATE = '__MOLDEA_MANAGED_AGENTS_BLOCK_JSON__';
 
@@ -45,10 +47,7 @@ export const renderManagedAgentsBlock = async (repositoryRoot: string): Promise<
 };
 
 // canonicalize both spellings because Node and Windows can preserve different path aliases
-const isDirectExecution =
-  process.argv[1] !== undefined &&
-  (await realpath(resolve(process.argv[1]))) === (await realpath(fileURLToPath(import.meta.url)));
-if (isDirectExecution) {
+if (isMainModule(import.meta.url)) {
   const arguments_ = process.argv.slice(2);
   const claudeSubject = arguments_[2] === '--claude' ? arguments_[3] : undefined;
   try {

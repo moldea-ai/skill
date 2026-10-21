@@ -59,7 +59,7 @@ const createTemporaryReleaseRoot = (): string => {
     mkdirSync(dirname(destinationPath), { recursive: true });
     cpSync(sourcePath, destinationPath);
   }
-  for (const relativePath of ['src/portable', 'src/filesystem/atomic-bytes']) {
+  for (const relativePath of ['src/portable']) {
     cpSync(join(REPOSITORY_ROOT, relativePath), join(temporaryRoot, relativePath), {
       recursive: true,
       filter: (sourcePath) =>

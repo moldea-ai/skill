@@ -11,8 +11,8 @@ type ISemanticChargedTrial = Pick<ISemanticRecordedTrial, 'paidInvocations' | 't
 type ISemanticChargedCase = { trials: readonly ISemanticChargedTrial[] };
 
 export interface ISemanticTokenAdmissionController {
-  release: (reservationId: string) => Promise<void>;
-  reserve: (reservationId: string) => Promise<void>;
+  release: (reservationId: string) => void;
+  reserve: (reservationId: string) => void;
 }
 
 const getUsageTokenCount = (usage: ISemanticRecordedTrial['trial']['actorUsage']): number =>
@@ -67,48 +67,42 @@ export const getSemanticCandidatePaidTokenCount = (
   return tokenCount;
 };
 
-/** Serializes semantic paid-stage reservations across concurrent case workers. */
+/**
+ * Admits semantic paid-stage reservations across concurrent case workers. Each check and update
+ * runs synchronously, so workers can't interleave them.
+ */
 export const createSemanticTokenAdmissionController = (options: {
   getConsumedTokenCount: () => number;
 }): ISemanticTokenAdmissionController => {
   const reservations = new Set<string>();
-  let mutationQueue = Promise.resolve();
-
-  const serialize = async (operation: () => void): Promise<void> => {
-    const queuedMutation = mutationQueue.then(operation, operation);
-    mutationQueue = queuedMutation.catch(() => {});
-    await queuedMutation;
-  };
 
   return {
-    release: (reservationId) =>
-      serialize(() => {
-        if (!reservations.delete(reservationId)) {
-          throw new Error(`Semantic worker ${reservationId} has no paid-stage reservation.`);
-        }
-      }),
-    reserve: (reservationId) =>
-      serialize(() => {
-        if (reservations.has(reservationId)) {
-          throw new Error(`Semantic worker ${reservationId} already has a paid-stage reservation.`);
-        }
-        const consumedTokenCount = options.getConsumedTokenCount();
-        const reservedTokenCount =
-          reservations.size * MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount;
-        const nextReservation = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount;
-        if (
-          consumedTokenCount + reservedTokenCount + nextReservation >
-          SEMANTIC_CANDIDATE_TOKEN_LIMIT
-        ) {
-          const error = new Error(
-            `Semantic evaluation stopped before a paid stage: ${consumedTokenCount} tokens consumed, ` +
-              `${reservedTokenCount} reserved, ${nextReservation} required, ` +
-              `${SEMANTIC_CANDIDATE_TOKEN_LIMIT} maximum.`,
-          );
-          error.name = 'SemanticEvaluationResourceStopError';
-          throw error;
-        }
-        reservations.add(reservationId);
-      }),
+    release: (reservationId) => {
+      if (!reservations.delete(reservationId)) {
+        throw new Error(`Semantic worker ${reservationId} has no paid-stage reservation.`);
+      }
+    },
+    reserve: (reservationId) => {
+      if (reservations.has(reservationId)) {
+        throw new Error(`Semantic worker ${reservationId} already has a paid-stage reservation.`);
+      }
+      const consumedTokenCount = options.getConsumedTokenCount();
+      const reservedTokenCount =
+        reservations.size * MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount;
+      const nextReservation = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount;
+      if (
+        consumedTokenCount + reservedTokenCount + nextReservation >
+        SEMANTIC_CANDIDATE_TOKEN_LIMIT
+      ) {
+        const error = new Error(
+          `Semantic evaluation stopped before a paid stage: ${consumedTokenCount} tokens consumed, ` +
+            `${reservedTokenCount} reserved, ${nextReservation} required, ` +
+            `${SEMANTIC_CANDIDATE_TOKEN_LIMIT} maximum.`,
+        );
+        error.name = 'SemanticEvaluationResourceStopError';
+        throw error;
+      }
+      reservations.add(reservationId);
+    },
   };
 };

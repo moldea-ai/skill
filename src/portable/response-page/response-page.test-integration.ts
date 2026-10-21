@@ -101,6 +101,29 @@ test('preserves existing checkpoints after errors, malformed output, contradicto
   expect(await readFile(path)).toStrictEqual(raw);
 });
 
+test('a cancellation that arrives while the capture path is checked keeps the checkpoint', async () => {
+  const { repository, scratch, path } = await fixture();
+  await writeFile(path, raw);
+  const files = await prepareResponseFiles(repository, identity, path, path);
+  const reason = new Error('cancelled before the write');
+  let checks = 0;
+  // the response is verified before the cancellation; the capture's own check sees it
+  const signal = {
+    throwIfAborted: () => {
+      checks += 1;
+      if (checks > 1) throw reason;
+    },
+  } as AbortSignal;
+  const final = Buffer.from(raw.toString().replace('"exact_É+/="', 'null'));
+
+  await expect(verifyAndSaveResponse(files, repository, final, identity, 0, signal)).rejects.toBe(
+    reason,
+  );
+  expect(checks).toBe(2);
+  expect(await readFile(path)).toStrictEqual(raw);
+  expect(await readdir(scratch)).toStrictEqual(['page.json']);
+});
+
 test('captures invalid diagnostic pages with exit one', async () => {
   const { repository, path } = await fixture();
   const invalid = Buffer.from(raw.toString().replace('"valid"', '"invalid"'));

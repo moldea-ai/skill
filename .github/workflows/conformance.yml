@@ -311,20 +311,35 @@ jobs:
   minimum-git:
     needs: changes
     if: needs.changes.outputs.full == 'true'
-    name: Portable repair Git / Git 2.30
+    name: Portable repair Git / Git 2.32
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    # Bullseye ships the minimum supported Git; job containers cannot read the env context
+    timeout-minutes: 15
+    # no Node.js image ships the minimum supported Git, so the job builds it with Bullseye's
+    # toolchain; job containers cannot read the env context
     container: node:24.15.0-bullseye
+    env:
+      MINIMUM_GIT_VERSION: 2.32.7
+      MINIMUM_GIT_SHA256: 1ea175f21b766c1cbc05b8391e9aaf6a18b0bbbf7c2382449b635dc66bf1c4d0
     steps:
       - uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
-      - name: Require Git 2.30 and the development Node.js
+      - name: Build the minimum supported Git from its checksum-pinned source
+        run: |
+          curl -fsSL --retry 3 -o /tmp/git.tar.xz \
+            "https://mirrors.edge.kernel.org/pub/software/scm/git/git-${MINIMUM_GIT_VERSION}.tar.xz"
+          echo "${MINIMUM_GIT_SHA256}  /tmp/git.tar.xz" | sha256sum -c -
+          mkdir /tmp/git-source
+          tar -xJf /tmp/git.tar.xz -C /tmp/git-source --strip-components=1
+          make -C /tmp/git-source -j"$(nproc)" prefix=/opt/git NO_CURL=YesPlease \
+            NO_EXPAT=YesPlease NO_GETTEXT=YesPlease NO_PYTHON=YesPlease NO_TCLTK=YesPlease \
+            install > /dev/null
+          echo /opt/git/bin >> "$GITHUB_PATH"
+      - name: Require Git 2.32 and the development Node.js
         run: |
           git --version
           node --version
-          git --version | grep -q '^git version 2\.30\.'
+          git --version | grep -q '^git version 2\.32\.'
           test "$(node --version)" = "v$DEVELOPMENT_NODE_VERSION"
       - name: Install workspace dependencies without lifecycle scripts
         run: npm ci --ignore-scripts

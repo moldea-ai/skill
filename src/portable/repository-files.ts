@@ -1,12 +1,7 @@
-import { constants } from 'node:fs';
-import { lstat, open, realpath } from 'node:fs/promises';
-import { isAbsolute, join, relative, sep } from 'node:path';
-
-/** Returns whether a resolved path remains within the trusted root. */
-export const isPathWithin = (trustedRoot: string, candidatePath: string): boolean => {
-  const path = relative(trustedRoot, candidatePath);
-  return path === '' || (!path.startsWith(`..${sep}`) && path !== '..' && !isAbsolute(path));
-};
+import { lstat, realpath } from 'node:fs/promises';
+import { join, relative, sep } from 'node:path';
+import { getErrorCode } from 'jg-exception';
+import { ERRORS as FS_ERRORS, isPathWithin, readBoundedFile } from 'jg-fs';
 
 /**
  * Resolves a bounded regular file, optionally rejecting all directory links below the root.
@@ -61,30 +56,13 @@ export const readRepositoryFile = async (
     maximumBytes,
     directoryLinks,
   );
-  const file = await open(resolvedPath, constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0));
   try {
-    const stat = await file.stat();
-    if (!stat.isFile() || stat.size > maximumBytes) {
-      throw new Error('Expected a bounded regular file inside the repository.');
-    }
-    const chunks: Buffer[] = [];
-    let total = 0;
-    while (total <= maximumBytes) {
-      const bytes = Buffer.allocUnsafe(
-        Math.min(
-          65_536,
-          total === 0 ? Math.max(1, stat.size + 1) : 65_536,
-          maximumBytes + 1 - total,
-        ),
-      );
-      const { bytesRead } = await file.read(bytes, 0, bytes.length, null);
-      if (bytesRead === 0) return Buffer.concat(chunks, total);
-      total += bytesRead;
-      if (total > maximumBytes) break;
-      chunks.push(bytes.subarray(0, bytesRead));
-    }
-    throw new Error('Repository file exceeds its byte limit.');
-  } finally {
-    await file.close();
+    return await readBoundedFile(resolvedPath, maximumBytes);
+  } catch (error) {
+    if (getErrorCode(error) === FS_ERRORS.FILE_TOO_LARGE)
+      throw new Error('Repository file exceeds its byte limit.', { cause: error });
+    if (getErrorCode(error) === FS_ERRORS.NOT_A_FILE)
+      throw new Error('Expected a bounded regular file inside the repository.', { cause: error });
+    throw error;
   }
 };

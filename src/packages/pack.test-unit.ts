@@ -1,6 +1,8 @@
 // @vitest-environment node
 import assert from 'node:assert/strict';
 import { resolve } from 'node:path';
+import { expectToThrowCode } from 'jg-exception/testing';
+import { ERRORS as PROCESS_ERRORS } from 'jg-process';
 import { test } from 'vitest';
 
 import { parsePackArguments } from './pack.ts';
@@ -25,12 +27,12 @@ test('parses required paths and repeatable selected roots', () => {
   );
 });
 
-test('rejects missing values, required paths, and unknown options', () => {
-  assert.throws(() => parsePackArguments([]), /--workspace is required/);
-  assert.throws(() => parsePackArguments(['--workspace', './packages']), /--output is required/);
-  assert.throws(() => parsePackArguments(['--workspace']), /requires a value/);
-  assert.throws(
-    () => parsePackArguments(['--unknown', 'value']),
-    /Unknown candidate packer option/,
-  );
+test.each([
+  [[]],
+  [['--workspace', './packages']],
+  [['--workspace']],
+  [['--workspace', './packages', '--output', './artifacts', '--unknown', 'value']],
+  [['--workspace', './a', '--workspace', './b', '--output', './artifacts']],
+])('rejects missing values, required paths, and unknown options %o', (arguments_) => {
+  expectToThrowCode(() => parsePackArguments(arguments_), PROCESS_ERRORS.INVALID_ARGUMENTS);
 });

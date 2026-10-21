@@ -4,6 +4,7 @@ import { mkdtemp, readFile, readdir, rm, symlink, writeFile } from 'node:fs/prom
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, expect, test, vi } from 'vitest';
+import { writeFileAtomic, writeJsonFile } from 'jg-fs';
 
 import {
   createSyntheticJourneysBundle,
@@ -22,11 +23,7 @@ import {
   type IEvidenceBundle,
   type IEvidenceSelectionReference,
 } from '../../evidence/index.ts';
-import {
-  calculateSha256,
-  writeBufferFileAtomically,
-  writeJsonFileAtomically,
-} from '../../filesystem/index.ts';
+import { calculateSha256 } from '../../filesystem/index.ts';
 import type { IJourneyPlatform } from '../index.ts';
 import {
   createJourneySnapshotEvidenceBundle,
@@ -399,7 +396,7 @@ test('prepares partial composed records while full matching official observation
       sha256: calculateSha256(bytes.get(kind)!),
     });
     const selectionPath = path.join(root, 'selection.json');
-    await writeJsonFileAtomically(selectionPath, {
+    await writeJsonFile(selectionPath, {
       formatVersion: 1,
       semantic: reference('semantic'),
       journeys: reference('journeys'),
@@ -409,7 +406,7 @@ test('prepares partial composed records while full matching official observation
       cacheDirectory: path.join(root, 'cache'),
       preparedDirectory: path.join(root, 'prepared'),
       downloadAsset: async (ref: IEvidenceSelectionReference, destination: string) => {
-        await writeBufferFileAtomically(
+        await writeFileAtomic(
           destination,
           bytes.get(ref.assetName.startsWith('semantic') ? 'semantic' : 'journeys')!,
         );

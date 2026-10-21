@@ -1,9 +1,10 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { writeJsonFile } from 'jg-fs';
 
 import { EVALUATION_CONFIRMATION_POLICY } from '../../execution/confirmation/index.ts';
 import { createAssessorFingerprint, createFixtureFingerprint } from '../identity/index.ts';
-import { writeJsonFileAtomically } from '../../filesystem/index.ts';
+
 import { generateRuntimeArtifacts } from '../../portable/index.ts';
 import { createArchive } from '../bundle/index.ts';
 import { copyTree, sha256, treeDigest, treeHashes } from '../harness/index.ts';
@@ -72,13 +73,13 @@ export const createHarnessFixture = async (
     await mkdir(path.join(directory, 'fixture'), { recursive: true });
     await writeFile(path.join(directory, 'fixture/.gitignore'), '.agents/\nnode_modules/\n');
     await writeFile(path.join(directory, 'fixture/policy.md'), 'Retention: 60 days.\n');
-    await writeJsonFileAtomically(
+    await writeJsonFile(
       path.join(directory, 'steps.json'),
       definition.steps.map(({ id, request, dependsOn }) => ({ id, request, dependsOn })),
     );
   }
   const files = await treeHashes(bundleDirectory);
-  await writeJsonFileAtomically(path.join(bundleDirectory, 'manifest.json'), {
+  await writeJsonFile(path.join(bundleDirectory, 'manifest.json'), {
     bundleFormatVersion: 2,
     assessorSourceSha256: await createAssessorFingerprint(repositoryRoot),
     policy: EVALUATION_CONFIRMATION_POLICY,
@@ -147,7 +148,7 @@ export const recordFixturePlatform = async (
           'unexpected edit\n',
         );
       await writeFile(path.join(capture, 'reply.md'), 'Retention is 30 days.');
-      await writeJsonFileAtomically(path.join(capture, 'activity.json'), {
+      await writeJsonFile(path.join(capture, 'activity.json'), {
         commands: [],
         reads: ['policy.md'],
         writes: step.id === 'change' ? ['policy.md'] : [],

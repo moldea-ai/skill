@@ -1,8 +1,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build, type BuildOptions, type Metafile } from 'esbuild';
-
-import { writeTextFileAtomically } from '../filesystem/index.ts';
+import { writeFileAtomic } from 'jg-fs';
 
 import type { IRuntimeGenerationOptions, IRuntimeGenerationResult } from './types.ts';
 
@@ -83,7 +82,7 @@ export const generateRuntimeArtifacts = async (
     assertRuntimeBundleIsStandalone(entryPath, result.metafile);
 
     const outputPath = path.join(outputDirectory, outputName);
-    await writeTextFileAtomically(outputPath, result.source);
+    await writeFileAtomic(outputPath, result.source);
     artifactPaths.push(path.relative(rootDirectory, outputPath).split(path.sep).join('/'));
   }
 

@@ -1,5 +1,4 @@
-import { createHash } from 'node:crypto';
-
+import { hashValue } from 'jg-crypto';
 import {
   CALIBRATION_MINIMUM_HEADROOM_PERCENT,
   MOLDEA_SKILL_RESOURCE_PROFILES,
@@ -338,17 +337,12 @@ const requireCommandOutputObservation = (
 
 /** Creates the deterministic digest for the privacy-safe model-stage observation list. */
 export const calculateModelStageObservationsSha256 = (observations: readonly unknown[]): string =>
-  createHash('sha256')
-    .update(`${JSON.stringify(observations)}\n`)
-    .digest('hex');
+  hashValue(`${JSON.stringify(observations)}\n`);
 
 /** Creates the deterministic digest for privacy-safe command-output observations. */
 export const calculateCommandOutputObservationsSha256 = (
   observations: readonly unknown[],
-): string =>
-  createHash('sha256')
-    .update(`${JSON.stringify(observations)}\n`)
-    .digest('hex');
+): string => hashValue(`${JSON.stringify(observations)}\n`);
 
 /** Returns the largest accepted cumulative stage observation for each calibrated profile. */
 export const summarizeModelStageCalibrationMaxima = (

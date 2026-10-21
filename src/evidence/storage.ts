@@ -1,12 +1,7 @@
 import path from 'node:path';
+import { writeFileAtomic, writeJsonFile } from 'jg-fs';
 
-import {
-  ensureDirectory,
-  readJsonFile,
-  resolveContainedPath,
-  writeBufferFileAtomically,
-  writeJsonFileAtomically,
-} from '../filesystem/index.ts';
+import { ensureDirectory, readJsonFile, resolveContainedPath } from '../filesystem/index.ts';
 import { encodeEvidenceBundle, validateEvidenceBundle } from './bundle.ts';
 import { LOCAL_EVIDENCE_RELATIVE_PATH } from './constants.ts';
 import { EvidenceBundleSchema, type IEvidenceBundle, type IEvidenceKind } from './types.ts';
@@ -37,7 +32,7 @@ export const storeCompletedEvidenceRun = async (
 ): Promise<string> => {
   const bundle = validateEvidenceBundle(input);
   const runPath = getCompletedEvidenceRunPath(repositoryRoot, bundle.kind, bundle.run.attemptId);
-  await writeJsonFileAtomically(runPath, bundle);
+  await writeJsonFile(runPath, bundle);
   return runPath;
 };
 
@@ -64,6 +59,6 @@ export const packCompletedEvidenceRun = async (
   const bundle = await readCompletedEvidenceRun(repositoryRoot, kind, attemptId);
   const encoded = encodeEvidenceBundle(bundle);
   await ensureDirectory(path.dirname(outputPath));
-  await writeBufferFileAtomically(outputPath, encoded);
+  await writeFileAtomic(outputPath, encoded);
   return { byteCount: encoded.byteLength, outputPath };
 };

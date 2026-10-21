@@ -1,16 +1,12 @@
 import path from 'node:path';
-
+import { writeFileAtomic } from 'jg-fs';
 import { z } from 'zod';
 
 import {
   GitInvocationEvidenceSchema,
   hasValidCodexEvaluationCommandPolicy,
 } from '../../execution/host/index.ts';
-import {
-  readJsonFile,
-  resolveContainedPath,
-  writeJsonFileAtomically,
-} from '../../filesystem/index.ts';
+import { readJsonFile, resolveContainedPath } from '../../filesystem/index.ts';
 import {
   hasValidSemanticCycles,
   summarizeSemanticCycles,
@@ -533,13 +529,17 @@ export const parseSemanticRecordedCases = (
 export const getSemanticCheckpointPath = (repositoryRoot: string): string =>
   path.join(repositoryRoot, '.evidence', 'semantic', 'checkpoint.json');
 
+// a checkpoint's JSON text; writing it with writeFileAtomic replaces a link at the path
+const serializeCheckpoint = (checkpoint: ISemanticCandidateCheckpoint): string =>
+  `${JSON.stringify(checkpoint, null, 2)}\n`;
+
 /** Writes one durable semantic candidate boundary atomically. */
 export const writeSemanticCheckpoint = async (
   repositoryRoot: string,
   checkpoint: ISemanticCandidateCheckpoint,
 ): Promise<void> => {
   CandidateCheckpointSchema.parse(checkpoint);
-  await writeJsonFileAtomically(getSemanticCheckpointPath(repositoryRoot), checkpoint);
+  await writeFileAtomic(getSemanticCheckpointPath(repositoryRoot), serializeCheckpoint(checkpoint));
 };
 
 /**
@@ -570,7 +570,7 @@ export const archiveSemanticDiagnosticCheckpoint = async (
     repositoryRoot,
     path.join('.evidence', 'semantic', 'diagnostics', checkpoint.attemptId, 'checkpoint.json'),
   );
-  await writeJsonFileAtomically(archivePath, checkpoint);
+  await writeFileAtomic(archivePath, serializeCheckpoint(checkpoint));
   return archivePath;
 };
 

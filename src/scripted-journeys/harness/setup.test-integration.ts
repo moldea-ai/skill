@@ -3,8 +3,8 @@ import { lstat, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { expect, test } from 'vitest';
+import { writeJsonFile } from 'jg-fs';
 
-import { writeJsonFileAtomically } from '../../filesystem/index.ts';
 import { createHarnessFixture, recordFixturePlatform } from '../testing/index.ts';
 
 import { setupWorkspace } from './setup.ts';
@@ -53,7 +53,7 @@ test('selected baselines complete independently, confirmations start pristine an
     const tampered = path.join(scratch, 'tampered');
     await copyTree(exported, tampered);
     await writeFile(path.join(tampered, 'unselected.md'), 'unexpected');
-    await writeJsonFileAtomically(
+    await writeJsonFile(
       path.join(tampered, 'files.json'),
       await treeHashes(tampered, ['files.json']),
     );

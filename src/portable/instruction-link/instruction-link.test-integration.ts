@@ -15,8 +15,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type * as GitCommands from 'jg-git-commands';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
-
-import { isPathWithin } from '../repository-files.ts';
+import { isPathWithin } from 'jg-fs';
 
 import { resolveInstructionWriteTarget } from './index.ts';
 

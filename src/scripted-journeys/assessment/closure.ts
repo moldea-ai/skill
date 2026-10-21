@@ -1,8 +1,8 @@
 import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { z } from 'zod';
+import { writeJsonFile } from 'jg-fs';
 
-import { writeJsonFileAtomically } from '../../filesystem/index.ts';
 import { installOfflineCli } from '../bundle/index.ts';
 import { copyTree, isolatedEnvironment, runCommand } from '../harness/index.ts';
 
@@ -15,7 +15,7 @@ export const prepareAssessmentClosure = async (input: {
   installedClosure?: string;
 }): Promise<string> => {
   await mkdir(input.directory, { recursive: true });
-  await writeJsonFileAtomically(path.join(input.directory, 'package.json'), {
+  await writeJsonFile(path.join(input.directory, 'package.json'), {
     name: 'journeys-assessor',
     version: '1.0.0',
     private: true,

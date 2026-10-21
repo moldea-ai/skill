@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 
-import { realpath } from 'node:fs/promises';
-import { resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { hasErrorCode } from 'jg-exception';
+import { ERRORS as PROCESS_ERRORS, isMainModule, parseStrictArgs } from 'jg-process';
 
 import {
   assertManagedBlock,
@@ -37,22 +36,18 @@ export const updateManagedReadme = (
 ): Promise<'created' | 'unchanged' | 'updated'> => updateManagedFile(repositoryRoot, block);
 
 const parseArguments = (argumentsList: readonly string[]): string => {
-  if (
-    argumentsList.length !== 2 ||
-    argumentsList[0] !== '--repository' ||
-    typeof argumentsList[1] !== 'string'
-  ) {
-    throw new Error('Usage: managed-readme.mjs --repository <normalized-absolute-root>');
+  try {
+    return parseStrictArgs(argumentsList, { repository: { type: 'string', required: true } })
+      .repository;
+  } catch (error) {
+    if (!hasErrorCode(error, PROCESS_ERRORS.INVALID_ARGUMENTS)) throw error;
+    throw new Error('Usage: managed-readme.mjs --repository <normalized-absolute-root>', {
+      cause: error,
+    });
   }
-
-  return argumentsList[1];
 };
 
-const isDirectExecution =
-  process.argv[1] !== undefined &&
-  (await realpath(resolve(process.argv[1]))) === (await realpath(fileURLToPath(import.meta.url)));
-
-if (isDirectExecution) {
+if (isMainModule(import.meta.url)) {
   try {
     const repositoryRoot = parseArguments(process.argv.slice(2));
     const status = await updateManagedReadme(repositoryRoot);

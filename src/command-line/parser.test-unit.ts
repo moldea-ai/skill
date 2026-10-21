@@ -1,4 +1,6 @@
 // @vitest-environment node
+import { expectToThrowCode } from 'jg-exception/testing';
+import { ERRORS as PROCESS_ERRORS } from 'jg-process';
 import { expect, test } from 'vitest';
 
 import { parseEvidenceCommand } from './parser.ts';
@@ -37,16 +39,24 @@ test.each(['semantic', 'journeys'] as const)('parses pack and pin with scope %s'
 });
 
 test('requires an explicit run and rejects unsupported scopes', () => {
-  expect(() => parseEvidenceCommand('pack', ['--scope', 'semantic'])).toThrow(
-    'Expected options: --scope, --run.',
+  expectToThrowCode(
+    () => parseEvidenceCommand('pack', ['--scope', 'semantic']),
+    PROCESS_ERRORS.INVALID_ARGUMENTS,
+    'The --run option is required.',
   );
   expect(() => parseEvidenceCommand('pack', ['--scope', 'other', '--run', 'one'])).toThrow(
     'Evidence kind must be semantic or journeys.',
   );
 });
 
-test('rejects unknown and duplicate options', () => {
-  expect(() =>
-    parseEvidenceCommand('publish', ['--bundle', 'one.json.gz', '--bundle', 'two.json.gz']),
-  ).toThrow('Option --bundle must be provided once.');
+test.each([
+  [['--bundle', 'one.json.gz', '--bundle', 'two.json.gz', '--tag', 'v1']],
+  [['--bundle', 'one.json.gz', '--tag', 'v1', '--other', 'value']],
+  [['--bundle', 'one.json.gz', '--tag', 'v1', 'extra']],
+  [['--bundle', '--tag', 'v1']],
+])('rejects unknown, duplicate, positional and missing values %o', (arguments_) => {
+  expectToThrowCode(
+    () => parseEvidenceCommand('publish', arguments_),
+    PROCESS_ERRORS.INVALID_ARGUMENTS,
+  );
 });

@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { hashValue } from 'jg-crypto';
 import { stringifyJsonDeterministically } from 'jg-utilities';
 
 import type {
@@ -20,7 +20,7 @@ export const serializeSemanticStageValue = (value: unknown): string =>
 
 /** Hashes one JSON-compatible value independently of object key insertion order. */
 export const createSemanticStageValueDigest = (value: unknown): string =>
-  createHash('sha256').update(serializeSemanticStageValue(value)).digest('hex');
+  hashValue(serializeSemanticStageValue(value));
 
 const requireSha256 = (value: unknown, label: string): string => {
   if (typeof value !== 'string' || !SHA256_PATTERN.test(value)) {

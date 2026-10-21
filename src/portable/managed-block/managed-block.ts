@@ -1,7 +1,8 @@
-import { randomUUID } from 'node:crypto';
-import { constants } from 'node:fs';
-import { chmod, lstat, open, rename, rm, writeFile } from 'node:fs/promises';
-import { basename, dirname, isAbsolute, join, resolve } from 'node:path';
+import { lstat } from 'node:fs/promises';
+import { basename, isAbsolute, join, resolve } from 'node:path';
+import { getErrorCode } from 'jg-exception';
+import { ERRORS as FS_ERRORS, readBoundedFile, writeFileAtomicIfUnchanged } from 'jg-fs';
+import { ERRORS as UTILITY_ERRORS, findMarkedRegion, upsertMarkedRegion } from 'jg-utilities';
 
 import type { IManagedFileName, IManagedWriteTargetResolver } from './types.ts';
 
@@ -9,81 +10,23 @@ const MAX_DOCUMENT_BYTES = 2 * 1024 * 1024;
 const MAX_MANAGED_BLOCK_BYTES = 4 * 1024;
 const START_MARKER = '<!-- moldea:start -->';
 const END_MARKER = '<!-- moldea:end -->';
-const UTF8_BOM = Buffer.from([0xef, 0xbb, 0xbf]);
-const START_MARKER_BYTES = Buffer.from(START_MARKER, 'ascii');
-const END_MARKER_BYTES = Buffer.from(END_MARKER, 'ascii');
-const LF_BYTES = Buffer.from('\n', 'ascii');
-const CRLF_BYTES = Buffer.from('\r\n', 'ascii');
+const MARKERS = { start: START_MARKER, end: END_MARKER };
 
-interface IManagedRegion {
-  lineEnding: Buffer;
-  regionEnd: number;
-  regionStart: number;
-}
-
-interface IMarkerLine {
-  kind: 'end' | 'start';
-  markerStart: number;
-}
-
+/** Decodes strict UTF-8, keeping a byte order mark so encoding the text gives the same bytes. */
 const decodeUtf8 = (bytes: Uint8Array, description: string): string => {
   try {
-    return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    return new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes);
   } catch {
     throw new Error(`${description} is not valid UTF-8`);
   }
 };
 
-const isEqualBytes = (left: Buffer, right: Buffer): boolean =>
-  left.length === right.length && left.equals(right);
-
-const isUtf8Bom = (bytes: Buffer): boolean =>
-  bytes.length === UTF8_BOM.length && isEqualBytes(bytes, UTF8_BOM);
-
-const hasUtf8Bom = (bytes: Buffer): boolean =>
-  bytes.length >= UTF8_BOM.length && isEqualBytes(bytes.subarray(0, UTF8_BOM.length), UTF8_BOM);
-
-const renderBlock = (block: string, lineEndingBytes: Buffer): Buffer =>
-  Buffer.from(block.replaceAll('\n', lineEndingBytes === CRLF_BYTES ? '\r\n' : '\n'), 'utf8');
-
-const parseMarkerLine = (
-  lineBytes: Buffer,
-  lineStart: number,
-  isFirstLine: boolean,
-): IMarkerLine | undefined => {
-  const contentBytes =
-    isFirstLine && hasUtf8Bom(lineBytes) ? lineBytes.subarray(UTF8_BOM.length) : lineBytes;
-  const markerOffset = lineBytes.length - contentBytes.length;
-  const containsStartMarker = contentBytes.indexOf(START_MARKER_BYTES) !== -1;
-  const containsEndMarker = contentBytes.indexOf(END_MARKER_BYTES) !== -1;
-
-  if (containsStartMarker && !isEqualBytes(contentBytes, START_MARKER_BYTES)) {
-    throw new Error('The moldea start marker must occupy its complete line');
-  }
-
-  if (containsEndMarker && !isEqualBytes(contentBytes, END_MARKER_BYTES)) {
-    throw new Error('The moldea end marker must occupy its complete line');
-  }
-
-  if (containsStartMarker && containsEndMarker) {
-    throw new Error('The moldea markers must occupy separate lines');
-  }
-
-  if (containsStartMarker) {
-    return { kind: 'start', markerStart: lineStart + markerOffset };
-  }
-
-  if (containsEndMarker) {
-    return { kind: 'end', markerStart: lineStart + markerOffset };
-  }
-
-  return undefined;
-};
-
-const parseManagedRegion = (
-  documentBytes: unknown,
-  fileName: IManagedFileName,
-): IManagedRegion | undefined => {
+/**
+ * Decodes one bounded document for its managed region.
+ * @throws
+ * - The document is not a Buffer, exceeds its byte limit, or is not valid UTF-8.
+ */
+const decodeDocument = (documentBytes: unknown, fileName: IManagedFileName): string => {
   if (!Buffer.isBuffer(documentBytes)) {
     throw new TypeError(
       `${fileName === 'README.md' ? 'README' : fileName} content must be a Buffer`,
@@ -94,94 +37,27 @@ const parseManagedRegion = (
     throw new Error(`${fileName} exceeds the ${MAX_DOCUMENT_BYTES}-byte limit`);
   }
 
-  decodeUtf8(documentBytes, fileName);
+  return decodeUtf8(documentBytes, fileName);
+};
 
-  const starts: Array<{ lineEnding: Buffer; markerStart: number }> = [];
-  const ends: Array<{ lineEnd: number; markerStart: number }> = [];
-  let lineStart = 0;
-  let isFirstLine = true;
-
-  while (lineStart < documentBytes.length) {
-    const newlineIndex = documentBytes.indexOf(0x0a, lineStart);
-    const lineEnd = newlineIndex === -1 ? documentBytes.length : newlineIndex + 1;
-    const contentEnd =
-      newlineIndex !== -1 && documentBytes[newlineIndex - 1] === 0x0d
-        ? newlineIndex - 1
-        : newlineIndex === -1
-          ? documentBytes.length
-          : newlineIndex;
-    const marker = parseMarkerLine(
-      documentBytes.subarray(lineStart, contentEnd),
-      lineStart,
-      isFirstLine,
+/**
+ * Runs one marked-region operation, naming the document when its markers are invalid.
+ * @throws
+ * - The document does not hold exactly one ordered moldea marker pair on their own lines.
+ */
+const withDocumentMarkers = <TResult>(
+  fileName: IManagedFileName,
+  operation: () => TResult,
+): TResult => {
+  try {
+    return operation();
+  } catch (error) {
+    if (getErrorCode(error) !== UTILITY_ERRORS.INVALID_MARKED_REGION) throw error;
+    throw new Error(
+      `${fileName} must contain exactly one moldea marker pair, each marker on its own line and the start marker first`,
+      { cause: error },
     );
-
-    if (marker?.kind === 'start') {
-      starts.push({
-        markerStart: marker.markerStart,
-        lineEnding:
-          newlineIndex === -1 ? Buffer.alloc(0) : documentBytes.subarray(contentEnd, lineEnd),
-      });
-    } else if (marker?.kind === 'end') {
-      ends.push({ markerStart: marker.markerStart, lineEnd });
-    }
-
-    lineStart = lineEnd;
-    isFirstLine = false;
   }
-
-  if (starts.length === 0 && ends.length === 0) {
-    return undefined;
-  }
-
-  if (starts.length !== 1 || ends.length !== 1) {
-    throw new Error(`${fileName} must contain exactly one moldea marker pair`);
-  }
-
-  const start = starts[0]!;
-  const end = ends[0]!;
-
-  if (start.markerStart >= end.markerStart) {
-    throw new Error('The moldea markers are reversed');
-  }
-
-  if (start.lineEnding.length === 0) {
-    throw new Error('The moldea start marker must end with a line ending');
-  }
-
-  return {
-    regionStart: start.markerStart,
-    regionEnd: end.lineEnd,
-    lineEnding: isEqualBytes(start.lineEnding, CRLF_BYTES) ? CRLF_BYTES : LF_BYTES,
-  };
-};
-
-const getAppendLineEnding = (documentBytes: Buffer): Buffer => {
-  let newlineCount = 0;
-  let crlfCount = 0;
-
-  for (let index = 0; index < documentBytes.length; index += 1) {
-    if (documentBytes[index] === 0x0a) {
-      newlineCount += 1;
-
-      if (index > 0 && documentBytes[index - 1] === 0x0d) {
-        crlfCount += 1;
-      }
-    }
-  }
-
-  return newlineCount > 0 && newlineCount === crlfCount ? CRLF_BYTES : LF_BYTES;
-};
-
-const getAppendSeparator = (documentBytes: Buffer, lineEndingBytes: Buffer): Buffer => {
-  if (documentBytes.length === 0 || isUtf8Bom(documentBytes)) {
-    return Buffer.alloc(0);
-  }
-
-  return Buffer.concat([
-    documentBytes[documentBytes.length - 1] === 0x0a ? Buffer.alloc(0) : lineEndingBytes,
-    lineEndingBytes,
-  ]);
 };
 
 /**
@@ -244,17 +120,12 @@ export const hasManagedBlock = (
       fileName === 'README.md' ? 'README' : fileName,
       fileName === 'README.md',
     );
-    const region = parseManagedRegion(documentBytes, fileName);
+    const text = decodeDocument(documentBytes, fileName);
+    const region = findMarkedRegion(text, MARKERS);
 
-    if (region === undefined) {
-      return false;
-    }
-
-    const expectedBytes = renderBlock(block, region.lineEnding);
-
-    return isEqualBytes(
-      documentBytes.subarray(region.regionStart, region.regionEnd),
-      expectedBytes,
+    return (
+      region !== null &&
+      text.slice(region.start, region.end) === block.replaceAll('\n', region.lineEnding)
     );
   } catch {
     return false;
@@ -277,28 +148,11 @@ export const createManagedBlockBytes = (
     fileName === 'README.md' ? 'README' : fileName,
     fileName === 'README.md',
   );
-  const region = parseManagedRegion(documentBytes, fileName);
-
-  if (region !== undefined) {
-    const updatedBytes = Buffer.concat([
-      documentBytes.subarray(0, region.regionStart),
-      renderBlock(block, region.lineEnding),
-      documentBytes.subarray(region.regionEnd),
-    ]);
-
-    if (updatedBytes.length > MAX_DOCUMENT_BYTES) {
-      throw new Error(`Updated ${fileName} exceeds the ${MAX_DOCUMENT_BYTES}-byte limit`);
-    }
-
-    return updatedBytes;
-  }
-
-  const lineEnding = getAppendLineEnding(documentBytes);
-  const updatedBytes = Buffer.concat([
-    documentBytes,
-    getAppendSeparator(documentBytes, lineEnding),
-    renderBlock(block, lineEnding),
-  ]);
+  const text = decodeDocument(documentBytes, fileName);
+  const updatedBytes = Buffer.from(
+    withDocumentMarkers(fileName, () => upsertMarkedRegion(text, block, MARKERS)),
+    'utf8',
+  );
 
   if (updatedBytes.length > MAX_DOCUMENT_BYTES) {
     throw new Error(`Updated ${fileName} exceeds the ${MAX_DOCUMENT_BYTES}-byte limit`);
@@ -307,102 +161,42 @@ export const createManagedBlockBytes = (
   return updatedBytes;
 };
 
-/** Reads a bounded regular document without following a linked target. */
-export const readManagedFile = async (
-  filePath: string,
-): Promise<{ bytes: Buffer; mode: number; dev: number; ino: number }> => {
-  const pathStats = await lstat(filePath);
-
-  if (!pathStats.isFile()) {
-    throw new Error(`${basename(filePath)} must be a regular file`);
-  }
-
-  if (pathStats.size > MAX_DOCUMENT_BYTES) {
-    throw new Error(`${basename(filePath)} exceeds the ${MAX_DOCUMENT_BYTES}-byte limit`);
-  }
-
-  const fileHandle = await open(filePath, constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0));
-
+/**
+ * Reads a bounded regular document without following a linked target.
+ * @throws
+ * - NON_EXISTENT_FILE: if the path doesn't exist
+ * - The document must be a regular file within its byte limit.
+ */
+export const readManagedFile = async (filePath: string): Promise<Buffer> => {
   try {
-    const openStats = await fileHandle.stat();
-
-    if (!openStats.isFile() || openStats.dev !== pathStats.dev || openStats.ino !== pathStats.ino) {
-      throw new Error(`${basename(filePath)} changed while it was being opened`);
-    }
-
-    const boundedBytes = Buffer.allocUnsafe(MAX_DOCUMENT_BYTES + 1);
-    let bytesRead = 0;
-
-    while (bytesRead < boundedBytes.length) {
-      const result = await fileHandle.read(
-        boundedBytes,
-        bytesRead,
-        boundedBytes.length - bytesRead,
-        null,
-      );
-
-      if (result.bytesRead === 0) {
-        break;
-      }
-
-      bytesRead += result.bytesRead;
-    }
-
-    if (bytesRead > MAX_DOCUMENT_BYTES) {
-      throw new Error(`${basename(filePath)} exceeds the ${MAX_DOCUMENT_BYTES}-byte limit`);
-    }
-
-    return {
-      bytes: Buffer.from(boundedBytes.subarray(0, bytesRead)),
-      mode: pathStats.mode & 0o7777,
-      dev: pathStats.dev,
-      ino: pathStats.ino,
-    };
-  } finally {
-    await fileHandle.close();
+    return await readBoundedFile(filePath, MAX_DOCUMENT_BYTES);
+  } catch (error) {
+    if (getErrorCode(error) === FS_ERRORS.NOT_A_FILE)
+      throw new Error(`${basename(filePath)} must be a regular file`, { cause: error });
+    if (getErrorCode(error) === FS_ERRORS.FILE_TOO_LARGE)
+      throw new Error(`${basename(filePath)} exceeds the ${MAX_DOCUMENT_BYTES}-byte limit`, {
+        cause: error,
+      });
+    throw error;
   }
 };
 
 /**
- * Replaces a bounded regular document through a sibling temporary file, after confirming the
- * document still matches what was read, or is still absent.
+ * Replaces a bounded regular document atomically, after confirming it still holds what was read,
+ * or is still absent.
  * @throws
  * - The document changed before replacement.
  */
 export const writeManagedFileAtomically = async (
   filePath: string,
   bytes: Buffer,
-  mode: number,
-  expected: Awaited<ReturnType<typeof readManagedFile>> | undefined,
+  expected: Buffer | null,
 ): Promise<void> => {
-  const temporaryPath = join(
-    dirname(filePath),
-    `.${basename(filePath)}.${process.pid}.${randomUUID()}.tmp`,
-  );
-
   try {
-    await writeFile(temporaryPath, bytes, { flag: 'wx', mode });
-    await chmod(temporaryPath, mode);
-    let observed: Awaited<ReturnType<typeof readManagedFile>> | undefined;
-    try {
-      observed = await readManagedFile(filePath);
-    } catch (error) {
-      if (!isMissingFile(error)) throw error;
-    }
-    if (
-      expected === undefined
-        ? observed !== undefined
-        : observed === undefined ||
-          observed.dev !== expected.dev ||
-          observed.ino !== expected.ino ||
-          observed.mode !== expected.mode ||
-          !observed.bytes.equals(expected.bytes)
-    ) {
-      throw new Error(`${basename(filePath)} changed before replacement`);
-    }
-    await rename(temporaryPath, filePath);
-  } finally {
-    await rm(temporaryPath, { force: true });
+    await writeFileAtomicIfUnchanged(filePath, bytes, expected);
+  } catch (error) {
+    if (getErrorCode(error) !== FS_ERRORS.FILE_CHANGED) throw error;
+    throw new Error(`${basename(filePath)} changed before replacement`, { cause: error });
   }
 };
 
@@ -441,39 +235,26 @@ export const updateManagedFile = async (
   );
   const target = await resolveWriteTarget?.();
   const targetPath = target?.hostPath ?? join(repositoryRoot, fileName);
-  let currentBytes: Buffer<ArrayBufferLike> = Buffer.alloc(0);
-  let currentMode = 0o644;
-  let status: 'created' | 'updated' = 'created';
-  let expected: Awaited<ReturnType<typeof readManagedFile>> | undefined;
+  let expected: Buffer | null = null;
 
   try {
-    const currentFile = await readManagedFile(targetPath);
-    expected = currentFile;
-    currentBytes = currentFile.bytes;
-    currentMode = currentFile.mode;
-    status = 'updated';
+    expected = await readManagedFile(targetPath);
   } catch (error) {
-    if (
-      error === null ||
-      typeof error !== 'object' ||
-      !('code' in error) ||
-      error.code !== 'ENOENT'
-    ) {
-      throw error;
-    }
+    if (!isMissingFile(error)) throw error;
   }
 
+  const currentBytes = expected ?? Buffer.alloc(0);
   const updatedBytes = createManagedBlockBytes(currentBytes, block, fileName);
 
-  if (isEqualBytes(currentBytes, updatedBytes)) {
+  if (currentBytes.equals(updatedBytes)) {
     return 'unchanged';
   }
 
-  await writeManagedFileAtomically(targetPath, updatedBytes, currentMode, expected);
+  await writeManagedFileAtomically(targetPath, updatedBytes, expected);
   await target?.confirm();
-  return status;
+  return expected === null ? 'created' : 'updated';
 };
 
-/** Returns whether a filesystem operation reports an absent path. */
+/** Returns whether a managed-file read reports an absent path. */
 export const isMissingFile = (error: unknown): boolean =>
-  error !== null && typeof error === 'object' && 'code' in error && error.code === 'ENOENT';
+  getErrorCode(error) === FS_ERRORS.NON_EXISTENT_FILE;

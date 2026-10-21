@@ -3,8 +3,8 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { expect, test } from 'vitest';
+import { writeJsonFile } from 'jg-fs';
 
-import { writeJsonFileAtomically } from '../../filesystem/index.ts';
 import { createHarnessFixture } from '../testing/index.ts';
 
 import { exportWorkspace } from './export.ts';
@@ -36,7 +36,7 @@ test('harness preserves pending edits, checkpoints every journey, and recovers a
       if (step === 'read') await nextRequest(workspace);
       const capture = path.join(workspace, 'capture/first', step);
       await writeFile(path.join(capture, 'reply.md'), 'Retention is 30 days.');
-      await writeJsonFileAtomically(path.join(capture, 'activity.json'), {
+      await writeJsonFile(path.join(capture, 'activity.json'), {
         commands: [],
         reads: [],
         writes: [],
@@ -56,8 +56,8 @@ test('harness preserves pending edits, checkpoints every journey, and recovers a
     await copyTree(checkpoint, unordered);
     const unorderedManifest = structuredClone(manifest);
     unorderedManifest.steps.reverse();
-    await writeJsonFileAtomically(path.join(unordered, 'manifest.json'), unorderedManifest);
-    await writeJsonFileAtomically(
+    await writeJsonFile(path.join(unordered, 'manifest.json'), unorderedManifest);
+    await writeJsonFile(
       path.join(unordered, 'files.json'),
       await treeHashes(unordered, ['files.json']),
     );

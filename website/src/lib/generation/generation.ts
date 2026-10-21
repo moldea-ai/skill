@@ -1,9 +1,8 @@
-import { randomUUID } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
-import { mkdir, rename, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { writeJsonFile } from 'jg-fs';
 import { parse as parseYaml } from 'yaml';
 import { z } from 'zod';
 
@@ -594,20 +593,10 @@ const restoreGeneratedWebsiteModel = (envelope: IGeneratedWebsiteModelEnvelope):
  * @returns A promise that resolves after the generated model is written.
  */
 export const writeWebsiteModel = async (model: IWebsiteModel): Promise<void> => {
-  const outputPath = join(getRepositoryRoot(), 'website/.generated/model.json');
-  const temporaryPath = join(dirname(outputPath), `model.${randomUUID()}.json`);
-
-  await mkdir(dirname(outputPath), { recursive: true });
-  try {
-    await writeFile(
-      temporaryPath,
-      `${JSON.stringify(createGeneratedWebsiteModelEnvelope(model), null, 2)}\n`,
-      'utf8',
-    );
-    await rename(temporaryPath, outputPath);
-  } finally {
-    await rm(temporaryPath, { force: true });
-  }
+  await writeJsonFile(
+    join(getRepositoryRoot(), 'website/.generated/model.json'),
+    createGeneratedWebsiteModelEnvelope(model),
+  );
 };
 
 /**

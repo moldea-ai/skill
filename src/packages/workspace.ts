@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { resolvePackageManagerCommand } from 'jg-process';
 import semver from 'semver';
 import { z } from 'zod';
 
@@ -297,7 +298,8 @@ export const createSourceCandidatePlan = (
 
 /** Runs one pnpm command and preserves its output for local or CI operators. */
 const executePnpmCommand = ({ args, cwd }: { args: string[]; cwd: string }): void => {
-  const result = spawnSync('pnpm', args, { cwd, stdio: 'inherit' });
+  const pnpm = resolvePackageManagerCommand(args, { packageManager: 'pnpm', cwd });
+  const result = spawnSync(pnpm.command, pnpm.args, { cwd, stdio: 'inherit' });
   if (result.error) throw result.error;
   if (result.status !== 0) {
     throw new Error(`pnpm ${args.join(' ')} failed with exit code ${result.status}.`);

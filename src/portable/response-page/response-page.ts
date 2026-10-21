@@ -1,11 +1,10 @@
 import { lstat, realpath } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
+import { isPathWithin, writeFileAtomic } from 'jg-fs';
 import { z } from 'zod';
 
-import { writeBufferFileAtomically } from '../../filesystem/atomic-bytes/index.ts';
-
-import { isPathWithin, readRepositoryFile } from '../repository-files.ts';
+import { readRepositoryFile } from '../repository-files.ts';
 
 import {
   InspectionResultSchema,
@@ -205,7 +204,7 @@ export const prepareResponseFiles = async (
  * - Response validation errors documented by parseResponsePage.
  * - Moldea response status contradicts the child exit code.
  * - Response-path validation errors or native filesystem errors during capture and cleanup.
- * - The signal's abort reason when cancelled before rename submission.
+ * - The signal's abort reason when cancelled before the atomic write starts.
  */
 export const verifyAndSaveResponse = async (
   files: IResponseFiles,
@@ -228,7 +227,8 @@ export const verifyAndSaveResponse = async (
   readContinuationCursor(page);
   // recheck immediately before staging; the private directory belongs to this task
   const checked = await prepareCapturePath(files.savePath, files.checkpointPath, repositoryRoot);
-  await writeBufferFileAtomically(checked, bytes, signal);
+  signal.throwIfAborted();
+  await writeFileAtomic(checked, bytes);
 };
 
 const prepareCapturePath = async (

@@ -125,25 +125,25 @@ describe('semantic token admission', () => {
     );
   });
 
-  test('prevents concurrent reservations from exceeding the candidate stop-loss', async () => {
+  test('prevents concurrent reservations from exceeding the candidate stop-loss', () => {
     const stageMaximum = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount;
     const controller = createSemanticTokenAdmissionController({
       getConsumedTokenCount: () => SEMANTIC_CANDIDATE_TOKEN_LIMIT - stageMaximum * 2,
     });
 
-    await controller.reserve('case-one');
-    await controller.reserve('case-two');
-    await expect(controller.reserve('case-three')).rejects.toThrow(/stopped before a paid stage/u);
-    await controller.release('case-one');
-    await expect(controller.reserve('case-three')).resolves.toBeUndefined();
+    controller.reserve('case-one');
+    controller.reserve('case-two');
+    expect(() => controller.reserve('case-three')).toThrow(/stopped before a paid stage/u);
+    controller.release('case-one');
+    expect(() => controller.reserve('case-three')).not.toThrow();
   });
 
-  test('admits a stage after the former 32-million-token ceiling', async () => {
+  test('admits a stage after the former 32-million-token ceiling', () => {
     const controller = createSemanticTokenAdmissionController({
       getConsumedTokenCount: () => 32_000_000,
     });
 
-    await expect(controller.reserve('continued-case')).resolves.toBeUndefined();
-    await controller.release('continued-case');
+    expect(() => controller.reserve('continued-case')).not.toThrow();
+    controller.release('continued-case');
   });
 });

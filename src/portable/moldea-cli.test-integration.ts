@@ -801,10 +801,7 @@ test.each(['composition', 'duplicate', 'conflicting'] as const)(
 );
 
 // use a native-I/O boundary hook to pause capture deterministically after the child has closed
-const runCaptureCancellation = async (
-  signal: 'SIGINT' | 'SIGTERM',
-  phase: 'write' | 'commit' | 'rename',
-) => {
+const runCaptureCancellation = async (signal: 'SIGINT' | 'SIGTERM', phase: 'open' | 'rename') => {
   const { root, cliRoot } = createScopeFixture();
   const scratch = mkdtempSync(join(tmpdir(), 'moldea-capture-'));
   scopeFixtureRoots.push(scratch);
@@ -837,16 +834,17 @@ const runCaptureCancellation = async (
 import fs from 'node:fs/promises';
 import { syncBuiltinESMExports } from 'node:module';
 import { watch, existsSync, writeFileSync } from 'node:fs';
-const original = fs.${phase === 'rename' ? 'rename' : 'writeFile'};
-fs.${phase === 'rename' ? 'rename' : 'writeFile'} = async (...args) => {
-  ${phase === 'write' ? '' : 'const result = await original(...args);'}
+const original = fs.${phase};
+fs.${phase} = async (...args) => {
+  // the atomic write opens its temporary file, then renames it over the checkpoint
+  if (${phase === 'open' ? "!String(args[0]).endsWith('.tmp')" : 'false'}) return original(...args);
   writeFileSync(${JSON.stringify(join(scratch, 'ready'))}, 'ready');
   await new Promise(resolve => {
     const watcher = watch(${JSON.stringify(scratch)}, () => {
       if (existsSync(${JSON.stringify(join(scratch, 'resume'))})) { watcher.close(); resolve(); }
     });
   });
-  ${phase === 'write' ? 'return original(...args);' : 'return result;'}
+  return original(...args);
 };
 process.once('${signal}', () => writeFileSync(${JSON.stringify(join(scratch, 'cancelled'))}, 'cancelled'));
 syncBuiltinESMExports();
@@ -897,7 +895,8 @@ syncBuiltinESMExports();
     assert.equal(await completion, 3);
     assert.equal(stdout, '');
     assert.notEqual(stderr, '');
-    assert.equal(readFileSync(checkpoint, 'utf8'), phase === 'rename' ? newPage : oldPage);
+    // a started write completes, so the checkpoint holds the whole new page, never a part
+    assert.equal(readFileSync(checkpoint, 'utf8'), newPage);
     assert.deepEqual((await (await import('node:fs/promises')).readdir(scratch)).sort(), [
       'cancelled',
       'page.json',
@@ -913,15 +912,16 @@ syncBuiltinESMExports();
 };
 
 test.skipIf(process.platform === 'win32').each([
-  ['SIGINT', 'write'],
-  ['SIGTERM', 'write'],
-  ['SIGINT', 'commit'],
-  ['SIGTERM', 'commit'],
+  ['SIGINT', 'open'],
+  ['SIGTERM', 'open'],
   ['SIGINT', 'rename'],
   ['SIGTERM', 'rename'],
-] as const)('cancels capture after child close with %s at %s submission', async (signal, phase) => {
-  await runCaptureCancellation(signal, phase);
-});
+] as const)(
+  'fails a capture cancelled with %s at its %s step without a partial page',
+  async (signal, phase) => {
+    await runCaptureCancellation(signal, phase);
+  },
+);
 
 test('captures and continues real paged invalid inspection diagnostics', () => {
   const { root } = createScopeFixture();

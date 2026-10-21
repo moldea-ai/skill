@@ -1,11 +1,8 @@
 import { readFile, rm } from 'node:fs/promises';
 import path from 'node:path';
+import { writeFileAtomic } from 'jg-fs';
 
-import {
-  calculateSha256,
-  ensureDirectory,
-  writeBufferFileAtomically,
-} from '../filesystem/index.ts';
+import { calculateSha256, ensureDirectory } from '../filesystem/index.ts';
 import { encodeEvidenceBundle, validateEvidenceBundle } from '../evidence/index.ts';
 import { createGitHubReleaseClient } from './github.ts';
 import type {
@@ -39,7 +36,7 @@ const publishOnce = async (
   const sha256 = calculateSha256(compressed);
   await ensureDirectory(options.temporaryDirectory);
   const assetPath = path.join(options.temporaryDirectory, assetName);
-  await writeBufferFileAtomically(assetPath, compressed);
+  await writeFileAtomic(assetPath, compressed);
 
   try {
     let release = await client.getRelease(options.repository, tag);

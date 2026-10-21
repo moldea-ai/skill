@@ -1,7 +1,7 @@
 import { lstat, realpath } from 'node:fs/promises';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { getErrorCode } from 'jg-exception';
-import { assertNoLinksBelow, ERRORS as FS_ERRORS } from 'jg-fs';
+import { assertNoLinksBelow, ERRORS as FS_ERRORS, isPathWithin } from 'jg-fs';
 import {
   assertGitSucceeded,
   readChangedPaths,
@@ -13,7 +13,7 @@ import {
 import { ERRORS as PROCESS_ERRORS } from 'jg-process';
 
 import { createGitCommandOptions, isGitCommandError } from '../git-command/index.ts';
-import { isPathWithin, readRepositoryFile } from '../repository-files.ts';
+import { readRepositoryFile } from '../repository-files.ts';
 
 import {
   REPAIR_GIT_ATTRIBUTE_BYTES,

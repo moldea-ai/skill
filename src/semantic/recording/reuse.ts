@@ -1,7 +1,7 @@
-import { createHash } from 'node:crypto';
 import { readdir } from 'node:fs/promises';
 import path from 'node:path';
 
+import { hashValue } from 'jg-crypto';
 import { z } from 'zod';
 
 import { readCompletedEvidenceRun, type IEvidenceBundle } from '../../evidence/index.ts';
@@ -88,9 +88,7 @@ export const loadSemanticReusableTrials = async (
     const evidenceRecord = EvidenceRecordSchema.parse(
       JSON.parse(getArtifactContent(bundle, artifactPath).toString('utf8')) as unknown,
     );
-    const sourceEvidenceSha256 = createHash('sha256')
-      .update(`${JSON.stringify(evidenceRecord)}\n`)
-      .digest('hex');
+    const sourceEvidenceSha256 = hashValue(`${JSON.stringify(evidenceRecord)}\n`);
     if (sourceAttempt?.result.evidence.sha256 !== sourceEvidenceSha256) {
       throw new Error(`Semantic local run ${attemptId} has mismatched private evidence identity.`);
     }

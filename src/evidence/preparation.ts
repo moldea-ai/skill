@@ -1,14 +1,13 @@
 import { randomUUID } from 'node:crypto';
 import { readFile, readdir, rename, rm, stat } from 'node:fs/promises';
 import path from 'node:path';
+import { writeFileAtomic, writeJsonFile } from 'jg-fs';
 
 import {
   calculateSha256,
   ensureDirectory,
   readJsonFile,
   resolveContainedPath,
-  writeBufferFileAtomically,
-  writeJsonFileAtomically,
 } from '../filesystem/index.ts';
 import { decodeEvidenceBundle, validateEvidenceBundle } from './bundle.ts';
 import {
@@ -73,7 +72,7 @@ export const downloadHttpEvidenceAsset = async (
     }
     chunks.push(chunk);
   }
-  await writeBufferFileAtomically(destinationPath, Buffer.concat(chunks, byteCount));
+  await writeFileAtomic(destinationPath, Buffer.concat(chunks, byteCount));
 };
 
 /** Downloads one exact public GitHub Release asset without publication credentials. */
@@ -136,7 +135,7 @@ const getCachedBundle = async (
       if (calculateSha256(compressed) !== reference.sha256) {
         throw new Error(`Downloaded ${kind} evidence digest does not match its selection.`);
       }
-      await writeBufferFileAtomically(cachePath, compressed);
+      await writeFileAtomic(cachePath, compressed);
     } finally {
       await rm(temporaryPath, { force: true });
     }
@@ -194,7 +193,7 @@ export const prepareSelectedEvidence = async (
       selectedCachePaths.add(path.basename(cachePath));
       const preparedSource = `${JSON.stringify(bundle, null, 2)}\n`;
       const preparedPath = path.join(stagingDirectory, `${kind}.json`);
-      await writeBufferFileAtomically(preparedPath, Buffer.from(preparedSource, 'utf8'));
+      await writeFileAtomic(preparedPath, Buffer.from(preparedSource, 'utf8'));
 
       const blobBySha256 = new Map(
         bundle.artifacts.blobs.map((blob) => [blob.sha256, blob.contentBase64]),
@@ -207,7 +206,7 @@ export const prepareSelectedEvidence = async (
           throw new Error(`Evidence artifact ${artifact.path} references a missing blob.`);
         }
         const artifactPath = resolveContainedPath(assetsDirectory, artifact.path);
-        await writeBufferFileAtomically(artifactPath, Buffer.from(contentBase64, 'base64'));
+        await writeFileAtomic(artifactPath, Buffer.from(contentBase64, 'base64'));
       }
 
       prepared[kind] = {
@@ -239,7 +238,7 @@ export const prepareSelectedEvidence = async (
     semantic,
     journeys: prepared.journeys ?? null,
   };
-  await writeJsonFileAtomically(path.join(options.preparedDirectory, 'manifest.json'), manifest);
+  await writeJsonFile(path.join(options.preparedDirectory, 'manifest.json'), manifest);
 
   for (const entry of await readdir(options.cacheDirectory, { withFileTypes: true })) {
     if (entry.isFile() && entry.name.endsWith('.json.gz') && !selectedCachePaths.has(entry.name)) {

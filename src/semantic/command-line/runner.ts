@@ -1,9 +1,10 @@
-import { createHash, randomUUID } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { mkdtemp, readdir, rm, statfs } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { hashValue } from 'jg-crypto';
+import { isMainModule } from 'jg-process';
 
 import type { IEvaluationReplayModel } from '@moldea.ai/website-ui/evaluation-replay-model';
 import { z } from 'zod';
@@ -180,10 +181,7 @@ export const completeSemanticDiagnostic = async (
   return archivePath;
 };
 
-const createJsonSha256 = (input: unknown): string =>
-  createHash('sha256')
-    .update(`${JSON.stringify(input)}\n`)
-    .digest('hex');
+const createJsonSha256 = (input: unknown): string => hashValue(`${JSON.stringify(input)}\n`);
 
 const addJsonOutput = (command: readonly string[], role: 'actor' | 'judge'): string[] => {
   const completeCommand = buildCodexEvaluationHostCommand(command, role);
@@ -233,9 +231,9 @@ const runHostStage = async <T>(options: {
   const initialFailureCount = isStopped
     ? MAXIMUM_OPERATIONAL_RETRY_COUNT
     : activeTrial.operationalRetries[failureCountKey];
-  const releaseReservation = async (): Promise<void> => {
+  const releaseReservation = (): void => {
     if (!isReservationActive) return;
-    await options.tokenController.release(options.reservationId);
+    options.tokenController.release(options.reservationId);
     isReservationActive = false;
   };
   try {
@@ -251,18 +249,18 @@ const runHostStage = async <T>(options: {
             isStopped,
           );
           await options.persistActiveTrial(activeTrial);
-          await releaseReservation();
+          releaseReservation();
         },
         onRetry: async (retry) => {
           activeTrial = appendSemanticOperationalRetry(activeTrial, options.stage, retry);
           await options.persistActiveTrial(activeTrial);
-          await releaseReservation();
+          releaseReservation();
         },
         operation: async () =>
           options.operation(
             signal,
             async (operation) => {
-              await options.tokenController.reserve(options.reservationId);
+              options.tokenController.reserve(options.reservationId);
               isReservationActive = true;
               const invocationIndex = activeTrial.paidInvocations.length;
               activeTrial = {
@@ -276,7 +274,7 @@ const runHostStage = async <T>(options: {
                 // Durable unknown usage owns the reservation before the process can start.
                 await options.persistActiveTrial(activeTrial);
               } finally {
-                await releaseReservation();
+                releaseReservation();
               }
               const output = await operation();
               activeTrial = {
@@ -313,7 +311,7 @@ const runHostStage = async <T>(options: {
     );
     return { activeTrial, output };
   } catch (error) {
-    await releaseReservation();
+    releaseReservation();
     throw error;
   }
 };
@@ -1231,11 +1229,7 @@ const run = async (): Promise<void> => {
   if (result.status !== 'passed') process.exitCode = 1;
 };
 
-const isDirectExecution =
-  process.argv[1] !== undefined &&
-  pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url;
-
-if (isDirectExecution) {
+if (isMainModule(import.meta.url)) {
   try {
     await run();
   } catch (error) {

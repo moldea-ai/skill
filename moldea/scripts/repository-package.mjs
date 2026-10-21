@@ -2031,7 +2031,7 @@ var require_semver2 = __commonJS({
 var import_semver = __toESM(require_semver2(), 1);
 import { lstat, realpath } from "node:fs/promises";
 import { createRequire } from "node:module";
-import { isAbsolute, join, relative, sep } from "node:path";
+import { isAbsolute as isAbsolute2, join, relative as relative2, sep as sep2 } from "node:path";
 
 // node_modules/zod/v4/classic/external.js
 var external_exports = {};
@@ -15801,8 +15801,15 @@ function date4(params) {
 // node_modules/zod/v4/classic/external.js
 config(en_default());
 
+// node_modules/jg-fs/dist/shared/paths.js
+import { basename, extname, isAbsolute, relative, resolve, sep } from "node:path";
+var isPathWithin = (rootPath, targetPath) => {
+  const relativePath = relative(resolve(rootPath), resolve(targetPath));
+  return relativePath === "" || relativePath !== ".." && !relativePath.startsWith(`..${sep}`) && !isAbsolute(relativePath);
+};
+
 // src/portable/repository-package.ts
-import { isPathWithin, readRepositoryFile } from "./repository-files.mjs";
+import { readRepositoryFile } from "./repository-files.mjs";
 var EXPECTED_CLI_RANGE = "^12.0.0";
 var SUPPORTED_CORE_RANGE = "^8.0.0";
 var MAXIMUM_PACKAGE_MANIFEST_BYTES = 65536;
@@ -15857,7 +15864,7 @@ var readBoundedJson = async (repositoryRoot, filePath) => {
   return JSON.parse(utf8Decoder.decode(bytes));
 };
 var resolveRepositoryCli = async (repositoryRoot) => {
-  if (!isAbsolute(repositoryRoot)) {
+  if (!isAbsolute2(repositoryRoot)) {
     throw new Error("The repository root must be absolute.");
   }
   const resolvedRepositoryRoot = await realpath(repositoryRoot);
@@ -15885,7 +15892,7 @@ var resolveRepositoryCli = async (repositoryRoot) => {
     throw new Error("The repository declares an unsupported CLI package closure.");
   }
   const cliBinaryPath = await realpath(join(cliRoot, cliBinaryDeclaration));
-  if (!isPathWithin(cliRoot, cliBinaryPath) || !(await lstat(cliBinaryPath)).isFile() || relative(cliRoot, cliBinaryPath).split(sep).join("/") !== "dist/moldea.js") {
+  if (!isPathWithin(cliRoot, cliBinaryPath) || !(await lstat(cliBinaryPath)).isFile() || relative2(cliRoot, cliBinaryPath).split(sep2).join("/") !== "dist/moldea.js") {
     throw new Error("The CLI executable escaped its package.");
   }
   const resolvedCli = {
@@ -15929,7 +15936,7 @@ var validateRepositoryCore = async (resolvedCli, declaredCoreRange) => {
   }
   const coreRoot = await resolveRepositoryCoreRoot(resolvedCli);
   const coreEntry = await realpath(join(coreRoot, "dist", "index.js"));
-  if (!isPathWithin(resolvedCli.nodeModulesRoot, coreRoot) || !(await lstat(coreEntry)).isFile() || relative(coreRoot, coreEntry).split(sep).join("/") !== "dist/index.js") {
+  if (!isPathWithin(resolvedCli.nodeModulesRoot, coreRoot) || !(await lstat(coreEntry)).isFile() || relative2(coreRoot, coreEntry).split(sep2).join("/") !== "dist/index.js") {
     throw new Error("The Core entry escaped repository dependencies.");
   }
   const coreManifest = CorePackageManifestSchema.parse(

@@ -58,7 +58,7 @@ test.each([false, true])(
           retry,
         );
         charges.push(consumed());
-        await admission.release(definition.id);
+        admission.release(definition.id);
       },
       onExhausted: async (failure) => {
         checkpoint.activeTrial = stopSemanticOperationalStage(
@@ -68,10 +68,10 @@ test.each([false, true])(
           false,
         );
         charges.push(consumed());
-        await admission.release(definition.id);
+        admission.release(definition.id);
       },
       operation: async () => {
-        await admission.reserve(definition.id);
+        admission.reserve(definition.id);
         checkpoint.activeTrial!.paidInvocations.push({ stage: 'judge', usage: null });
         calls += 1;
         return assessSemanticJudgeOutput(
@@ -90,7 +90,7 @@ test.each([false, true])(
       );
     } else {
       await expect(execution).resolves.toMatchObject({ isPassed: true });
-      await admission.release(definition.id);
+      admission.release(definition.id);
       expect(charges).toStrictEqual([MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount]);
     }
     expect(calls).toBe(2);

@@ -1,5 +1,6 @@
 import { appendFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { isMainModule } from 'jg-process';
 import { readChangedPaths, resolveCommit } from 'jg-git-commands';
 import { z } from 'zod';
 
@@ -41,7 +42,7 @@ export const classifyChanges = async (comparison: IChangeComparison): Promise<bo
   return requiresFullConformance(paths);
 };
 
-if (process.argv[1] !== undefined && resolve(process.argv[1]) === import.meta.filename) {
+if (isMainModule(import.meta.url)) {
   const full = await classifyChanges({
     repositoryRoot: resolve(import.meta.dirname, '../..'),
     eventName: process.env['GITHUB_EVENT_NAME'] ?? '',

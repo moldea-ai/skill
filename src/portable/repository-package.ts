@@ -3,8 +3,9 @@ import { createRequire } from 'node:module';
 import { isAbsolute, join, relative, sep } from 'node:path';
 import semver from 'semver';
 import { z } from 'zod';
+import { isPathWithin } from 'jg-fs';
 
-import { isPathWithin, readRepositoryFile } from './repository-files.ts';
+import { readRepositoryFile } from './repository-files.ts';
 
 export interface IResolvedRepositoryCli {
   cliBinaryPath: string;

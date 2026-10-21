@@ -32,7 +32,7 @@ const createRepository = ({
   );
   writeFileSync(
     join(repositoryRoot, 'moldea', 'references', 'local-tooling.md'),
-    `# Local tooling\n\nSkill ${localToolingVersion} supports Git >=2.30.0 and compatible repository-local tooling.\n`,
+    `# Local tooling\n\nSkill ${localToolingVersion} supports Git >=2.32.0 and compatible repository-local tooling.\n`,
   );
   writeFileSync(join(repositoryRoot, 'moldea', 'references', 'behavior.md'), 'behavior\n');
   return repositoryRoot;

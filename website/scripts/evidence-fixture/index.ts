@@ -2,6 +2,7 @@ import { mkdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import type { IEvaluationReplayModel } from '@moldea.ai/website-ui/evaluation-replay-model';
+import { writeFileAtomic } from 'jg-fs';
 
 import {
   createEvidenceBundle,
@@ -10,11 +11,7 @@ import {
   type IEvidencePreparationManifest,
   type IEvidenceSelection,
 } from '../../../src/evidence/index.ts';
-import {
-  calculateSha256,
-  resolveContainedPath,
-  writeBufferFileAtomically,
-} from '../../../src/filesystem/index.ts';
+import { calculateSha256, resolveContainedPath } from '../../../src/filesystem/index.ts';
 import {
   createSemanticReplay as createRecordedSemanticReplay,
   parseSemanticEvaluationHostOutput,
@@ -594,7 +591,7 @@ const materializeFixtureArtifacts = async (
       if (contentBase64 === undefined) {
         throw new Error(`Synthetic evidence artifact ${artifact.path} has no content blob.`);
       }
-      await writeBufferFileAtomically(
+      await writeFileAtomic(
         resolveContainedPath(assetsDirectory, artifact.path),
         Buffer.from(contentBase64, 'base64'),
       );

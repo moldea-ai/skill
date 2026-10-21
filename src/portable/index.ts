@@ -28,7 +28,7 @@ export {
 } from './managed-readme.ts';
 
 // repository filesystem
-export { isPathWithin, readRepositoryFile, resolveRepositoryFile } from './repository-files.ts';
+export { readRepositoryFile, resolveRepositoryFile } from './repository-files.ts';
 
 // repository-logical task paths
 export { normalizeScopePath } from './scope-path-input.ts';

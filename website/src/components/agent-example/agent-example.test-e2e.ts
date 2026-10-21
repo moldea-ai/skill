@@ -32,6 +32,48 @@ const unchangedPaths: readonly string[] = [
 const getTriggerName = (path: string): string =>
   `Open ${path.slice(1)}, ${unchangedPaths.includes(path) ? 'unchanged' : modifiedPaths.includes(path) ? 'modified' : 'added'}`;
 
+test('keeps change markers beside the file path at mobile and desktop widths', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  for (const colorScheme of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme });
+    for (const width of [320, 390, 1440]) {
+      await page.setViewportSize({ width, height: 740 });
+      await page.goto(toPublicPath('/'));
+      const example = page.getByRole('article', { name: 'Illustrative support agent project' });
+      for (const name of ['Agent code', 'Order lookup', 'Instructions'] as const) {
+        const path = artifactPaths[name];
+        const trigger = example.getByRole('button', { name: getTriggerName(path), exact: true });
+        await trigger.focus();
+        await trigger.press('Enter');
+        const dialog = example.getByRole('dialog', { name, exact: true });
+        await expect(dialog).toBeVisible();
+        const header = dialog.locator('[data-file-preview-header]');
+        await expect(header.getByTitle(path.slice(1), { exact: true })).toBeVisible();
+        const layout = await header.evaluate((element) => {
+          const path = element.querySelector('code[title]')!.getBoundingClientRect();
+          const marker = element
+            .querySelector('[data-file-preview-status]')!
+            .getBoundingClientRect();
+          return {
+            centerOffset: Math.abs(path.y + path.height / 2 - marker.y - marker.height / 2),
+            gap: marker.x - path.right,
+            rightInset: element.getBoundingClientRect().right - marker.right,
+            paddingRight: parseFloat(getComputedStyle(element).paddingRight),
+            overflow: element.scrollWidth > element.clientWidth,
+          };
+        });
+        expect(layout.centerOffset).toBeLessThanOrEqual(1);
+        expect(layout.gap).toBeGreaterThan(0);
+        expect(layout.rightInset).toBeCloseTo(layout.paddingRight, 0);
+        expect(layout.overflow).toBe(false);
+        await page.keyboard.press('Escape');
+        await expect(dialog).toBeHidden();
+        await expect(trigger).toBeFocused();
+      }
+    }
+  }
+});
+
 test('shows generated artifacts inside the developer and coding agent conversation', async ({
   page,
 }) => {

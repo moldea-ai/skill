@@ -174,7 +174,10 @@ const fileEntries = await Promise.all(
                     path={entry.path}
                     status={file.status}
                   />
-                  <FilePreview path={entry.path}>
+                  <FilePreview
+                    path={entry.path}
+                    statusLayout="inline"
+                  >
                     <Fragment slot="status">
                       {file.status !== 'Unchanged' && (
                         <span

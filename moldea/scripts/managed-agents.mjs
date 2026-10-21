@@ -608,6 +608,104 @@ var ERRORS2 = {
   INVALID_MARKED_REGION: "INVALID_MARKED_REGION"
 };
 
+// node_modules/jg-utilities/dist/validations/validations.js
+var isNumberValid = (value, min = Number.MIN_SAFE_INTEGER, max = Number.MAX_SAFE_INTEGER) => typeof value === "number" && value >= min && value <= max;
+var isIntegerValid = (value, min, max) => isNumberValid(value, min, max) && Number.isInteger(value);
+var isObjectValid = (value, allowEmpty) => value !== null && typeof value === "object" && !Array.isArray(value) && (allowEmpty || Object.keys(value).length > 0);
+
+// node_modules/jg-utilities/dist/transformers/validations.js
+var validateByteLimit = (maxBytes) => {
+  if (!Number.isSafeInteger(maxBytes) || maxBytes < 0) {
+    throw new Exception("The byte limit must be a non-negative safe integer.", {
+      code: ERRORS2.INVALID_BYTE_LIMIT,
+      data: { maxBytes: String(maxBytes) }
+    });
+  }
+};
+
+// node_modules/jg-utilities/dist/utils/byte-cache.js
+var createByteCache = ({ maxBytes, maxEntries }) => {
+  validateByteLimit(maxBytes);
+  if (maxEntries !== void 0 && (!Number.isSafeInteger(maxEntries) || maxEntries < 1)) {
+    throw new Exception("The entry limit must be a positive safe integer.", {
+      code: ERRORS2.INVALID_BYTE_LIMIT,
+      data: { maxEntries: String(maxEntries) }
+    });
+  }
+  const entryLimit = maxEntries ?? Number.POSITIVE_INFINITY;
+  const entries = /* @__PURE__ */ new Map();
+  let byteLength = 0;
+  let retainedBytes = 0;
+  let retainedEntries = 0;
+  const evict = (key, entry) => {
+    entries.delete(key);
+    byteLength -= entry.bytes.byteLength;
+  };
+  return {
+    get: (key) => {
+      const entry = entries.get(key);
+      if (entry === void 0) {
+        return void 0;
+      }
+      entries.delete(key);
+      entries.set(key, entry);
+      return entry.bytes.slice();
+    },
+    set: (key, bytes) => {
+      const existing = entries.get(key);
+      if (existing !== void 0 && existing.retentions > 0) {
+        return false;
+      }
+      if (retainedBytes + bytes.byteLength > maxBytes || retainedEntries + 1 > entryLimit) {
+        return false;
+      }
+      if (existing !== void 0) {
+        evict(key, existing);
+      }
+      for (const [oldestKey, oldest] of entries) {
+        if (byteLength + bytes.byteLength <= maxBytes && entries.size < entryLimit) {
+          break;
+        }
+        if (oldest.retentions === 0) {
+          evict(oldestKey, oldest);
+        }
+      }
+      entries.set(key, { bytes: bytes.slice(), retentions: 0 });
+      byteLength += bytes.byteLength;
+      return true;
+    },
+    retain: (key) => {
+      let entry = entries.get(key);
+      if (entry === void 0) {
+        return void 0;
+      }
+      if (entry.retentions === 0) {
+        retainedBytes += entry.bytes.byteLength;
+        retainedEntries += 1;
+      }
+      entry.retentions += 1;
+      const retention = {
+        copyBytes: () => entry?.bytes.slice(),
+        release: () => {
+          if (entry === void 0) {
+            return;
+          }
+          entry.retentions -= 1;
+          if (entry.retentions === 0) {
+            retainedBytes -= entry.bytes.byteLength;
+            retainedEntries -= 1;
+          }
+          entry = void 0;
+        }
+      };
+      return retention;
+    },
+    get byteLength() {
+      return byteLength;
+    }
+  };
+};
+
 // node_modules/jg-utilities/dist/utils/marked-region.js
 var BYTE_ORDER_MARK = "\uFEFF";
 var throwInvalidRegion = (problem) => {
@@ -682,6 +780,167 @@ var upsertMarkedRegion = (text, block, markers) => {
   const isEmpty = text === "" || text === BYTE_ORDER_MARK;
   const separator = isEmpty ? "" : `${text.endsWith("\n") ? "" : lineEnding}${lineEnding}`;
   return `${text}${separator}${block.replaceAll("\n", lineEnding)}`;
+};
+
+// node_modules/jg-utilities/dist/utils/constants.js
+var MAX_TIMEOUT_MS = 2147483647;
+
+// node_modules/jg-utilities/dist/utils/request-coordinator.js
+var assertQueueLimit = (limit, name) => {
+  if (!isIntegerValid(limit, 0)) {
+    throw new Exception("The queue limit must be an integer of at least 0.", {
+      code: ERRORS2.INVALID_QUEUE_LIMIT,
+      data: { [name]: String(limit) }
+    });
+  }
+};
+var toDeadlineMs = (deadline) => {
+  const deadlineMs = deadline instanceof Date ? deadline.getTime() : deadline;
+  if (typeof deadlineMs !== "number" || Number.isNaN(new Date(deadlineMs).getTime())) {
+    throw new Exception("The deadline must be a valid Date or epoch milliseconds a Date accepts.", {
+      code: ERRORS2.INVALID_DATE,
+      data: { deadline: String(deadline) }
+    });
+  }
+  return deadlineMs;
+};
+var createRequestCoordinator = ({ maxConcurrent, maxQueued }) => {
+  if (!isIntegerValid(maxConcurrent, 1)) {
+    throw new Exception("The concurrency limit must be an integer of at least 1.", {
+      code: ERRORS2.INVALID_CONCURRENCY_LIMIT,
+      data: { maxConcurrent: String(maxConcurrent) }
+    });
+  }
+  assertQueueLimit(maxQueued, "maxQueued");
+  let activeCount = 0;
+  let cooldownUntil = 0;
+  let timer;
+  let isClosed = false;
+  const waiters = [];
+  const createCooldownError = () => new Exception("Requests are paused until the cooldown ends.", {
+    code: ERRORS2.REQUEST_COOLDOWN_ACTIVE,
+    data: { retryAt: new Date(cooldownUntil).toISOString() }
+  });
+  const createClosedError = () => new Exception("The request coordinator is closed.", {
+    code: ERRORS2.REQUEST_COORDINATOR_CLOSED
+  });
+  const clearTimer = () => {
+    if (timer !== void 0) {
+      clearTimeout(timer);
+      timer = void 0;
+    }
+  };
+  const schedule = () => {
+    clearTimer();
+    if (waiters.length === 0) {
+      return;
+    }
+    const remainingMs = cooldownUntil - Date.now();
+    if (remainingMs > 0) {
+      for (let index = waiters.length - 1; index >= 0; index -= 1) {
+        const waiter = waiters[index];
+        if (waiter?.rejectDuringCooldown === true) {
+          waiters.splice(index, 1);
+          waiter.detach();
+          waiter.reject(createCooldownError());
+        }
+      }
+      if (waiters.length > 0) {
+        timer = setTimeout(schedule, Math.min(remainingMs, MAX_TIMEOUT_MS));
+      }
+      return;
+    }
+    while (activeCount < maxConcurrent) {
+      const waiter = waiters.shift();
+      if (waiter === void 0) {
+        return;
+      }
+      waiter.detach();
+      if (waiter.signal?.aborted === true) {
+        waiter.reject(waiter.signal.reason);
+      } else {
+        activeCount += 1;
+        waiter.resolve();
+      }
+    }
+  };
+  const acquire = ({ signal, caller, maxQueuedForCaller, rejectDuringCooldown = false }) => {
+    if (isClosed) {
+      return Promise.reject(createClosedError());
+    }
+    if (signal?.aborted === true) {
+      return Promise.reject(signal.reason);
+    }
+    if (maxQueuedForCaller !== void 0) {
+      assertQueueLimit(maxQueuedForCaller, "maxQueuedForCaller");
+    }
+    const isCoolingDown = cooldownUntil > Date.now();
+    if (isCoolingDown && rejectDuringCooldown) {
+      return Promise.reject(createCooldownError());
+    }
+    if (!isCoolingDown && activeCount < maxConcurrent && waiters.length === 0) {
+      activeCount += 1;
+      return Promise.resolve();
+    }
+    if (maxQueuedForCaller !== void 0) {
+      const callerQueued = waiters.filter((waiter) => waiter.caller === caller).length;
+      if (callerQueued >= maxQueuedForCaller) {
+        return Promise.reject(new Exception("The request queue is full.", {
+          code: ERRORS2.REQUEST_QUEUE_FULL,
+          data: { scope: "caller", queued: callerQueued, limit: maxQueuedForCaller }
+        }));
+      }
+    }
+    if (waiters.length >= maxQueued) {
+      return Promise.reject(new Exception("The request queue is full.", {
+        code: ERRORS2.REQUEST_QUEUE_FULL,
+        data: { scope: "global", queued: waiters.length, limit: maxQueued }
+      }));
+    }
+    return new Promise((resolve4, reject) => {
+      const onAbort = () => {
+        waiters.splice(waiters.indexOf(waiter), 1);
+        waiter.detach();
+        schedule();
+        reject(signal?.reason);
+      };
+      const waiter = {
+        caller,
+        signal,
+        rejectDuringCooldown,
+        resolve: resolve4,
+        reject,
+        detach: () => signal?.removeEventListener("abort", onAbort)
+      };
+      waiters.push(waiter);
+      signal?.addEventListener("abort", onAbort, { once: true });
+      schedule();
+    });
+  };
+  return {
+    run: async (task, options = {}) => {
+      await acquire(options);
+      try {
+        return await task();
+      } finally {
+        activeCount -= 1;
+        schedule();
+      }
+    },
+    deferUntil: (deadline) => {
+      cooldownUntil = Math.max(cooldownUntil, toDeadlineMs(deadline));
+      schedule();
+    },
+    isIdle: () => activeCount === 0 && waiters.length === 0 && cooldownUntil <= Date.now(),
+    close: () => {
+      isClosed = true;
+      clearTimer();
+      for (const waiter of waiters.splice(0)) {
+        waiter.detach();
+        waiter.reject(createClosedError());
+      }
+    }
+  };
 };
 
 // node_modules/jg-process/dist/command-line/main-module.js
@@ -1199,344 +1458,7 @@ var readConfigBoolean = async (cwd, key, defaultValue, options = {}) => {
   return value === "true\n";
 };
 
-// node_modules/error-message-utils/dist/shared/constants.js
-var CODE_WRAPPER = { prefix: "{(", suffix: ")}" };
-var DEFAULT_MESSAGE2 = "The error message could not be extracted, check the logs for more information.";
-var DEFAULT_CODE = -1;
-
-// node_modules/zod/v4/core/core.js
-var NEVER = Object.freeze({
-  status: "aborted"
-});
-// @__NO_SIDE_EFFECTS__
-function $constructor(name, initializer3, params) {
-  function init(inst, def) {
-    if (!inst._zod) {
-      Object.defineProperty(inst, "_zod", {
-        value: {
-          def,
-          constr: _,
-          traits: /* @__PURE__ */ new Set()
-        },
-        enumerable: false
-      });
-    }
-    if (inst._zod.traits.has(name)) {
-      return;
-    }
-    inst._zod.traits.add(name);
-    initializer3(inst, def);
-    const proto = _.prototype;
-    const keys = Object.keys(proto);
-    for (let i = 0; i < keys.length; i++) {
-      const k = keys[i];
-      if (!(k in inst)) {
-        inst[k] = proto[k].bind(inst);
-      }
-    }
-  }
-  const Parent = params?.Parent ?? Object;
-  class Definition extends Parent {
-  }
-  Object.defineProperty(Definition, "name", { value: name });
-  function _(def) {
-    var _a2;
-    const inst = params?.Parent ? new Definition() : this;
-    init(inst, def);
-    (_a2 = inst._zod).deferred ?? (_a2.deferred = []);
-    for (const fn of inst._zod.deferred) {
-      fn();
-    }
-    return inst;
-  }
-  Object.defineProperty(_, "init", { value: init });
-  Object.defineProperty(_, Symbol.hasInstance, {
-    value: (inst) => {
-      if (params?.Parent && inst instanceof params.Parent)
-        return true;
-      return inst?._zod?.traits?.has(name);
-    }
-  });
-  Object.defineProperty(_, "name", { value: name });
-  return _;
-}
-
-// node_modules/zod/v4/core/util.js
-function jsonStringifyReplacer(_, value) {
-  if (typeof value === "bigint")
-    return value.toString();
-  return value;
-}
-function cached(getter) {
-  const set = false;
-  return {
-    get value() {
-      if (!set) {
-        const value = getter();
-        Object.defineProperty(this, "value", { value });
-        return value;
-      }
-      throw new Error("cached value already set");
-    }
-  };
-}
-var captureStackTrace = "captureStackTrace" in Error ? Error.captureStackTrace : (..._args) => {
-};
-var allowsEval = cached(() => {
-  if (typeof navigator !== "undefined" && navigator?.userAgent?.includes("Cloudflare")) {
-    return false;
-  }
-  try {
-    const F = Function;
-    new F("");
-    return true;
-  } catch (_) {
-    return false;
-  }
-});
-var NUMBER_FORMAT_RANGES = {
-  safeint: [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER],
-  int32: [-2147483648, 2147483647],
-  uint32: [0, 4294967295],
-  float32: [-34028234663852886e22, 34028234663852886e22],
-  float64: [-Number.MAX_VALUE, Number.MAX_VALUE]
-};
-
-// node_modules/zod/v4/core/errors.js
-var initializer = (inst, def) => {
-  inst.name = "$ZodError";
-  Object.defineProperty(inst, "_zod", {
-    value: inst._zod,
-    enumerable: false
-  });
-  Object.defineProperty(inst, "issues", {
-    value: def,
-    enumerable: false
-  });
-  inst.message = JSON.stringify(def, jsonStringifyReplacer, 2);
-  Object.defineProperty(inst, "toString", {
-    value: () => inst.message,
-    enumerable: false
-  });
-};
-var $ZodError = $constructor("$ZodError", initializer);
-var $ZodRealError = $constructor("$ZodError", initializer, { Parent: Error });
-function flattenError(error, mapper = (issue2) => issue2.message) {
-  const fieldErrors = {};
-  const formErrors = [];
-  for (const sub of error.issues) {
-    if (sub.path.length > 0) {
-      fieldErrors[sub.path[0]] = fieldErrors[sub.path[0]] || [];
-      fieldErrors[sub.path[0]].push(mapper(sub));
-    } else {
-      formErrors.push(mapper(sub));
-    }
-  }
-  return { formErrors, fieldErrors };
-}
-function formatError(error, mapper = (issue2) => issue2.message) {
-  const fieldErrors = { _errors: [] };
-  const processError = (error2) => {
-    for (const issue2 of error2.issues) {
-      if (issue2.code === "invalid_union" && issue2.errors.length) {
-        issue2.errors.map((issues) => processError({ issues }));
-      } else if (issue2.code === "invalid_key") {
-        processError({ issues: issue2.issues });
-      } else if (issue2.code === "invalid_element") {
-        processError({ issues: issue2.issues });
-      } else if (issue2.path.length === 0) {
-        fieldErrors._errors.push(mapper(issue2));
-      } else {
-        let curr = fieldErrors;
-        let i = 0;
-        while (i < issue2.path.length) {
-          const el = issue2.path[i];
-          const terminal = i === issue2.path.length - 1;
-          if (!terminal) {
-            curr[el] = curr[el] || { _errors: [] };
-          } else {
-            curr[el] = curr[el] || { _errors: [] };
-            curr[el]._errors.push(mapper(issue2));
-          }
-          curr = curr[el];
-          i++;
-        }
-      }
-    }
-  };
-  processError(error);
-  return fieldErrors;
-}
-
-// node_modules/zod/v4/core/regexes.js
-var dateSource = `(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))`;
-var date = /* @__PURE__ */ new RegExp(`^${dateSource}$`);
-
-// node_modules/zod/v4/core/registries.js
-var _a;
-var $ZodRegistry = class {
-  constructor() {
-    this._map = /* @__PURE__ */ new WeakMap();
-    this._idmap = /* @__PURE__ */ new Map();
-  }
-  add(schema, ..._meta) {
-    const meta = _meta[0];
-    this._map.set(schema, meta);
-    if (meta && typeof meta === "object" && "id" in meta) {
-      this._idmap.set(meta.id, schema);
-    }
-    return this;
-  }
-  clear() {
-    this._map = /* @__PURE__ */ new WeakMap();
-    this._idmap = /* @__PURE__ */ new Map();
-    return this;
-  }
-  remove(schema) {
-    const meta = this._map.get(schema);
-    if (meta && typeof meta === "object" && "id" in meta) {
-      this._idmap.delete(meta.id);
-    }
-    this._map.delete(schema);
-    return this;
-  }
-  get(schema) {
-    const p = schema._zod.parent;
-    if (p) {
-      const pm = { ...this.get(p) ?? {} };
-      delete pm.id;
-      const f = { ...pm, ...this._map.get(schema) };
-      return Object.keys(f).length ? f : void 0;
-    }
-    return this._map.get(schema);
-  }
-  has(schema) {
-    return this._map.has(schema);
-  }
-};
-function registry() {
-  return new $ZodRegistry();
-}
-(_a = globalThis).__zod_globalRegistry ?? (_a.__zod_globalRegistry = registry());
-var globalRegistry = globalThis.__zod_globalRegistry;
-
-// node_modules/zod/v4/classic/errors.js
-var initializer2 = (inst, issues) => {
-  $ZodError.init(inst, issues);
-  inst.name = "ZodError";
-  Object.defineProperties(inst, {
-    format: {
-      value: (mapper) => formatError(inst, mapper)
-      // enumerable: false,
-    },
-    flatten: {
-      value: (mapper) => flattenError(inst, mapper)
-      // enumerable: false,
-    },
-    addIssue: {
-      value: (issue2) => {
-        inst.issues.push(issue2);
-        inst.message = JSON.stringify(inst.issues, jsonStringifyReplacer, 2);
-      }
-      // enumerable: false,
-    },
-    addIssues: {
-      value: (issues2) => {
-        inst.issues.push(...issues2);
-        inst.message = JSON.stringify(inst.issues, jsonStringifyReplacer, 2);
-      }
-      // enumerable: false,
-    },
-    isEmpty: {
-      get() {
-        return inst.issues.length === 0;
-      }
-      // enumerable: false,
-    }
-  });
-};
-var ZodError = $constructor("ZodError", initializer2);
-var ZodRealError = $constructor("ZodError", initializer2, {
-  Parent: Error
-});
-
-// node_modules/error-message-utils/dist/utils/index.js
-var wrapCode = (t) => `${CODE_WRAPPER.prefix}${t ?? DEFAULT_CODE}${CODE_WRAPPER.suffix}`;
-var __isEncodedError = (t) => {
-  const e = t.lastIndexOf(CODE_WRAPPER.prefix), r = e + CODE_WRAPPER.prefix.length, E = t.length - CODE_WRAPPER.suffix.length;
-  return e >= 0 && r < E && t.endsWith(CODE_WRAPPER.suffix);
-};
-var __isNumeric = (t) => "string" == typeof t && /^[-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$/.test(t);
-var unwrapCode = (t) => {
-  if (__isEncodedError(t)) {
-    const e = t.lastIndexOf(CODE_WRAPPER.prefix), r = t.substring(e + CODE_WRAPPER.prefix.length, t.lastIndexOf(CODE_WRAPPER.suffix));
-    return { code: __isNumeric(r) ? Number(r) : r, startsAt: e };
-  }
-  return { code: DEFAULT_CODE, startsAt: -1 };
-};
-
-// node_modules/error-message-utils/dist/error-handler/utilities.js
-var __extractPathFromZodError = (r) => r && Array.isArray(r.issues) && r.issues.length && Array.isArray(r.issues[0].path) && r.issues[0].path.length ? r.issues[0].path.join(".") : "Unknown path";
-var extractZodErrorMessage = (r) => r && Array.isArray(r.issues) && r.issues.length && Array.isArray(r.issues[0].path) && r.issues[0].message ? `${r.issues[0].message} (${__extractPathFromZodError(r)})` : DEFAULT_MESSAGE2;
-var __isErrorCodeCarrier = (r) => "object" == typeof r && null !== r && "code" in r && ("string" == typeof r.code || "number" == typeof r.code);
-var getDecodedErrorCode = (r, s) => s !== DEFAULT_CODE ? s : __isErrorCodeCarrier(r) ? r.code : DEFAULT_CODE;
-
-// node_modules/error-message-utils/dist/error-handler/index.js
-var __extractMessage = (r, e) => {
-  if ("string" == typeof r && r.length) return r;
-  if (r instanceof ZodError) return extractZodErrorMessage(r);
-  if (r && "object" == typeof r) {
-    if (e.has(r)) return DEFAULT_MESSAGE2;
-    e.add(r);
-  }
-  if (r instanceof Error && r.message) return r.cause ? `${r.message}; [CAUSE]: ${__extractMessage(r.cause, e)}` : r.message;
-  if (r && "object" == typeof r) {
-    if (r.message) return __extractMessage(r.message, e);
-    if (r.msg) return __extractMessage(r.msg, e);
-    if (r.error) return __extractMessage(r.error, e);
-    if (r.err) return __extractMessage(r.err, e);
-    if (r.errors) return __extractMessage(r.errors, e);
-    if (r.errs) return __extractMessage(r.errs, e);
-    if (r.reason) return __extractMessage(r.reason, e);
-    if (r.reasons) return __extractMessage(r.reasons, e);
-    if (r.issue) return __extractMessage(r.issue, e);
-    if (r.issues) return __extractMessage(r.issues, e);
-    if (r.data) return __extractMessage(r.data, e);
-    try {
-      return JSON.stringify(r);
-    } catch (e2) {
-      console.error("Error during extractMessage:"), console.error("Original Error: ", r), console.error("JSON.stringify Error:", e2);
-    }
-  }
-  return DEFAULT_MESSAGE2;
-};
-var extractMessage2 = (r) => __extractMessage(r, /* @__PURE__ */ new WeakSet());
-var encodeError = (r, e) => `${extractMessage2(r)}${wrapCode(e)}`;
-var decodeError = (r) => {
-  const e = extractMessage2(r), { code: t, startsAt: s } = unwrapCode(e);
-  return { message: s > 0 ? e.slice(0, s) : e, code: getDecodedErrorCode(r, t), data: null !== r && "object" == typeof r && "data" in r ? r.data : null };
-};
-
-// node_modules/error-message-utils/dist/exception/exception.js
-var Exception2 = class extends Error {
-  code;
-  data;
-  constructor(e, r, t) {
-    const o = decodeError(e);
-    super(o.message), this.name = "Exception", this.code = r ?? o.code, this.data = void 0 === t ? o.data : t;
-  }
-  toString() {
-    return encodeError(this.message, this.code);
-  }
-  [Symbol.toPrimitive](e) {
-    return "string" === e || "default" === e ? this.toString() : null;
-  }
-  toRecord() {
-    return { message: this.message, code: this.code, data: this.data ?? null };
-  }
-};
-
-// node_modules/@moldea.ai/repository/dist/chunks/links-BK-KuJue.js
+// node_modules/@moldea.ai/repository/dist/chunks/links-DPog2q0N.js
 var SOURCE_ERROR_MESSAGES = {
   ABORTED: "The repository operation was aborted.",
   ACCESS_DENIED: "Access to the repository source was denied.",
@@ -1551,26 +1473,19 @@ var SOURCE_ERROR_MESSAGES = {
   SNAPSHOT_CHANGED: "The repository snapshot changed during the operation.",
   SOURCE_UNAVAILABLE: "The repository source is unavailable."
 };
-var attachCause = (exception, cause) => {
-  if (cause === void 0) return;
-  Object.defineProperty(exception, "cause", {
-    configurable: true,
-    enumerable: false,
-    value: cause,
-    writable: false
-  });
-};
-var RepositoryPathException = class extends Exception2 {
+var RepositoryPathException = class extends Exception {
   code;
   /** Creates a safe path exception without exposing the rejected value. */
   constructor(options) {
-    super("The repository path is invalid.", "INVALID_REPOSITORY_PATH");
+    super("The repository path is invalid.", {
+      code: "INVALID_REPOSITORY_PATH",
+      cause: options?.cause
+    });
     this.code = "INVALID_REPOSITORY_PATH";
     this.name = "RepositoryPathException";
-    attachCause(this, options?.cause);
   }
 };
-var RepositorySourceException = class extends Exception2 {
+var RepositorySourceException = class extends Exception {
   code;
   operation;
   path;
@@ -1578,14 +1493,16 @@ var RepositorySourceException = class extends Exception2 {
   retryable;
   /** Creates a source exception with documented operation and resource metadata. */
   constructor(options) {
-    super(SOURCE_ERROR_MESSAGES[options.code], options.code);
+    super(SOURCE_ERROR_MESSAGES[options.code], {
+      code: options.code,
+      cause: options.cause
+    });
     this.code = options.code;
     this.name = "RepositorySourceException";
     this.operation = options.operation;
     this.path = options.path;
     this.resource = options.resource ?? null;
     this.retryable = options.retryable;
-    attachCause(this, options.cause);
   }
 };
 var SHA256_INITIAL_STATE = [
@@ -1769,7 +1686,6 @@ var ENVELOPE_KEYS = /* @__PURE__ */ new Set([
   "payload",
   "version"
 ]);
-var isRecord = (candidate) => typeof candidate === "object" && candidate !== null && !Array.isArray(candidate);
 var createRepositoryCursor = (payload) => {
   const serializedPayload = JSON.stringify(payload);
   return JSON.stringify({
@@ -1780,7 +1696,7 @@ var createRepositoryCursor = (payload) => {
 };
 var decodeRepositoryCursor = (cursor) => {
   const envelope = JSON.parse(cursor);
-  if (!isRecord(envelope) || Reflect.ownKeys(envelope).some((key) => typeof key !== "string" || !ENVELOPE_KEYS.has(key)) || envelope["version"] !== 1 || typeof envelope["payload"] !== "string" || typeof envelope["checksum"] !== "string" || envelope["checksum"] !== createRepositoryIdentity([encoder.encode(envelope["payload"])])) throw new TypeError("The repository cursor is invalid.");
+  if (!isObjectValid(envelope, true) || Reflect.ownKeys(envelope).some((key) => typeof key !== "string" || !ENVELOPE_KEYS.has(key)) || envelope["version"] !== 1 || typeof envelope["payload"] !== "string" || typeof envelope["checksum"] !== "string" || envelope["checksum"] !== createRepositoryIdentity([encoder.encode(envelope["payload"])])) throw new TypeError("The repository cursor is invalid.");
   return JSON.parse(envelope["payload"]);
 };
 var parsePositivePageInteger = (value, operation, path2) => {
@@ -1792,20 +1708,6 @@ var parsePositivePageInteger = (value, operation, path2) => {
   });
   return value;
 };
-var hasOnlyUnicodeScalarValues = (value) => {
-  for (let index = 0; index < value.length; index += 1) {
-    const codeUnit = value.charCodeAt(index);
-    if (codeUnit >= 55296 && codeUnit <= 56319) {
-      if (index + 1 >= value.length) return false;
-      const nextCodeUnit = value.charCodeAt(index + 1);
-      if (nextCodeUnit < 56320 || nextCodeUnit > 57343) return false;
-      index += 1;
-      continue;
-    }
-    if (codeUnit >= 56320 && codeUnit <= 57343) return false;
-  }
-  return true;
-};
 var WINDOWS_DRIVE_PREFIX_PATTERN = /^\/[A-Za-z]:/u;
 var hasASCIIControlCharacter = (value) => {
   for (let index = 0; index < value.length; index += 1) {
@@ -1815,7 +1717,7 @@ var hasASCIIControlCharacter = (value) => {
   return false;
 };
 var isRepositoryPath = (value) => {
-  if (typeof value !== "string" || !hasOnlyUnicodeScalarValues(value)) return false;
+  if (typeof value !== "string" || !value.isWellFormed()) return false;
   if (value === "/") return true;
   if (!value.startsWith("/") || value.startsWith("//") || value.endsWith("/") || value.includes("\\") || hasASCIIControlCharacter(value) || WINDOWS_DRIVE_PREFIX_PATTERN.test(value)) return false;
   return value.slice(1).split("/").every((segment) => segment !== "" && segment !== "." && segment !== "..");
@@ -2145,11 +2047,58 @@ var resolveRepositoryLink = async (source, path2, options) => {
 };
 
 // node_modules/@moldea.ai/repository-fs/dist/index.js
-import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { constants as constants2 } from "node:fs";
 import { lstat as lstat3, open as open3, opendir, readlink, realpath as realpath2 } from "node:fs/promises";
 import path from "node:path";
 import { TextDecoder as TextDecoder2 } from "node:util";
+
+// node_modules/jg-crypto/dist/shared/errors.js
+var ERRORS5 = {
+  UNSUPPORTED_HASH_ALGORITHM: "UNSUPPORTED_HASH_ALGORITHM",
+  INVALID_BYTE_LENGTH: "INVALID_BYTE_LENGTH",
+  UNSUPPORTED_ENCODING: "UNSUPPORTED_ENCODING",
+  INVALID_DIGIT_COUNT: "INVALID_DIGIT_COUNT",
+  INVALID_HMAC_SECRET: "INVALID_HMAC_SECRET",
+  INVALID_HMAC_DOMAIN: "INVALID_HMAC_DOMAIN",
+  INVALID_TOTP_SECRET: "INVALID_TOTP_SECRET",
+  TOTP_INVALID: "TOTP_INVALID",
+  TOTP_ALREADY_USED: "TOTP_ALREADY_USED"
+};
+
+// node_modules/jg-crypto/dist/hmac/hmac.js
+import { timingSafeEqual } from "node:crypto";
+
+// node_modules/jg-crypto/dist/hmac/utilities.js
+import { createHmac } from "node:crypto";
+var SIGNATURE_PATTERN = /^[0-9a-f]{64}$/;
+var computeHmac = (message, secret, { domain }) => {
+  const isSecretValid = typeof secret === "string" ? secret.length > 0 : secret instanceof Uint8Array && secret.length > 0;
+  if (!isSecretValid) {
+    throw new Exception("The HMAC secret must be a non-empty string or byte array.", {
+      code: ERRORS5.INVALID_HMAC_SECRET
+    });
+  }
+  if (domain !== void 0 && (typeof domain !== "string" || domain.length === 0)) {
+    throw new Exception("The HMAC domain must be a non-empty string when it's given.", {
+      code: ERRORS5.INVALID_HMAC_DOMAIN
+    });
+  }
+  const key = domain === void 0 ? secret : createHmac("sha256", secret).update(domain).digest();
+  return createHmac("sha256", key).update(message).digest();
+};
+
+// node_modules/jg-crypto/dist/hmac/hmac.js
+var signHmac = (message, secret, options = {}) => computeHmac(message, secret, options).toString("hex");
+var verifyHmac = (message, signature, secret, options = {}) => {
+  const expected = computeHmac(message, secret, options);
+  if (typeof signature !== "string" || !SIGNATURE_PATTERN.test(signature)) {
+    return false;
+  }
+  return timingSafeEqual(Buffer.from(signature, "hex"), expected);
+};
+
+// node_modules/@moldea.ai/repository-fs/dist/index.js
 var DEFAULT_FILESYSTEM_REPOSITORY_RESOURCE_LIMITS = Object.freeze({
   maxCachedBytes: 67108864,
   maxConcurrentOperations: 16,
@@ -2159,22 +2108,8 @@ var DEFAULT_FILESYSTEM_REPOSITORY_RESOURCE_LIMITS = Object.freeze({
   maxQueuedOperations: 256,
   maxReadBytes: 1048576
 });
-var hasOnlyUnicodeScalarValues2 = (text) => {
-  for (let index = 0; index < text.length; index += 1) {
-    const codeUnit = text.charCodeAt(index);
-    if (codeUnit >= 55296 && codeUnit <= 56319) {
-      if (index + 1 >= text.length) return false;
-      const trailingCodeUnit = text.charCodeAt(index + 1);
-      if (trailingCodeUnit < 56320 || trailingCodeUnit > 57343) return false;
-      index += 1;
-      continue;
-    }
-    if (codeUnit >= 56320 && codeUnit <= 57343) return false;
-  }
-  return true;
-};
 var isAbsoluteHostRootDirectory = (candidate) => {
-  return typeof candidate === "string" && candidate.length > 0 && !candidate.includes("\0") && hasOnlyUnicodeScalarValues2(candidate) && path.isAbsolute(candidate);
+  return typeof candidate === "string" && candidate.length > 0 && !candidate.includes("\0") && candidate.isWellFormed() && path.isAbsolute(candidate);
 };
 var OPTION_PROPERTY_NAMES = /* @__PURE__ */ new Set([
   "limits",
@@ -2325,27 +2260,6 @@ var normalizeFilesystemRepositoryOptions = (candidate) => {
   }
   return Object.freeze(normalizedOptions);
 };
-var MAX_CACHED_PAGES = 4096;
-var cacheFilePage = (cache, cachedBytes, cacheKey, bytes, entryIdentity, maxCachedBytes) => {
-  if (bytes.byteLength === 0 || bytes.byteLength > maxCachedBytes) return cachedBytes;
-  const replaced = cache.get(cacheKey);
-  if (replaced !== void 0) {
-    cache.delete(cacheKey);
-    cachedBytes -= replaced.bytes.byteLength;
-  }
-  while (cachedBytes + bytes.byteLength > maxCachedBytes || cache.size >= MAX_CACHED_PAGES) {
-    const oldestKey = cache.keys().next().value;
-    if (oldestKey === void 0) break;
-    const oldest = cache.get(oldestKey);
-    cache.delete(oldestKey);
-    cachedBytes -= oldest?.bytes.byteLength ?? 0;
-  }
-  cache.set(cacheKey, {
-    bytes: bytes.slice(),
-    entryIdentity
-  });
-  return cachedBytes + bytes.byteLength;
-};
 var decoder = new TextDecoder2("utf-8", {
   fatal: true,
   ignoreBOM: true
@@ -2371,7 +2285,6 @@ var PATH_CURSOR_KEYS = /* @__PURE__ */ new Set([
   "snapshotId",
   "version"
 ]);
-var isRecord2 = (candidate) => typeof candidate === "object" && candidate !== null && !Array.isArray(candidate);
 var hasOnlyKeys = (record, keys) => Reflect.ownKeys(record).every((key) => typeof key === "string" && keys.has(key));
 var hashParts = (parts) => {
   const hash = createHash("sha256");
@@ -2381,7 +2294,7 @@ var hashParts = (parts) => {
   }
   return `sha256:${hash.digest("hex")}`;
 };
-var getErrorCode3 = (cause) => {
+var getErrorCode2 = (cause) => {
   if (typeof cause !== "object" || cause === null || !("code" in cause)) return;
   const code = cause.code;
   return typeof code === "string" ? code : void 0;
@@ -2397,7 +2310,7 @@ var throwSource = (code, operation, logicalPath, retryable, cause, resource) => 
   });
 };
 var throwMappedHostError = (cause, operation, logicalPath) => {
-  const code = getErrorCode3(cause);
+  const code = getErrorCode2(cause);
   if (code === "EACCES" || code === "EPERM") return throwSource("ACCESS_DENIED", operation, logicalPath, true, cause);
   if (operation !== "create-reader" && (code === "ENOENT" || code === "ENOTDIR" || code === "ELOOP")) return throwSource("SNAPSHOT_CHANGED", operation, logicalPath, true, cause);
   if (operation === "create-reader" && (code === "ENOENT" || code === "ENOTDIR")) return throwSource("ENTRY_NOT_FOUND", operation, logicalPath, true, cause);
@@ -2463,68 +2376,11 @@ var findSortedName = (names, target) => {
   }
   return names[lowerIndex] === target ? lowerIndex : -1;
 };
-var OperationGate = class {
-  #limits;
-  #active = 0;
-  #waiters = [];
-  constructor(limits) {
-    this.#limits = limits;
-  }
-  /** Runs one operation while enforcing fixed active and queued work bounds. */
-  async run(operation, logicalPath, signal, callback) {
-    await this.#acquire(operation, logicalPath, signal);
-    try {
-      throwIfAborted2(signal, operation, logicalPath);
-      return await callback();
-    } finally {
-      this.#active -= 1;
-      this.#waiters.shift()?.();
-    }
-  }
-  async #acquire(operation, logicalPath, signal) {
-    throwIfAborted2(signal, operation, logicalPath);
-    if (this.#active < this.#limits.maxConcurrentOperations) {
-      this.#active += 1;
-      return;
-    }
-    if (this.#waiters.length >= this.#limits.maxQueuedOperations) throwSource("RESOURCE_LIMIT_EXCEEDED", operation, logicalPath, true, void 0, {
-      dimension: "queuedOperations",
-      limit: this.#limits.maxQueuedOperations,
-      observed: this.#waiters.length + 1
-    });
-    await new Promise((resolve4, reject) => {
-      let isSettled = false;
-      const resume = () => {
-        if (isSettled) return;
-        isSettled = true;
-        signal?.removeEventListener("abort", abort);
-        this.#active += 1;
-        resolve4();
-      };
-      const abort = () => {
-        if (isSettled) return;
-        isSettled = true;
-        const index = this.#waiters.indexOf(resume);
-        if (index >= 0) this.#waiters.splice(index, 1);
-        reject(new RepositorySourceException({
-          cause: signal?.reason,
-          code: "ABORTED",
-          operation,
-          path: logicalPath,
-          retryable: false
-        }));
-      };
-      this.#waiters.push(resume);
-      signal?.addEventListener("abort", abort, { once: true });
-    });
-  }
-};
 var FilesystemRepositoryReader = class {
   snapshot;
-  #cache = /* @__PURE__ */ new Map();
-  #cachedBytes = 0;
+  #cache;
   #cursorKey = randomBytes(32);
-  #gate;
+  #coordinator;
   #limits;
   #observations = /* @__PURE__ */ new Map();
   #rootDirectory;
@@ -2538,7 +2394,14 @@ var FilesystemRepositoryReader = class {
     this.#limits = options.limits;
     this.#rootDirectory = rootDirectory;
     this.#selection = options.selection;
-    this.#gate = new OperationGate(options.limits);
+    this.#cache = createByteCache({
+      maxBytes: options.limits.maxCachedBytes,
+      maxEntries: 4096
+    });
+    this.#coordinator = createRequestCoordinator({
+      maxConcurrent: options.limits.maxConcurrentOperations,
+      maxQueued: options.limits.maxQueuedOperations
+    });
     this.snapshot = Object.freeze({
       id: hashParts([rootIdentity, randomBytes(32)]),
       sourceKind: "filesystem"
@@ -2572,11 +2435,11 @@ var FilesystemRepositoryReader = class {
   async getEntry(logicalPath, options) {
     const parsedPath = parseRepositoryPath(logicalPath);
     if (!this.#isVisible(parsedPath)) return null;
-    return this.#gate.run("get-entry", parsedPath, options?.signal, () => this.#observeEntry(parsedPath, "get-entry", void 0, options?.signal));
+    return this.#run("get-entry", parsedPath, options?.signal, () => this.#observeEntry(parsedPath, "get-entry", void 0, options?.signal));
   }
   async listEntriesPage(options) {
     const prefix = options.prefix === void 0 ? REPOSITORY_ROOT : parseRepositoryPath(options.prefix);
-    return this.#gate.run("list-entries-page", prefix, options.signal, async () => {
+    return this.#run("list-entries-page", prefix, options.signal, async () => {
       const maxEntries = this.#parseBoundedPositiveInteger(options.maxEntries, this.#limits.maxPageEntries, "pageEntries", "list-entries-page", prefix);
       const prefixEntry = await this.#observeEntry(prefix, "list-entries-page", void 0, options.signal);
       if (prefixEntry === null || !this.#isVisible(prefix)) return throwSource("ENTRY_NOT_FOUND", "list-entries-page", prefix, false);
@@ -2586,7 +2449,7 @@ var FilesystemRepositoryReader = class {
   }
   async readFilePage(logicalPath, options) {
     const parsedPath = parseRepositoryPath(logicalPath);
-    return this.#gate.run("read-file-page", parsedPath, options.signal, async () => {
+    return this.#run("read-file-page", parsedPath, options.signal, async () => {
       const offset = this.#parseOffset(options.offset, parsedPath);
       const maxBytes = this.#parseBoundedPositiveInteger(options.maxBytes, this.#limits.maxReadBytes, "readBytes", "read-file-page", parsedPath);
       if (!this.#isVisible(parsedPath)) throwSource("ENTRY_NOT_FOUND", "read-file-page", parsedPath, false);
@@ -2597,21 +2460,17 @@ var FilesystemRepositoryReader = class {
       if (entryIdentity === void 0) return throwSource("INVALID_SOURCE_DATA", "read-file-page", parsedPath, false);
       if (offset > entry.byteLength) throwSource("INVALID_PAGE_REQUEST", "read-file-page", parsedPath, false);
       const bytesToRead = Math.min(maxBytes, entry.byteLength - offset);
-      const cacheKey = `${parsedPath}\0${offset}\0${bytesToRead}`;
-      const cached2 = this.#cache.get(cacheKey);
-      if (cached2 !== void 0 && cached2.entryIdentity === entryIdentity) {
-        this.#cache.delete(cacheKey);
-        this.#cache.set(cacheKey, cached2);
-        return this.#createFilePage(cached2.bytes.slice(), entry.byteLength, offset);
-      }
+      const cacheKey = `${parsedPath}\0${entryIdentity}\0${offset}\0${bytesToRead}`;
+      const cached = this.#cache.get(cacheKey);
+      if (cached !== void 0) return this.#createFilePage(cached, entry.byteLength, offset);
       const bytes = await this.#readExactRange(parsedPath, entryIdentity, offset, bytesToRead, options.signal);
-      this.#cachedBytes = cacheFilePage(this.#cache, this.#cachedBytes, cacheKey, bytes, entryIdentity, this.#limits.maxCachedBytes);
-      return this.#createFilePage(bytes.slice(), entry.byteLength, offset);
+      if (bytes.byteLength > 0) this.#cache.set(cacheKey, bytes);
+      return this.#createFilePage(bytes, entry.byteLength, offset);
     });
   }
   async readLinkText(logicalPath, options) {
     const parsedPath = parseRepositoryPath(logicalPath);
-    return this.#gate.run("read-link-text", parsedPath, options?.signal, async () => {
+    return this.#run("read-link-text", parsedPath, options?.signal, async () => {
       if (!this.#isVisible(parsedPath)) return throwSource("ENTRY_NOT_FOUND", "read-link-text", parsedPath, false);
       const entry = await this.#observeEntry(parsedPath, "read-link-text", void 0, options?.signal);
       if (entry === null) return throwSource("ENTRY_NOT_FOUND", "read-link-text", parsedPath, false);
@@ -2664,12 +2523,10 @@ var FilesystemRepositoryReader = class {
       const separatorIndex = cursor.lastIndexOf(".");
       if (separatorIndex <= 0) throw new Error("cursor signature is missing");
       const encodedPayload = cursor.slice(0, separatorIndex);
-      const encodedSignature = cursor.slice(separatorIndex + 1);
-      const suppliedSignature = Buffer.from(encodedSignature, "base64url");
-      const expectedSignature = createHmac("sha256", this.#cursorKey).update(encodedPayload).digest();
-      if (suppliedSignature.toString("base64url") !== encodedSignature || suppliedSignature.byteLength !== expectedSignature.byteLength || !timingSafeEqual(suppliedSignature, expectedSignature)) throw new Error("cursor signature does not match");
+      const signature = cursor.slice(separatorIndex + 1);
+      if (!verifyHmac(encodedPayload, signature, this.#cursorKey)) throw new Error("cursor signature does not match");
       const parsed = JSON.parse(Buffer.from(encodedPayload, "base64url").toString("utf8"));
-      if (!isRecord2(parsed) || parsed["version"] !== 1 || parsed["snapshotId"] !== this.snapshot.id || parsed["prefix"] !== prefix) throw new Error("cursor belongs to another snapshot or prefix");
+      if (!isObjectValid(parsed, true) || parsed["version"] !== 1 || parsed["snapshotId"] !== this.snapshot.id || parsed["prefix"] !== prefix) throw new Error("cursor belongs to another snapshot or prefix");
       if (parsed["kind"] === "paths" && hasOnlyKeys(parsed, PATH_CURSOR_KEYS)) {
         const lastPath = parseRepositoryPath(parsed["lastPath"]);
         const descendantPrefix = prefix === REPOSITORY_ROOT ? REPOSITORY_ROOT : `${prefix}/`;
@@ -2684,12 +2541,14 @@ var FilesystemRepositoryReader = class {
       }
       if (parsed["kind"] === "directory" && hasOnlyKeys(parsed, DIRECTORY_CURSOR_KEYS) && Array.isArray(parsed["frames"])) return {
         frames: parsed["frames"].map((candidate) => {
-          if (!isRecord2(candidate) || !hasOnlyKeys(candidate, CURSOR_FRAME_KEYS) || typeof candidate["lastName"] !== "string" && candidate["lastName"] !== null || typeof candidate["namesIdentity"] !== "string" || typeof candidate["path"] !== "string" || typeof candidate["pathIdentity"] !== "string") throw new Error("cursor frame is invalid");
+          if (!isObjectValid(candidate, true)) throw new Error("cursor frame is invalid");
+          const frame = candidate;
+          if (!hasOnlyKeys(frame, CURSOR_FRAME_KEYS) || typeof frame["lastName"] !== "string" && frame["lastName"] !== null || typeof frame["namesIdentity"] !== "string" || typeof frame["path"] !== "string" || typeof frame["pathIdentity"] !== "string") throw new Error("cursor frame is invalid");
           return {
-            lastName: candidate["lastName"],
-            namesIdentity: candidate["namesIdentity"],
-            path: parseRepositoryPath(candidate["path"]),
-            pathIdentity: candidate["pathIdentity"]
+            lastName: frame["lastName"],
+            namesIdentity: frame["namesIdentity"],
+            path: parseRepositoryPath(frame["path"]),
+            pathIdentity: frame["pathIdentity"]
           };
         }),
         kind: "directory",
@@ -2704,7 +2563,7 @@ var FilesystemRepositoryReader = class {
   }
   #encodeCursor(cursor) {
     const encodedPayload = Buffer.from(JSON.stringify(cursor), "utf8").toString("base64url");
-    const encodedCursor = `${encodedPayload}.${createHmac("sha256", this.#cursorKey).update(encodedPayload).digest("base64url")}`;
+    const encodedCursor = `${encodedPayload}.${signHmac(encodedPayload, this.#cursorKey)}`;
     if (Buffer.byteLength(encodedCursor, "utf8") > MAX_CURSOR_BYTES) throwSource("RESOURCE_LIMIT_EXCEEDED", "list-entries-page", cursor.prefix, false, void 0, {
       dimension: "cursorBytes",
       limit: MAX_CURSOR_BYTES,
@@ -3027,6 +2886,29 @@ var FilesystemRepositoryReader = class {
       return throwMappedHostError(cause, "read-file-page", logicalPath);
     } finally {
       await handle?.close().catch(() => void 0);
+    }
+  }
+  /**
+  * Runs one operation within the fixed active and queued work bounds. A refusal before the
+  * operation starts becomes the reader's own failure: a full queue exceeds the queued-operations
+  * limit, and anything else is the caller's abort, whose reason becomes the cause.
+  */
+  async #run(operation, logicalPath, signal, callback) {
+    let isStarted = false;
+    try {
+      return await this.#coordinator.run(async () => {
+        isStarted = true;
+        throwIfAborted2(signal, operation, logicalPath);
+        return callback();
+      }, signal === void 0 ? {} : { signal });
+    } catch (cause) {
+      if (isStarted) throw cause;
+      if (getErrorCode2(cause) === ERRORS2.REQUEST_QUEUE_FULL) return throwSource("RESOURCE_LIMIT_EXCEEDED", operation, logicalPath, true, void 0, {
+        dimension: "queuedOperations",
+        limit: this.#limits.maxQueuedOperations,
+        observed: this.#limits.maxQueuedOperations + 1
+      });
+      return throwSource("ABORTED", operation, logicalPath, false, cause);
     }
   }
 };

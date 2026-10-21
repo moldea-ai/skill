@@ -20,7 +20,7 @@ const BUNDLED_PACKAGES = [
   '@moldea.ai/core',
   '@moldea.ai/repository',
   '@moldea.ai/repository-fs',
-  'error-message-utils',
+  'jg-crypto',
   'jg-exception',
   'jg-fs',
   'jg-git-commands',

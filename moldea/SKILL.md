@@ -3,10 +3,10 @@ name: moldea
 description: >-
   Plan, create, review, and maintain AI agents, model workflows, skills, and durable project context. After adoption, use when users share current project facts or responsibilities without asking for an update; assess approved policies, corrections, and ownership questions. Ordinary code needs a declared relationship; stay silent on a miss. Initialize only when asked.
 metadata:
-  cliRepairVersion: '12.0.0'
-  version: '9.0.0'
-  cliVersionRange: '^12.0.0'
-  coreVersionRange: '^8.0.0'
+  cliRepairVersion: '13.0.0'
+  version: '10.0.0'
+  cliVersionRange: '^13.0.0'
+  coreVersionRange: '^9.0.0'
   cliJsonSchemaVersion: '7'
 ---
 
@@ -55,7 +55,7 @@ node <installed-skill-root>/scripts/moldea-cli.mjs --repository <absolute-reposi
 
 Encode each checked path as UTF-8 followed by one NUL, with no leading delimiter; pass the complete batch once on stdin within 2 MiB.
 
-Accept only exit 0, CLI 12, JSON schema 7, exact installed stable version, `command: scope`, `error: null`, `status: valid`, `result.valid: true`, and `result.relevant: true`. Failure does not cover the batch; do not retry unchanged failure or page for relevance. Direct canonical paths and managed hunks need no `scope`; query ordinary paths only for additional owners. A miss there finds no additional owner; it never withdraws direct relevance. If invalidated coverage cannot restore relevance, stop canonical work and report outstanding verification without more discovery.
+Accept only exit 0, CLI 13, JSON schema 7, exact installed stable version, `command: scope`, `error: null`, `status: valid`, `result.valid: true`, and `result.relevant: true`. Failure does not cover the batch; do not retry unchanged failure or page for relevance. Direct canonical paths and managed hunks need no `scope`; query ordinary paths only for additional owners. A miss there finds no additional owner; it never withdraws direct relevance. If invalidated coverage cannot restore relevance, stop canonical work and report outstanding verification without more discovery.
 
 ## Select the operation owner
 

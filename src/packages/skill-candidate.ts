@@ -107,7 +107,7 @@ export const prepareSkillCandidate = async (options: {
     mkdirSync(dirname(destination), { recursive: true });
     cpSync(join(options.repositoryRoot, relativePath), destination);
   }
-  for (const relativePath of ['moldea', 'src/portable', 'src/filesystem/atomic-bytes']) {
+  for (const relativePath of ['moldea', 'src/portable']) {
     cpSync(
       join(options.repositoryRoot, relativePath),
       join(options.outputDirectory, relativePath),

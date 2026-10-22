@@ -23,6 +23,8 @@ order: 32
 
 Ask the coding agent to fix a warning, or explicitly accept a supported warning with your own reason. Acceptance does not fix its cause or change errors. Remove an obsolete acceptance after its warning disappears, then validate again. Integration warnings identify a missing or stale AGENTS.md block or installed skill assets. If your instructions protect AGENTS.md, repair supplies the exact block for you to add.
 
+The skill offers integration acceptance only for shared Git-tracked instruction subjects. Local fallback and ignored instructions receive the permitted fix or handoff. Core still matches the actual diagnostic identity, including a missing-block warning; an absent file does not by itself make an acceptance unmatched. A validation digest can also remain unchanged after context-only wording changes because it identifies validation results, not every canonical body; use inspect/content identities for those changes.
+
 ## Common situations
 
 | What happened                                   | How it is handled                                                                       | Next step                                                                                                                       |

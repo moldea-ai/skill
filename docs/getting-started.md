@@ -56,7 +56,9 @@ README receives a short introduction with links to `moldea/project.md` and `mold
 
 AGENTS.md receives a separate managed block with the verified local installation path. For ordinary planning, implementation, or review, it runs the relevance gate once the files are known and before acting. A relationship hit reads SKILL.md unless its complete unchanged instructions are already available; missing, partial, summarized, or changed instructions require a fresh read. New independently discovered files get one new-batch check; unchanged results are reused. The ordinary precheck performs no repository scan.
 
-If AGENTS.md cannot be safely edited or host instructions prohibit it, the coding agent gives you the exact block to add. When a Claude Code instruction file exists without loading AGENTS.md, the coding agent adds the import line to it when permitted, or gives you the exact line. Adding it is important: ordinary work may otherwise miss context maintenance and leave saved knowledge stale. Explicit `moldea` operations remain available. A missing or stale block produces an integration warning, never canonical invalidity. Ask to fix it, or explicitly accept the warning with your own reason. The coding agent never chooses acceptance on your behalf. Updating the installed skill alone does not rewrite project integration and can make an older block stale; ask for `Fix moldea` to refresh permitted managed regions or obtain the current block for a protected-instruction handoff.
+If AGENTS.md cannot be safely edited or host instructions prohibit it, the coding agent gives you the exact block to add. When a governing Claude Code instruction file exists without loading AGENTS.md, the coding agent adds the import line when permitted, or gives you the exact line. Shared root `CLAUDE.md` and `.claude/CLAUDE.md` take precedence over the `CLAUDE.local.md` fallback; use the warning's subject even when root `CLAUDE.md` is absent. Adding the integration is important: ordinary work may otherwise miss context maintenance and leave saved knowledge stale. Explicit `moldea` operations remain available. A missing or stale block produces an integration warning, never canonical invalidity. Ask to fix it; acceptance is offered only for eligible shared, Git-tracked instruction subjects and requires your reason. The coding agent never chooses acceptance on your behalf. See [updating the skill](#update-or-remove-the-skill) for bridge refresh.
+
+Local integration and the committed view available to cloud checks can differ. An ignored local AGENTS.md can work locally while remaining absent from a committed revision. Preserve your tracking and ignore choices; committing the bridge is a separate decision. Local validation results do not establish an unexecuted cloud result.
 
 Some coding hosts ask for permission to execute commands. If desired, approve a rule for this specific installed gate command using your host’s controls. Do not grant blanket Node execution or weaken repository trust controls. The small instruction block and bounded Node invocation are the cost of an unrelated precheck; the full skill and workflow references are not loaded on a miss. Host compliance is not guaranteed.
 
@@ -105,6 +107,12 @@ You do not need to create `/moldea` directories by hand, invoke the local CLI di
 ## Update or remove the skill
 
 An unpinned installation follows `main`; rerun the first installation command to refresh it. A pinned installation never moves automatically; rerun the pinned form with the desired immutable release tag. Updating refreshes portable instructions and references. It does not initialize a project, modify `/moldea/**`, install the CLI globally, or alter canonical state.
+
+Existing repositories also need a bridge that matches the new installation:
+
+1. Update the skill artifact. Installation leaves the current AGENTS.md managed region untouched; validation reports a differing old region as stale without invalidating canonical state.
+2. Ask for `Fix moldea`. When host rules permit, the bundled writer refreshes only the managed region, preserves unrelated bytes and line endings, and makes no further change on repeat. When the file is protected, the coding agent provides the current writer's exact printed block for application through an allowed instruction-update workflow.
+3. Validate after the region is applied. Integration remains incomplete until the block matches; installing the skill alone does not activate a routing correction in an old repository bridge. Use fresh conversations for manual routing checks after setup.
 
 Remove the project installation with:
 

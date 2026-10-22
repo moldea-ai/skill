@@ -64,6 +64,8 @@ Static checks establish structure and the file or export checks named in coverag
 
 In a repository whose Git attributes mention `filter`, including Git LFS, the repair helper refuses to read Git evidence. Repair then stops Git-dependent work and gives only a bounded foundation diagnosis until the helper supports these repositories.
 
+Attribute inspection supports repository-contained directory symlinks and Windows junctions, including overlays over indexed descendants. It still refuses escaping, dangling, cyclic, unsupported, and over-budget resolution, linked attribute files, and unseen indexed attribute fallbacks. Written-file review does not follow linked parents. Preserve links, tracking, and ignore rules rather than removing tracked skills to bypass a checkpoint limitation.
+
 On Windows, repository roots at or above the [native process working-directory limit](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-setcurrentdirectory) (260 characters) prevent subprocess startup. The repair helper reports unavailable evidence as `git-read` with a request to move or clone the repository to a shorter path. The launcher's `validate` and `inspect` operations have the same working-directory limitation. Use a shorter checkout path for these operations. Deterministic tests cover longer paths for the relevance gate, managed document writers and initialization inspection.
 
 ## Compatibility and evidence

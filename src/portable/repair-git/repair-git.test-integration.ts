@@ -3,17 +3,19 @@ import { spawnSync } from 'node:child_process';
 import {
   existsSync,
   chmodSync,
+  lstatSync,
   mkdirSync,
   mkdtempSync,
   readdirSync,
   readFileSync,
+  readlinkSync,
   renameSync,
   rmSync,
   symlinkSync,
   writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { join, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { afterEach, expect, test } from 'vitest';
 
@@ -90,6 +92,30 @@ const snapshot = (directory: string, prefix = ''): string[] =>
           ],
     );
 
+const collectEvidence = async (
+  root: string,
+  boundary: 'source' | 'bundled',
+  mode: 'checkpoint' | 'continue',
+  checkpoint?: string,
+): Promise<IRepairGitEvidence> => {
+  if (boundary === 'source')
+    return collectRepairGitEvidence({
+      repositoryRoot: root,
+      mode,
+      ...(checkpoint === undefined ? {} : { checkpoint }),
+    });
+  const result = runHelper(
+    root,
+    mode,
+    ...(checkpoint === undefined ? [] : ['--checkpoint', checkpoint]),
+  );
+  expect(result.error).toBeUndefined();
+  expect(result.stderr).toBe('');
+  const evidence = JSON.parse(result.stdout) as IRepairGitEvidence;
+  expect(result.status).toBe(evidence.status === 'available' ? 0 : 1);
+  return evidence;
+};
+
 afterEach(() => {
   for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true });
 });
@@ -125,6 +151,230 @@ test('bundled helper captures full commit, uncommitted paths and manifest eviden
   expect(review.writtenDiff).toContain('+bravo');
   expect(review.writtenDiff).not.toContain('context:');
 });
+
+test.each(['source', 'bundled'] as const)(
+  'contained directory overlays preserve checkpoint and continuation evidence through %s',
+  async (boundary) => {
+    const root = repository();
+    const target = join(root, '.agents', 'skills', 'jg-menu');
+    const overlay = join(root, '.claude', 'skills', 'jg-menu');
+    for (const directory of [target, overlay]) {
+      mkdirSync(directory, { recursive: true });
+      writeFileSync(join(directory, 'instructions.md'), 'alpha\n');
+    }
+    git(root, 'add', '--', '.agents', '.claude');
+    git(root, 'commit', '-m', 'Tracked skill directories');
+    const commit = git(root, 'rev-parse', 'HEAD');
+    rmSync(overlay, { recursive: true });
+    symlinkSync(target, overlay, process.platform === 'win32' ? 'junction' : 'dir');
+    writeFileSync(join(target, 'instructions.md'), 'bravo\n');
+    writeFileSync(join(root, 'moldea', 'moldea.yaml'), 'version: 1\ncontext: {}\n');
+    const before = snapshot(join(root, '.git'));
+    const checkpoint = await collectEvidence(root, boundary, 'checkpoint');
+    expect(checkpoint.status, JSON.stringify(checkpoint)).toBe('available');
+    const continuation = await collectEvidence(root, boundary, 'continue', commit);
+    expect(continuation.status, JSON.stringify(continuation)).toBe('available');
+    if (continuation.status !== 'available') throw new Error('Expected overlay evidence.');
+    expect(continuation.changedPaths).toContain('.agents/skills/jg-menu/instructions.md');
+    expect(continuation.manifestDiff).toContain('+context: {}');
+    expect(snapshot(join(root, '.git'))).toStrictEqual(before);
+  },
+);
+
+test.each(['source', 'bundled'] as const)(
+  '32 contained skill links preserve tracked overlays and deduplicate attributes through %s',
+  async (boundary) => {
+    const root = repository();
+    const overlays: Array<{ path: string; target: string }> = [];
+    for (let index = 0; index < 32; index += 1) {
+      const name = `jg-skill-${index}`;
+      const target = join(root, '.agents', 'skills', name);
+      const overlay = join(root, '.claude', 'skills', name);
+      for (const directory of [target, overlay]) {
+        mkdirSync(directory, { recursive: true });
+        writeFileSync(join(directory, 'instructions.md'), 'alpha\n');
+        // 32 distinct files exactly fill the aggregate allowance; aliases must not count twice.
+        writeFileSync(join(directory, '.gitattributes'), '#'.repeat(8191) + '\n');
+      }
+      overlays.push({ path: overlay, target });
+    }
+    git(root, 'add', '--', '.agents', '.claude');
+    git(root, 'commit', '-m', 'Tracked skill overlay fixture');
+    const commit = git(root, 'rev-parse', 'HEAD');
+    const ignore = '.claude/skills/\n';
+    writeFileSync(join(root, '.gitignore'), ignore);
+    for (const overlay of overlays) {
+      rmSync(overlay.path, { recursive: true });
+      symlinkSync(
+        process.platform === 'win32'
+          ? overlay.target
+          : relative(resolve(overlay.path, '..'), overlay.target),
+        overlay.path,
+        process.platform === 'win32' ? 'junction' : 'dir',
+      );
+    }
+    const links = overlays.map(({ path }) => readlinkSync(path));
+    const before = snapshot(join(root, '.git'));
+    expect(await collectEvidence(root, boundary, 'checkpoint')).toMatchObject({
+      status: 'available',
+      commit,
+    });
+    expect(await collectEvidence(root, boundary, 'continue', commit)).toMatchObject({
+      status: 'available',
+      commit,
+    });
+    expect(snapshot(join(root, '.git'))).toStrictEqual(before);
+    expect(readFileSync(join(root, '.gitignore'), 'utf8')).toBe(ignore);
+    expect(overlays.map(({ path }) => readlinkSync(path))).toStrictEqual(links);
+    expect(overlays.every(({ path }) => lstatSync(path).isSymbolicLink())).toBe(true);
+    writeFileSync(join(root, '.gitattributes'), '\n');
+    expect(await collectEvidence(root, boundary, 'checkpoint')).toMatchObject({
+      status: 'unavailable',
+      reasonCode: 'output-limit',
+    });
+    expect(snapshot(join(root, '.git'))).toStrictEqual(before);
+  },
+);
+
+test.each([
+  ['source', 'outside'],
+  ['bundled', 'outside'],
+  ['source', 'dangling'],
+  ['bundled', 'dangling'],
+  ['source', 'cycle'],
+  ['bundled', 'cycle'],
+  ['source', 'file-parent'],
+  ['bundled', 'file-parent'],
+  ['source', 'linked-attribute'],
+  ['bundled', 'linked-attribute'],
+  ['source', 'index-fallback'],
+  ['bundled', 'index-fallback'],
+  ['source', 'filter-comment'],
+  ['bundled', 'filter-comment'],
+  ['source', 'filter-macro'],
+  ['bundled', 'filter-macro'],
+] as const)('attribute overlay safety through %s rejects %s', async (boundary, scenario) => {
+  const root = repository();
+  const overlay = join(root, 'tracked');
+  const target = join(root, 'actual');
+  mkdirSync(overlay);
+  writeFileSync(join(overlay, 'source.js'), 'alpha\n');
+  if (scenario === 'index-fallback') writeFileSync(join(overlay, '.gitattributes'), '# tracked\n');
+  git(root, 'add', '--', 'tracked');
+  git(root, 'commit', '-m', 'Tracked directory fixture');
+  rmSync(overlay, { recursive: true });
+  mkdirSync(target);
+  writeFileSync(join(target, 'source.js'), 'bravo\n');
+  const linkType = process.platform === 'win32' ? 'junction' : 'dir';
+  if (scenario === 'outside') {
+    const outside = mkdtempSync(join(tmpdir(), 'moldea-repair-external-'));
+    roots.push(outside);
+    symlinkSync(outside, overlay, linkType);
+  } else if (scenario === 'dangling') {
+    symlinkSync(join(root, 'missing'), overlay, linkType);
+  } else if (scenario === 'cycle') {
+    symlinkSync(target, overlay, linkType);
+    rmSync(target, { recursive: true });
+    symlinkSync(overlay, target, linkType);
+  } else if (scenario === 'file-parent') {
+    writeFileSync(overlay, 'not a directory\n');
+  } else {
+    if (scenario === 'linked-attribute') {
+      // a directory link is supported; an attribute-file link still is not.
+      symlinkSync('source.js', join(target, '.gitattributes'), 'file');
+    }
+    if (scenario === 'filter-comment')
+      writeFileSync(join(target, '.gitattributes'), '# filter policy\n');
+    if (scenario === 'filter-macro')
+      writeFileSync(join(target, '.gitattributes'), '[attr]unsafe filter=trap\n');
+    symlinkSync(target, overlay, linkType);
+  }
+  const before = snapshot(join(root, '.git'));
+  expect(await collectEvidence(root, boundary, 'checkpoint')).toMatchObject({
+    status: 'unavailable',
+    reasonCode: 'attribute-safety',
+  });
+  expect(snapshot(join(root, '.git'))).toStrictEqual(before);
+});
+
+// junction creation normalizes target dot segments; POSIX symlinks retain this adversarial text.
+test.skipIf(process.platform === 'win32')(
+  'target dot segments cannot hide an escape before returning inside',
+  async () => {
+    const root = repository();
+    const outside = mkdtempSync(join(tmpdir(), 'moldea-repair-escape-'));
+    roots.push(outside);
+    mkdirSync(join(root, 'tracked'));
+    writeFileSync(join(root, 'tracked', 'source.js'), 'alpha\n');
+    git(root, 'add', '--', 'tracked');
+    git(root, 'commit', '-m', 'Tracked directory');
+    rmSync(join(root, 'tracked'), { recursive: true });
+    mkdirSync(join(root, 'actual'));
+    symlinkSync(outside, join(root, 'jump'), 'dir');
+    symlinkSync('jump/../actual', join(root, 'tracked'), 'dir');
+    for (const boundary of ['source', 'bundled'] as const)
+      expect(await collectEvidence(root, boundary, 'checkpoint')).toMatchObject({
+        status: 'unavailable',
+        reasonCode: 'attribute-safety',
+      });
+  },
+);
+
+// POSIX retains dot segments after a link; resolving them lexically selects the wrong directory.
+test.skipIf(process.platform === 'win32').each(['benign', 'filter'] as const)(
+  'directory-link parent steps follow the resolved target with %s attributes',
+  async (scenario) => {
+    const root = repository();
+    mkdirSync(join(root, 'tracked'));
+    writeFileSync(join(root, 'tracked', 'source.js'), 'alpha\n');
+    git(root, 'add', '--', 'tracked');
+    git(root, 'commit', '-m', 'Target parent-step fixture');
+    rmSync(join(root, 'tracked'), { recursive: true });
+    mkdirSync(join(root, 'container', 'deep'), { recursive: true });
+    mkdirSync(join(root, 'container', 'actual'));
+    writeFileSync(join(root, 'container', 'actual', 'source.js'), 'bravo\n');
+    writeFileSync(
+      join(root, 'container', 'actual', '.gitattributes'),
+      scenario === 'benign' ? '* text=auto\n' : '*.js filter=trap\n',
+    );
+    symlinkSync('container/deep', join(root, 'jump'), 'dir');
+    symlinkSync('jump/../actual', join(root, 'tracked'), 'dir');
+    for (const boundary of ['source', 'bundled'] as const)
+      expect(await collectEvidence(root, boundary, 'checkpoint')).toMatchObject(
+        scenario === 'benign'
+          ? { status: 'available' }
+          : { status: 'unavailable', reasonCode: 'attribute-safety' },
+      );
+  },
+);
+
+// POSIX preserves the repeated dot components that deliberately exhaust the resolver budget.
+test.skipIf(process.platform === 'win32')(
+  'directory-link expansion is iterative and bounded before worktree reads',
+  async () => {
+    const root = repository();
+    mkdirSync(join(root, 'tracked'));
+    writeFileSync(join(root, 'tracked', 'source.js'), 'alpha\n');
+    git(root, 'add', '--', 'tracked');
+    git(root, 'commit', '-m', 'Bounded link fixture');
+    rmSync(join(root, 'tracked'), { recursive: true });
+    mkdirSync(join(root, 'last'));
+    for (let index = 0; index < 64; index += 1)
+      symlinkSync(
+        './'.repeat(1024) + (index === 63 ? 'last' : `link-${index + 1}`),
+        join(root, `link-${index}`),
+        'dir',
+      );
+    symlinkSync('link-0', join(root, 'tracked'), 'dir');
+    const before = snapshot(join(root, '.git'));
+    for (const boundary of ['source', 'bundled'] as const)
+      expect(await collectEvidence(root, boundary, 'checkpoint')).toMatchObject({
+        status: 'unavailable',
+        reasonCode: 'output-limit',
+      });
+    expect(snapshot(join(root, '.git'))).toStrictEqual(before);
+  },
+);
 
 test('unborn repositories explicitly require conservative reassessment', () => {
   const result = runHelper(repository(false), 'checkpoint');

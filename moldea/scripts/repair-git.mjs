@@ -15,8 +15,8 @@ var REPAIR_GIT_ATTRIBUTE_BYTES = 32768;
 var REPAIR_GIT_ATTRIBUTE_PATHS = 65536;
 
 // src/portable/repair-git/repair-git.ts
-import { lstat as lstat2, realpath } from "node:fs/promises";
-import { dirname, isAbsolute as isAbsolute2, join as join2, resolve as resolve2 } from "node:path";
+import { lstat as lstat3, realpath as realpath2 } from "node:fs/promises";
+import { isAbsolute as isAbsolute3, join as join3, resolve as resolve3 } from "node:path";
 
 // node_modules/jg-exception/dist/shared/constants.js
 var UNKNOWN_ERROR_CODE = "UNKNOWN_ERROR";
@@ -588,8 +588,8 @@ var stopWindowsTree = async (child, pid) => {
   if (hasExited(child)) {
     return;
   }
-  await new Promise((resolve3) => {
-    execFile("taskkill", ["/PID", String(pid), "/T", "/F"], { timeout: WINDOWS_STOP_SECONDS * 1e3, windowsHide: true }, () => resolve3());
+  await new Promise((resolve4) => {
+    execFile("taskkill", ["/PID", String(pid), "/T", "/F"], { timeout: WINDOWS_STOP_SECONDS * 1e3, windowsHide: true }, () => resolve4());
   });
   if (!await waitFor(() => hasExited(child), WINDOWS_STOP_SECONDS * 1e3)) {
     throw treeSurvived(pid);
@@ -636,18 +636,18 @@ var destroyStdio = (child) => {
   child.stdout?.destroy();
   child.stderr?.destroy();
 };
-var waitForClose = (child, isClosed, milliseconds) => new Promise((resolve3) => {
+var waitForClose = (child, isClosed, milliseconds) => new Promise((resolve4) => {
   if (isClosed()) {
-    resolve3(true);
+    resolve4(true);
     return;
   }
   const onClose = () => {
     clearTimeout(timer);
-    resolve3(true);
+    resolve4(true);
   };
   const timer = setTimeout(() => {
     child.off("close", onClose);
-    resolve3(false);
+    resolve4(false);
   }, milliseconds);
   child.once("close", onClose);
 });
@@ -678,16 +678,16 @@ var runProcess = async (options) => {
   child.once("close", () => {
     isClosed = true;
   });
-  const outcome = await new Promise((resolve3) => {
+  const outcome = await new Promise((resolve4) => {
     let timer;
     const onAbort = () => {
       clearTimeout(timer);
-      resolve3({ kind: "failed", error: signal?.reason });
+      resolve4({ kind: "failed", error: signal?.reason });
     };
     const settle = (value) => {
       clearTimeout(timer);
       signal?.removeEventListener("abort", onAbort);
-      resolve3(value);
+      resolve4(value);
     };
     const collect = (chunks) => (chunk) => {
       outputBytes += chunk.length;
@@ -1014,47 +1014,130 @@ var createGitCommandOptions = (repositoryRoot2, configScope, maxOutputBytes) => 
 };
 var isGitCommandError = (error) => error instanceof GitCommandError || GIT_READ_ERROR_CODES.has(getErrorCode(error) ?? "");
 
-// src/portable/repair-git/repair-git.ts
+// src/portable/repair-git/attribute-safety.ts
+import { lstat as lstat2, readlink, realpath } from "node:fs/promises";
+import { basename as basename2, dirname, isAbsolute as isAbsolute2, join as join2, parse, relative as relative2, resolve as resolve2, sep as sep2 } from "node:path";
 import { readRepositoryFile } from "./repository-files.mjs";
-var OBJECT_ID_PATTERN2 = /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u;
-var LINKED_PARENT_ERROR_CODES = /* @__PURE__ */ new Set([
-  ERRORS.NOT_A_DIRECTORY,
-  ERRORS.PATH_NOT_CANONICAL,
-  ERRORS.PATH_OUTSIDE_ROOT
-]);
-var validateEvidencePath = (path) => {
-  if (path.length === 0 || isAbsolute2(path) || /^[a-z]:/iu.test(path) || path.includes("\0") || path.split("/").some((part) => !part || part === "." || part === "..")) {
-    throw new Error("Git returned unsupported repository path evidence.");
-  }
-  return path;
-};
-var validatePath = (path) => {
-  validateEvidencePath(path);
-  if (/[\\\p{Cc}]/u.test(path))
-    throw new Error("Written-file review path is excluded or unsupported.");
-  return path;
-};
-var createReadOptions = (repositoryRoot2, maxOutputBytes = REPAIR_GIT_OUTPUT_BYTES) => createGitCommandOptions(repositoryRoot2, "repository", maxOutputBytes);
-var readGit = async (repositoryRoot2, arguments_2) => {
-  const result = await runGit(arguments_2, {
-    cwd: repositoryRoot2,
-    encoding: "buffer",
-    ...createReadOptions(repositoryRoot2)
-  });
-  assertGitSucceeded(result, arguments_2[0] ?? "");
-  return result.stdout;
+var createDirectoryResolver = (repositoryRoot2) => {
+  const observations = /* @__PURE__ */ new Map([[repositoryRoot2, repositoryRoot2]]);
+  let operations = 0;
+  let observationBytes = 0;
+  const charge = (bytes = 0) => {
+    operations += 1;
+    observationBytes += bytes;
+    if (operations > REPAIR_GIT_ATTRIBUTE_PATHS || observationBytes > REPAIR_GIT_INDEX_BYTES)
+      throw new RangeError("Git attribute resolution exceeds its bounded inspection budget.");
+  };
+  return async (directory) => {
+    const frames = [];
+    const active = /* @__PURE__ */ new Set();
+    const push = (path) => {
+      if (!isPathWithin(repositoryRoot2, path))
+        throw new Error("Git attribute path escapes the repository.");
+      if (active.has(path)) throw new Error("Git attribute directory links form a cycle.");
+      charge(Buffer.byteLength(path));
+      active.add(path);
+      frames.push({ path, parent: dirname(path), cursor: 0 });
+    };
+    const finish = (frame, resolved) => {
+      observations.set(frame.path, resolved);
+      active.delete(frame.path);
+      frames.pop();
+    };
+    if (!observations.has(directory)) push(directory);
+    while (frames.length > 0) {
+      const frame = frames.at(-1);
+      if (!observations.has(frame.parent)) {
+        push(frame.parent);
+        continue;
+      }
+      if (frame.components === void 0) {
+        const parent = observations.get(frame.parent);
+        if (parent === null) {
+          finish(frame, null);
+          continue;
+        }
+        const candidate = join2(parent, basename2(frame.path));
+        let stat2;
+        try {
+          stat2 = await lstat2(candidate);
+        } catch (error) {
+          if (!(error instanceof Error && "code" in error && error.code === "ENOENT")) throw error;
+          finish(frame, null);
+          continue;
+        }
+        if (stat2.isDirectory()) {
+          finish(frame, candidate);
+          continue;
+        }
+        if (!stat2.isSymbolicLink())
+          throw new Error("Git attribute parent is not a supported directory.");
+        let target = await readlink(candidate);
+        if (process.platform === "win32" && target.startsWith("\\\\?\\")) {
+          target = target.slice(4);
+          if (target.slice(0, 4).toUpperCase() === "UNC\\") target = "\\\\" + target.slice(4);
+          if (!isAbsolute2(target))
+            throw new Error("Git attribute directory link uses an unsupported namespace.");
+        }
+        charge(Buffer.byteLength(target));
+        const targetRoot = parse(target).root;
+        const components = target.slice(targetRoot.length).split(process.platform === "win32" ? /[\\/]/u : sep2);
+        if (isAbsolute2(target)) {
+          const rootComponents = relative2(parse(repositoryRoot2).root, repositoryRoot2).split(sep2).filter(Boolean);
+          const prefixComponents = components.splice(0, rootComponents.length);
+          const prefix = join2(targetRoot, ...prefixComponents);
+          if (prefixComponents.some((component2) => component2 === "." || component2 === "..") || !isPathWithin(repositoryRoot2, prefix) || !isPathWithin(prefix, repositoryRoot2))
+            throw new Error("Git attribute directory link leaves the repository.");
+          frame.current = repositoryRoot2;
+        } else {
+          if (targetRoot) throw new Error("Git attribute directory link is ambiguous.");
+          frame.current = parent;
+        }
+        frame.components = components;
+      }
+      if (frame.pending !== void 0) {
+        const resolved = observations.get(frame.pending);
+        if (resolved === void 0 || resolved === null)
+          throw new Error("Git attribute directory link target is unavailable.");
+        frame.current = resolved;
+        delete frame.pending;
+        frame.cursor += 1;
+      }
+      const component = frame.components[frame.cursor];
+      if (component === void 0) {
+        finish(frame, frame.current);
+        continue;
+      }
+      charge();
+      if (component === "" || component === ".") {
+        frame.cursor += 1;
+        continue;
+      }
+      if (component === "..") {
+        const parent = dirname(frame.current);
+        if (!isPathWithin(repositoryRoot2, parent))
+          throw new Error("Git attribute directory link leaves the repository.");
+        frame.current = parent;
+        frame.cursor += 1;
+        continue;
+      }
+      frame.pending = join2(frame.current, component);
+      if (!observations.has(frame.pending)) push(frame.pending);
+    }
+    return observations.get(directory);
+  };
 };
 var hasStoredAttributeSource = async (repositoryRoot2) => {
   const result = await runGit(REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS, {
     cwd: repositoryRoot2,
     encoding: "buffer",
-    ...createReadOptions(repositoryRoot2)
+    ...createGitCommandOptions(repositoryRoot2, "repository", REPAIR_GIT_OUTPUT_BYTES)
   });
   if (result.exitCode === 1) return false;
   assertGitSucceeded(result, "config");
   return result.stdout.length > 0;
 };
-var assertAttributeSafety = async (repositoryRoot2) => {
+var assertAttributeSafety = async (repositoryRoot2, validateEvidencePath2) => {
   const gitPath = join2(repositoryRoot2, ".git");
   const gitStat = await lstat2(gitPath);
   let gitDirectory = gitPath;
@@ -1090,22 +1173,26 @@ var assertAttributeSafety = async (repositoryRoot2) => {
     throw new Error("Stored Git attribute sources cannot be verified safely.");
   const entries = await readIndexEntries(
     repositoryRoot2,
-    createReadOptions(repositoryRoot2, REPAIR_GIT_INDEX_BYTES)
+    createGitCommandOptions(repositoryRoot2, "repository", REPAIR_GIT_INDEX_BYTES)
   );
-  const paths = new Set(entries.map(({ path }) => validateEvidencePath(path)));
+  const paths = new Set(entries.map(({ path }) => validateEvidencePath2(path)));
+  if (paths.size > REPAIR_GIT_ATTRIBUTE_PATHS)
+    throw new RangeError("Git attribute inspection exceeds its path limit.");
+  const indexedAttributes = /* @__PURE__ */ new Set();
   const attributes = /* @__PURE__ */ new Set([join2(repositoryRoot2, ".gitattributes")]);
+  let attributePathBytes = Buffer.byteLength(join2(repositoryRoot2, ".gitattributes"));
   for (const path of paths) {
-    if (path.split("/").at(-1) === ".gitattributes") {
-      const attributePath = join2(repositoryRoot2, path);
-      if (!(await lstat2(attributePath)).isFile())
-        throw new Error("Git attribute fallback is unverified.");
-    }
+    if (path.split("/").at(-1) === ".gitattributes")
+      indexedAttributes.add(join2(repositoryRoot2, path));
     let directory = dirname(join2(repositoryRoot2, path));
     while (directory !== repositoryRoot2) {
       if (!isPathWithin(repositoryRoot2, directory))
         throw new Error("Git attribute path escapes the repository.");
       const attribute = join2(directory, ".gitattributes");
       if (attributes.has(attribute)) break;
+      attributePathBytes += Buffer.byteLength(attribute);
+      if (attributePathBytes > REPAIR_GIT_INDEX_BYTES)
+        throw new RangeError("Git attribute paths exceed their bounded inspection budget.");
       attributes.add(attribute);
       if (attributes.size > REPAIR_GIT_ATTRIBUTE_PATHS)
         throw new RangeError("Git attribute inspection exceeds its path limit.");
@@ -1113,32 +1200,79 @@ var assertAttributeSafety = async (repositoryRoot2) => {
     }
   }
   const infoAttributes = join2(commonDirectory, "info", "attributes");
+  attributePathBytes += Buffer.byteLength(infoAttributes);
   attributes.add(infoAttributes);
-  if (attributes.size > REPAIR_GIT_ATTRIBUTE_PATHS)
+  if (attributes.size > REPAIR_GIT_ATTRIBUTE_PATHS || attributePathBytes > REPAIR_GIT_INDEX_BYTES)
     throw new RangeError("Git attribute inspection exceeds its path limit.");
+  const resolveDirectory = createDirectoryResolver(repositoryRoot2);
+  const inspected = /* @__PURE__ */ new Map();
   let totalBytes = 0;
   for (const path of attributes) {
+    const isIndexed = indexedAttributes.has(path);
+    const directory = path === infoAttributes ? commonDirectory : await resolveDirectory(dirname(path));
+    if (directory === null) {
+      if (isIndexed) throw new Error("Git attribute fallback is unverified.");
+      continue;
+    }
+    const resolvedPath = path === infoAttributes ? path : join2(directory, ".gitattributes");
+    if (inspected.has(resolvedPath)) {
+      if (isIndexed && !inspected.get(resolvedPath))
+        throw new Error("Git attribute fallback is unverified.");
+      continue;
+    }
     let bytes;
     try {
       bytes = await readRepositoryFile(
         path === infoAttributes ? commonDirectory : repositoryRoot2,
-        path,
+        resolvedPath,
         REPAIR_GIT_ATTRIBUTE_BYTES,
         "reject"
       );
     } catch (error) {
-      if (error instanceof Error && "code" in error && error.code === "ENOENT") continue;
-      throw error;
+      if (!(error instanceof Error && "code" in error && error.code === "ENOENT")) throw error;
+      inspected.set(resolvedPath, false);
+      if (isIndexed) throw new Error("Git attribute fallback is unverified.", { cause: error });
+      continue;
     }
+    inspected.set(resolvedPath, true);
     totalBytes += bytes.length;
     if (totalBytes > REPAIR_GIT_OUTPUT_BYTES)
       throw new RangeError("Git attribute inspection exceeds its aggregate byte limit.");
-    if (bytes.includes(Buffer.from("filter"))) {
+    if (bytes.includes(Buffer.from("filter")))
       throw new Error(
         "Repository attribute safety is unavailable; no worktree Git read was performed."
       );
-    }
   }
+};
+
+// src/portable/repair-git/repair-git.ts
+var OBJECT_ID_PATTERN2 = /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u;
+var LINKED_PARENT_ERROR_CODES = /* @__PURE__ */ new Set([
+  ERRORS.NOT_A_DIRECTORY,
+  ERRORS.PATH_NOT_CANONICAL,
+  ERRORS.PATH_OUTSIDE_ROOT
+]);
+var validateEvidencePath = (path) => {
+  if (path.length === 0 || isAbsolute3(path) || /^[a-z]:/iu.test(path) || path.includes("\0") || path.split("/").some((part) => !part || part === "." || part === "..")) {
+    throw new Error("Git returned unsupported repository path evidence.");
+  }
+  return path;
+};
+var validatePath = (path) => {
+  validateEvidencePath(path);
+  if (/[\\\p{Cc}]/u.test(path))
+    throw new Error("Written-file review path is excluded or unsupported.");
+  return path;
+};
+var createReadOptions = (repositoryRoot2, maxOutputBytes = REPAIR_GIT_OUTPUT_BYTES) => createGitCommandOptions(repositoryRoot2, "repository", maxOutputBytes);
+var readGit = async (repositoryRoot2, arguments_2) => {
+  const result = await runGit(arguments_2, {
+    cwd: repositoryRoot2,
+    encoding: "buffer",
+    ...createReadOptions(repositoryRoot2)
+  });
+  assertGitSucceeded(result, arguments_2[0] ?? "");
+  return result.stdout;
 };
 var readCheckpointStatus = async (repositoryRoot2) => {
   const { commit, entries } = await readStatus(repositoryRoot2, createReadOptions(repositoryRoot2));
@@ -1151,10 +1285,10 @@ var readCheckpointStatus = async (repositoryRoot2) => {
 var collectRepairGitEvidence = async (options) => {
   let reasonCode = "arguments";
   try {
-    if (!isAbsolute2(options.repositoryRoot))
+    if (!isAbsolute3(options.repositoryRoot))
       throw new Error("An absolute repository root is required.");
-    const repositoryRoot2 = await realpath(resolve2(options.repositoryRoot));
-    if (!(await lstat2(repositoryRoot2)).isDirectory())
+    const repositoryRoot2 = await realpath2(resolve3(options.repositoryRoot));
+    if (!(await lstat3(repositoryRoot2)).isDirectory())
       throw new Error("A repository directory is required.");
     if (["continue", "verify"].includes(options.mode) && !OBJECT_ID_PATTERN2.test(options.checkpoint ?? "")) {
       throw new Error("Continuation requires the supplied full checkpoint object ID.");
@@ -1165,16 +1299,16 @@ var collectRepairGitEvidence = async (options) => {
     if (options.mode === "review" !== paths.length > 0)
       throw new Error("Only written-file review accepts literal paths.");
     for (const path of paths) {
-      if (!isPathWithin(repositoryRoot2, resolve2(repositoryRoot2, path)))
+      if (!isPathWithin(repositoryRoot2, resolve3(repositoryRoot2, path)))
         throw new Error("Written-file review path escapes the repository.");
       try {
-        await assertNoLinksBelow(repositoryRoot2, join2(repositoryRoot2, path));
+        await assertNoLinksBelow(repositoryRoot2, join3(repositoryRoot2, path));
       } catch (error) {
         if (!LINKED_PARENT_ERROR_CODES.has(getErrorCode(error) ?? "")) throw error;
         throw new Error("Written-file review cannot follow directory links.", { cause: error });
       }
       try {
-        const stat2 = await lstat2(join2(repositoryRoot2, path));
+        const stat2 = await lstat3(join3(repositoryRoot2, path));
         if (!stat2.isFile())
           throw new Error("Written-file review requires regular files or deleted paths.");
       } catch (error) {
@@ -1182,7 +1316,7 @@ var collectRepairGitEvidence = async (options) => {
       }
     }
     reasonCode = "attribute-safety";
-    await assertAttributeSafety(repositoryRoot2);
+    await assertAttributeSafety(repositoryRoot2, validateEvidencePath);
     reasonCode = "git-read";
     if (options.mode === "verify" || options.mode === "continue") {
       if (await resolveCommit(

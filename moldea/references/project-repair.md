@@ -12,6 +12,8 @@ node <installed-skill-root>/scripts/repair-git.mjs --repository <absolute-reposi
 
 The helper inspects bounded repository attributes before status or diff, conservatively refuses any attribute file that mentions `filter`, including Git LFS declarations, and unverified attribute fallbacks, disables configured helpers, never fetches missing objects or contacts a remote, and captures the full commit and NUL-delimited path evidence without Git writes. It uses the host's Git executable boundary. An `attribute-safety` or `arguments` limitation stops Git-dependent repair; report it and use only the bounded inert foundation diagnosis below. Report `attribute-safety` as a helper limitation, not as evidence of an unsafe repository. Never bypass the helper or retry unchanged failure.
 
+Attribute inspection supports directory symlinks and Windows junctions only when every resolved target stays inside the repository. It checks the attributes beneath the resolved directories and preserves indexed-attribute fallback refusal. Escaping, dangling, cyclic, unsupported, or over-budget paths and linked attribute files remain unavailable evidence. Keep installer-managed links, tracked descendants, and ignore rules intact; do not remove tracked skills to work around a checkpoint failure. Explicit written-file review still refuses linked parents. These are cooperative reads of a trusted tree, not protection against hostile concurrent replacement.
+
 For continuation with a supplied full checkpoint commit, use:
 
 ```text

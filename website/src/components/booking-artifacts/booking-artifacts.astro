@@ -4,7 +4,6 @@ import CodeBlock from '@moldea.ai/website-ui/code-block';
 import CodeDiff from '@moldea.ai/website-ui/code-diff';
 import Dialog from '@moldea.ai/website-ui/dialog';
 import FilePreview from '@moldea.ai/website-ui/file-preview';
-import { renderMarkdownFragment } from '@moldea.ai/website-ui/markdown';
 
 import { BOOKING_EXAMPLE, BOOKING_EXAMPLE_BEFORE_FILES } from '../../lib/booking-example/index.ts';
 import { ArtifactLabel } from '../agent-artifacts/index.ts';
@@ -20,25 +19,18 @@ const entries = [
   { kind: 'directory', label: 'context/', depth: 1 },
   { kind: 'file', id: 'policy', depth: 2 },
 ] as const;
-const files = await Promise.all(
-  Object.values(BOOKING_EXAMPLE.files)
-    .filter((file) => file.id !== 'tests')
-    .map(async (file) => {
-      const before = BOOKING_EXAMPLE_BEFORE_FILES[file.path];
-      const status: 'Added' | 'Modified' | 'Unchanged' =
-        before === undefined ? 'Added' : before === file.source ? 'Unchanged' : 'Modified';
-      return {
-        ...file,
-        status,
-        before,
-        // keep the embedded file title below the dialog heading in the page outline
-        html:
-          file.language === 'markdown'
-            ? await renderMarkdownFragment(file.source.replace(/^# /u, '### '))
-            : null,
-      };
-    }),
-);
+const files = Object.values(BOOKING_EXAMPLE.files)
+  .filter((file) => file.id !== 'tests')
+  .map((file) => {
+    const before = BOOKING_EXAMPLE_BEFORE_FILES[file.path];
+    const status: 'Added' | 'Modified' | 'Unchanged' =
+      before === undefined ? 'Added' : before === file.source ? 'Unchanged' : 'Modified';
+    return {
+      ...file,
+      status,
+      before,
+    };
+  });
 ---
 
 <ul
@@ -115,19 +107,13 @@ const files = await Promise.all(
                       />
                     ) : (
                       <div class="p-4">
-                        {file.html === null ? (
-                          <CodeBlock
-                            source={file.source}
-                            language={file.language}
-                            copyable={false}
-                            variant="plain"
-                          />
-                        ) : (
-                          <div
-                            class="prose-moldea text-sm"
-                            set:html={file.html}
-                          />
-                        )}
+                        <CodeBlock
+                          ariaLabel={`${file.label} source`}
+                          source={file.source}
+                          language={file.language}
+                          copyable={false}
+                          variant="plain"
+                        />
                       </div>
                     )}
                   </FilePreview>

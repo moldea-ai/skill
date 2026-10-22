@@ -18,6 +18,59 @@ const BOOKING_FILE_STATUSES = {
   policy: 'unchanged',
 } as const;
 
+for (const width of [320, 1440]) {
+  for (const colorScheme of ['light', 'dark'] as const) {
+    test(`preserves booking policy Markdown source at ${width}px in ${colorScheme}`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' });
+      await page.goto(route);
+      const file = BOOKING_EXAMPLE.files.policy;
+      const trigger = page.getByRole('button', {
+        name: `Open ${file.path}, unchanged`,
+        exact: true,
+      });
+      await trigger.focus();
+      await trigger.press('Enter');
+      const dialog = page.getByRole('dialog', { name: file.label, exact: true });
+      const source = dialog.getByRole('group', { name: `${file.label} source`, exact: true });
+      await expect(source).toBeVisible();
+      expect(await source.locator('code').textContent()).toBe(file.source);
+      await expect(source.locator('code')).toHaveCSS('white-space', 'pre-wrap');
+      await expect(source.getByRole('heading')).toHaveCount(0);
+      await expect(dialog.getByRole('button', { name: /Copy/u })).toHaveCount(0);
+      const unfocusedShadow = await source.evaluate(
+        (element) => getComputedStyle(element).boxShadow,
+      );
+      await source.focus();
+      await expect(source).toBeFocused();
+      await expect(source).not.toHaveCSS('box-shadow', unfocusedShadow);
+      const selected = await source.locator('code').evaluate((element) => {
+        const selection = window.getSelection()!;
+        const range = document.createRange();
+        range.selectNodeContents(element);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        const text = selection.toString();
+        selection.removeAllRanges();
+        return text;
+      });
+      expect(selected).toBe(file.source);
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+        ),
+      ).toBe(true);
+      expect(
+        (await new AxeBuilder({ page }).include('dialog[open]').analyze()).violations,
+      ).toStrictEqual([]);
+      await page.keyboard.press('Escape');
+      await expect(trigger).toBeFocused();
+    });
+  }
+}
+
 /** Returns the exact responsive font size owned by Website UI's page-title role. */
 const getPageTitleFontSize = (width: number): number => {
   if (width >= 1024) return 60;
@@ -315,11 +368,18 @@ test('opens the booking project files with the keyboard and returns focus on mob
           expect(before.join('\n')).toBe(BOOKING_EXAMPLE_BEFORE_FILES[file.path]!.trimEnd());
           expect(after.join('\n')).toBe(file.source.trimEnd());
           await expect(diff.locator('[data-diff-line="added"]')).not.toHaveCount(0);
+          if (file.id === 'service') {
+            await expect(diff.locator('[data-moldea-diff-change]')).toHaveCount(0);
+          }
         } else if (file.language === 'typescript') {
           await expect(dialog.locator('pre')).toHaveText(file.source);
         } else {
-          await expect(dialog.getByRole('heading', { level: 3 })).toBeVisible();
-          await expect(dialog).toContainText('staff');
+          expect(
+            await dialog
+              .getByRole('group', { name: `${file.label} source` })
+              .locator('code')
+              .textContent(),
+          ).toBe(file.source);
         }
         expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(320);
         const accessibilityResults = await new AxeBuilder({ page }).analyze();

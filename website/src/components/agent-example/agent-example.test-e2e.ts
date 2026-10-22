@@ -7,6 +7,7 @@ import {
   LANDING_EXAMPLE,
   LANDING_EXAMPLE_INITIAL_FILES,
   LANDING_EXAMPLE_BEFORE_AGENT_FILES,
+  LANDING_EXAMPLE_HERO_SOURCES,
 } from '../../lib/landing-example/index.ts';
 
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
@@ -31,6 +32,67 @@ const unchangedPaths: readonly string[] = [
 ];
 const getTriggerName = (path: string): string =>
   `Open ${path.slice(1)}, ${unchangedPaths.includes(path) ? 'unchanged' : modifiedPaths.includes(path) ? 'modified' : 'added'}`;
+
+for (const width of [320, 1440]) {
+  for (const colorScheme of ['light', 'dark'] as const) {
+    for (const name of [
+      'Instructions',
+      'Refund policy',
+      'Project context',
+      'Agent description',
+    ] as const) {
+      test(`preserves ${name} Markdown source at ${width}px in ${colorScheme}`, async ({
+        page,
+      }) => {
+        await page.setViewportSize({ width, height: 900 });
+        await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' });
+        await page.goto(toPublicPath('/'));
+        const path = artifactPaths[name];
+        const trigger = page.getByRole('button', { name: getTriggerName(path), exact: true });
+        await trigger.focus();
+        await trigger.press('Enter');
+        const dialog = page.getByRole('dialog', { name, exact: true });
+        const source = dialog.getByRole('group', { name: `${name} source`, exact: true });
+        const expectedSource =
+          LANDING_EXAMPLE_HERO_SOURCES[path] ??
+          getLandingExampleFile(LANDING_EXAMPLE_INITIAL_FILES, path);
+        await expect(source).toBeVisible();
+        expect(await source.locator('code').textContent()).toBe(expectedSource);
+        await expect(source.locator('code')).toHaveCSS('white-space', 'pre-wrap');
+        await expect(source.getByRole('heading')).toHaveCount(0);
+        await expect(dialog.getByRole('button', { name: /Copy/u })).toHaveCount(0);
+        const unfocusedShadow = await source.evaluate(
+          (element) => getComputedStyle(element).boxShadow,
+        );
+        await source.focus();
+        await expect(source).toBeFocused();
+        await expect(source).not.toHaveCSS('box-shadow', unfocusedShadow);
+        const selected = await source.locator('code').evaluate((element) => {
+          const selection = window.getSelection()!;
+          const range = document.createRange();
+          range.selectNodeContents(element);
+          selection.removeAllRanges();
+          selection.addRange(range);
+          const text = selection.toString();
+          selection.removeAllRanges();
+          return text;
+        });
+        // browser selection omits an empty final line; textContent above preserves the source newline
+        expect(selected).toBe(expectedSource.replace(/\n$/u, ''));
+        expect(
+          await page.evaluate(
+            () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+          ),
+        ).toBe(true);
+        expect(
+          (await new AxeBuilder({ page }).include('dialog[open]').analyze()).violations,
+        ).toStrictEqual([]);
+        await page.keyboard.press('Escape');
+        await expect(trigger).toBeFocused();
+      });
+    }
+  }
+}
 
 test('keeps change markers beside the file path at mobile and desktop widths', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -140,20 +202,27 @@ test('shows generated artifacts inside the developer and coding agent conversati
     await expect(dialog.locator('[data-file-preview]')).toHaveCount(1);
     const preview = dialog.locator('[data-code-block] pre');
     if (await preview.count()) {
-      const source = await preview.innerText();
-      if (name === 'Connections') {
-        expect(source.trimEnd()).toBe(
-          getLandingExampleFile(
-            LANDING_EXAMPLE_INITIAL_FILES,
-            LANDING_EXAMPLE.paths.manifest,
-          ).trimEnd(),
+      const source = (await preview.locator('code').textContent())!;
+      if (artifactPaths[name].endsWith('.md')) {
+        expect(source).toBe(
+          LANDING_EXAMPLE_HERO_SOURCES[artifactPaths[name]] ??
+            getLandingExampleFile(LANDING_EXAMPLE_INITIAL_FILES, artifactPaths[name]),
         );
       } else {
-        expect(source.trimEnd().split('\n').length).toBeLessThanOrEqual(
-          name === 'Order lookup' ? 16 : 8,
-        );
+        if (name === 'Connections') {
+          expect(source.trimEnd()).toBe(
+            getLandingExampleFile(
+              LANDING_EXAMPLE_INITIAL_FILES,
+              LANDING_EXAMPLE.paths.manifest,
+            ).trimEnd(),
+          );
+        } else {
+          expect(source.trimEnd().split('\n').length).toBeLessThanOrEqual(
+            name === 'Order lookup' ? 16 : 8,
+          );
+        }
+        expect(source).not.toMatch(/^import |^export type |^@@|^[+-]/mu);
       }
-      expect(source).not.toMatch(/^import |^export type |^@@|^[+-]/mu);
     }
     if (name === 'Contracts') {
       await expect(dialog).toContainText('SupportOutput = z.strictObject');

@@ -15803,6 +15803,17 @@ config(en_default());
 
 // node_modules/jg-fs/dist/shared/paths.js
 import { basename, extname, isAbsolute, relative, resolve, sep } from "node:path";
+
+// node_modules/jg-exception/dist/error-handler/index.js
+var getErrorCode = (error48) => {
+  if (typeof error48 !== "object" || error48 === null) {
+    return null;
+  }
+  const { code } = error48;
+  return typeof code === "string" && code.length > 0 ? code : null;
+};
+
+// node_modules/jg-fs/dist/shared/paths.js
 var isPathWithin = (rootPath, targetPath) => {
   const relativePath = relative(resolve(rootPath), resolve(targetPath));
   return relativePath === "" || relativePath !== ".." && !relativePath.startsWith(`..${sep}`) && !isAbsolute(relativePath);
@@ -15822,6 +15833,7 @@ var ProjectPackageManifestSchema = external_exports.object({
 var CliPackageManifestSchema = external_exports.object({
   bin: external_exports.object({ moldea: external_exports.string() }),
   dependencies: external_exports.record(external_exports.string(), external_exports.string()),
+  engines: external_exports.object({ node: external_exports.string() }),
   name: external_exports.string(),
   version: external_exports.string()
 });
@@ -15829,6 +15841,7 @@ var CorePackageManifestSchema = external_exports.object({
   name: external_exports.string(),
   version: external_exports.string()
 });
+var MISSING_CLI_MESSAGE = "The moldea CLI is not installed in this repository: node_modules/@moldea.ai/cli is missing. Install the repository dependencies, then retry.";
 var parseStableVersion = (version2) => {
   const match = typeof version2 === "string" ? STABLE_VERSION_PATTERN.exec(version2) : null;
   if (match?.[1] === void 0 || match[2] === void 0 || match[3] === void 0) return null;
@@ -15863,6 +15876,16 @@ var readBoundedJson = async (repositoryRoot, filePath) => {
   const bytes = await readRepositoryFile(repositoryRoot, filePath, MAXIMUM_PACKAGE_MANIFEST_BYTES);
   return JSON.parse(utf8Decoder.decode(bytes));
 };
+var resolveInstalledPath = async (installedPath) => {
+  try {
+    return await realpath(installedPath);
+  } catch (error48) {
+    if (getErrorCode(error48) === "ENOENT") {
+      throw new Error(MISSING_CLI_MESSAGE, { cause: error48 });
+    }
+    throw error48;
+  }
+};
 var resolveRepositoryCli = async (repositoryRoot) => {
   if (!isAbsolute2(repositoryRoot)) {
     throw new Error("The repository root must be absolute.");
@@ -15876,11 +15899,11 @@ var resolveRepositoryCli = async (repositoryRoot) => {
     await readBoundedJson(resolvedRepositoryRoot, join(resolvedRepositoryRoot, "package.json"))
   );
   const declaredCliRange = projectManifest.devDependencies?.["@moldea.ai/cli"];
-  const nodeModulesRoot = await realpath(join(resolvedRepositoryRoot, "node_modules"));
+  const nodeModulesRoot = await resolveInstalledPath(join(resolvedRepositoryRoot, "node_modules"));
   if (nodeModulesRoot === resolvedRepositoryRoot || !isPathWithin(resolvedRepositoryRoot, nodeModulesRoot)) {
     throw new Error("The dependency directory escaped the repository.");
   }
-  const cliRoot = await realpath(join(nodeModulesRoot, "@moldea.ai", "cli"));
+  const cliRoot = await resolveInstalledPath(join(nodeModulesRoot, "@moldea.ai", "cli"));
   if (!isPathWithin(nodeModulesRoot, cliRoot)) {
     throw new Error("The CLI package escaped repository dependencies.");
   }
@@ -15890,6 +15913,11 @@ var resolveRepositoryCli = async (repositoryRoot) => {
   const cliBinaryDeclaration = cliManifest.bin.moldea;
   if (cliManifest.name !== "@moldea.ai/cli" || !isSupportedCliDeclaration(declaredCliRange, cliManifest.version) || cliBinaryDeclaration !== "./dist/moldea.js") {
     throw new Error("The repository declares an unsupported CLI package closure.");
+  }
+  if (!import_semver.default.satisfies(process.versions.node, cliManifest.engines.node)) {
+    throw new Error(
+      `Node.js ${process.versions.node} is unsupported by @moldea.ai/cli ${cliManifest.version}, which requires Node.js ${cliManifest.engines.node}.`
+    );
   }
   const cliBinaryPath = await realpath(join(cliRoot, cliBinaryDeclaration));
   if (!isPathWithin(cliRoot, cliBinaryPath) || !(await lstat(cliBinaryPath)).isFile() || relative2(cliRoot, cliBinaryPath).split(sep2).join("/") !== "dist/moldea.js") {

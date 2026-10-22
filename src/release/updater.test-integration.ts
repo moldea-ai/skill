@@ -110,6 +110,7 @@ const installSyntheticRuntime = (
     `${JSON.stringify({
       bin: { moldea: './dist/moldea.js' },
       dependencies: cliDependencies,
+      engines: { node: '>=22.17.0' },
       moldeaRelease: { cliJsonSchemaVersion: schemaVersion },
       name: '@moldea.ai/cli',
       version: cliVersion,

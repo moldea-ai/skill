@@ -1018,7 +1018,11 @@ var isGitCommandError = (error) => error instanceof GitCommandError || GIT_READ_
 import { lstat as lstat2, readlink, realpath } from "node:fs/promises";
 import { basename as basename2, dirname, isAbsolute as isAbsolute2, join as join2, parse, relative as relative2, resolve as resolve2, sep as sep2 } from "node:path";
 import { readRepositoryFile } from "./repository-files.mjs";
-var createDirectoryResolver = (repositoryRoot2) => {
+var createDirectoryResolver = (repositoryRoot2, suppliedRepositoryRoot) => {
+  const trustedRoots = [.../* @__PURE__ */ new Set([repositoryRoot2, suppliedRepositoryRoot])].map((path) => ({
+    path,
+    components: relative2(parse(path).root, path).split(sep2).filter(Boolean).length
+  }));
   const observations = /* @__PURE__ */ new Map([[repositoryRoot2, repositoryRoot2]]);
   let operations = 0;
   let observationBytes = 0;
@@ -1083,11 +1087,14 @@ var createDirectoryResolver = (repositoryRoot2) => {
         const targetRoot = parse(target).root;
         const components = target.slice(targetRoot.length).split(process.platform === "win32" ? /[\\/]/u : sep2);
         if (isAbsolute2(target)) {
-          const rootComponents = relative2(parse(repositoryRoot2).root, repositoryRoot2).split(sep2).filter(Boolean);
-          const prefixComponents = components.splice(0, rootComponents.length);
-          const prefix = join2(targetRoot, ...prefixComponents);
-          if (prefixComponents.some((component2) => component2 === "." || component2 === "..") || !isPathWithin(repositoryRoot2, prefix) || !isPathWithin(prefix, repositoryRoot2))
+          const trustedRoot = trustedRoots.find(({ path, components: count }) => {
+            const prefixComponents = components.slice(0, count);
+            const prefix = join2(targetRoot, ...prefixComponents);
+            return !prefixComponents.some((component2) => component2 === "." || component2 === "..") && isPathWithin(path, prefix) && isPathWithin(prefix, path);
+          });
+          if (trustedRoot === void 0)
             throw new Error("Git attribute directory link leaves the repository.");
+          components.splice(0, trustedRoot.components);
           frame.current = repositoryRoot2;
         } else {
           if (targetRoot) throw new Error("Git attribute directory link is ambiguous.");
@@ -1137,7 +1144,7 @@ var hasStoredAttributeSource = async (repositoryRoot2) => {
   assertGitSucceeded(result, "config");
   return result.stdout.length > 0;
 };
-var assertAttributeSafety = async (repositoryRoot2, validateEvidencePath2) => {
+var assertAttributeSafety = async (repositoryRoot2, validateEvidencePath2, suppliedRepositoryRoot) => {
   const gitPath = join2(repositoryRoot2, ".git");
   const gitStat = await lstat2(gitPath);
   let gitDirectory = gitPath;
@@ -1204,7 +1211,7 @@ var assertAttributeSafety = async (repositoryRoot2, validateEvidencePath2) => {
   attributes.add(infoAttributes);
   if (attributes.size > REPAIR_GIT_ATTRIBUTE_PATHS || attributePathBytes > REPAIR_GIT_INDEX_BYTES)
     throw new RangeError("Git attribute inspection exceeds its path limit.");
-  const resolveDirectory = createDirectoryResolver(repositoryRoot2);
+  const resolveDirectory = createDirectoryResolver(repositoryRoot2, suppliedRepositoryRoot);
   const inspected = /* @__PURE__ */ new Map();
   let totalBytes = 0;
   for (const path of attributes) {
@@ -1287,7 +1294,8 @@ var collectRepairGitEvidence = async (options) => {
   try {
     if (!isAbsolute3(options.repositoryRoot))
       throw new Error("An absolute repository root is required.");
-    const repositoryRoot2 = await realpath2(resolve3(options.repositoryRoot));
+    const suppliedRepositoryRoot = resolve3(options.repositoryRoot);
+    const repositoryRoot2 = await realpath2(suppliedRepositoryRoot);
     if (!(await lstat3(repositoryRoot2)).isDirectory())
       throw new Error("A repository directory is required.");
     if (["continue", "verify"].includes(options.mode) && !OBJECT_ID_PATTERN2.test(options.checkpoint ?? "")) {
@@ -1316,7 +1324,7 @@ var collectRepairGitEvidence = async (options) => {
       }
     }
     reasonCode = "attribute-safety";
-    await assertAttributeSafety(repositoryRoot2, validateEvidencePath);
+    await assertAttributeSafety(repositoryRoot2, validateEvidencePath, suppliedRepositoryRoot);
     reasonCode = "git-read";
     if (options.mode === "verify" || options.mode === "continue") {
       if (await resolveCommit(

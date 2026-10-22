@@ -28,10 +28,21 @@ import { collectRepairGitEvidence } from './repair-git.ts';
 import type { IRepairGitEvidence } from './types.ts';
 
 const roots: string[] = [];
+// fixture writes must finish without background maintenance changing snapshot evidence.
 const git = (root: string, ...arguments_: string[]): string => {
   const result = spawnSync(
     'git',
-    ['-c', 'core.hooksPath=/dev/null', '-c', 'commit.gpgsign=false', ...arguments_],
+    [
+      '-c',
+      'core.hooksPath=/dev/null',
+      '-c',
+      'commit.gpgsign=false',
+      '-c',
+      'maintenance.auto=false',
+      '-c',
+      'gc.auto=0',
+      ...arguments_,
+    ],
     {
       cwd: root,
       encoding: 'utf8',
@@ -177,6 +188,46 @@ test.each(['source', 'bundled'] as const)(
     if (continuation.status !== 'available') throw new Error('Expected overlay evidence.');
     expect(continuation.changedPaths).toContain('.agents/skills/jg-menu/instructions.md');
     expect(continuation.manifestDiff).toContain('+context: {}');
+    expect(snapshot(join(root, '.git'))).toStrictEqual(before);
+  },
+);
+
+test.each(['source', 'bundled'] as const)(
+  'contained absolute targets retain the verified supplied root alias through %s',
+  async (boundary) => {
+    const root = repository();
+    const aliasParent = mkdtempSync(join(tmpdir(), 'moldea-repair-root-alias-'));
+    roots.push(aliasParent);
+    const alias = join(aliasParent, 'repository');
+    const linkType = process.platform === 'win32' ? 'junction' : 'dir';
+    symlinkSync(root, alias, linkType);
+    expect((await collectEvidence(alias, boundary, 'checkpoint')).status).toBe('available');
+    mkdirSync(join(root, 'tracked'));
+    writeFileSync(join(root, 'tracked', 'source.js'), 'alpha\n');
+    git(root, 'add', '--', 'tracked');
+    git(root, 'commit', '-m', 'Root alias overlay fixture');
+    rmSync(join(root, 'tracked'), { recursive: true });
+    mkdirSync(join(root, 'actual'));
+    writeFileSync(join(root, 'actual', 'source.js'), 'bravo\n');
+    const target = join(alias, 'actual');
+    symlinkSync(target, join(root, 'tracked'), linkType);
+    const storedTarget = readlinkSync(join(root, 'tracked'));
+    const before = snapshot(join(root, '.git'));
+    const checkpoint = await collectEvidence(alias, boundary, 'checkpoint');
+    expect(checkpoint.status, JSON.stringify(checkpoint)).toBe('available');
+    const continuation = await collectEvidence(
+      alias,
+      boundary,
+      'continue',
+      git(root, 'rev-parse', 'HEAD'),
+    );
+    expect(continuation.status, JSON.stringify(continuation)).toBe('available');
+    expect(readlinkSync(join(root, 'tracked'))).toBe(storedTarget);
+    // a different alias is not trusted just because following it could return inside.
+    expect(await collectEvidence(root, boundary, 'checkpoint')).toMatchObject({
+      status: 'unavailable',
+      reasonCode: 'attribute-safety',
+    });
     expect(snapshot(join(root, '.git'))).toStrictEqual(before);
   },
 );
@@ -359,9 +410,10 @@ test.skipIf(process.platform === 'win32')(
     git(root, 'commit', '-m', 'Bounded link fixture');
     rmSync(join(root, 'tracked'), { recursive: true });
     mkdirSync(join(root, 'last'));
-    for (let index = 0; index < 64; index += 1)
+    // retain 65,536 dot components while keeping individual symlink targets short on macOS.
+    for (let index = 0; index < 256; index += 1)
       symlinkSync(
-        './'.repeat(1024) + (index === 63 ? 'last' : `link-${index + 1}`),
+        './'.repeat(256) + (index === 255 ? 'last' : `link-${index + 1}`),
         join(root, `link-${index}`),
         'dir',
       );

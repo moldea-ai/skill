@@ -29,7 +29,12 @@ type IDirectoryFrame = {
  * Resolves directory links without normalizing away components before inspecting them.
  * The cache and traversal budget belong to one attribute inspection, not persistent state.
  */
-const createDirectoryResolver = (repositoryRoot: string) => {
+const createDirectoryResolver = (repositoryRoot: string, suppliedRepositoryRoot: string) => {
+  // the caller verified that both spellings resolve to this same physical repository.
+  const trustedRoots = [...new Set([repositoryRoot, suppliedRepositoryRoot])].map((path) => ({
+    path,
+    components: relative(parse(path).root, path).split(sep).filter(Boolean).length,
+  }));
   const observations = new Map<string, string | null>([[repositoryRoot, repositoryRoot]]);
   let operations = 0;
   let observationBytes = 0;
@@ -98,17 +103,18 @@ const createDirectoryResolver = (repositoryRoot: string) => {
           .slice(targetRoot.length)
           .split(process.platform === 'win32' ? /[\\/]/u : sep);
         if (isAbsolute(target)) {
-          const rootComponents = relative(parse(repositoryRoot).root, repositoryRoot)
-            .split(sep)
-            .filter(Boolean);
-          const prefixComponents = components.splice(0, rootComponents.length);
-          const prefix = join(targetRoot, ...prefixComponents);
-          if (
-            prefixComponents.some((component) => component === '.' || component === '..') ||
-            !isPathWithin(repositoryRoot, prefix) ||
-            !isPathWithin(prefix, repositoryRoot)
-          )
+          const trustedRoot = trustedRoots.find(({ path, components: count }) => {
+            const prefixComponents = components.slice(0, count);
+            const prefix = join(targetRoot, ...prefixComponents);
+            return (
+              !prefixComponents.some((component) => component === '.' || component === '..') &&
+              isPathWithin(path, prefix) &&
+              isPathWithin(prefix, path)
+            );
+          });
+          if (trustedRoot === undefined)
             throw new Error('Git attribute directory link leaves the repository.');
+          components.splice(0, trustedRoot.components);
           frame.current = repositoryRoot;
         } else {
           if (targetRoot) throw new Error('Git attribute directory link is ambiguous.');
@@ -167,12 +173,14 @@ const hasStoredAttributeSource = async (repositoryRoot: string): Promise<boolean
 
 /**
  * Refuses executable attributes and unseen index fallbacks before worktree-aware Git reads.
+ * @param suppliedRepositoryRoot The absolute spelling already resolved to repositoryRoot by the caller.
  * @returns A promise that resolves once every relevant attribute source is verified.
  * @throws If attribute inspection is unsafe, exceeds a limit, or a Git read fails.
  */
 export const assertAttributeSafety = async (
   repositoryRoot: string,
   validateEvidencePath: (path: string) => string,
+  suppliedRepositoryRoot: string,
 ): Promise<void> => {
   const gitPath = join(repositoryRoot, '.git');
   const gitStat = await lstat(gitPath);
@@ -246,7 +254,7 @@ export const assertAttributeSafety = async (
   attributes.add(infoAttributes);
   if (attributes.size > REPAIR_GIT_ATTRIBUTE_PATHS || attributePathBytes > REPAIR_GIT_INDEX_BYTES)
     throw new RangeError('Git attribute inspection exceeds its path limit.');
-  const resolveDirectory = createDirectoryResolver(repositoryRoot);
+  const resolveDirectory = createDirectoryResolver(repositoryRoot, suppliedRepositoryRoot);
   const inspected = new Map<string, boolean>();
   let totalBytes = 0;
   for (const path of attributes) {

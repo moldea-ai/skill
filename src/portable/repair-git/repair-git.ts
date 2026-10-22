@@ -95,7 +95,8 @@ export const collectRepairGitEvidence = async (
   try {
     if (!isAbsolute(options.repositoryRoot))
       throw new Error('An absolute repository root is required.');
-    const repositoryRoot = await realpath(resolve(options.repositoryRoot));
+    const suppliedRepositoryRoot = resolve(options.repositoryRoot);
+    const repositoryRoot = await realpath(suppliedRepositoryRoot);
     if (!(await lstat(repositoryRoot)).isDirectory())
       throw new Error('A repository directory is required.');
     if (
@@ -127,7 +128,7 @@ export const collectRepairGitEvidence = async (
       }
     }
     reasonCode = 'attribute-safety';
-    await assertAttributeSafety(repositoryRoot, validateEvidencePath);
+    await assertAttributeSafety(repositoryRoot, validateEvidencePath, suppliedRepositoryRoot);
     reasonCode = 'git-read';
     if (options.mode === 'verify' || options.mode === 'continue') {
       if (

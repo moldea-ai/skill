@@ -1073,6 +1073,33 @@ test('repair conflict, missing tooling, and healthy state retain distinct outcom
   assert.equal(validation.status, 'valid');
 });
 
+test('the uninstalled checkout still matches its scheduler relationship while the launcher refuses', async () => {
+  const { repositoryPath } = await materializeCase('ordinary-hit-launcher-unavailable', true);
+  assert.equal(existsSync(join(repositoryPath, 'node_modules')), false);
+  assert.equal(gateResult(repositoryPath, ['src/cleanup-scheduler.js']), '1\n');
+  const unavailable = spawnSync(
+    process.execPath,
+    [
+      LAUNCHER_PATH,
+      '--repository',
+      repositoryPath,
+      '--',
+      'scope',
+      '--paths-stdin',
+      '--json',
+      '--max-output-bytes',
+      '65536',
+    ],
+    { encoding: 'utf8', input: 'src/cleanup-scheduler.js\0' },
+  );
+  assert.equal(unavailable.status, 3);
+  assert.equal(unavailable.stdout, '');
+  assert.match(
+    unavailable.stderr,
+    /The moldea CLI is not installed in this repository: node_modules\/@moldea\.ai\/cli is missing\. Install the repository dependencies, then retry\./u,
+  );
+});
+
 test.each([
   ['repair-connection-drift', '/src/support-agent.js'],
   ['maintain-bound-connection', '/src/support/loaders/instruction-loader.js'],

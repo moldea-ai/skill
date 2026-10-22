@@ -56,6 +56,7 @@ const createScopeFixture = () => {
       type: 'module',
       bin: { moldea: './dist/moldea.js' },
       dependencies: { '@moldea.ai/core': coreVersionRange },
+      engines: { node: '>=22.17.0' },
     }),
   );
   writeFileSync(
@@ -464,6 +465,7 @@ const runFixture = async (
       version: cliVersion,
       bin: { moldea: './dist/moldea.js' },
       dependencies: { '@moldea.ai/core': coreVersionRange },
+      engines: { node: '>=22.17.0' },
     }),
   );
   writeFileSync(

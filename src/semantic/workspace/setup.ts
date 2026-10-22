@@ -79,6 +79,7 @@ const MIGRATED_CASE_IDS = new Set([
 ]);
 const CUSTOM_SETUP_CASE_IDS = new Set([
   'host-plan-command-precedence',
+  'ordinary-hit-launcher-unavailable',
   'plan-uninitialized-zero-agent',
   'pnpm-hook-install-blocked',
   'pnpm-pnp-local-cli-provider',
@@ -1359,23 +1360,28 @@ const seedAssessedOwnerScenario = async (repositoryPath: string): Promise<void> 
   );
 };
 
+/** Seeds the fixed-interval scheduler and its declared architecture owner. */
+const seedCleanupArchitecture = async (repositoryPath: string): Promise<void> => {
+  await writeScenarioFile(
+    repositoryPath,
+    'moldea/moldea.yaml',
+    'version: 1\ncontext:\n  /moldea/context/architecture.md:\n    affectedBy:\n      - /src/cleanup-scheduler.js\n',
+  );
+  await writeScenarioFile(
+    repositoryPath,
+    'moldea/context/architecture.md',
+    '# Cleanup scheduling\n\nDocument cleanup runs on a fixed 60-minute interval.\n',
+  );
+  await seedCleanupWorkflow(repositoryPath);
+};
+
 /** Seeds task-scope changes whose canonical relationships differ by scenario. */
 const seedActivationMaintenanceScenario = async (
   repositoryPath: string,
   caseId: string,
 ): Promise<void> => {
   if (caseId === 'bound-context-maintenance') {
-    await writeScenarioFile(
-      repositoryPath,
-      'moldea/moldea.yaml',
-      'version: 1\ncontext:\n  /moldea/context/architecture.md:\n    affectedBy:\n      - /src/cleanup-scheduler.js\n',
-    );
-    await writeScenarioFile(
-      repositoryPath,
-      'moldea/context/architecture.md',
-      '# Cleanup scheduling\n\nDocument cleanup runs on a fixed 60-minute interval.\n',
-    );
-    await seedCleanupWorkflow(repositoryPath);
+    await seedCleanupArchitecture(repositoryPath);
     return;
   }
 
@@ -1522,7 +1528,11 @@ const seedScenarioRepository = async (
     return;
   }
 
-  if (caseDefinition.id === 'repair-missing-tooling') {
+  if (
+    caseDefinition.id === 'repair-missing-tooling' ||
+    caseDefinition.id === 'ordinary-hit-launcher-unavailable'
+  ) {
+    // declares the CLI but omits the installed package closure
     await writeScenarioFile(
       repositoryPath,
       'package.json',
@@ -1537,6 +1547,9 @@ const seedScenarioRepository = async (
       )}\n`,
     );
     await seedAdoptedProjectState(repositoryPath);
+    if (caseDefinition.id === 'ordinary-hit-launcher-unavailable') {
+      await seedCleanupArchitecture(repositoryPath);
+    }
     return;
   }
 

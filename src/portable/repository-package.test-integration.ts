@@ -24,6 +24,7 @@ interface IPackageFixtureOptions {
   coreDeclaration?: string;
   coreLocation?: 'hoisted' | 'nested';
   coreVersion?: string;
+  nodeRange?: string;
 }
 
 interface IPackageFixture {
@@ -43,6 +44,9 @@ const LAUNCHER_PATH = resolve(
   'scripts',
   'moldea-cli.mjs',
 );
+
+const MISSING_CLI_MESSAGE =
+  'The moldea CLI is not installed in this repository: node_modules/@moldea.ai/cli is missing. Install the repository dependencies, then retry.';
 const temporaryRoots: string[] = [];
 const compositionOutput = (cliVersion = '13.0.1') =>
   `${JSON.stringify({ schemaVersion: 7, cliVersion, command: 'composition', status: 'valid', error: null, result: {} })}\n`;
@@ -58,6 +62,7 @@ const createPackageFixture = ({
   coreDeclaration = '^9.0.1',
   coreLocation = 'hoisted',
   coreVersion = '9.0.2',
+  nodeRange = '>=22.17.0',
 }: IPackageFixtureOptions = {}): IPackageFixture => {
   const repositoryRoot = realpathSync.native(mkdtempSync(join(tmpdir(), 'moldea-package-')));
   temporaryRoots.push(repositoryRoot);
@@ -77,6 +82,7 @@ const createPackageFixture = ({
   writeJson(join(cliRoot, 'package.json'), {
     bin: { moldea: './dist/moldea.js' },
     dependencies: { '@moldea.ai/core': coreDeclaration },
+    engines: { node: nodeRange },
     name: '@moldea.ai/cli',
     version: cliVersion,
   });
@@ -238,6 +244,7 @@ test('rejects missing Core declarations, packages, and executable entries', asyn
   writeJson(join(missingDeclaration.cliRoot, 'package.json'), {
     bin: { moldea: './dist/moldea.js' },
     dependencies: {},
+    engines: { node: '>=22.17.0' },
     name: '@moldea.ai/cli',
     version: '13.0.1',
   });
@@ -260,6 +267,30 @@ test('rejects missing Core declarations, packages, and executable entries', asyn
   const missingCoreEntry = createPackageFixture();
   rmSync(join(missingCoreEntry.coreRoot, 'dist', 'index.js'));
   await assert.rejects(resolveRepositoryCli(missingCoreEntry.repositoryRoot), /ENOENT/u);
+});
+
+test.each([
+  [
+    'the dependency directory',
+    (fixture: IPackageFixture) => join(fixture.repositoryRoot, 'node_modules'),
+  ],
+  ['the CLI package', (fixture: IPackageFixture) => fixture.cliRoot],
+])('reports a missing install in one sentence when %s is absent', async (_label, selectPath) => {
+  const fixture = createPackageFixture();
+  rmSync(selectPath(fixture), { force: true, recursive: true });
+
+  await assert.rejects(resolveRepositoryCli(fixture.repositoryRoot), {
+    message: MISSING_CLI_MESSAGE,
+  });
+});
+
+test('refuses a Node.js version outside the CLI engines range before invoking it', async () => {
+  const fixture = createPackageFixture({ nodeRange: '>=99.0.0' });
+
+  await assert.rejects(resolveRepositoryCli(fixture.repositoryRoot), {
+    message: `Node.js ${process.versions.node} is unsupported by @moldea.ai/cli 13.0.1, which requires Node.js >=99.0.0.`,
+  });
+  assert.equal(existsSync(fixture.invocationMarker), false);
 });
 
 test('rejects a Core package redirected outside repository dependencies', async () => {
@@ -296,4 +327,19 @@ test('generated launcher invokes only an eligible repository CLI', () => {
   assert.equal(rejection.status, 3);
   assert.match(rejection.stderr, /unsupported Core package/u);
   assert.equal(existsSync(ineligible.invocationMarker), false);
+});
+
+test('generated launcher reports a missing install in one sentence with exit code 3', () => {
+  const fixture = createPackageFixture();
+  rmSync(join(fixture.repositoryRoot, 'node_modules'), { force: true, recursive: true });
+
+  const result = spawnSync(
+    TEST_NODE_EXECUTABLE,
+    [LAUNCHER_PATH, '--repository', fixture.repositoryRoot, '--', 'composition', '--json'],
+    { cwd: fixture.repositoryRoot, encoding: 'utf8' },
+  );
+
+  assert.equal(result.status, 3);
+  assert.equal(result.stdout, '');
+  assert.equal(result.stderr, `${MISSING_CLI_MESSAGE}\n`);
 });

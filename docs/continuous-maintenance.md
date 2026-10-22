@@ -14,7 +14,7 @@ After a repository adopts `moldea`, durable project knowledge can stay current a
 >
 > Add manager approval to refunds over $500.
 
-The coding agent checks known implementation paths against declared relationships and updates selected owners whose established truth changed. A lasting code change alone does not justify searching unknown context. If implementation later reveals a materially new path, it checks that path at an existing scope checkpoint and carries any newly matched owner into completion. It does not repeatedly check unchanged paths or announce `moldea` on a miss.
+The coding agent checks known implementation paths against declared relationships and updates selected owners whose established truth changed. A lasting code change alone does not justify searching unknown context. If implementation later reveals a materially new path, it checks that path at an existing scope checkpoint and carries any newly matched owner into completion. It does not repeatedly check unchanged paths or announce `moldea` on a miss. A proposal recorded before its implementation exists matches no relationship when that implementation is first written; ask for the context update explicitly, or declare an impact path for the planned location when the proposal is recorded.
 
 ## Maintain project knowledge from conversation
 

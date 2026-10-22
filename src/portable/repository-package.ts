@@ -4,6 +4,7 @@ import { isAbsolute, join, relative, sep } from 'node:path';
 import semver from 'semver';
 import { z } from 'zod';
 import { isPathWithin } from 'jg-fs';
+import { getErrorCode } from 'jg-exception';
 
 import { readRepositoryFile } from './repository-files.ts';
 
@@ -29,6 +30,7 @@ const ProjectPackageManifestSchema = z.object({
 const CliPackageManifestSchema = z.object({
   bin: z.object({ moldea: z.string() }),
   dependencies: z.record(z.string(), z.string()),
+  engines: z.object({ node: z.string() }),
   name: z.string(),
   version: z.string(),
 });
@@ -36,6 +38,10 @@ const CorePackageManifestSchema = z.object({
   name: z.string(),
   version: z.string(),
 });
+
+// the plain refusal for a checkout whose dependencies are not installed, such as a fresh worktree
+const MISSING_CLI_MESSAGE =
+  'The moldea CLI is not installed in this repository: node_modules/@moldea.ai/cli is missing. Install the repository dependencies, then retry.';
 
 /** Parses one canonical stable version into numeric components. */
 export const parseStableVersion = (version: unknown): [number, number, number] | null => {
@@ -104,6 +110,19 @@ const readBoundedJson = async (repositoryRoot: string, filePath: string): Promis
   return JSON.parse(utf8Decoder.decode(bytes)) as unknown;
 };
 
+/** Resolves one installed dependency path, reporting an absent install in plain words. */
+const resolveInstalledPath = async (installedPath: string): Promise<string> => {
+  try {
+    return await realpath(installedPath);
+  } catch (error) {
+    if (getErrorCode(error) === 'ENOENT') {
+      throw new Error(MISSING_CLI_MESSAGE, { cause: error });
+    }
+
+    throw error;
+  }
+};
+
 /** Resolves and validates the repository-bound CLI package and executable. */
 export const resolveRepositoryCli = async (
   repositoryRoot: string,
@@ -123,14 +142,14 @@ export const resolveRepositoryCli = async (
     await readBoundedJson(resolvedRepositoryRoot, join(resolvedRepositoryRoot, 'package.json')),
   );
   const declaredCliRange = projectManifest.devDependencies?.['@moldea.ai/cli'];
-  const nodeModulesRoot = await realpath(join(resolvedRepositoryRoot, 'node_modules'));
+  const nodeModulesRoot = await resolveInstalledPath(join(resolvedRepositoryRoot, 'node_modules'));
   if (
     nodeModulesRoot === resolvedRepositoryRoot ||
     !isPathWithin(resolvedRepositoryRoot, nodeModulesRoot)
   ) {
     throw new Error('The dependency directory escaped the repository.');
   }
-  const cliRoot = await realpath(join(nodeModulesRoot, '@moldea.ai', 'cli'));
+  const cliRoot = await resolveInstalledPath(join(nodeModulesRoot, '@moldea.ai', 'cli'));
 
   if (!isPathWithin(nodeModulesRoot, cliRoot)) {
     throw new Error('The CLI package escaped repository dependencies.');
@@ -147,6 +166,12 @@ export const resolveRepositoryCli = async (
     cliBinaryDeclaration !== './dist/moldea.js'
   ) {
     throw new Error('The repository declares an unsupported CLI package closure.');
+  }
+
+  if (!semver.satisfies(process.versions.node, cliManifest.engines.node)) {
+    throw new Error(
+      `Node.js ${process.versions.node} is unsupported by @moldea.ai/cli ${cliManifest.version}, which requires Node.js ${cliManifest.engines.node}.`,
+    );
   }
 
   const cliBinaryPath = await realpath(join(cliRoot, cliBinaryDeclaration));

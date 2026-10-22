@@ -76,10 +76,10 @@ for (const width of [320, 768, 1440]) {
         await expect(page.locator('[data-markdown-badge]')).toHaveCount(4);
         await expect(page.getByRole('cell', { name: 'Not checked', exact: true })).toBeVisible();
         for (const name of ['Result meanings', 'Common situations', 'Resource boundaries']) {
-          await expect(page.getByRole('region', { name, exact: true })).toHaveCount(1);
+          await expect(page.getByRole('group', { name, exact: true })).toHaveCount(1);
         }
         if (width === 320) {
-          const table = page.getByRole('region', { name: 'Result meanings', exact: true });
+          const table = page.getByRole('group', { name: 'Result meanings', exact: true });
           await table.focus();
           await page.keyboard.press('ArrowRight');
           await expect

@@ -354,8 +354,8 @@ test('keeps wrapped documentation tables flush with their scroll containers', as
       const page = await context.newPage();
       await page.goto(toPublicPath('/docs/how-it-works/'));
 
-      const tableRegion = page.getByRole('region', { name: 'Scrollable table' }).first();
-      const tableLayout = await tableRegion.locator('table').evaluate((table) => {
+      const tableGroup = page.getByRole('group', { name: 'Scrollable table' }).first();
+      const tableLayout = await tableGroup.locator('table').evaluate((table) => {
         const tableBounds = table.getBoundingClientRect();
         const wrapperBounds = table.parentElement?.getBoundingClientRect();
         const tableStyles = getComputedStyle(table);

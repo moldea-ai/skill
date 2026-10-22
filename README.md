@@ -4,7 +4,7 @@
 
 [Get moldea on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or read the complete documentation at [skill.moldea.ai](https://skill.moldea.ai).
 
-This checkout targets release `10.0.0`. Install the latest published version from `main` inside each repository that will use it:
+This checkout targets release `10.0.1`. Install the latest published version from `main` inside each repository that will use it:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -13,7 +13,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the immutable release after publication:
 
 ```bash
-npx skills add "moldea-ai/skill#v10.0.0"
+npx skills add "moldea-ai/skill#v10.0.1"
 ```
 
 Both commands install the portable skill named `moldea`. They do not install the CLI globally or require a hosted account. See [Getting started](docs/getting-started.md) for initialization, updates, and removal.
@@ -73,7 +73,7 @@ Evaluation is read-only. Repair checks every owner, its material implementation 
 
 ## Compatibility
 
-Release `10.0.0` supports exactly:
+Release `10.0.1` supports exactly:
 
 - Git `>=2.32.0`
 - Node.js `>=22.17.0`
@@ -164,7 +164,7 @@ The same release-candidate workflow is reusable by the packages trusted build. I
 
 Source and packed package candidates accept stable caret dependency minimums, including patch minimums such as `^2.0.3`. Candidate validation checks every resolved internal runtime package against its declared range; exact internal runtime dependency pins and incompatible versions are rejected.
 
-The root tooling and website consume Website UI `4.4.1` with the exact Astro `7.2.8` peer. Normal dependency resolution selects these versions without an override.
+The root tooling and website consume Website UI `4.5.0` with the exact Astro `7.2.8` peer. Normal dependency resolution selects these versions without an override.
 
 Run the deterministic boundaries:
 
@@ -207,7 +207,7 @@ The skill uses independent semantic versioning. Every release must:
 
 During prelaunch testing, skill tags require deterministic conformance, synchronized release identity, and installation checks. Semantic evaluation is a separate evidence-backed operation; a passing tag does not establish it. The selected 8.2.3 semantic recording contains 120 cases: 115 passed and five recovered. Its final cleanup reused verified full-recording and reserve trials without new model calls. Two unresolved cases remain private and are disclosed as not yet included. Historical evidence preserves its recorded versions, dates and sources and supplies no current-release assurance. See [Release evidence](docs/release-evidence.md) for the exact workflows.
 
-Release 10.0.0 retains the selected 8.2.3 semantic evidence. Its resource-counting clarification, ordinary final-validation exception, repair CLI update rule, direct repair reads, Yarn and repair corrections, repair Git, Claude Code integration and Yarn corrections, Core-backed Claude Code check and link-aware writer, in-repository link rule, and move to JG Packages were not re-evaluated; see [the 8.2.4](docs/release-evidence.md#skill-824-evidence-reuse), [8.2.5](docs/release-evidence.md#skill-825-evidence-reuse), [8.2.6](docs/release-evidence.md#skill-826-evidence-reuse), [8.2.7](docs/release-evidence.md#skill-827-evidence-reuse), [8.2.8](docs/release-evidence.md#skill-828-evidence-reuse), [8.3.0](docs/release-evidence.md#skill-830-evidence-reuse), [9.0.0](docs/release-evidence.md#skill-900-evidence-reuse) and [10.0.0](docs/release-evidence.md#skill-1000-evidence-reuse) release qualifications.
+Release 10.0.1 retains the selected 8.2.3 semantic evidence. Its resource-counting clarification, ordinary final-validation exception, repair CLI update rule, direct repair reads, Yarn and repair corrections, repair Git, Claude Code integration and Yarn corrections, Core-backed Claude Code check and link-aware writer, in-repository link rule, move to JG Packages, and launcher notice, skill-run routing and recovery corrections were not re-evaluated; see [the 8.2.4](docs/release-evidence.md#skill-824-evidence-reuse), [8.2.5](docs/release-evidence.md#skill-825-evidence-reuse), [8.2.6](docs/release-evidence.md#skill-826-evidence-reuse), [8.2.7](docs/release-evidence.md#skill-827-evidence-reuse), [8.2.8](docs/release-evidence.md#skill-828-evidence-reuse), [8.3.0](docs/release-evidence.md#skill-830-evidence-reuse), [9.0.0](docs/release-evidence.md#skill-900-evidence-reuse), [10.0.0](docs/release-evidence.md#skill-1000-evidence-reuse) and [10.0.1](docs/release-evidence.md#skill-1001-evidence-reuse) release qualifications.
 
 ## License
 

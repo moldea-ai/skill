@@ -170,6 +170,28 @@ These changes were not re-evaluated. Deterministic coverage:
 
 Whether a coding agent follows the reworded cancellation rule is not established by the selected evidence.
 
+## Skill 10.0.1 evidence reuse
+
+Skill 10.0.1 keeps the same 8.2.3 selection, recorded with CLI 11.0.6. It adopts CLI 13.0.1 as the repair target and corrects the skill's guidance:
+
+- CLI 13.0.1 inventories a directory link in the working tree, such as a skill directory junction or symbolic link, as one link entry, so `validate` and `inspect` no longer fail with `ENTRY_NOT_DIRECTORY` on paths beneath it.
+- When the inventory's `ls-files` listing, `config` read of `core.symlinks` or `check-attr` check fails, the error's `details.subcommand` names that subcommand.
+- The launcher reports a missing `node_modules` or CLI package in one sentence that names the install step, and refuses a Node.js version outside the CLI's `engines.node` range.
+- After a relationship hit, an ordinary task whose launcher cannot run the CLI reports that in one line with the launcher's message and the next step, makes no canonical reads, and continues the host task.
+- Running a project-owned Agent Skill is host work, and only the paths the run touches use the ordinary precheck. The AGENTS.md block routes planning, creating, reviewing or changing agents or skills to SKILL.md.
+- Validation recovery reports the path of a `repository`-source error and stops; it never validates a copy, clone or snapshot of the repository.
+- SKILL.md names reference files without the `references/` prefix to stay within its 8,192-byte ceiling.
+- The new `ordinary-hit-launcher-unavailable` case is defined and has no recorded trials.
+
+These changes were not re-evaluated. Deterministic coverage:
+
+- Launcher integration tests cover a missing `node_modules`, a missing CLI package and an unsupported Node.js range, and a launcher run against a missing install exits 3 with the install sentence.
+- The new case's setup test shows that the relevance gate still matches in a checkout without dependencies while the launcher refuses `scope` with that sentence.
+- The integration suite drives the published CLI 13.0.1 through the launcher and the evaluator's sandbox.
+- The packages pull request ran the exact-artifact skill consumer jobs with the CLI 13.0.1 candidate closure on every npm, pnpm and Yarn matrix entry, and the CLI runtime suite on Linux, macOS and Windows. The published CLI 13.0.1 tarball matches that candidate's checksum.
+
+Whether a coding agent gives the one-line notice, treats a project-owned skill run as host work or stops on a `repository`-source error is not established by the selected evidence.
+
 ## Evaluation protocol 50
 
 Protocol 50 meets the pre-run counting and final-validation requirements stated above: it grades each cycle on moldea's own work and recognizes the ordinary final-validation exception from ordered Codex events, as described in [resource accounting](/docs/semantic-evaluation/#resource-accounting). It corrects protocol 49, which no recording used, so that a patch whose paths cannot be read never earns that exception. It changes no selected evidence; it applies to the next recording.

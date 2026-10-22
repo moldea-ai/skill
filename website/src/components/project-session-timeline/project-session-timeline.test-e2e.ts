@@ -17,8 +17,8 @@ for (const width of [320, 768, 1440]) {
       await page.goto(recordedPath);
       await page.getByRole('button', { name: 'Read exec call 4 and result' }).click();
       const dialog = page.getByRole('dialog', { name: 'exec · event 4' });
-      const input = dialog.getByRole('region', { name: 'exec input', exact: true });
-      const result = dialog.getByRole('region', { name: 'exec result', exact: true });
+      const input = dialog.getByRole('group', { name: 'exec input', exact: true });
+      const result = dialog.getByRole('group', { name: 'exec result', exact: true });
       await expect(input).toHaveAttribute('data-code-overflow', 'scroll');
       await expect(result).toHaveAttribute('data-code-overflow', 'wrap');
       expect(await input.evaluate((node) => getComputedStyle(node).whiteSpace)).toBe('pre');

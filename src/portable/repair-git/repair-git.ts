@@ -1,11 +1,10 @@
 import { lstat, realpath } from 'node:fs/promises';
-import { dirname, isAbsolute, join, resolve } from 'node:path';
+import { isAbsolute, join, resolve } from 'node:path';
 import { getErrorCode } from 'jg-exception';
 import { assertNoLinksBelow, ERRORS as FS_ERRORS, isPathWithin } from 'jg-fs';
 import {
   assertGitSucceeded,
   readChangedPaths,
-  readIndexEntries,
   readStatus,
   resolveCommit,
   runGit,
@@ -13,16 +12,9 @@ import {
 import { ERRORS as PROCESS_ERRORS } from 'jg-process';
 
 import { createGitCommandOptions, isGitCommandError } from '../git-command/index.ts';
-import { readRepositoryFile } from '../repository-files.ts';
 
-import {
-  REPAIR_GIT_ATTRIBUTE_BYTES,
-  REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS,
-  REPAIR_GIT_INDEX_BYTES,
-  REPAIR_GIT_ATTRIBUTE_PATHS,
-  REPAIR_GIT_OUTPUT_BYTES,
-  REPAIR_GIT_RESPONSE_BYTES,
-} from './constants.ts';
+import { assertAttributeSafety } from './attribute-safety.ts';
+import { REPAIR_GIT_OUTPUT_BYTES, REPAIR_GIT_RESPONSE_BYTES } from './constants.ts';
 import type { IRepairGitEvidence, IRepairGitOptions } from './types.ts';
 
 const OBJECT_ID_PATTERN = /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u;
@@ -75,119 +67,6 @@ const readGit = async (repositoryRoot: string, arguments_: readonly string[]): P
 };
 
 /**
- * Checks whether the repository stores an attribute source; an unset one exits with 1.
- * @throws If Git fails or its output exceeds the bounded capture limit.
- */
-const hasStoredAttributeSource = async (repositoryRoot: string): Promise<boolean> => {
-  const result = await runGit(REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS, {
-    cwd: repositoryRoot,
-    encoding: 'buffer',
-    ...createReadOptions(repositoryRoot),
-  });
-  if (result.exitCode === 1) return false;
-  assertGitSucceeded(result, 'config');
-  return result.stdout.length > 0;
-};
-
-/**
- * Refuses executable attributes and index fallbacks before any worktree-aware Git read.
- * @throws If attribute inspection is unsafe, exceeds a limit, or a Git read fails.
- */
-const assertAttributeSafety = async (repositoryRoot: string): Promise<void> => {
-  const gitPath = join(repositoryRoot, '.git');
-  const gitStat = await lstat(gitPath);
-  let gitDirectory = gitPath;
-  if (gitStat.isFile()) {
-    const declaration = (
-      await readRepositoryFile(repositoryRoot, gitPath, REPAIR_GIT_ATTRIBUTE_BYTES, 'reject')
-    ).toString('utf8');
-    const match = /^gitdir: ([^\0\r\n]+)\r?\n?$/u.exec(declaration);
-    if (!match) throw new Error('Git directory evidence is invalid.');
-    gitDirectory = resolve(repositoryRoot, match[1]!);
-  } else if (!gitStat.isDirectory()) {
-    throw new Error('Git directory safety is unavailable for this repository.');
-  }
-  if ((await realpath(gitDirectory)) !== gitDirectory)
-    throw new Error('Git metadata directory safety is unavailable.');
-  let commonDirectory = gitDirectory;
-  try {
-    const declaration = (
-      await readRepositoryFile(
-        gitDirectory,
-        join(gitDirectory, 'commondir'),
-        REPAIR_GIT_ATTRIBUTE_BYTES,
-        'reject',
-      )
-    )
-      .toString('utf8')
-      .trim();
-    if (!declaration || /[\0\r\n]/u.test(declaration))
-      throw new Error('Git common directory evidence is invalid.');
-    commonDirectory = resolve(gitDirectory, declaration);
-    if ((await realpath(commonDirectory)) !== commonDirectory)
-      throw new Error('Git common directory safety is unavailable.');
-  } catch (error) {
-    if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw error;
-  }
-  if (!(await lstat(commonDirectory)).isDirectory())
-    throw new Error('Git common directory safety is unavailable.');
-  if (await hasStoredAttributeSource(repositoryRoot))
-    throw new Error('Stored Git attribute sources cannot be verified safely.');
-  const entries = await readIndexEntries(
-    repositoryRoot,
-    createReadOptions(repositoryRoot, REPAIR_GIT_INDEX_BYTES),
-  );
-  const paths = new Set(entries.map(({ path }) => validateEvidencePath(path)));
-  const attributes = new Set<string>([join(repositoryRoot, '.gitattributes')]);
-  for (const path of paths) {
-    if (path.split('/').at(-1) === '.gitattributes') {
-      const attributePath = join(repositoryRoot, path);
-      // a missing indexed attribute file would make Git consume an unseen index fallback
-      if (!(await lstat(attributePath)).isFile())
-        throw new Error('Git attribute fallback is unverified.');
-    }
-    let directory = dirname(join(repositoryRoot, path));
-    while (directory !== repositoryRoot) {
-      if (!isPathWithin(repositoryRoot, directory))
-        throw new Error('Git attribute path escapes the repository.');
-      const attribute = join(directory, '.gitattributes');
-      if (attributes.has(attribute)) break;
-      attributes.add(attribute);
-      if (attributes.size > REPAIR_GIT_ATTRIBUTE_PATHS)
-        throw new RangeError('Git attribute inspection exceeds its path limit.');
-      directory = dirname(directory);
-    }
-  }
-  const infoAttributes = join(commonDirectory, 'info', 'attributes');
-  attributes.add(infoAttributes);
-  if (attributes.size > REPAIR_GIT_ATTRIBUTE_PATHS)
-    throw new RangeError('Git attribute inspection exceeds its path limit.');
-  let totalBytes = 0;
-  for (const path of attributes) {
-    let bytes: Buffer;
-    try {
-      bytes = await readRepositoryFile(
-        path === infoAttributes ? commonDirectory : repositoryRoot,
-        path,
-        REPAIR_GIT_ATTRIBUTE_BYTES,
-        'reject',
-      );
-    } catch (error) {
-      if (error instanceof Error && 'code' in error && error.code === 'ENOENT') continue;
-      throw error;
-    }
-    totalBytes += bytes.length;
-    if (totalBytes > REPAIR_GIT_OUTPUT_BYTES)
-      throw new RangeError('Git attribute inspection exceeds its aggregate byte limit.');
-    if (bytes.includes(Buffer.from('filter'))) {
-      throw new Error(
-        'Repository attribute safety is unavailable; no worktree Git read was performed.',
-      );
-    }
-  }
-};
-
-/**
  * Reads the commit HEAD points at, null before the first commit, and every status path, both sides
  * of a rename included. An untracked nested repository is its literal directory path.
  * @throws If Git fails, its output exceeds the bounded capture limit, or a path is unsupported.
@@ -216,7 +95,8 @@ export const collectRepairGitEvidence = async (
   try {
     if (!isAbsolute(options.repositoryRoot))
       throw new Error('An absolute repository root is required.');
-    const repositoryRoot = await realpath(resolve(options.repositoryRoot));
+    const suppliedRepositoryRoot = resolve(options.repositoryRoot);
+    const repositoryRoot = await realpath(suppliedRepositoryRoot);
     if (!(await lstat(repositoryRoot)).isDirectory())
       throw new Error('A repository directory is required.');
     if (
@@ -248,7 +128,7 @@ export const collectRepairGitEvidence = async (
       }
     }
     reasonCode = 'attribute-safety';
-    await assertAttributeSafety(repositoryRoot);
+    await assertAttributeSafety(repositoryRoot, validateEvidencePath, suppliedRepositoryRoot);
     reasonCode = 'git-read';
     if (options.mode === 'verify' || options.mode === 'continue') {
       if (

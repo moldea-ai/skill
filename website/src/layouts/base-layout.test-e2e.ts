@@ -88,6 +88,88 @@ const getPublicContentPaths = async (page: Page): Promise<string[]> => {
   ];
 };
 
+/** Checks the user-visible skip action and the next sequential focus destination. */
+const assertSkipNavigation = async (page: Page, focusScreenshot?: string): Promise<void> => {
+  const skip = page.getByRole('link', { name: 'Skip to content', exact: true });
+  const main = page.getByRole('main');
+  await expect(skip).toHaveAttribute('href', '#main-content');
+  await expect(main).toHaveAttribute('id', 'main-content');
+  await page.keyboard.press('Tab');
+  await expect(skip).toBeFocused();
+  await expect(skip).toBeVisible();
+  await expect
+    .poll(() => skip.evaluate((element) => getComputedStyle(element).boxShadow))
+    .not.toBe('none');
+  await expect
+    .poll(() =>
+      skip.evaluate((element) => {
+        const bounds = element.getBoundingClientRect();
+        return (
+          bounds.left >= 0 &&
+          bounds.top >= 0 &&
+          bounds.right <= innerWidth &&
+          bounds.bottom <= innerHeight
+        );
+      }),
+    )
+    .toBe(true);
+  if (focusScreenshot) await page.screenshot({ path: focusScreenshot });
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/#main-content$/u);
+  await expect.poll(() => main.evaluate((element) => element.matches(':target'))).toBe(true);
+  await page.keyboard.press('Tab');
+  await expect
+    .poll(() => main.evaluate((element) => element.contains(document.activeElement)))
+    .toBe(true);
+  await expect
+    .poll(() =>
+      page.getByRole('banner').evaluate((element) => element.contains(document.activeElement)),
+    )
+    .toBe(false);
+};
+
+for (const colorScheme of ['light', 'dark'] as const) {
+  for (const width of [320, 1440]) {
+    test(`skip link enters main on direct and client navigation at ${width}px in ${colorScheme}`, async ({
+      page,
+    }, testInfo) => {
+      const errors: string[] = [];
+      page.on('pageerror', (error) => errors.push(error.message));
+      page.on('console', (message) => {
+        if (message.type() === 'error') errors.push(message.text());
+      });
+      await page.setViewportSize({ height: 740, width });
+      await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' });
+      await page.goto(toPublicPath('/docs/'));
+      await assertSkipNavigation(page);
+
+      await page.evaluate(() => {
+        (window as Window & { __skipNavigationMarker?: boolean }).__skipNavigationMarker = true;
+      });
+      await page.getByRole('banner').getByRole('link', { name: 'moldea skill home' }).click();
+      await expect(page).toHaveURL(toPublicPath('/'));
+      await expect(
+        page.getByRole('heading', { level: 1, name: 'Keep project knowledge with your code.' }),
+      ).toBeVisible();
+      expect(
+        await page.evaluate(
+          () => (window as Window & { __skipNavigationMarker?: boolean }).__skipNavigationMarker,
+        ),
+      ).toBe(true);
+      await page.evaluate(() => {
+        // reproduce an earlier hidden non-page link without making a network request.
+        const hiddenLink = document.createElement('a');
+        hiddenLink.href = '/cdn-cgi/skip-test';
+        hiddenLink.hidden = true;
+        hiddenLink.textContent = 'Hidden deployment link';
+        document.body.prepend(hiddenLink);
+      });
+      await assertSkipNavigation(page, testInfo.outputPath('skip-focus.png'));
+      expect(errors).toStrictEqual([]);
+    });
+  }
+}
+
 test('makes skills.sh the primary distribution path on desktop and mobile', async ({ page }) => {
   await page.goto(toPublicPath('/'));
 

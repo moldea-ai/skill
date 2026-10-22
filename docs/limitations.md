@@ -23,6 +23,8 @@ order: 32
 
 Ask the coding agent to fix a warning, or explicitly accept a supported warning with your own reason. Acceptance does not fix its cause or change errors. Remove an obsolete acceptance after its warning disappears, then validate again. Integration warnings identify a missing or stale AGENTS.md block or installed skill assets. If your instructions protect AGENTS.md, repair supplies the exact block for you to add.
 
+The skill offers integration acceptance only for shared Git-tracked instruction subjects. Local fallback and ignored instructions receive the permitted fix or handoff. Core still matches the actual diagnostic identity, including a missing-block warning; an absent file does not by itself make an acceptance unmatched. A validation digest can also remain unchanged after context-only wording changes because it identifies validation results, not every canonical body; use inspect/content identities for those changes.
+
 ## Common situations
 
 | What happened                                   | How it is handled                                                                       | Next step                                                                                                                       |
@@ -63,6 +65,8 @@ Static checks establish structure and the file or export checks named in coverag
 `Fix moldea` uses established intended behavior, respects host permissions, and reports checks it could not complete. It checks material facts and declared relationships for each owner, then traces each agent's instruction and schema to its runtime call. Presentation details and shared infrastructure used by a feature do not create feature relationships. A large repair can continue by owner from a reported commit and changed-path checkpoint. It cannot invent missing policy, guarantee every repair, or silently initialize an unrelated project. It updates a missing, broken or older CLI to the installed skill's validated target; healthy newer compatible tooling is preserved. See [repair](/docs/evaluate-reconcile-validate/#repair-a-project) and [local tooling](/docs/compatibility-and-local-tooling/).
 
 In a repository whose Git attributes mention `filter`, including Git LFS, the repair helper refuses to read Git evidence. Repair then stops Git-dependent work and gives only a bounded foundation diagnosis until the helper supports these repositories.
+
+Attribute inspection supports repository-contained directory symlinks and Windows junctions, including overlays over indexed descendants. It still refuses escaping, dangling, cyclic, unsupported, and over-budget resolution, linked attribute files, and unseen indexed attribute fallbacks. Written-file review does not follow linked parents. Preserve links, tracking, and ignore rules rather than removing tracked skills to bypass a checkpoint limitation.
 
 On Windows, repository roots at or above the [native process working-directory limit](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-setcurrentdirectory) (260 characters) prevent subprocess startup. The repair helper reports unavailable evidence as `git-read` with a request to move or clone the repository to a shorter path. The launcher's `validate` and `inspect` operations have the same working-directory limitation. Use a shorter checkout path for these operations. Deterministic tests cover longer paths for the relevance gate, managed document writers and initialization inspection.
 

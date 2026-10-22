@@ -28,7 +28,7 @@
     "cliVersionRange": "^13.0.0",
     "coreVersionRange": "^9.0.0"
   },
-  "version": "10.0.1",
+  "version": "10.0.2",
   "name": "@moldea.ai/skill-conformance",
   "private": true,
   "description": "Development-only conformance checks for the moldea Agent Skill.",

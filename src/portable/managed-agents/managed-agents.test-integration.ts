@@ -32,6 +32,11 @@ const withInstallation = async (
     spawnSync('git', ['init', '-q'], { cwd: root });
     const skill = join(root, '.agents', 'skills', 'moldea');
     await mkdir(join(skill, 'scripts'), { recursive: true });
+    await mkdir(join(skill, 'assets'));
+    await copyFile(
+      join(SOURCE, 'assets', 'managed-agents-block.md'),
+      join(skill, 'assets', 'managed-agents-block.md'),
+    );
     await copyFile(join(SOURCE, 'SKILL.md'), join(skill, 'SKILL.md'));
     for (const name of await readdir(join(SOURCE, 'scripts')))
       await copyFile(join(SOURCE, 'scripts', name), join(skill, 'scripts', name));
@@ -46,6 +51,181 @@ const withInstallation = async (
     await rm(root, { recursive: true, force: true });
   }
 };
+
+const prepareValidation = async (root: string): Promise<() => unknown> => {
+  const packageRoot = resolve(SOURCE, '../node_modules');
+  const { cliVersion } = readReleaseIdentity(resolve(SOURCE, '..'));
+  for (const source of collectProductionPackageRoots(join(packageRoot, '@moldea.ai/cli')))
+    await cp(source, join(root, 'node_modules', relative(packageRoot, source)), {
+      recursive: true,
+      filter: (path) =>
+        !relative(source, path)
+          .split(/[\\/]/u)
+          .some((part) =>
+            ['node_modules', '_archive', '_archives', '_backup', '_backups'].includes(part),
+          ),
+    });
+  await writeFile(
+    join(root, 'package.json'),
+    JSON.stringify({ devDependencies: { '@moldea.ai/cli': cliVersion } }),
+  );
+  await writeFile(join(root, '.gitignore'), '/node_modules/\n');
+  await mkdir(join(root, 'moldea'));
+  await writeFile(join(root, 'moldea/project.md'), '# Project\n');
+  await writeFile(join(root, 'moldea/moldea.yaml'), 'version: 1\n');
+  return () => {
+    const result = spawnSync(
+      TEST_NODE_EXECUTABLE,
+      [
+        join(root, '.agents/skills/moldea/scripts/moldea-cli.mjs'),
+        '--repository',
+        root,
+        '--',
+        'validate',
+        '--json',
+        '--max-output-bytes',
+        '65536',
+      ],
+      { encoding: 'utf8', timeout: 30_000 },
+    );
+    expect(result.error).toBeUndefined();
+    expect(result.status, result.stderr + result.stdout).toBe(0);
+    expect(result.stderr).toBe('');
+    const envelope: unknown = JSON.parse(result.stdout);
+    expect(envelope).toMatchObject({
+      cliVersion,
+      schemaVersion: 7,
+      command: 'validate',
+      error: null,
+      status: 'valid',
+      result: { valid: true, errorCount: 0 },
+    });
+    return envelope;
+  };
+};
+
+test('fresh rendered integration validates against the installed template without a warning', async () => {
+  await withInstallation(async (root, run) => {
+    const validate = await prepareValidation(root);
+    const printed = run(['--print']);
+    expect(printed.status).toBe(0);
+    await expect(lstat(join(root, 'AGENTS.md'))).rejects.toThrow();
+    expect(run().stdout).toBe('created\n');
+    expect(await readFile(join(root, 'AGENTS.md'), 'utf8')).toBe(printed.stdout);
+    expect(validate()).toMatchObject({ result: { warningCount: 0 } });
+  });
+});
+
+test('upgraded templates preserve the old bridge until an exact idempotent refresh', async () => {
+  await withInstallation(async (root, run) => {
+    const validate = await prepareValidation(root);
+    // the frozen 10.0.1 bridge is independent of the new template and generator.
+    const oldBlock =
+      '<!-- moldea:start -->\n\nWhen installed in this repository, moldea provides project context. Explicit moldea operations, planning, creating, reviewing, or changing agents or skills, changes to what an in-app model decides or says (including inline calls), and project-context work use only the exact <repo-root>/.agents/skills/moldea/SKILL.md. If it is missing, continue without moldea and without searching for another copy, installing, or initializing; for an explicit moldea operation, report the unavailable installation. Otherwise, first read it unless its complete unchanged instructions are available, then follow its routing before repository checks. For other repository planning, implementation, or review, once you know the involved files, check only the exact files <repo-root>/.agents/skills/moldea/SKILL.md and <repo-root>/.agents/skills/moldea/scripts/relevance-gate.mjs. If either is missing, skip this section silently without searching for another copy, installing, or initializing moldea. Otherwise, before editing or giving conclusions, run:\n\nnode "<repo-root>/.agents/skills/moldea/scripts/relevance-gate.mjs" --repository "<repo-root>" --path "<file>" [--path "<file>" ...]\n\n<repo-root> is the absolute repository root. Pass file paths relative to that root, even from a subdirectory. Use only already-known paths; do not scan or run Git for this. With no known paths, skip this precheck.\n\n- Output 1: read <repo-root>/.agents/skills/moldea/SKILL.md unless its complete unchanged instructions are already available; retain the checked paths and result.\n- Output 0 or an error: continue without moldea and do not mention it.\n\nIf the task involves new files later, check only that new batch once before acting. Reuse unchanged results.\n<!-- moldea:end -->\n';
+    const target = join(root, 'AGENTS.md');
+    const prefix = '\uFEFF# Host instructions\r\n\r\n';
+    const suffix = '\r\nKeep these rules.\r\n';
+    await writeFile(target, prefix + oldBlock.replaceAll('\n', '\r\n') + suffix);
+    const before = await readFile(target);
+    const installedAsset = join(root, '.agents/skills/moldea/assets/managed-agents-block.md');
+    await copyFile(join(SOURCE, 'assets/managed-agents-block.md'), installedAsset);
+    expect(await readFile(target)).toStrictEqual(before);
+    const stale = validate();
+    expect(stale).toMatchObject({ result: { warningCount: 1 } });
+    expect(stale).toHaveProperty(
+      'result.page.records',
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: 'diagnostic',
+          code: 'MOLDEA_INTEGRATION_BLOCK_STALE',
+          subject: '/AGENTS.md',
+        }),
+      ]),
+    );
+    const printed = run(['--print']);
+    expect(printed.status).toBe(0);
+    expect(await readFile(target)).toStrictEqual(before);
+    expect(run().stdout).toBe('updated\n');
+    const refreshed = await readFile(target);
+    expect(refreshed.toString('utf8')).toBe(
+      prefix + printed.stdout.replaceAll('\n', '\r\n') + suffix,
+    );
+    expect(validate()).toMatchObject({ result: { warningCount: 0 } });
+    expect(run().stdout).toBe('unchanged\n');
+    expect(await readFile(target)).toStrictEqual(refreshed);
+  });
+});
+
+test('ignored local integration retains its working-tree diagnostic and ignore state', async () => {
+  await withInstallation(async (root, run) => {
+    const validate = await prepareValidation(root);
+    const ignore = '/node_modules/\n/AGENTS.md\n';
+    await writeFile(join(root, '.gitignore'), ignore);
+    expect(run().stdout).toBe('created\n');
+    const before = await readFile(join(root, 'AGENTS.md'));
+    expect(validate()).toMatchObject({ result: { warningCount: 0 } });
+    expect(await readFile(join(root, 'AGENTS.md'))).toStrictEqual(before);
+    expect(await readFile(join(root, '.gitignore'), 'utf8')).toBe(ignore);
+    const tracked = spawnSync('git', ['ls-files', '--', 'AGENTS.md'], {
+      cwd: root,
+      encoding: 'utf8',
+      timeout: 10_000,
+    });
+    expect(tracked.status).toBe(0);
+    expect(tracked.stdout).toBe('');
+    const ignored = spawnSync('git', ['check-ignore', '--', 'AGENTS.md'], {
+      cwd: root,
+      encoding: 'utf8',
+      timeout: 10_000,
+    });
+    expect(ignored.status).toBe(0);
+    expect(ignored.stdout).toBe('AGENTS.md\n');
+  });
+});
+
+test.each([
+  ['/.claude/CLAUDE.md', '@../AGENTS.md\n'],
+  ['/CLAUDE.local.md', '@AGENTS.md\n'],
+] as const)(
+  'validation selects %s without a root Claude file and the exact import clears its warning',
+  async (subject, importLine) => {
+    await withInstallation(async (root, run) => {
+      const validate = await prepareValidation(root);
+      expect(run().stdout).toBe('created\n');
+      if (subject === '/.claude/CLAUDE.md') {
+        await mkdir(join(root, '.claude'));
+        // the local fallback must not override the present shared nested file.
+        await writeFile(join(root, 'CLAUDE.local.md'), '# Local fallback\n');
+      }
+      const target = join(root, subject.slice(1));
+      await writeFile(target, '# Claude instructions\n');
+      await expect(lstat(join(root, 'CLAUDE.md'))).rejects.toThrow();
+      const missingImport = validate();
+      expect(missingImport).toMatchObject({ result: { warningCount: 1 } });
+      expect(missingImport).toHaveProperty(
+        'result.page.records',
+        expect.arrayContaining([
+          expect.objectContaining({
+            kind: 'diagnostic',
+            code: 'MOLDEA_INTEGRATION_CLAUDE_IMPORT_MISSING',
+            subject,
+          }),
+        ]),
+      );
+      const printed = run(['--claude', subject, '--print']);
+      expect(printed.status).toBe(0);
+      expect(printed.stdout).toBe(importLine);
+      expect(await readFile(target, 'utf8')).toBe('# Claude instructions\n');
+      expect(run(['--claude', subject]).stdout).toBe('updated\n');
+      expect(await readFile(target, 'utf8')).toBe('# Claude instructions\n' + importLine);
+      expect(validate()).toMatchObject({ result: { warningCount: 0 } });
+      expect(run(['--claude', subject]).stdout).toBe('unchanged\n');
+      if (subject === '/.claude/CLAUDE.md')
+        expect(await readFile(join(root, 'CLAUDE.local.md'), 'utf8')).toBe('# Local fallback\n');
+      await expect(lstat(join(root, 'CLAUDE.md'))).rejects.toThrow();
+    });
+  },
+);
 
 test('print and write agree and preserve unrelated instruction bytes', async () => {
   await withInstallation(async (root, run) => {

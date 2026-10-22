@@ -4,7 +4,7 @@
 
 [Get moldea on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or read the complete documentation at [skill.moldea.ai](https://skill.moldea.ai).
 
-This checkout targets release `10.0.1`. Install the latest published version from `main` inside each repository that will use it:
+This checkout targets release `10.0.2`. Install the latest published version from `main` inside each repository that will use it:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -13,7 +13,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the immutable release after publication:
 
 ```bash
-npx skills add "moldea-ai/skill#v10.0.1"
+npx skills add "moldea-ai/skill#v10.0.2"
 ```
 
 Both commands install the portable skill named `moldea`. They do not install the CLI globally or require a hosted account. See [Getting started](docs/getting-started.md) for initialization, updates, and removal.
@@ -73,7 +73,7 @@ Evaluation is read-only. Repair checks every owner, its material implementation 
 
 ## Compatibility
 
-Release `10.0.1` supports exactly:
+Release `10.0.2` supports exactly:
 
 - Git `>=2.32.0`
 - Node.js `>=22.17.0`
@@ -86,17 +86,17 @@ The CLI must be a repository-root-local development dependency whose manifest de
 
 ## How it works
 
-Initialization creates `/moldea/moldea.yaml` and `/moldea/project.md`, an explanatory README region, and a small managed AGENTS.md routing block when host instructions permit. It inventories existing agents, inline model workflows, documents, decisions, and project-owned Agent Skills, links existing document authorities in place, and registers evidenced agents and workflows in the same operation. Before registration or application-code changes it asks one confirmation unless initialization already includes the agents. A bounded partial pass resumes with `continue`; one final validation and report cover the completed batch. Projects without agents retain the minimal foundation flow. For ordinary work, that block runs the two-byte relevance gate over already-known paths before loading SKILL.md. A miss continues silently without loading the entrypoint, workflow references, or CLI. Direct agent and project-context work keeps the skill’s own routing.
+Initialization creates `/moldea/moldea.yaml` and `/moldea/project.md`, an explanatory README region, and a small managed AGENTS.md routing block when host instructions permit. It inventories existing agents, inline model workflows, documents, decisions, and project-owned Agent Skills, links existing document authorities in place, and registers evidenced agents and workflows in the same operation. Before registration or application-code changes it asks one confirmation unless initialization already includes the agents. A bounded partial pass resumes with `continue`; one final validation and report cover the completed batch. Projects without agents retain the minimal foundation flow. The block distinguishes loading another skill's instructions from actual project work before routing. For ordinary project work, it runs the two-byte relevance gate over already-known paths before loading SKILL.md. A miss continues silently without loading the entrypoint, workflow references, or CLI. Direct agent and project-context work keeps the skill’s own routing.
 
 After adoption, clear AI-agent work and concrete project-level context use the adoption-only route. Explicit `moldea` operations, canonical paths, and changes inside the managed README block also activate directly. Other known task paths use the AGENTS.md precheck and declared relationship matching. Host planning, review, commit, and publication workflows keep control of their own procedures. Generic terminology, pasted proposals, temporary status, and lasting code changes alone do not establish direct relevance. Irrelevant work receives no `moldea` announcement or status.
 
-Informational handoffs and read-only questions permit assessment, not automatic writes. A clear correction to established project truth authorizes its minimal canonical update after adoption and ownership checks, unless the request is read-only. Authorized updates preserve unrelated state and end with validation; they do not authorize implementation changes or broad context discovery.
+Informational handoffs and read-only questions permit assessment, not automatic writes. A clear correction to established project truth authorizes its minimal canonical update after adoption and ownership checks, unless the request is read-only. Authorized updates preserve unrelated state and end with validation; they do not authorize implementation changes or broad context discovery. If tooling blocks pending authorized context maintenance, an installation reply resumes that work after setup and refreshed evidence; install-only requests, pauses, and topic changes limit resumption.
 
 The entrypoint keeps routing and essential boundaries compact. It loads only the operation-specific references needed for the selected work. Complete unchanged instructions may be reused while available; missing instructions after compaction must be read again, and summaries never replace instructions, repository evidence, or authorization. See the [workflow reference](docs/how-it-works.md) and [reference-reading checks](docs/reference-reading.md).
 
 Mechanical repository evidence uses the installed skill's closed launcher. It exposes bounded `inspect`, `scope`, `content`, `validate`, and `composition` operations without making canonical document bodies part of ordinary metadata output. It normalizes repository-relative content paths and verifies response identity, status, and inspection/validation diagnostic totals before forwarding unchanged output. Detailed invocation, pagination, failure, and runtime guidance belongs to [Compatibility and local tooling](docs/compatibility-and-local-tooling.md).
 
-Repair uses a bundled helper for bounded checkpoint, continuation and written-file Git evidence. Before status or diff, it conservatively refuses any attribute file that mentions `filter`, including Git LFS declarations. Repair continuation checks combine actual actor Git-wrapper records with recognized command syntax. Direct trusted-host calls are counted separately and supply neither actor violations nor positive read credit. Disallowed actor forms in either fail; opaque commands without Git calls do not fail merely for being opaque. This measures cooperative compliance, not resistance to deliberate evasion. Published coverage gaps and included continuation scenarios are disclosed in [Semantic evaluation](docs/semantic-evaluation.md#cases-and-coverage). Semantic execution may project one fixed repository-root direct Node correctness-test invocation into aggregate pass/fail facts. Package-manager commands cannot contribute correctness evidence, and the projection never retains test names, assertions, paths, durations, or output bodies.
+Repair uses a bundled helper for bounded checkpoint, continuation and written-file Git evidence. Before status or diff, it conservatively refuses any attribute file that mentions `filter`, including Git LFS declarations. Attribute inspection supports directory symlinks and Windows junctions only when every target resolves inside the repository; written-file review still refuses linked parents. Repair continuation checks combine actual actor Git-wrapper records with recognized command syntax. Direct trusted-host calls are counted separately and supply neither actor violations nor positive read credit. Disallowed actor forms in either fail; opaque commands without Git calls do not fail merely for being opaque. This measures cooperative compliance, not resistance to deliberate evasion. Published coverage gaps and included continuation scenarios are disclosed in [Semantic evaluation](docs/semantic-evaluation.md#cases-and-coverage). Semantic execution may project one fixed repository-root direct Node correctness-test invocation into aggregate pass/fail facts. Package-manager commands cannot contribute correctness evidence, and the projection never retains test names, assertions, paths, durations, or output bodies.
 
 ### Safety and authority boundaries
 
@@ -207,7 +207,7 @@ The skill uses independent semantic versioning. Every release must:
 
 During prelaunch testing, skill tags require deterministic conformance, synchronized release identity, and installation checks. Semantic evaluation is a separate evidence-backed operation; a passing tag does not establish it. The selected 8.2.3 semantic recording contains 120 cases: 115 passed and five recovered. Its final cleanup reused verified full-recording and reserve trials without new model calls. Two unresolved cases remain private and are disclosed as not yet included. Historical evidence preserves its recorded versions, dates and sources and supplies no current-release assurance. See [Release evidence](docs/release-evidence.md) for the exact workflows.
 
-Release 10.0.1 retains the selected 8.2.3 semantic evidence. Its resource-counting clarification, ordinary final-validation exception, repair CLI update rule, direct repair reads, Yarn and repair corrections, repair Git, Claude Code integration and Yarn corrections, Core-backed Claude Code check and link-aware writer, in-repository link rule, move to JG Packages, and launcher notice, skill-run routing and recovery corrections were not re-evaluated; see [the 8.2.4](docs/release-evidence.md#skill-824-evidence-reuse), [8.2.5](docs/release-evidence.md#skill-825-evidence-reuse), [8.2.6](docs/release-evidence.md#skill-826-evidence-reuse), [8.2.7](docs/release-evidence.md#skill-827-evidence-reuse), [8.2.8](docs/release-evidence.md#skill-828-evidence-reuse), [8.3.0](docs/release-evidence.md#skill-830-evidence-reuse), [9.0.0](docs/release-evidence.md#skill-900-evidence-reuse), [10.0.0](docs/release-evidence.md#skill-1000-evidence-reuse) and [10.0.1](docs/release-evidence.md#skill-1001-evidence-reuse) release qualifications.
+Release 10.0.2 retains the selected 8.2.3 semantic evidence. Its contained-link repair helper, instruction-consumption routing, read-only validation, context continuation, integration upgrade guidance, and digest clarification were not re-evaluated. Earlier changes from 8.2.4 through 10.0.1 also retain their historical qualifications. See [the 10.0.2 qualification](docs/release-evidence.md#skill-1002-evidence-reuse) and the preceding release records. Deterministic and keyboard checks do not establish current model adherence; manual testing precedes the next semantic evaluation.
 
 ## License
 

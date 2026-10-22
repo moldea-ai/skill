@@ -24,6 +24,8 @@ npx skills add "moldea-ai/skill#v10.0.0"
 
 Repository installation is required because the selected skill version must travel with the project. A global installation does not establish adoption and is not a supported path.
 
+The project needs Node.js `>=22.17.0` and a root `package.json`. Initialization installs `@moldea.ai/cli` as a root development dependency with npm, pnpm, or Yarn. With another package manager, add `@moldea.ai/cli` to the root `devDependencies` yourself before initializing. The declaration can be an exact 13.x version or a caret range on a 13.x release. A `--copy` installation leaves one copy of the skill in each agent directory. Keep every copy at the same version, because validation checks the copy recorded in AGENTS.md.
+
 ## Initialize project context
 
 Open the repository in a compatible coding agent and ask:

@@ -192,6 +192,18 @@ These changes were not re-evaluated. Deterministic coverage:
 
 Whether a coding agent gives the one-line notice, treats a project-owned skill run as host work or stops on a `repository`-source error is not established by the selected evidence.
 
+## Skill 10.0.2 evidence reuse
+
+Skill 10.0.2 retains the exact Skill 8.2.3/CLI 11.0.6 selection described above, including its 115 passes, five recoveries, and two disclosed exclusions. CLI 13.0.1, Core 9.0.0, schema 7, supported ranges, and the inherited Website UI 4.5.1 dependency closure are unchanged. The merged source-preview behavior is inherited from the preceding website change.
+
+This release corrects contained-directory-link attribute inspection, instruction-consumption routing before both bridge branches, standalone validation versus repair, continuation of pending authorized context maintenance, integration refresh and protected-file handoff, warning eligibility explanations, Claude-file precedence guidance, and operation-specific digest interpretation. It changes no Core diagnostic, acceptance, hashing, schema, or cloud-check contract.
+
+Current-host deterministic checks exercise source and generated repair helpers, including 32 contained skill-directory links over indexed descendants, unsafe-link/filter refusals, resource bounds, and preserved repository state. Real CLI/writer fixtures cover fresh integration, the frozen 10.0.1 bridge becoming stale, exact refresh/print behavior, line endings and outside bytes, ignored local AGENTS.md, and nested/shared versus local Claude imports. The entrypoint remains within 8,192 bytes. Four skip-link browser cases passed three runs each without retries, covering light/dark themes, 320px/desktop widths, client navigation, an earlier hidden non-page link, visible focus, the main target, and subsequent focus in main content.
+
+One parallel browser regression run timed out in three unchanged mobile artifact/dialog accessibility tests. Each passed three isolated runs with retries disabled; the original timeout traces were retained. No timeout, assertion, scanner severity, or workflow was relaxed. This remains a disclosed timing-flakiness finding, not a passing initial run.
+
+No fresh model trials or mock-project campaign were run. The `ordinary-hit-launcher-unavailable` semantic case remains unrecorded. These deterministic checks do not establish instruction adherence, complete owner assessment, Windows host observations, or a fresh-conversation routing result. Manual checks require separate fresh 10.0.2 and upgraded/refreshed setups, followed by new conversations without a preloaded moldea entrypoint. CI matrices, tagged-installation equality, Pages deployment, and deployed scanner/keyboard observations remain publication gates whose actual results belong in the release handoff. Cloudflare settings remain unchanged; report any remaining live scanner warning separately from keyboard behavior and do not identify an injecting feature without evidence.
+
 ## Evaluation protocol 50
 
 Protocol 50 meets the pre-run counting and final-validation requirements stated above: it grades each cycle on moldea's own work and recognizes the ordinary final-validation exception from ordered Codex events, as described in [resource accounting](/docs/semantic-evaluation/#resource-accounting). It corrects protocol 49, which no recording used, so that a patch whose paths cannot be read never earns that exception. It changes no selected evidence; it applies to the next recording.

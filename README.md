@@ -4,7 +4,7 @@
 
 [Get moldea on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or read the complete documentation at [skill.moldea.ai](https://skill.moldea.ai).
 
-This checkout targets release `10.0.1`. Install the latest published version from `main` inside each repository that will use it:
+This checkout targets release `10.0.2`. Install the latest published version from `main` inside each repository that will use it:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -13,7 +13,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the immutable release after publication:
 
 ```bash
-npx skills add "moldea-ai/skill#v10.0.1"
+npx skills add "moldea-ai/skill#v10.0.2"
 ```
 
 Both commands install the portable skill named `moldea`. They do not install the CLI globally or require a hosted account. See [Getting started](docs/getting-started.md) for initialization, updates, and removal.
@@ -73,7 +73,7 @@ Evaluation is read-only. Repair checks every owner, its material implementation 
 
 ## Compatibility
 
-Release `10.0.1` supports exactly:
+Release `10.0.2` supports exactly:
 
 - Git `>=2.32.0`
 - Node.js `>=22.17.0`
@@ -207,7 +207,7 @@ The skill uses independent semantic versioning. Every release must:
 
 During prelaunch testing, skill tags require deterministic conformance, synchronized release identity, and installation checks. Semantic evaluation is a separate evidence-backed operation; a passing tag does not establish it. The selected 8.2.3 semantic recording contains 120 cases: 115 passed and five recovered. Its final cleanup reused verified full-recording and reserve trials without new model calls. Two unresolved cases remain private and are disclosed as not yet included. Historical evidence preserves its recorded versions, dates and sources and supplies no current-release assurance. See [Release evidence](docs/release-evidence.md) for the exact workflows.
 
-Release 10.0.1 retains the selected 8.2.3 semantic evidence. Its resource-counting clarification, ordinary final-validation exception, repair CLI update rule, direct repair reads, Yarn and repair corrections, repair Git, Claude Code integration and Yarn corrections, Core-backed Claude Code check and link-aware writer, in-repository link rule, move to JG Packages, and launcher notice, skill-run routing and recovery corrections were not re-evaluated; see [the 8.2.4](docs/release-evidence.md#skill-824-evidence-reuse), [8.2.5](docs/release-evidence.md#skill-825-evidence-reuse), [8.2.6](docs/release-evidence.md#skill-826-evidence-reuse), [8.2.7](docs/release-evidence.md#skill-827-evidence-reuse), [8.2.8](docs/release-evidence.md#skill-828-evidence-reuse), [8.3.0](docs/release-evidence.md#skill-830-evidence-reuse), [9.0.0](docs/release-evidence.md#skill-900-evidence-reuse), [10.0.0](docs/release-evidence.md#skill-1000-evidence-reuse) and [10.0.1](docs/release-evidence.md#skill-1001-evidence-reuse) release qualifications.
+Release 10.0.2 retains the selected 8.2.3 semantic evidence. Its contained-link repair helper, instruction-consumption routing, read-only validation, context continuation, integration upgrade guidance, and digest clarification were not re-evaluated. Earlier changes from 8.2.4 through 10.0.1 also retain their historical qualifications. See [the 10.0.2 qualification](docs/release-evidence.md#skill-1002-evidence-reuse) and the preceding release records. Deterministic and keyboard checks do not establish current model adherence; manual testing precedes the next semantic evaluation.
 
 ## License
 

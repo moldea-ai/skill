@@ -268,11 +268,26 @@ export const createSemanticResultDimensions = (options: {
     resourceEvidence: options.actorResourceEvidence,
     workspaceChanges: options.workspaceChanges,
   });
+  const ownedUsage = measureOwnedResourceUsage({
+    commandPolicy: options.actorCommandPolicy,
+    exemptValidationByteCount,
+    profileName,
+    resourceEvidence: options.actorResourceEvidence,
+  });
+  const requiresValidationBoundary = options.caseDefinition.expected.some(
+    ({ label }) => label === 'exercise-final-validation-exemption',
+  );
   return {
     semantic:
       options.isSemanticPassing &&
       hasPassingCaseRepairGitEvidence(options) &&
       hasPassingValidationBoundary(options) &&
+      (!requiresValidationBoundary ||
+        (exemptValidationByteCount !== null &&
+          ownedUsage.aggregateMoldeaOutputByteCount <=
+            MOLDEA_SKILL_RESOURCE_PROFILES.ordinary.maxAggregateMoldeaOutputBytes &&
+          ownedUsage.aggregateMoldeaOutputByteCount + exemptValidationByteCount >
+            MOLDEA_SKILL_RESOURCE_PROFILES.ordinary.maxAggregateMoldeaOutputBytes)) &&
       hasPassingMoldeaActivation(
         options.actorResourceEvidence,
         options.caseDefinition.resourceBudget,
@@ -296,15 +311,7 @@ export const createSemanticResultDimensions = (options: {
         options.caseDefinition.resourceBudget,
         exemptValidationByteCount,
       ) &&
-      hasPassingResourceProfile(
-        measureOwnedResourceUsage({
-          commandPolicy: options.actorCommandPolicy,
-          exemptValidationByteCount,
-          profileName,
-          resourceEvidence: options.actorResourceEvidence,
-        }),
-        profileName,
-      ) &&
+      hasPassingResourceProfile(ownedUsage, profileName) &&
       (options.paidInvocations ?? []).every(
         ({ stage, usage }) =>
           stage !== 'judge' ||

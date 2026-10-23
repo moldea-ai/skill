@@ -1042,6 +1042,61 @@ describe('ordinary final-validation exception', () => {
     });
   };
 
+  test.each([
+    [524000, 466, true, true],
+    [523000, 466, true, false],
+    [524289, 466, true, false],
+    [524000, 466, false, false],
+    [524000, 65537, true, false],
+  ])(
+    'requires measured boundary %d plus validation %d with known patch %s -> %s',
+    (before, finalBytes, hasPatch, passing) => {
+      const sizes = splitOutput(8, before, 65536);
+      const calls: Array<readonly ['scope' | 'validate', number]> = [
+        ...sizes.map((size) => ['scope', size] as const),
+        ['validate', finalBytes],
+      ];
+      const entries: IStreamEntry[] = sizes.map((size) => [
+        'command',
+        `${LAUNCHER} scope --path src/a.js --json --max-output-bytes 65536`,
+        size,
+      ]);
+      if (hasPatch) entries.push(PATCH_MOLDEA);
+      entries.push(['command', VALIDATE, finalBytes]);
+      const captures = createLauncherCaptures(calls);
+      const dimensions = createSemanticResultDimensions({
+        ...captures,
+        actorCommandPolicy: projectStream(entries),
+        gitInvocationEvidence: {
+          invocationCount: 0,
+          hostInvocationCount: 0,
+          repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+        },
+        caseDefinition: {
+          ...caseDefinition,
+          resourceBudget: {
+            activation: 'direct',
+            minimumMoldeaCommands: 1,
+            maximumMoldeaCommands: 16,
+            maximumMoldeaOutputBytes: 524288,
+          },
+          expected: [
+            {
+              label: 'exercise-final-validation-exemption',
+              criterion: 'Require the measured boundary.',
+            },
+          ],
+        },
+        isMountIntegrityPassing: true,
+        isRepositoryControlPassing: true,
+        isSemanticPassing: true,
+        judgeCommandPolicy: commandPolicy,
+        workspaceChanges: MOLDEA_CHANGE,
+      });
+      expect(dimensions.semantic).toBe(passing);
+    },
+  );
+
   test('exempts a validation that follows a moldea/ patch and ends moldea work', () => {
     expect(
       identify(

@@ -746,3 +746,126 @@ console.log(JSON.stringify({type:'turn.completed',usage:{input_tokens:100*usageM
   },
   30_000,
 );
+
+test.each([
+  'context-recovery-install-blocked',
+  'context-recovery-install-only',
+  'context-recovery-paused',
+  'context-recovery-topic-change',
+])('%s retains the exact session, private request order and cycle deltas', async (caseId) => {
+  const root = await mkdtemp(path.join(tmpdir(), 'moldea-recovery-session-'));
+  temporaryRoots.push(root);
+  try {
+    const cases = await loadSemanticCases(path.resolve(import.meta.dirname, '../cases'));
+    const definition = cases.find(({ id }) => id === caseId);
+    if (!definition) throw new Error('Missing context recovery case');
+    const requests = [
+      definition.input.developerDirection,
+      ...(definition.input.followUpDeveloperRequests ?? []),
+    ];
+    const bin = path.join(root, 'bin');
+    const sourceHome = path.join(root, 'source-home');
+    await Promise.all([bin, sourceHome].map((directory) => mkdir(directory)));
+    const verdict = {
+      expected: Object.fromEntries(definition.expected.map(({ label }) => [label, true])),
+      forbidden: Object.fromEntries(definition.forbidden.map(({ label }) => [label, false])),
+      rationale: 'Synthetic verdict exercises retained-session plumbing only.',
+    };
+    await writeFile(
+      path.join(bin, 'codex'),
+      `#!/opt/node
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const prompt = fs.readFileSync(0, 'utf8');
+const requests = ${JSON.stringify(requests)};
+let response;
+if (prompt.startsWith('Assess whether')) {
+  response = ${JSON.stringify(JSON.stringify(verdict))};
+} else {
+  const counter = '/home/evaluator/.codex/recovery-counter';
+  const index = fs.existsSync(counter) ? Number(fs.readFileSync(counter, 'utf8')) : 0;
+  assert.ok(index < 2);
+  assert.equal(prompt, requests[index]);
+  const resumeIndex = process.argv.indexOf('resume');
+  assert.equal(resumeIndex >= 0, index === 1);
+  if (index === 1) assert.equal(process.argv[resumeIndex + 1], '12345678-abcd-1234-abcd-123456789012');
+  assert.equal(fs.existsSync('/mnt/node_modules/@moldea.ai/cli/package.json'), false);
+  assert.ok(fs.readFileSync('/mnt/moldea/project.md', 'utf8').includes('within 30 days'));
+  assert.equal(fs.readFileSync('/mnt/reports/status.txt', 'utf8'), 'pending\\n');
+  if (index === 1 && ${caseId === 'context-recovery-topic-change'}) fs.writeFileSync('/mnt/reports/status.txt', 'complete\\n');
+  fs.writeFileSync(counter, String(index + 1));
+  console.log(JSON.stringify({type:'thread.started',thread_id:'12345678-abcd-1234-abcd-123456789012'}));
+  response = index === 0 ? 'Local tooling is unavailable; the context correction remains blocked.' : 'The follow-up restriction is preserved. No installation or canonical update occurred.';
+}
+console.log(JSON.stringify({type:'item.completed',item:{type:'agent_message',text:response}}));
+console.log(JSON.stringify({type:'turn.completed',usage:{input_tokens:100,cached_input_tokens:0,output_tokens:20}}));
+`,
+      'utf8',
+    );
+    await writeFile(path.join(bin, 'codex-code-mode-host'), '#!/bin/sh\nexit 0\n');
+    await Promise.all(
+      ['codex', 'codex-code-mode-host'].map((file) => chmod(path.join(bin, file), 0o755)),
+    );
+    vi.stubEnv('CODEX_HOME', sourceHome);
+    vi.stubEnv('PATH', `${bin}${path.delimiter}${process.env['PATH'] ?? ''}`);
+    const checkpoint = createCandidateCheckpoint([definition]);
+    const baseCommand = [
+      'codex',
+      'exec',
+      '--ignore-user-config',
+      '--ignore-rules',
+      '--ephemeral',
+      '--skip-git-repo-check',
+      '--dangerously-bypass-approvals-and-sandbox',
+      '-c',
+      'shell_environment_policy.inherit=none',
+      '--json',
+      '-',
+    ];
+    const execution = await runSemanticTrial({
+      activeTrial: null,
+      actorCommand: buildCodexEvaluationHostCommand(baseCommand, 'actor'),
+      actorHost: checkpoint.actorHost,
+      artifactDigest: SHA256,
+      caseDefinition: definition,
+      cli: { ...checkpoint.cli, version: '13.0.1', jsonSchemaVersion: 7 },
+      confirmationIndex: null,
+      isOperationalResumeRequested: false,
+      judgeCommand: buildCodexEvaluationHostCommand(baseCommand, 'judge'),
+      judgeHost: checkpoint.judgeHost,
+      persistActiveTrial: async (activeTrial) => {
+        checkpoint.caseCheckpoints[caseId] = {
+          activeTrial,
+          caseDefinitionDigest: SHA256,
+          caseId,
+          completedCase: null,
+          trials: [],
+        };
+        await writeSemanticCheckpoint(root, checkpoint);
+      },
+      reusableTrials: [],
+      tokenController: createSemanticTokenAdmissionController({ getConsumedTokenCount: () => 0 }),
+    });
+    const cycles = execution.recordedTrial.cycles;
+    expect(cycles.map(({ developerRequest }) => developerRequest)).toStrictEqual(requests);
+    expect(cycles.map(({ requestIndex }) => requestIndex)).toStrictEqual([0, 1]);
+    expect(cycles[0]?.workspaceChanges).toStrictEqual({ created: [], deleted: [], modified: [] });
+    expect(cycles[1]?.workspaceChanges.created).toStrictEqual([]);
+    expect(cycles[1]?.workspaceChanges.deleted).toStrictEqual([]);
+    expect(cycles[1]?.workspaceChanges.modified.map(({ path }) => path)).toStrictEqual(
+      caseId === 'context-recovery-topic-change' ? ['reports/status.txt'] : [],
+    );
+    if (caseId === 'context-recovery-topic-change') {
+      expect(cycles[1]?.workspaceChanges.modified[0]?.after).toMatchObject({
+        content: 'complete\n',
+      });
+    }
+    expect(execution.recordedTrial.paidInvocations.map(({ stage }) => stage)).toStrictEqual([
+      'actor',
+      'actor',
+      'judge',
+    ]);
+  } finally {
+    vi.unstubAllEnvs();
+  }
+});

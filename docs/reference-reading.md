@@ -104,6 +104,14 @@ On 2026-10-23, all eight replacement conversations passed native review: four se
 
 The original eight conversations remain retained: four unrelated probes passed, while four context probes were inconclusive because the network-disabled Codex sandbox prevented the unchanged CLI subprocess from returning its response. Non-model launcher probes isolated the host setting, and the developer separately authorized the replacement set. Neither set used automatic native retries. Original reported input-plus-output usage was 1,125,396 tokens; replacement usage was 980,084, totaling 2,105,480 including cached input. Native processes stopped and disposable repositories were archived and removed except their two protected AGENTS.md files, which remain retained under the instruction-file boundary. Private records remain separate from semantic counts and public release evidence.
 
+### 10.0.3 candidate applicability
+
+The unpublished 10.0.3 follow-up may carry these eight passing 10.0.2 observations forward after a recorded applicability comparison. Compare the exact entrypoint body/name/description, selected relative installation, managed bridge, gate and locked inputs, bundled helpers, relevant fixture/configured startup inputs and actual CLI/Core closure bytes. Check every consumed reference: `context-gathering.md`, `continuous-maintenance.md` and `relationships.md`. Neither edited operation reference was consumed by the eight passing conversations. Enumerate the exact version-metadata and operation-reference differences rather than treating missing or arbitrary changed inputs as equal.
+
+This is accepted historical applicability, not fresh 10.0.3 native activation or upgrade evidence. Missing records or a material routing/configuration difference blocks the comparison and calls for an explicitly authorized native proposal. Remaining native-only observations below stay unverified until selected and authorized; no new native conversation follows automatically from this comparison.
+
+Codex CLI 0.164.0 records the historical environment and is not a version requirement. Use the normal installed CLI, record observed versions around each phase, and preserve required model/reasoning settings, configured instructions, sandbox/output/capture contracts and existing interrupted-run guards. Compatible version drift between fresh phases does not alone invalidate applicability or require another campaign approval. Phase observations do not establish the exact host version behind every model call; disclose possible mixed-version execution when observations differ. Deterministic compatibility checks do not prove identical native behavior across CLI versions.
+
 ### Remaining separately authorized observations
 
 These observations may follow targeted diagnostics once both routing prerequisites pass. An unavailable row stays unverified; it is never converted into an automated semantic pass.

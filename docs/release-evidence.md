@@ -228,6 +228,16 @@ Protocol 53 admits jg-git-commands' command lines in the sandbox Git policy, now
 
 Protocol 54 independently enforces helper-only repair Git in every explicit repair case, including blocked and healthy-no-op controls. The wrapper observes only the immediate parent executable and a bounded argument vector against exact read-only mounted helper, managed-writer and repository-local CLI entrypoints. Direct actor reads fail even when their arguments pass mechanical execution safety. Only approved actual repair-helper subprocesses earn positive comparison credit; approved CLI/writer calls and direct trusted-host calls do not. Missing or inconclusive provenance earns no helper credit. The two comparison-dependent continuation cases retain their positive-read requirement; conservative inert/no-Git fallback does not acquire one. Static direct-Git syntax is checked independently, while opaque text alone does not fail complete capture with no disallowed call. Temporary raw capture is removed after projection; persisted evidence keeps only its existing content-free counts and finite reasons. This is cooperative compliance, with no tamper-proof audit claim. The original protocol-54 candidate subsequently entered the private diagnostic campaign described in Semantic evaluation; corrected fixture inputs require renewed authorization. Historical observations above retain their original contract. Evidence schema 15, checkpoint schema 3, resource profiles, the distributed Skill 10.0.2 artifact and the selected historical evidence are unchanged. Protocol-53 records cannot resume or supply reuse under this grading contract.
 
+## Skill 10.0.3 candidate qualification
+
+The unpublished 10.0.3 candidate keeps CLI 13.0.1/Core 9.0.0/schema 7, protocol 54, evidence schema 15, checkpoint schema 3 and resource limits. It clarifies direct validation in two references, corrects the actor-visible boundary path and two reporting criteria, and requires composition evidence in two counterpart controls. Version metadata and all candidate input identities are recomputed. The entrypoint instruction body, managed templates and generated portable helpers remain unchanged.
+
+The original 10.0.2 diagnostic retains all 32 passing and seven failing cases, its confirmations and charges. Later assessment distinguishes the validation-reference ambiguity, legitimate ledger discovery, two over-specific reporting criteria and the independent unexplained token overage. The three previously repaired fixture scenarios still require changed-input model trials. No old verdict is converted into a pass.
+
+The [nine-case proposal](/docs/semantic-evaluation/#prepared-1003-follow-up) and complete public recording require a later explicit conditional campaign authorization after deterministic readiness and [native applicability](/docs/reference-reading/#1003-candidate-applicability). The native observations remain historical and outside semantic counts. Codex is not pinned; phase-version observations and their provenance limits are disclosed. Existing interrupted-run guards and safety controls remain unchanged.
+
+The selected 8.2.3 evidence remains historical. No fresh model assurance, publication, release tag, evidence-selection replacement or deployment is established by preparing this candidate.
+
 ## Check a release
 
 ```bash

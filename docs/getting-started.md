@@ -10,6 +10,8 @@ order: 10
 
 The primary distribution page is [moldea on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea). The portable skill works with [compatible coding agents](/docs/coding-agent-compatibility/), including Codex, Claude Code, Cursor, OpenCode, GitHub Copilot, and Cline.
 
+The development checkout prepares the unpublished 10.0.3 candidate. The current published release and immutable installation example below remain 10.0.2.
+
 Install the latest version from the repository's `main` branch in your current project:
 
 ```bash

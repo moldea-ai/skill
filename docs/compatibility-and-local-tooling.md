@@ -8,7 +8,7 @@ order: 180
 
 # Compatibility and local tooling
 
-Release `10.0.1` supports exactly:
+The unpublished `10.0.3` candidate retains the published `10.0.2` compatibility contract:
 
 - Git `>=2.32.0`
 - Node.js `>=22.17.0`

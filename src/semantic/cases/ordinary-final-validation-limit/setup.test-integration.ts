@@ -14,6 +14,7 @@ import {
   createSemanticResultDimensions,
   projectActorExecutionEvidenceEvent,
 } from '../../execution/index.ts';
+import { buildSemanticActorPrompt } from '../../judging/index.ts';
 import {
   createActorRepository,
   diffSemanticWorkspaceSnapshots,
@@ -40,7 +41,9 @@ test('real content pages and final validation straddle the unchanged ordinary al
       join(root, 'tools'),
     );
     const before = await snapshotSemanticWorkspace(repositoryPath);
-    expect(semanticCase.input.developerDirection).toContain(
+    const actorPrompt = buildSemanticActorPrompt(semanticCase);
+    expect(actorPrompt).toContain('moldea/context/contracts.md');
+    expect(actorPrompt).toContain(
       await readFile(join(repositoryPath, 'moldea/project.md'), 'utf8'),
     );
     const events: unknown[] = [];

@@ -188,11 +188,39 @@ The private 39-case diagnostic campaign completed on 2026-10-23 after both nativ
 
 Attempt `sem-20261023180635068-c96b4c31` finished with 32 passed, zero recovered and seven failed cases across 53 trials, including 14 confirmations and 115 paid actor/judge invocations. No operational retry or unknown-usage invocation occurred. Reported input-plus-output usage was 21,925,073 tokens, including 19,612,416 cached input tokens. The terminal private archive passed the original frozen checkpoint reader, selection/quorum and usage checks; all 655 frozen files remained unchanged and the recorded processes stopped. The nonzero command exit records failed outcomes, not an interrupted campaign.
 
-Three recorded failures are affected by the fixture defects below and cannot establish skill failure. The other four retain their original criteria: `explicit-moldea-validation` adds an unnecessary composition call; `ordinary-final-validation-limit` performs an unnecessary inspection and exceeds the allowance before final validation; `setup-check-claude-instructions` omits the warning identifier and governing shared-file explanation; and `validation-structural-recovery` omits the initial missing-path diagnostic from its report despite performing the correct invalid-to-valid recovery. All four failed both confirmations. Functional changes, reporting and resource adherence remain distinct findings.
+Three recorded failures are affected by the fixture defects below and cannot establish skill failure. The other four also retain their original failed verdicts and confirmations. Independent review identified one reference ambiguity behind `explicit-moldea-validation` adding composition. The boundary request did not name its ledger in the actor-visible direction, so inspection was legitimate; the 16 required content pages left no call allowance for that discovery. Claude setup and structural recovery completed the substantive work but failed reporting criteria beyond the skill's instructions. Those criteria demanded a literal warning identifier/governing-file explanation and a final recital of the resolved initial diagnostic. The boundary's second confirmation separately exceeded the unchanged 1,625,000-token operating limit at 3,301,063 actor tokens. Correcting discovery or reporting does not remove that independent observation.
 
 Initial triage established two fixture defects affecting three cases. The stale-integration pair inherited an unrelated canonical relationship defect, so a correct full repair could violate their integration-only preservation criteria. Their setup now uses the existing healthy repair seed, and regression checks require the healthy manifest before and after refresh or handoff. The protected missing-block handoff case required verified tracked-file eligibility without supplying an executable host-permitted index probe. It now supplies the same bounded probe as tracked-warning acceptance; a real sandbox/wrapper control establishes its result. The tracked-warning acceptance request remains byte-identical. No criterion, resource limit, portable skill byte or host policy changed.
 
 The corrected definitions have complete case-suite digest `effc37f87cbb3b7fe2e159b9bee268de71fb1f81c9ddd240ac060098496f0889` and public case-suite digest `f86f95df471de4a3a064a6ba912c13d9f6635c9dfa93a69d51e995216be1b3f7`. Coverage, case counts, CLI closure and portable identities are unchanged. The two stale-integration fixtures additionally change their materialized stage inputs. This corrected candidate requires renewed execution authorization; the original diagnostic permission does not authorize new model calls against it. No public recording or evidence-selection update has started.
+
+## Prepared 10.0.3 follow-up
+
+The unpublished 10.0.3 candidate clarifies direct standalone validation in the operation references. A launcher-verified valid or invalid validation result establishes invocation without composition. Explicit tooling proof and actual repair retain composition. Two existing cases now explicitly require the appropriate composition evidence; an ambiguous failed-launcher projection cannot establish that operation merely from an attempt count.
+
+The boundary request now names `moldea/context/contracts.md` in the actual actor prompt. Its real fixture regression binds that prompt to the materialized ledger and supplied summary while preserving 2,857 rows, 16 pages, existing byte/call limits and the final-validation crossing. Claude setup retains the correct import/file and incomplete-under-defaults qualification without requiring a CLI code or extra precedence explanation. Structural recovery retains captured invalid-to-valid results, the exact correction and truthful final validation without requiring the final response to repeat the initial error.
+
+The catalog remains 143 definitions, 643 criteria and 141 public cases, with both private exclusions intact. The earlier corrected 3503531d candidate and its identities above remain historical. This candidate requires new portable, suite, coverage, lock and materialized-stage identities; its readiness record binds the exact reviewed source and execution inputs. Protocol 54, evidence schema 15, checkpoint schema 3, CLI 13.0.1/Core 9.0.0 and resource limits are unchanged.
+
+The proposed targeted selection is:
+
+```text
+explicit-moldea-validation
+integration-block-missing-handoff
+ordinary-final-validation-limit
+pnpm-pnp-local-cli-provider
+repair-healthy-project
+repair-stale-integration
+repair-stale-integration-protected
+setup-check-claude-instructions
+validation-structural-recovery
+```
+
+Archived boundary actor totals are 1,354,266, 1,337,665 and 3,301,063 tokens. Stored cycle, trial and paid-invocation counters agree; all three used inspect, 16 content pages and validate without operational retries. The token spike remains unexplained by the retained content-free projections. This analysis precedes new spending authorization; naming the ledger does not establish a passing token result.
+
+After deterministic readiness and [historical native applicability](/docs/reference-reading/#1003-candidate-applicability), one explicit campaign authorization can cover these nine diagnostics and a fresh full 141-case recording, with exact inputs/settings, separate budgets and their total, and included retries/confirmations. Automatic progression requires passed or recovered terminal diagnostic statuses, conclusive control evidence, valid archives, unchanged source/contracts, completed teardown and sufficient authorized allowance. Failed or inconclusive gates, interruption, changed inputs and budget stops suspend progression. Private diagnostics provide no recording reuse. Publication and evidence selection remain separately authorized.
+
+Use the normally installed Codex CLI without pinning. Record observed versions before and after each phase and check the required host contract using existing non-model controls. Compatible version drift between fresh phases does not require another campaign approval. Existing interrupted-run identity guards remain strict. Startup metadata and phase observations do not identify the binary behind every call; differing observations require disclosure of possible mixed-version execution. No harness or evidence-format redesign is included, and no new model result is claimed for these inputs.
 
 ## Isolation and bounded evidence
 
@@ -285,7 +313,7 @@ npm run eval:semantic -- --record --resume-stopped-stage
 npm run eval:semantic -- --record --restart
 ```
 
-Worker counts are limited to 1, 2, or 4. Concurrent workers reserve the absolute next-stage token allowance before each model call, and the complete candidate stops before it could exceed 64,000,000 paid tokens. Semantic failures do not stop the remaining cases. Successful recording removes the checkpoint and stores a self-contained local public bundle with its exact case definitions, trials, replay, downloadable evidence artifacts, version, date, and provenance. No command runs automatically as part of website generation.
+Worker counts are limited to 1, 2, or 4. Concurrent workers reserve the absolute next-stage token allowance before each model call against the 64,000,000-token admission ceiling. An invocation can report more usage than its reservation; this mechanism is not an instantaneous physical billing cap. Semantic failures do not stop the remaining cases. Successful recording removes the checkpoint and stores a self-contained local public bundle with its exact case definitions, trials, replay, downloadable evidence artifacts, version, date, and provenance. No command runs automatically as part of website generation.
 
 ## Website and release use
 

@@ -41,7 +41,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'one-grounded-structural-correction',
       criterion:
-        'Only the manifest relationship changes from /src/old-state.js to /src/project-state.js. The report distinguishes the initial missing-path diagnostic from final zero-error, zero-warning validation and does not claim semantic alignment. Captured envelopes establish validation order; native traces supply write interleaving.',
+        'Only the manifest relationship changes from /src/old-state.js to /src/project-state.js. The report identifies the corrected reference and final zero-error, zero-warning validation without claiming semantic alignment. Repeating the resolved initial diagnostic in the final response is not required. Captured envelopes establish invalid-to-valid validation order; native traces supply write interleaving.',
     },
   ],
   forbidden: [

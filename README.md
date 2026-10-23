@@ -4,7 +4,7 @@
 
 [Get moldea on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or read the complete documentation at [skill.moldea.ai](https://skill.moldea.ai).
 
-This checkout targets release `10.0.2`. Install the latest published version from `main` inside each repository that will use it:
+This checkout prepares the unpublished `10.0.3` candidate. The current published release is `10.0.2`. Install the latest published version from `main` inside each repository that will use it:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -73,7 +73,7 @@ Evaluation is read-only. Repair checks every owner, its material implementation 
 
 ## Compatibility
 
-Release `10.0.2` supports exactly:
+The unpublished `10.0.3` candidate supports exactly:
 
 - Git `>=2.32.0`
 - Node.js `>=22.17.0`
@@ -207,7 +207,9 @@ The skill uses independent semantic versioning. Every release must:
 
 During prelaunch testing, skill tags require deterministic conformance, synchronized release identity, and installation checks. Semantic evaluation is a separate evidence-backed operation; a passing tag does not establish it. The selected 8.2.3 semantic recording contains 120 cases: 115 passed and five recovered. Its final cleanup reused verified full-recording and reserve trials without new model calls. Two unresolved cases remain private and are disclosed as not yet included. Historical evidence preserves its recorded versions, dates and sources and supplies no current-release assurance. See [Release evidence](docs/release-evidence.md) for the exact workflows.
 
-Release 10.0.2 retains the selected 8.2.3 semantic evidence and has no fresh public recording. Its subsequent private diagnostic campaign preserves failures and fixture corrections separately; the fresh/upgraded native-routing prerequisites completed before diagnostics. Earlier changes from 8.2.4 through 10.0.1 also retain their historical qualifications. See [the 10.0.2 qualification](docs/release-evidence.md#skill-1002-evidence-reuse) and the preceding release records. Current candidate identities, diagnostic findings and remaining authorization gates are recorded in [Semantic evaluation](docs/semantic-evaluation.md#prepared-1002-campaign-handoff) and [Reference-reading checks](docs/reference-reading.md#native-campaign-admission-and-records). Private diagnostics and native observations do not replace public release evidence.
+Release 10.0.2 retains the selected 8.2.3 semantic evidence and has no fresh public recording. Its subsequent private diagnostic campaign preserves failures and fixture corrections separately; the fresh/upgraded native-routing prerequisites completed before diagnostics. Earlier changes from 8.2.4 through 10.0.1 also retain their historical qualifications. See [the 10.0.2 qualification](docs/release-evidence.md#skill-1002-evidence-reuse) and the preceding release records. Original candidate identities and diagnostic findings remain in [the 10.0.2 handoff](docs/semantic-evaluation.md#prepared-1002-campaign-handoff).
+
+The unpublished 10.0.3 candidate clarifies direct validation, corrects the boundary request and reporting criteria, and retains composition controls for tooling proof and repair. Its [nine-case diagnostic and full-recording proposal](docs/semantic-evaluation.md#prepared-1003-follow-up) remains subject to later authorization. [Native applicability](docs/reference-reading.md#1003-candidate-applicability) uses historical observations with an explicit comparison and limitations. Private diagnostics and native observations do not replace public release evidence.
 
 ## License
 

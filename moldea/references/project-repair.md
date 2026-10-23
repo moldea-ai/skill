@@ -4,7 +4,7 @@ Use for an explicit request to validate, evaluate, inspect, or repair this repos
 
 ## Select the requested operation
 
-For an adopted project with eligible installed tooling, run the requested `validate` or `inspect` through the closed launcher under `local-tooling.md`, without a repair checkpoint. These read-only checks do not install tooling, change files, or enter corrective repair. Evaluation retains its read-only `evaluate-and-reconcile.md` scope; structural validity alone does not establish semantic health.
+For an adopted project with eligible installed tooling, run the requested `validate` or `inspect` directly through the closed launcher under `local-tooling.md`, without a repair checkpoint. A completed launcher-verified `valid` or `invalid` validation response establishes successful invocation; do not add `composition` merely to prove tooling availability. An `invalid` result supplies project diagnostics and does not require a second tooling proof. These read-only checks do not install tooling, change files, or enter corrective repair. Evaluation retains its read-only `evaluate-and-reconcile.md` scope; structural validity alone does not establish semantic health.
 
 When adoption or tooling blocks the requested check, use the bounded inert diagnosis below and report what could not run. Its no-CLI restriction applies to that blocked branch, not eligible standalone validation. Only an actual repair continues through the repair Git boundary, tooling recovery, full owner assessment, corrections, and final validation.
 

@@ -188,6 +188,88 @@ test('Node startup records direct and wrapped launchers, early failures and filt
       exitCode: failed.result.status,
     });
     expect(failed.invocations[0]?.stdout).toBe('');
+    const projectFailedAttempt = (
+      commandArguments: string[],
+      attempt: Awaited<ReturnType<typeof run>>,
+    ) =>
+      parseSemanticEvaluationHostOutput(
+        [
+          {
+            type: 'item.completed',
+            item: {
+              type: 'command_execution',
+              command: `/opt/node ${commandArguments.join(' ')}`,
+              aggregated_output: attempt.result.stdout + attempt.result.stderr,
+              exit_code: attempt.result.status,
+              status: 'failed',
+            },
+          },
+          {
+            type: 'item.completed',
+            item: { type: 'agent_message', text: 'The launcher closure is unavailable.' },
+          },
+          {
+            type: 'moldea.git-invocations',
+            evidence: {
+              invocationCount: 0,
+              hostInvocationCount: 0,
+              repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+            },
+          },
+          { type: 'moldea.cli-invocations', invocations: attempt.invocations },
+        ]
+          .map((event) => JSON.stringify(event))
+          .join('\n'),
+        { cliVersion, jsonSchemaVersion: 7 },
+      );
+    const failedComposition = projectFailedAttempt(
+      [launcher, '--repository', '/mnt', '--', 'composition', '--json'],
+      failed,
+    );
+    const attempts = failedComposition.actorExecutionEvidence.filter(
+      ({ item }) => item.commandKind === 'moldea',
+    );
+    expect(attempts).toHaveLength(1);
+    expect(attempts[0]?.item).toMatchObject({
+      status: 'failed',
+      outputEvidence: { facts: [] },
+    });
+    expect(failedComposition.commandPolicyEvidence.moldeaEvents).toContainEqual({
+      kind: 'command',
+      operation: 'composition',
+      ownership: 'cli',
+      outputByteCount: Buffer.byteLength(failed.result.stdout + failed.result.stderr),
+    });
+    const validationArgs = [
+      launcher,
+      '--repository',
+      '/mnt',
+      '--',
+      'validate',
+      '--json',
+      '--max-output-bytes',
+      '65536',
+    ];
+    const failedValidation = await run(validationArgs, false);
+    expect(failedValidation.result.status).not.toBe(0);
+    expect(failedValidation.invocations).toHaveLength(1);
+    const validationEvidence = projectFailedAttempt(validationArgs, failedValidation);
+    expect(
+      validationEvidence.actorExecutionEvidence.filter(({ item }) => item.commandKind === 'moldea'),
+    ).toHaveLength(1);
+    expect(validationEvidence.commandPolicyEvidence.moldeaEvents).toContainEqual({
+      kind: 'command',
+      operation: 'validate',
+      ownership: 'cli',
+      outputByteCount: Buffer.byteLength(
+        failedValidation.result.stdout + failedValidation.result.stderr,
+      ),
+    });
+    expect(
+      validationEvidence.commandPolicyEvidence.moldeaEvents.some(
+        (event) => event.kind === 'command' && event.operation === 'composition',
+      ),
+    ).toBe(false);
     for (const method of ['spawnSync', 'execFileSync'] as const) {
       const compositionArgs = [launcher, '--repository', '/mnt', '--', 'composition', '--json'];
       const wrappedFailure = await run(

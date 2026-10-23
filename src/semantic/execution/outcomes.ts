@@ -188,6 +188,24 @@ export const hasPassingCaseRepairGitEvidence = (options: {
     (!options.caseDefinition.expected.some(({ label }) => label === 'approved-repair-git') ||
       options.gitInvocationEvidence.repair.compliantCount > 0));
 
+/** Rejects observed repair Git work in cases explicitly limited to structural validation. */
+const hasPassingValidationBoundary = (options: {
+  actorCommandPolicy: ICodexEvaluationCommandPolicyEvidence;
+  actorExecutionEvidence: ISemanticActorExecutionEvidence[];
+  caseDefinition: ISemanticCase;
+  gitInvocationEvidence: IGitInvocationEvidence;
+}): boolean =>
+  !options.caseDefinition.expected.some(({ label }) => label === 'standalone-validation-only') ||
+  (options.actorExecutionEvidence.filter(({ item }) => item.commandKind === 'other').length ===
+    options.actorCommandPolicy.completedCommandCount &&
+    options.gitInvocationEvidence.repair.compliantCount === 0 &&
+    options.actorExecutionEvidence.every(
+      ({ item }) =>
+        item.repairGit.compliantCount === 0 &&
+        item.outputEvidence.facts.every(({ kind }) => kind !== 'repair-git-result'),
+    ) &&
+    hasPassingRepairGitEvidence(options.actorExecutionEvidence, options.gitInvocationEvidence));
+
 /** Creates independently attributable outcome dimensions for one completed trial. */
 export const createSemanticResultDimensions = (options: {
   cycles?: readonly ISemanticCycleEvidence[];
@@ -254,6 +272,7 @@ export const createSemanticResultDimensions = (options: {
     semantic:
       options.isSemanticPassing &&
       hasPassingCaseRepairGitEvidence(options) &&
+      hasPassingValidationBoundary(options) &&
       hasPassingMoldeaActivation(
         options.actorResourceEvidence,
         options.caseDefinition.resourceBudget,

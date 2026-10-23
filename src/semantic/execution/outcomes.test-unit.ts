@@ -82,6 +82,92 @@ const resourceEvidence = {
 };
 
 test.each([
+  [0, true],
+  [1, false],
+])('standalone validation rejects observed repair helper reads %s -> %s', (count, passing) => {
+  const definition = defineSemanticCase({
+    ...caseDefinition,
+    expected: [{ label: 'standalone-validation-only', criterion: 'No repair Git traversal.' }],
+  });
+  const dimensions = createSemanticResultDimensions({
+    actorCommandPolicy: commandPolicy,
+    actorExecutionEvidence: [],
+    actorResourceEvidence: resourceEvidence,
+    caseDefinition: definition,
+    gitInvocationEvidence: {
+      invocationCount: count,
+      hostInvocationCount: 0,
+      repair: { compliantCount: count, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+    },
+    isMountIntegrityPassing: true,
+    isRepositoryControlPassing: true,
+    isSemanticPassing: true,
+    judgeCommandPolicy: commandPolicy,
+  });
+  expect(dimensions.semantic).toBe(passing);
+});
+
+test.each([
+  [`${LAUNCHER} validate --json --max-output-bytes 65536`, '', 0, true],
+  ['node /mnt/tools/check.js', '', 0, true],
+  ['git config --null --get attr.tree', '', 0, false],
+  [
+    'node /mnt/.agents/skills/moldea/scripts/repair-git.mjs --repository /mnt -- checkpoint',
+    JSON.stringify({
+      kind: 'moldea-repair-git',
+      mode: 'checkpoint',
+      status: 'unavailable',
+      reasonCode: 'attribute-safety',
+      reason: 'Unsafe link.',
+    }),
+    1,
+    false,
+  ],
+])(
+  'standalone validation checks observed command %s -> %s',
+  (command, output, exitCode, passing) => {
+    const event = {
+      type: 'item.completed',
+      item: {
+        type: 'command_execution',
+        command,
+        aggregated_output: output,
+        exit_code: exitCode,
+        status: exitCode === 0 ? 'completed' : 'failed',
+      },
+    };
+    const evidence = projectActorExecutionEvidenceEvent(
+      event,
+      { cliVersion: '13.0.1', jsonSchemaVersion: 7 },
+      false,
+    );
+    if (evidence === null) throw new Error('Missing command projection');
+    const dimensions = createSemanticResultDimensions({
+      actorCommandPolicy: projectCodexEvaluationExecutionEvidence(JSON.stringify(event))
+        .commandPolicy,
+      actorExecutionEvidence: [evidence],
+      actorResourceEvidence: resourceEvidence,
+      caseDefinition: {
+        ...caseDefinition,
+        expected: [
+          { label: 'standalone-validation-only', criterion: 'No observed repair traversal.' },
+        ],
+      },
+      gitInvocationEvidence: {
+        invocationCount: 2,
+        hostInvocationCount: 2,
+        repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+      },
+      isMountIntegrityPassing: true,
+      isRepositoryControlPassing: true,
+      isSemanticPassing: true,
+      judgeCommandPolicy: commandPolicy,
+    });
+    expect(dimensions.semantic).toBe(passing);
+  },
+);
+
+test.each([
   [
     'approved-repair-git',
     {

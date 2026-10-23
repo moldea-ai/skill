@@ -3,6 +3,7 @@ import { spawnSync } from 'node:child_process';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { isPathWithin } from 'jg-fs';
 import { expect, test, vi } from 'vitest';
 import { z } from 'zod';
 
@@ -39,9 +40,41 @@ test('real content pages and final validation straddle the unchanged ordinary al
       join(root, 'tools'),
     );
     const before = await snapshotSemanticWorkspace(repositoryPath);
+    expect(semanticCase.input.developerDirection).toContain(
+      await readFile(join(repositoryPath, 'moldea/project.md'), 'utf8'),
+    );
     const events: unknown[] = [];
     const captures: ISemanticActorExecutionEvidence[] = [];
     const cliIdentity = { cliVersion: '13.0.1', jsonSchemaVersion: 7 };
+    const runHelper = (filename: string, args: string[]) => {
+      const result = spawnSync(
+        process.execPath,
+        [
+          join(repositoryPath, '.agents/skills/moldea/scripts', filename),
+          '--repository',
+          repositoryPath,
+          ...args,
+        ],
+        {
+          encoding: 'utf8',
+          timeout: 10_000,
+          maxBuffer: 65536,
+          env: { ...process.env, TMPDIR: root, TMP: root, TEMP: root },
+        },
+      );
+      expect(result.status, result.stderr || result.stdout).toBe(0);
+      events.push({
+        type: 'item.completed',
+        item: {
+          type: 'command_execution',
+          command: `node /mnt/.agents/skills/moldea/scripts/${filename} --repository /mnt ${args.join(' ')}`,
+          aggregated_output: result.stdout,
+          exit_code: 0,
+          status: 'completed',
+        },
+      });
+      return result.stdout;
+    };
     const call = (args: string[]) => {
       const result = spawnSync(
         process.execPath,
@@ -75,11 +108,17 @@ test('real content pages and final validation straddle the unchanged ordinary al
       captures.push(capture);
       return result.stdout;
     };
-    const saved = join(root, 'page.json');
+    const gateOutput = runHelper('relevance-gate.mjs', ['--adoption-only']);
+    expect(gateOutput).toBe('1\n');
+    const directoryOutput = runHelper('response-directory.mjs', []);
+    const responseDirectory = directoryOutput.trim();
+    expect(responseDirectory).not.toBe(root);
+    expect(isPathWithin(root, responseDirectory)).toBe(true);
+    const saved = join(responseDirectory, 'page.json');
     let cursor: string | null = null;
     let content = '';
     let pages = 0;
-    let beforeValidationBytes = 0;
+    let beforeValidationBytes = Buffer.byteLength(gateOutput) + Buffer.byteLength(directoryOutput);
     do {
       const output = call([
         'content',

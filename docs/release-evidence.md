@@ -12,6 +12,8 @@ Semantic evaluation and scripted journeys produce format-version 1 gzip JSON bun
 
 The website renders the selected bundle's definitions, counts, results, replays, downloads, version, date, and provenance. It does not rerun evaluation or compare that snapshot with today's cases. A historical presentation-only bundle retains its original versions, dates, and sources and provides no current-release assurance. New or materially revised cases require a fresh semantic run before they can support a behavioral claim.
 
+The 10.0.2 preparation now has an explicit [candidate identity and diagnostic selection](../semantic-evaluation/#prepared-1002-campaign-handoff) and [native procedure pack](../reference-reading/#native-campaign-admission-and-records). Both installation-routing prerequisites must finish before semantic model execution. Preparation adds no recorded result or release assurance and changes neither the two private exclusions nor the historical selection. Diagnostics, the public recording, native campaigns, bundle publication, selection replacement and deployment retain their separate authorization boundaries.
+
 ## Pack a completed run
 
 Packing requires an explicit local run ID:

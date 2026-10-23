@@ -2,6 +2,10 @@
 // each row is a distinct contract with material review and escalation requirements
 export const CONTRACT_COUNT = 2857;
 
+// current summary supplied to the actor so legitimate evidence reuse leaves room for traversal
+export const INITIAL_PROJECT_SUMMARY =
+  '# Contract review service\n\nContract inventory summary pending. Human reviewers retain refund approval.\n';
+
 /** Builds substantive contract policy for a deliberate ordinary-output boundary check. */
 export const createBoundaryLedger = (): string => {
   const rows = Array.from({ length: CONTRACT_COUNT }, (_, index) =>

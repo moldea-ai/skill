@@ -33,7 +33,7 @@ The contained-link additions are `repair-contained-directory-links` (32 containe
 
 `context-digest-continuation` uses three authored requests: assess a 30-day context policy, authorize only its correction to 14 days, then reassess against the unchanged 30-day implementation. Real CLI checks distinguish unchanged validation identity from changed inspection identity and content-body digest for that declared context body. Root project-body changes are not used for this narrower identity claim.
 
-`ordinary-final-validation-limit` traverses 2857 substantive contract records in 16 bounded pages. Its deterministic control proves pre-validation output at most 524288 bytes, a qualifying canonical patch and one final page at most 65536 bytes that crosses the allowance. An independent semantic guard requires those measured predicates; normal headroom does not earn boundary coverage. This intentional boundary case is separate from ordinary capacity calibration and does not change resource profiles. Neither definition has model trials.
+`ordinary-final-validation-limit` traverses 2857 substantive contract records in 16 bounded pages. The request supplies the complete current project summary for legitimate evidence reuse; the fixture test binds it to actual bytes. Its deterministic control counts the real adoption gate, response-directory helper and all content pages before proving pre-validation output at most 524288 bytes, a qualifying canonical patch and one final page at most 65536 bytes that crosses the allowance. An independent semantic guard requires those measured predicates; normal headroom does not earn boundary coverage. This intentional boundary case is separate from ordinary capacity calibration and does not change resource profiles. Neither definition has model trials.
 
 Each case owns its definition at `src/semantic/cases/<case-id>/case.ts`. The module exports one typed `semanticCase` with the request, repository evidence declarations, expected and forbidden behavior, resource budget, coverage claims, and setup callback. The runner discovers these directories, validates unique IDs, and derives the coverage map. There is no fixed case count, central runtime case catalog, or website registration step. Keep the initial request in `input.developerDirection`; author any ordered follow-ups in `input.followUpDeveloperRequests`.
 
@@ -113,6 +113,74 @@ New semantic evaluation runs use `gpt-6.1-sol` with `xhigh` reasoning effort for
 ### Untested reporting guidance
 
 Three reporting instructions remain guidance rather than graded semantic claims: the ordinary no-change assessment report, the optional assessed-owner relationship-gap note in `continuous-maintenance.md`, and the request for inert evidence when read-only repair-Git evidence is unavailable in `evaluate-and-reconcile.md`. Existing preservation, activation and read-only checks do not establish that an actor follows these reporting instructions.
+
+## Prepared 10.0.2 campaign handoff
+
+Preparation targets unchanged Skill 10.0.2 at release commit `c2f7decd2301ef4c8953c0ebf13e5d066492f005`. The implementation base is commit `67309616582b2cd2e9c15a200f84bf39420d15e2`. The readiness commit containing this handoff also supplies the boundary fixture’s exact current summary as request evidence and tests that binding, including real gate/response-directory output. Freeze that complete commit and the input identities below before campaign authorization. This freeze contains 143 definitions and 643 criteria, including 17 new cases and 21 repair cases. The public selection contains 141 definitions. The two private markers remain unchanged: `exact-binding-relevance` and `read-only-git-helper-suppression`.
+
+| Frozen input                              | Identity                                                                                          |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Portable artifact SHA-256                 | `17874ecad78914db17f7f110b5dc2b9b6ab2a51cefea482ec90d408216176ad6`                                |
+| Complete case-suite digest                | `33a5718272c1a8e2741357107af298c7ff4955ce70e0a0bfc296c935ab279a4e`                                |
+| Complete coverage digest                  | `f6cc45176ddcfbe496d4e84feca523b391122daa563389050e222f0aa770a7c0`                                |
+| Public case-suite digest                  | `36b5ff66a0dcee429f5d6683f312785ea48cce7b6dd225c24445806b521f89df`                                |
+| Public coverage digest                    | `b885b50f03d1d1ac9b680dc88cd168ecf0c261e2f1a51d7957480e289a463a45`                                |
+| CLI / Core / JSON schema                  | `13.0.1` / `9.0.0` / `7`                                                                          |
+| CLI package integrity                     | `sha512-N8EQkPZxRGygwgGCFt5Z4adevMWeJzTmeCK+YFSAsqHDAw3fcqxS11wMgdGnFSGZXfDPbpTKQZ8DRTDuws77xA==` |
+| CLI identity's lock SHA-256               | `cbb640ce679909c0622b7951e7e8c7d08204b1c888d58a3854e3ae651e3438a3`                                |
+| Evaluation / evidence / checkpoint schema | `54` / `15` / `3`                                                                                 |
+
+The lock-bound CLI identity comes from the existing release/semantic identity mechanism, not a version-label equivalence claim. Recompute it and the suite/coverage digests before authorizing execution. Actor/judge stage identities additionally bind actual host versions/settings, instructions, prompts, materialized repository/tool fixtures and resource inputs; they are finalized when those authorized environments are selected. Changed frozen behavior requires re-verification and renewed execution authorization.
+
+The proposed diagnostic selection has 39 exact IDs in the selector’s resolved catalog order below. It includes all 17 additions, three materially revised validation/integration controls, every repair case and both private diagnostics, without duplicates. Worker scheduling is concurrent and does not promise completion order. Native prerequisites are separate and always precede the first model diagnostic.
+
+```text
+context-digest-continuation
+context-recovery-install-blocked
+context-recovery-install-only
+context-recovery-paused
+context-recovery-topic-change
+exact-binding-relevance
+explicit-moldea-validation
+integration-block-missing-handoff
+invoked-skill-related-output
+invoked-skill-unrelated-run
+ordinary-final-validation-limit
+plan-adopted-zero-agent
+read-only-git-helper-suppression
+repair-ambiguous-foundation
+repair-conflicting-policy
+repair-connection-drift
+repair-contained-directory-links
+repair-continuation-after-change
+repair-continuation-incomplete-checkpoint
+repair-continuation-manifest-change
+repair-continuation-missing-owner-list
+repair-continuation-partial-coverage
+repair-continuation-unavailable-commit
+repair-healthy-project
+repair-known-context-drift
+repair-marker-ambiguity
+repair-missing-tooling
+repair-readme-drift
+repair-relationship-materiality
+repair-stale-integration
+repair-stale-integration-protected
+repair-truncated-canonical-read
+repair-unproven-adoption
+repair-unsafe-directory-link
+setup-check-claude-instructions
+setup-local-warning-eligibility
+setup-shared-claude-precedence
+setup-tracked-warning-acceptance
+validation-structural-recovery
+```
+
+Proposed semantic settings remain the existing Codex actor/judge model `gpt-6.1-sol`, `xhigh` reasoning, and two workers. Propose the existing 64000000 reported input-plus-output-token candidate ceiling as the maximum authorization, including cached input and all charged attempts, rather than a spending entitlement or completion guarantee. The authorization must explicitly include or exclude the existing one operational retry and confirmation policy: up to three confirmations, stopping at two passing or two failing confirmations. No automatic top-up, changed-input resume or extra stopped-stage call is authorized. A smaller approved ceiling needs an enforceable admission boundary before execution; the current CLI has no operator budget flag. Do not silently add one or assume a smaller external budget is enforced by the fixed ceiling.
+
+Before diagnostics, both fresh 10.0.2 and refreshed 10.0.1-to-10.0.2 native new-conversation routing prerequisites in [Reference-reading checks](../reference-reading/#native-campaign-admission-and-records) require explicit environment/scope authorization, recorded outcomes and resolution of material failures. They are currently pending authorization. Remaining native-only installation, platform and read-history observations are scheduled separately and remain outside semantic pass counts. Targeted diagnostics are private and cannot supply release reuse. A later public recording of all 141 public definitions, its retries/confirmations and budget require their own authorization. Bundle publication, selection replacement and deployment are separate decisions.
+
+No model evaluation or native installation campaign ran during preparation. The historical selected 8.2.3 recording stays unchanged. Deterministic results establish fixture and evaluator mechanics, not native instruction consumption or current-release semantic assurance.
 
 ## Isolation and bounded evidence
 

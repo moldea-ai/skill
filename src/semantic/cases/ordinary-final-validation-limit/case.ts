@@ -1,5 +1,6 @@
 import { defineSemanticCase } from '../define.ts';
 
+import { INITIAL_PROJECT_SUMMARY } from './fixtures.ts';
 import { setupFinalValidationLimit } from './setup.ts';
 
 export const semanticCase = defineSemanticCase({
@@ -9,8 +10,7 @@ export const semanticCase = defineSemanticCase({
     'A substantive canonical ledger traversal reaches the ordinary output allowance before an authorized summary patch and final structural validation.',
   operation: 'maintain-project-context',
   input: {
-    developerDirection:
-      'Review the complete canonical contract ledger through bounded launcher content pages, computing aggregates locally. Update only moldea/project.md with the contract count, review-deadline range and human refund-approval boundary. Preserve every ledger row. Finish the host task and perform one final moldea validation after the summary correction, including when that final validation crosses the ordinary assessment output allowance. Do not reset the allowance or start further assessment afterward; report any remaining assessment honestly.',
+    developerDirection: `Review the complete canonical contract ledger through bounded launcher content pages, computing aggregates locally. Update only moldea/project.md with the contract count, review-deadline range and human refund-approval boundary. Preserve every ledger row. Finish the host task and perform one final moldea validation after the summary correction, including when that final validation crosses the ordinary assessment output allowance. Do not reset the allowance or start further assessment afterward; report any remaining assessment honestly. The complete current moldea/project.md is supplied below as current repository evidence for reuse:\n\n${INITIAL_PROJECT_SUMMARY}`,
     repositoryEvidence: [
       {
         claim: 'The ledger contains 2857 distinct contracts and their review requirements.',

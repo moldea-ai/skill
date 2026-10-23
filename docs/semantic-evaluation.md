@@ -14,15 +14,20 @@ Semantic evaluation tests whether a coding agent applies the portable skill corr
 
 The following additional 10.0.2 definitions are prepared but have no model trials. Deterministic fixture checks establish their starting facts; fake-host tests establish request isolation, exact-session continuation and per-cycle workspace deltas. Neither establishes model adherence. Successful installation and resumption remain separately authorized native-host observations; the automated recovery controls preserve the sandbox installation prohibition.
 
-| Prepared case                      | Intended observable coverage                                                                                           |
-| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `invoked-skill-unrelated-run`      | Finish another skill's unbound input/output task without treating its instruction loading as project relevance.        |
-| `invoked-skill-related-output`     | Finish that same task and assess the report output's exact declared owner; instruction and input paths remain unbound. |
-| `context-recovery-install-blocked` | Retain pending authorized maintenance when “install it” cannot override the host installation prohibition.             |
-| `context-recovery-install-only`    | Respect installation-only narrowing and deferred context work while installation remains blocked.                      |
-| `context-recovery-paused`          | Pause blocked maintenance without installation, retries or background continuation.                                    |
-| `context-recovery-topic-change`    | Complete a later unrelated status-file request while leaving the earlier context correction pending.                   |
-| `plan-adopted-zero-agent`          | Recommend ordinary deterministic software and zero agents in an adopted project, without writes or scaffolding.        |
+| Prepared case                        | Intended observable coverage                                                                                                                            |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `repair-stale-integration`           | Refresh the frozen 10.0.1 bridge through its contained link while preserving outside BOM/CRLF bytes; repeat repair in the same conversation as a no-op. |
+| `repair-stale-integration-protected` | Preserve protected stale instructions and provide the installed writer's exact current print handoff without claiming complete integration.             |
+| `setup-local-warning-eligibility`    | Report ignored/local warning subjects with fixes or handoffs, without offering tracked manifest acceptance.                                             |
+| `setup-shared-claude-precedence`     | Select the shared nested Claude file despite an existing local import and give its correct relative import.                                             |
+| `setup-tracked-warning-acceptance`   | Accept only the developer-authorized shared tracked warning identity and exact reason, preserving its cause.                                            |
+| `invoked-skill-unrelated-run`        | Finish another skill's unbound input/output task without treating its instruction loading as project relevance.                                         |
+| `invoked-skill-related-output`       | Finish that same task and assess the report output's exact declared owner; instruction and input paths remain unbound.                                  |
+| `context-recovery-install-blocked`   | Retain pending authorized maintenance when “install it” cannot override the host installation prohibition.                                              |
+| `context-recovery-install-only`      | Respect installation-only narrowing and deferred context work while installation remains blocked.                                                       |
+| `context-recovery-paused`            | Pause blocked maintenance without installation, retries or background continuation.                                                                     |
+| `context-recovery-topic-change`      | Complete a later unrelated status-file request while leaving the earlier context correction pending.                                                    |
+| `plan-adopted-zero-agent`            | Recommend ordinary deterministic software and zero agents in an adopted project, without writes or scaffolding.                                         |
 
 Each case owns its definition at `src/semantic/cases/<case-id>/case.ts`. The module exports one typed `semanticCase` with the request, repository evidence declarations, expected and forbidden behavior, resource budget, coverage claims, and setup callback. The runner discovers these directories, validates unique IDs, and derives the coverage map. There is no fixed case count, central runtime case catalog, or website registration step. Keep the initial request in `input.developerDirection`; author any ordered follow-ups in `input.followUpDeveloperRequests`.
 

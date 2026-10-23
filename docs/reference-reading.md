@@ -8,6 +8,8 @@ order: 179
 
 # Reference-reading checks
 
+Integration fixtures distinguish the local CLI warning result from actual native/cloud instruction consumption. Native review must establish any claimed tracked-status check, protected-instruction compliance and validation ordering after writes. The ordinary tracked-warning acceptance case supplies a bounded host index probe so it need not guess the sandbox's permitted Git arguments; its final acceptance and fixture Git state do not prove actor read history. Repair cases retain the helper-only Git boundary. Core's `acceptable` flag alone does not make local or ignored instruction subjects eligible for tracked manifest acceptance.
+
 Prepared 10.0.2 skill-invocation cases distinguish instructional resources from actual related project output. Their semantic outcomes do not prove which instructions were read. Four retained-conversation recovery controls cover blocked installation, installation-only narrowing, pause and topic change under the unchanged sandbox prohibition. Deterministic session tests prove request order and cycle deltas; successful installation/resumption and native instruction consumption still require separately authorized native checks.
 
 The skill should spend time on the requested work, not repeatedly loading instructions. `SKILL.md` keeps routing and essential boundaries small; operation-specific procedures stay in their references. A maintainer test limits the entrypoint to 8,192 UTF-8 bytes to catch instruction growth. This is not a user output budget or repository-size limit. Host-required reads take precedence. Reusing instructions never establishes fresh repository evidence or permission to write.

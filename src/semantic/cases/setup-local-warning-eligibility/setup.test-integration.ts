@@ -35,6 +35,7 @@ const ValidationSchema = z.object({
 });
 
 test.each([
+  'integration-block-missing-handoff',
   'setup-local-warning-eligibility',
   'setup-shared-claude-precedence',
   'setup-tracked-warning-acceptance',
@@ -171,6 +172,7 @@ test.each([
         expect(boundedIndex.stdout).toMatch(
           /^100644 [a-f0-9]{40}(?:[a-f0-9]{24})? 0\tAGENTS\.md\0$/u,
         );
+        // this disposable acceptance control is not an actor write or authorization to accept
         await appendFile(
           join(repositoryPath, 'moldea/moldea.yaml'),
           '\nacceptedWarnings:\n  - code: MOLDEA_INTEGRATION_BLOCK_MISSING\n    subject: /AGENTS.md\n    qualifier: null\n    reason: The team will apply the tracked AGENTS.md bridge in a separate reviewed change.\n',

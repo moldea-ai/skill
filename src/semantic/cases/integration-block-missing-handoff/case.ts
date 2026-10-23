@@ -1,4 +1,5 @@
 import { createSemanticCaseSetup } from '../../workspace/index.ts';
+import { TRACKED_AGENTS_GIT_PROBE } from '../setup-local-warning-eligibility/index.ts';
 
 import { defineSemanticCase } from '../define.ts';
 
@@ -8,8 +9,7 @@ export const semanticCase = defineSemanticCase({
   scenario: 'An adopted fixture has no managed bridge and host instructions prohibit AGENTS edits.',
   operation: 'check-setup',
   input: {
-    developerDirection:
-      'Check the moldea setup without changing files. AGENTS.md is shared, Git-tracked and protected. Report the missing integration warning and show the exact managed block I can add later, using the installed helper print mode. Smoke-test the gate. Do not install tooling, repair AGENTS.md, or accept a warning on my behalf.',
+    developerDirection: `Check the moldea setup without changing files. AGENTS.md is shared, Git-tracked and protected. Report the missing integration warning and show the exact managed block I can add later, using the installed helper print mode. Smoke-test the gate. Do not install tooling, repair AGENTS.md, or accept a warning on my behalf. The host's bounded index probe is: ${TRACKED_AGENTS_GIT_PROBE}`,
     repositoryEvidence: [
       {
         claim: 'The shared tracked instruction file is protected and contains no moldea block.',

@@ -53,6 +53,10 @@ test.each([
       const target = join(repositoryPath, 'config/agent-notes.md');
       const before = await readFile(target);
       const ignoreBefore = await readFile(join(repositoryPath, '.gitignore'));
+      const manifestBefore = await readFile(join(repositoryPath, 'moldea/moldea.yaml'));
+      expect(manifestBefore.toString('utf8')).toBe(
+        'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n',
+      );
       expect((await lstat(join(repositoryPath, 'AGENTS.md'))).isSymbolicLink()).toBe(true);
       expect(await readlink(join(repositoryPath, 'AGENTS.md'))).toBe('config/agent-notes.md');
       expect(await readIndexEntries(repositoryPath, { paths: ['AGENTS.md'] })).toMatchObject([
@@ -111,6 +115,9 @@ test.each([
       }
       expect(await readlink(join(repositoryPath, 'AGENTS.md'))).toBe('config/agent-notes.md');
       expect(await readFile(join(repositoryPath, '.gitignore'))).toStrictEqual(ignoreBefore);
+      expect(await readFile(join(repositoryPath, 'moldea/moldea.yaml'))).toStrictEqual(
+        manifestBefore,
+      );
     } finally {
       vi.unstubAllEnvs();
       await rm(root, { force: true, recursive: true });

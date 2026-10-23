@@ -1,4 +1,7 @@
-import { createIntegrationWarningSetup } from '../setup-local-warning-eligibility/index.ts';
+import {
+  TRACKED_AGENTS_GIT_PROBE,
+  createIntegrationWarningSetup,
+} from '../setup-local-warning-eligibility/index.ts';
 
 import { defineSemanticCase } from '../define.ts';
 
@@ -9,8 +12,7 @@ export const semanticCase = defineSemanticCase({
     'The developer explicitly accepts the missing-bridge warning for a shared tracked AGENTS.md with an exact reason, while requiring the cause and other state to remain intact.',
   operation: 'accept-tracked-integration-warning',
   input: {
-    developerDirection:
-      "Use moldea to accept MOLDEA_INTEGRATION_BLOCK_MISSING for /AGENTS.md with null qualifier. AGENTS.md is a shared tracked file. My exact reason is: The team will apply the tracked AGENTS.md bridge in a separate reviewed change. Preserve the instruction file and all other content; add only this manifest acceptance and validate it. The host's bounded index probe is: git -c core.fsmonitor= -c core.askPass= -c core.pager=cat -c color.ui=false -c submodule.recurse=false -c credential.helper= --no-pager ls-files --cached --stage --full-name -z -- AGENTS.md",
+    developerDirection: `Use moldea to accept MOLDEA_INTEGRATION_BLOCK_MISSING for /AGENTS.md with null qualifier. AGENTS.md is a shared tracked file. My exact reason is: The team will apply the tracked AGENTS.md bridge in a separate reviewed change. Preserve the instruction file and all other content; add only this manifest acceptance and validate it. The host's bounded index probe is: ${TRACKED_AGENTS_GIT_PROBE}`,
     repositoryEvidence: [
       {
         claim: 'AGENTS.md is shared and tracked but contains no managed bridge.',

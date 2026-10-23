@@ -27,7 +27,10 @@ import { expect, test, vi } from 'vitest';
 import { z } from 'zod';
 
 import { resolveInstructionWriteTarget } from '../../portable/instruction-link/index.ts';
-import { collectRepairGitEvidence } from '../../portable/repair-git/index.ts';
+import {
+  collectRepairGitEvidence,
+  type IRepairGitOptions,
+} from '../../portable/repair-git/index.ts';
 import { semanticCase as healthyRepairCase } from '../../semantic/cases/repair-healthy-project/case.ts';
 import { createActorRepository } from '../../semantic/workspace/index.ts';
 
@@ -317,7 +320,7 @@ test('Git command-policy boundary admits the jg-git-commands reads of the helper
       { mode: 'continue', checkpoint },
       { mode: 'verify', checkpoint },
       { mode: 'review', paths: ['moldea/moldea.yaml'] },
-    ] as const) {
+    ] satisfies Omit<IRepairGitOptions, 'repositoryRoot'>[]) {
       const evidence = await collectRepairGitEvidence({
         repositoryRoot: repositoryPath,
         ...options,

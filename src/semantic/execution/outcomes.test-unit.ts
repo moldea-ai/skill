@@ -365,7 +365,7 @@ describe('semantic result dimensions', () => {
           commandCount: 8,
           maximumInvocationByteCount: 65_536,
           modelVisibleToolOutputByteCount: outputBytes,
-          operations: Array<string>(8).fill('content'),
+          operations: Array<'content'>(8).fill('content'),
           stdoutByteCount: outputBytes,
         },
         caseDefinition: {

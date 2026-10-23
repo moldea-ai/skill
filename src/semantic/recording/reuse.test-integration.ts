@@ -338,18 +338,21 @@ test('a reviewed passing initial remains reusable with retained historical confi
   expect(candidates[0]?.recordedTrial.trial.confirmationIndex).toBeNull();
 });
 
-test('incompatible grading contracts are not reuse inputs', async () => {
-  const root = await mkdtemp(path.join(tmpdir(), 'moldea-protocol-reuse-'));
-  temporaryRoots.push(root);
-  await storeRun(
-    root,
-    'sem-20260923-incompatible',
-    [createRecordedTrial(true)],
-    'passed',
-    SEMANTIC_EVALUATION_PROTOCOL_VERSION + 1,
-  );
-  expect(await loadSemanticReusableTrials(root)).toStrictEqual([]);
-});
+test.each([53, SEMANTIC_EVALUATION_PROTOCOL_VERSION + 1])(
+  'grading protocol %d is not reusable under helper-only grading',
+  async (protocol) => {
+    const root = await mkdtemp(path.join(tmpdir(), 'moldea-protocol-reuse-'));
+    temporaryRoots.push(root);
+    await storeRun(
+      root,
+      'sem-20260923-incompatible',
+      [createRecordedTrial(true)],
+      'passed',
+      protocol,
+    );
+    expect(await loadSemanticReusableTrials(root)).toStrictEqual([]);
+  },
+);
 
 test.each([false, true])(
   'pending resume preserves unchanged-failure stop and does not substitute a cached pass: %s',

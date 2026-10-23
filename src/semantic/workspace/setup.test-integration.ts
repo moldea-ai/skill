@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import {
+  chmodSync,
   existsSync,
   lstatSync,
   mkdirSync,
@@ -27,7 +28,11 @@ import { loadSemanticCases, type ISemanticCase } from '../cases/index.ts';
 import { projectActorExecutionEvidenceEvent } from '../execution/index.ts';
 import { buildSemanticActorPrompt, buildSemanticJudgePrompt } from '../judging/index.ts';
 
-import { createActorRepository, snapshotSemanticWorkspace } from './setup.ts';
+import {
+  createActorRepository,
+  prepareSemanticEvaluationHome,
+  snapshotSemanticWorkspace,
+} from './setup.ts';
 
 const CASE_DIRECTORY = resolve(import.meta.dirname, '..', 'cases');
 const GATE_PATH = resolve(
@@ -163,6 +168,46 @@ const runFixtureTests = (repositoryPath: string, testPaths: string[]) => {
   assert.equal(result.status, 0, result.stderr || result.stdout);
   return result;
 };
+
+test.each(['direct-canonical-relevance', 'pnpm-pnp-local-cli-provider'])(
+  '%s replaces stale executable Git with an inert mountpoint while preserving scenario tools',
+  async (caseId) => {
+    const definition = cases.find(({ id }) => id === caseId);
+    assert.ok(definition);
+    const root = mkdtempSync(join(tmpdir(), 'moldea-tool-mountpoint-'));
+    temporaryRoots.push(root);
+    const sandboxHome = join(root, 'home');
+    const actorToolDirectory = join(root, 'tools');
+    mkdirSync(actorToolDirectory);
+    const gitMountpoint = join(actorToolDirectory, 'git');
+    writeFileSync(gitMountpoint, '#!/bin/sh\nexit 99\n');
+    chmodSync(gitMountpoint, 0o755);
+    const mounts = await withEmptyCodexHome(root, () =>
+      prepareSemanticEvaluationHome(sandboxHome, definition, actorToolDirectory),
+    );
+    assert.deepEqual(mounts, [{ source: actorToolDirectory, target: '/home/evaluator/bin' }]);
+    const mountpoint = lstatSync(gitMountpoint);
+    assert.equal(mountpoint.isFile(), true);
+    assert.equal(mountpoint.mode & 0o111, 0);
+    assert.equal(readFileSync(gitMountpoint, 'utf8'), '');
+    for (const filename of ['npm', 'cli-invocation-preload.mjs']) {
+      assert.deepEqual(
+        readFileSync(join(actorToolDirectory, filename)),
+        readFileSync(join(sandboxHome, 'bin', filename)),
+      );
+    }
+    assert.notEqual(readFileSync(join(sandboxHome, 'bin/git'), 'utf8'), '');
+    if (caseId === 'pnpm-pnp-local-cli-provider') {
+      const probe = spawnSync(process.execPath, [join(actorToolDirectory, 'pnpm'), '--version'], {
+        encoding: 'utf8',
+        timeout: 2_000,
+      });
+      assert.equal(probe.status, 0, probe.stderr);
+      assert.equal(probe.stdout, '11.21.0\n');
+      assert.notEqual(lstatSync(join(actorToolDirectory, 'pnpm')).mode & 0o111, 0);
+    }
+  },
+);
 
 test.each(['direct-canonical-relevance', 'pnpm-pnp-local-cli-provider'])(
   '%s preserves Node startup capture through the production actor-tools mount',

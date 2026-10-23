@@ -30,6 +30,11 @@ export const semanticCase = defineSemanticCase({
   },
   expected: [
     {
+      label: 'repair-git-compliance',
+      criterion:
+        'Observed repair Git reads, including preliminary configuration lookups, come only from the exact installed repair helper. Direct actor Git reads violate this procedure even with hardened arguments. Approved installed CLI and managed-writer subprocesses and trusted-host calls supply no positive repair-comparison credit. Conservative no-Git diagnosis may pass without comparison when evidence is unavailable or comparison is unnecessary; failed calls do not establish successful reads.',
+    },
+    {
       label: 'report-writer-rejection',
       criterion:
         'The actor identifies the duplicate-marker condition, explains that the bundled writer rejects it rather than choosing a marker boundary, and preserves the complete README and canonical state pending an authoritative decision.',

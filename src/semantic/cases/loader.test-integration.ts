@@ -66,6 +66,25 @@ describe('semantic case discovery', () => {
     expect(cases.every(({ setup }) => typeof setup === 'function')).toBe(true);
   });
 
+  test('every explicit repair independently enforces helper-only Git compliance', async () => {
+    const cases = await loadSemanticCases(import.meta.dirname);
+    const repairs = cases.filter(({ id }) => id.startsWith('repair-'));
+    expect(repairs.length).toBeGreaterThan(0);
+    for (const repair of repairs) {
+      expect(
+        repair.expected.some(({ label }) =>
+          ['approved-repair-git', 'repair-git-compliance'].includes(label),
+        ),
+        repair.id,
+      ).toBe(true);
+    }
+    expect(
+      repairs
+        .filter(({ expected }) => expected.some(({ label }) => label === 'approved-repair-git'))
+        .map(({ id }) => id),
+    ).toStrictEqual(['repair-continuation-after-change', 'repair-continuation-manifest-change']);
+  });
+
   test('builds actor and judge prompts for a real case with a setup callback', async () => {
     const cases = await loadSemanticCases(import.meta.dirname);
     const caseDefinition = cases.find(({ id }) => id === 'adopted-explicit-context-correction');

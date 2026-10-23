@@ -410,6 +410,29 @@ test('sandbox mounts related repositories read-only', () => {
   );
 });
 
+test('sandbox binds the final Git wrapper after every scenario tool overlay', () => {
+  const argumentsList = buildCodexEvaluationBwrapArguments({
+    command: SAFE_HOST_COMMAND,
+    cwd: '/tmp/evaluation',
+    hostExecutable: '/usr/bin/codex',
+    readOnlyMounts: [
+      { source: '/tmp/scenario-tools', target: '/home/evaluator/bin' },
+      { source: '/tmp/other-tools', target: '/other-tools' },
+    ],
+    sandboxHome: '/tmp/evaluation-home',
+  });
+  const finalOverlayIndex = argumentsList.indexOf('/tmp/other-tools');
+  for (const target of ['/home/evaluator/bin/git', '/usr/bin/git']) {
+    const wrapperIndex = argumentsList.findIndex(
+      (part, index) =>
+        part === '--ro-bind' &&
+        argumentsList[index + 1] === '/tmp/evaluation-home/bin/git' &&
+        argumentsList[index + 2] === target,
+    );
+    assert.ok(wrapperIndex > finalOverlayIndex);
+  }
+});
+
 test('sandbox overlays selected workspace paths read-only and rejects unsafe paths', () => {
   const argumentsList = buildCodexEvaluationBwrapArguments({
     command: SAFE_HOST_COMMAND,

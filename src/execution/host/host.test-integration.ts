@@ -17,6 +17,9 @@ import { join } from 'node:path';
 import { test } from 'vitest';
 import { z } from 'zod';
 
+import { semanticCase as healthyRepairCase } from '../../semantic/cases/repair-healthy-project/case.ts';
+import { createActorRepository } from '../../semantic/workspace/index.ts';
+
 import { GitInvocationEventSchema } from './git-invocations.ts';
 import { CliInvocationEventSchema } from './cli-invocations/index.ts';
 import { CODEX_EVALUATION_GIT_STATUS_ARGUMENTS } from './git-command-policy-boundary.ts';
@@ -231,6 +234,129 @@ test('shared host aligns the Git traversal budget with its read-only dependency 
     rmSync(evaluationRoot, { force: true, recursive: true });
   }
 });
+
+test.each([false, true])(
+  'shared host refreshes Git attribution and immutable aliases with tools overlay %s',
+  async (withToolsOverlay) => {
+    const root = mkdtempSync(join(tmpdir(), 'moldea-host-git-provenance-'));
+    const originalPath = process.env['PATH'];
+    const originalCodexHome = process.env['CODEX_HOME'];
+    try {
+      const sourceCodexHome = join(root, 'source-codex-home');
+      const executableDirectory = join(root, 'bin');
+      const sandboxHome = join(root, 'home');
+      const actorToolDirectory = join(root, 'tools');
+      mkdirSync(sourceCodexHome);
+      mkdirSync(executableDirectory);
+      process.env['CODEX_HOME'] = sourceCodexHome;
+      const { repositoryPath, readOnlyMounts } = await createActorRepository(
+        root,
+        healthyRepairCase,
+        sandboxHome,
+        actorToolDirectory,
+      );
+      assert.equal(existsSync(join(sandboxHome, '.codex/auth.json')), false);
+      const codexPath = join(executableDirectory, 'codex');
+      const companionPath = join(executableDirectory, 'codex-code-mode-host');
+      writeFileSync(companionPath, '#!/bin/sh\nexit 0\n');
+      chmodSync(companionPath, 0o755);
+      process.env['PATH'] = `${executableDirectory}:${originalPath ?? ''}`;
+      const run = async (command: string, readOnlyWorkspacePaths = ['.agents', '.git']) => {
+        writeFileSync(
+          codexPath,
+          `#!/bin/sh\nset -eu\nexport MOLDEA_EVAL_MODEL_COMMAND=1\n${command}\n`,
+        );
+        chmodSync(codexPath, 0o755);
+        const output = await runCodexEvaluationHost({
+          command: HOST_COMMAND,
+          cwd: repositoryPath,
+          includeWorkspaceBinaryDirectory: true,
+          prompt: 'deterministic Git attribution test',
+          readOnlyMounts: withToolsOverlay ? readOnlyMounts : [],
+          readOnlyWorkspacePaths,
+          role: 'actor',
+          sandboxHome,
+        });
+        const lines = output.split('\n');
+        CliInvocationEventSchema.parse(JSON.parse(lines.pop() ?? ''));
+        const { evidence } = GitInvocationEventSchema.parse(JSON.parse(lines.pop() ?? ''));
+        assert.equal(existsSync(join(sandboxHome, 'git-invocations.jsonl')), false);
+        assert.equal(existsSync(join(sandboxHome, 'cli-invocations.jsonl')), false);
+        return { evidence, stdout: lines.join('\n') };
+      };
+      const scripts = '/mnt/.agents/skills/moldea/scripts';
+      const checkpoint = `node ${scripts}/repair-git.mjs --repository /mnt -- checkpoint`;
+      const unprotected = await run(checkpoint, ['.git']);
+      assert.ok(unprotected.evidence.repair.noncompliantCount > 0);
+      assert.equal(unprotected.evidence.repair.compliantCount, 0);
+      const helper = await run(checkpoint);
+      assert.equal(
+        z.object({ status: z.literal('available') }).parse(JSON.parse(helper.stdout)).status,
+        'available',
+      );
+      assert.ok(helper.evidence.repair.compliantCount > 0);
+      assert.equal(helper.evidence.repair.noncompliantCount, 0);
+
+      for (const [command, usesGit] of [
+        [
+          `node ${scripts}/moldea-cli.mjs --repository /mnt -- validate --json --max-output-bytes 65536`,
+          true,
+        ],
+        [`node ${scripts}/managed-agents.mjs --repository /mnt`, true],
+        [`node ${scripts}/managed-readme.mjs --repository /mnt`, false],
+      ] as const) {
+        const { evidence, stdout } = await run(command);
+        if (usesGit) assert.ok(evidence.invocationCount > 0, command);
+        else {
+          assert.equal(evidence.invocationCount, 0);
+          assert.match(stdout.trim(), /^(?:created|updated|unchanged)$/u);
+        }
+        assert.deepEqual(evidence.repair, {
+          compliantCount: 0,
+          noncompliantCount: 0,
+          unverifiedCount: 0,
+          reasons: [],
+        });
+      }
+      const aliases = await run(
+        [
+          'for executable in /home/evaluator/bin/git /usr/bin/git /bin/git /usr/lib/git-core/git; do',
+          '  if test -e "$executable"; then',
+          '    cmp /home/evaluator/bin/git "$executable"',
+          '    "$executable" --version >/dev/null',
+          '    ! printf changed > "$executable" 2>/dev/null',
+          '  fi',
+          'done',
+          '! printf changed > /mnt/.agents/skills/moldea/scripts/repair-git.mjs 2>/dev/null',
+          ...(withToolsOverlay ? ['! printf changed > /home/evaluator/bin/npm 2>/dev/null'] : []),
+        ].join('\n'),
+      );
+      assert.ok(aliases.evidence.invocationCount >= 2);
+      assert.equal(aliases.evidence.repair.compliantCount, 0);
+      assert.equal(aliases.evidence.repair.noncompliantCount, 0);
+      const refreshed = await run(checkpoint, ['.git']);
+      assert.equal(refreshed.evidence.repair.compliantCount, 0);
+      assert.ok(refreshed.evidence.repair.noncompliantCount > 0);
+      assert.equal(readFileSync(join(actorToolDirectory, 'git'), 'utf8'), '');
+      if (withToolsOverlay) {
+        rmSync(join(actorToolDirectory, 'git'));
+        await assert.rejects(
+          run(checkpoint),
+          (error) =>
+            error instanceof CodexEvaluationHostError &&
+            error.kind === CODEX_EVALUATION_HOST_FAILURE_KINDS.ExecutionFailed,
+        );
+        assert.equal(existsSync(join(sandboxHome, 'git-invocations.jsonl')), false);
+      }
+    } finally {
+      if (originalPath === undefined) delete process.env['PATH'];
+      else process.env['PATH'] = originalPath;
+      if (originalCodexHome === undefined) delete process.env['CODEX_HOME'];
+      else process.env['CODEX_HOME'] = originalCodexHome;
+      rmSync(root, { force: true, recursive: true });
+    }
+  },
+);
 
 test('shared host preserves the sandbox PATH in Codex shell commands', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-host-shell-path-test-'));

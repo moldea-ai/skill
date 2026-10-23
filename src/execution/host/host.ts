@@ -789,6 +789,9 @@ export const buildCodexEvaluationBwrapArguments = ({
     '/opt/moldea-real-git/git',
     '--ro-bind',
     join(sandboxHome, 'bin/git'),
+    '/home/evaluator/bin/git',
+    '--ro-bind',
+    join(sandboxHome, 'bin/git'),
     '/usr/bin/git',
     ...(existsSync('/bin/git') ? ['--ro-bind', join(sandboxHome, 'bin/git'), '/bin/git'] : []),
     ...(existsSync('/usr/lib/git-core/git')

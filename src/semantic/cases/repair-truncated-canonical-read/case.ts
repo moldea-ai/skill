@@ -44,6 +44,11 @@ export const semanticCase = defineSemanticCase({
   },
   expected: [
     {
+      label: 'repair-git-compliance',
+      criterion:
+        'Observed repair Git reads, including preliminary configuration lookups, come only from the exact installed repair helper. Direct actor Git reads violate this procedure even with hardened arguments. Approved installed CLI and managed-writer subprocesses and trusted-host calls supply no positive repair-comparison credit. Conservative no-Git diagnosis may pass without comparison when evidence is unavailable or comparison is unnecessary; failed calls do not establish successful reads.',
+    },
+    {
       label: 'report-stale-fact-or-unchecked-owner',
       criterion:
         "The actor's report either names the operations handbook's 90-day retention statement as contradicting the 365 days in `src/retention.js`, whether or not it corrects the handbook, or lists the operations handbook under **Not checked** or an equivalent unchecked heading with the reason that its content could not be completely read or assessed. Correcting the handbook is not required. The workspace snapshot omits files over 32,768 bytes, so edits inside the handbook cannot be verified; grade this report against the visible retention source.",

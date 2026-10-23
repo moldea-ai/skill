@@ -172,7 +172,7 @@ export const identifyFinalValidationExemption = (options: {
   return hasNetMoldeaChange ? finalInvocation.item.outputEvidence.byteCount : null;
 };
 
-/** Enforces the case's complete repair-Git observations independently of the judge verdict. */
+/** Enforces helper-only Git compliance for explicitly labelled repair cases, independently of the judge. */
 export const hasPassingCaseRepairGitEvidence = (options: {
   actorCommandPolicy: ICodexEvaluationCommandPolicyEvidence;
   gitInvocationEvidence: IGitInvocationEvidence;

@@ -1403,11 +1403,12 @@ const getRejectedRepairGitReason = (words: readonly string[]): IRepairGitReasonC
   }
 };
 
-/** Classifies actual wrapper arguments without reconstructing shell text. */
+/** Credits approved arguments only after the wrapper observes the installed repair helper. */
 export const projectRepairGitArgumentsEvidence = (
   arguments_: readonly string[],
+  isRepairHelper = false,
 ): IRepairGitCommandEvidence =>
-  isApprovedRepairGitArguments(arguments_)
+  isRepairHelper && isApprovedRepairGitArguments(arguments_)
     ? { compliantCount: 1, noncompliantCount: 0, unverifiedCount: 0, reasons: [] }
     : {
         compliantCount: 0,
@@ -1460,7 +1461,6 @@ export const projectRepairGitCommandEvidence = (command: unknown): IRepairGitCom
       if (isTrustedGitExecutable(words[0]) && words.length === 2 && words[1] === '--version')
         continue;
       if (!isTrustedGitExecutable(words[0])) recordReason('untrusted-git');
-      else if (isApprovedRepairGitArguments(words.slice(1))) evidence.compliantCount++;
       else recordReason(getRejectedRepairGitReason(words));
       continue;
     }

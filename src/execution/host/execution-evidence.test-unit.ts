@@ -1248,35 +1248,35 @@ test('projects complete repair Git syntax and rejects incomplete shell lists', (
     '--branch',
   ].join(' ');
   assert.deepEqual(projectRepairGitCommandEvidence(status), {
-    compliantCount: 1,
-    noncompliantCount: 0,
-    unverifiedCount: 0,
-    reasons: [],
-  });
-  assert.equal(projectRepairGitCommandEvidence(`${status} |`).unverifiedCount, 1);
-  assert.deepEqual(projectRepairGitCommandEvidence(`${status} # note`), {
-    compliantCount: 1,
-    noncompliantCount: 0,
-    unverifiedCount: 0,
-    reasons: [],
-  });
-  assert.deepEqual(projectRepairGitCommandEvidence(status.replaceAll(' ', ' \\\n')), {
-    compliantCount: 1,
-    noncompliantCount: 0,
-    unverifiedCount: 0,
-    reasons: [],
-  });
-  assert.deepEqual(projectRepairGitCommandEvidence(`${status}; git status --short`), {
-    compliantCount: 1,
+    compliantCount: 0,
     noncompliantCount: 1,
     unverifiedCount: 0,
     reasons: [{ code: 'git-status-arguments', count: 1 }],
   });
-  assert.deepEqual(projectRepairGitCommandEvidence(`cat README.md; ${status}`), {
-    compliantCount: 1,
-    noncompliantCount: 0,
+  assert.equal(projectRepairGitCommandEvidence(`${status} |`).unverifiedCount, 1);
+  assert.deepEqual(projectRepairGitCommandEvidence(`${status} # note`), {
+    compliantCount: 0,
+    noncompliantCount: 1,
     unverifiedCount: 0,
-    reasons: [],
+    reasons: [{ code: 'git-status-arguments', count: 1 }],
+  });
+  assert.deepEqual(projectRepairGitCommandEvidence(status.replaceAll(' ', ' \\\n')), {
+    compliantCount: 0,
+    noncompliantCount: 1,
+    unverifiedCount: 0,
+    reasons: [{ code: 'git-status-arguments', count: 1 }],
+  });
+  assert.deepEqual(projectRepairGitCommandEvidence(`${status}; git status --short`), {
+    compliantCount: 0,
+    noncompliantCount: 2,
+    unverifiedCount: 0,
+    reasons: [{ code: 'git-status-arguments', count: 2 }],
+  });
+  assert.deepEqual(projectRepairGitCommandEvidence(`cat README.md; ${status}`), {
+    compliantCount: 0,
+    noncompliantCount: 1,
+    unverifiedCount: 0,
+    reasons: [{ code: 'git-status-arguments', count: 1 }],
   });
   assert.deepEqual(projectRepairGitCommandEvidence(`false && git status --short`), {
     compliantCount: 0,
@@ -1285,10 +1285,10 @@ test('projects complete repair Git syntax and rejects incomplete shell lists', (
     reasons: [{ code: 'git-status-arguments', count: 1 }],
   });
   assert.deepEqual(projectRepairGitCommandEvidence(`/bin/bash -lc '${status}'`), {
-    compliantCount: 1,
-    noncompliantCount: 0,
+    compliantCount: 0,
+    noncompliantCount: 1,
     unverifiedCount: 0,
-    reasons: [],
+    reasons: [{ code: 'git-status-arguments', count: 1 }],
   });
 });
 
@@ -1359,10 +1359,10 @@ test.each(['&&', '||', '|', ';', '&'])(
       assert.deepEqual(
         projectRepairGitCommandEvidence(`${status} ${operator} ${status}${ending}`),
         {
-          compliantCount: 2,
-          noncompliantCount: 0,
+          compliantCount: 0,
+          noncompliantCount: 2,
           unverifiedCount: 0,
-          reasons: [],
+          reasons: [{ code: 'git-status-arguments', count: 2 }],
         },
       );
     }
@@ -1619,22 +1619,31 @@ test.each(['&&', '||', ';', '|', '&', '\n'])(
       '.',
     ].join(' ');
     assert.deepEqual(projectRepairGitCommandEvidence(`${status} ${separator} ${diff}`), {
-      compliantCount: 2,
-      noncompliantCount: 0,
+      compliantCount: 0,
+      noncompliantCount: 2,
       unverifiedCount: 0,
-      reasons: [],
+      reasons: [
+        { code: 'git-diff-arguments', count: 1 },
+        { code: 'git-status-arguments', count: 1 },
+      ],
     });
     assert.deepEqual(projectRepairGitCommandEvidence(`${status} ${separator} git log -p`), {
-      compliantCount: 1,
-      noncompliantCount: 1,
+      compliantCount: 0,
+      noncompliantCount: 2,
       unverifiedCount: 0,
-      reasons: [{ code: 'git-log', count: 1 }],
+      reasons: [
+        { code: 'git-log', count: 1 },
+        { code: 'git-status-arguments', count: 1 },
+      ],
     });
     assert.deepEqual(projectRepairGitCommandEvidence(`${status} ${separator} node inspect.js`), {
-      compliantCount: 1,
-      noncompliantCount: 0,
+      compliantCount: 0,
+      noncompliantCount: 1,
       unverifiedCount: 1,
-      reasons: [{ code: 'opaque-node', count: 1 }],
+      reasons: [
+        { code: 'git-status-arguments', count: 1 },
+        { code: 'opaque-node', count: 1 },
+      ],
     });
   },
 );
@@ -1694,13 +1703,13 @@ test.each([
   });
 });
 
-test('classifies hardened repair review diffs without admitting unbounded pathspecs', () => {
+test('rejects direct hardened repair review diffs, including bounded paths', () => {
   const prefix = CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX.join(' ');
   assert.deepEqual(projectRepairGitCommandEvidence(`git ${prefix} moldea/context/a.md README.md`), {
-    compliantCount: 1,
-    noncompliantCount: 0,
+    compliantCount: 0,
+    noncompliantCount: 1,
     unverifiedCount: 0,
-    reasons: [],
+    reasons: [{ code: 'git-diff-arguments', count: 1 }],
   });
   const evidence = projectRepairGitCommandEvidence(`git ${prefix} .`);
   assert.equal(evidence.noncompliantCount, 1);
@@ -1720,10 +1729,10 @@ test.each([
     '--branch',
   ].join(' ');
   assert.deepEqual(projectRepairGitCommandEvidence(`${prefix}${status}`), {
-    compliantCount: 1,
-    noncompliantCount: 0,
+    compliantCount: 0,
+    noncompliantCount: 1,
     unverifiedCount: 0,
-    reasons: [],
+    reasons: [{ code: 'git-status-arguments', count: 1 }],
   });
   assert.deepEqual(projectRepairGitCommandEvidence(`${prefix}git log -p`), {
     compliantCount: 0,
@@ -1786,13 +1795,18 @@ test('untrusted repair helper copies and hidden shell branches cannot acquire co
   }
 });
 
-test('only the exact hardened attribute-source configuration query is a passive Git read', () => {
+test('the hardened attribute-source lookup is mechanically passive but violates helper-only repair', () => {
   const prefix = CODEX_EVALUATION_GIT_STATUS_ARGUMENTS.slice(
     0,
     CODEX_EVALUATION_GIT_STATUS_ARGUMENTS.indexOf('status'),
   );
   const command = ['git', ...prefix, 'config', '--null', '--get', 'attr.tree'].join(' ');
-  assert.equal(projectRepairGitCommandEvidence(command).compliantCount, 1);
+  assert.deepEqual(projectRepairGitCommandEvidence(command), {
+    compliantCount: 0,
+    noncompliantCount: 1,
+    unverifiedCount: 0,
+    reasons: [{ code: 'git-other', count: 1 }],
+  });
   assert.equal(
     projectCodexEvaluationExecutionEvidence(createCommandEvent(command)).commandPolicy.networkAccess
       .status,

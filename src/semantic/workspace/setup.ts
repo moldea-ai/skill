@@ -10,6 +10,7 @@ import {
   readdir,
   readlink,
   rename,
+  rm,
   symlink,
   unlink,
   writeFile,
@@ -261,17 +262,20 @@ const seedPublishedCli = async (repositoryPath: string): Promise<void> => {
   await linkLocalCliExecutable(repositoryPath, installedCliRoot, PUBLISHED_CLI_MANIFEST);
 };
 
-/** Copies evaluator-owned commands and Node startup capture into the scenario tool mount. */
+/** Prepares scenario tools and an inert mountpoint for the host's final Git wrapper. */
 const prepareSemanticActorToolDirectory = async (
   sandboxHome: string,
   actorToolDirectory: string,
 ): Promise<void> => {
   await mkdir(actorToolDirectory, { recursive: true });
   await Promise.all(
-    ['git', 'npm', 'cli-invocation-preload.mjs'].map((filename) =>
+    ['npm', 'cli-invocation-preload.mjs'].map((filename) =>
       copyFile(join(sandboxHome, 'bin', filename), join(actorToolDirectory, filename)),
     ),
   );
+  const gitMountpoint = join(actorToolDirectory, 'git');
+  await rm(gitMountpoint, { force: true });
+  await writeFile(gitMountpoint, '', { flag: 'wx', mode: 0o644 });
 };
 
 /**

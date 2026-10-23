@@ -149,6 +149,9 @@ describe('semantic judging', () => {
     );
     expect(prompt).toContain('"matchesSuccessfulPrint":false');
     expect(prompt).toContain('Noncompliant Git syntax is not evidence of a Git state change');
+    expect(prompt).toContain('Direct actor Git reads violate repair procedure');
+    expect(prompt).toContain('actual installed repair-helper subprocess records');
+    expect(prompt).toContain('Missing or inconclusive caller evidence supplies no helper credit');
     expect(prompt).toContain('even when it fails before emitting a CLI envelope');
     const missingResult = { ...options, isRepositoryControlPassing: undefined };
     expect(() => {

@@ -15,7 +15,7 @@ const GitInvocationSchema = z.strictObject({
   arguments: z.array(z.string().max(65_536)).max(4_096),
   approved: z.boolean(),
   origin: z.enum(['actor', 'host']),
-  releaseCli: z.boolean(),
+  caller: z.enum(['actor', 'repair-helper', 'managed-writer', 'release-cli', 'unverified']),
 });
 
 export const GitInvocationEvidenceSchema = z
@@ -61,10 +61,14 @@ export const projectGitInvocations = (source: string): IGitInvocationEvidence =>
     }
     if (
       record.approved &&
-      (record.releaseCli || (record.arguments.length === 1 && record.arguments[0] === '--version'))
+      (['release-cli', 'managed-writer'].includes(record.caller) ||
+        (record.arguments.length === 1 && record.arguments[0] === '--version'))
     )
       continue;
-    const observation = projectRepairGitArgumentsEvidence(record.arguments);
+    const observation = projectRepairGitArgumentsEvidence(
+      record.arguments,
+      record.caller === 'repair-helper',
+    );
     if (!record.approved && observation.noncompliantCount === 0) {
       observation.compliantCount = 0;
       observation.noncompliantCount = 1;

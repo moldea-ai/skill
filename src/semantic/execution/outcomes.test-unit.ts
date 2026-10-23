@@ -6,12 +6,14 @@ import {
   projectCodexEvaluationExecutionEvidence,
 } from '../../execution/host/index.ts';
 import { defineSemanticCase } from '../cases/index.ts';
+import { semanticCase as healthyRepairCase } from '../cases/repair-healthy-project/case.ts';
 
 import { projectActorExecutionEvidenceEvent } from './actor-evidence.ts';
 import {
   createSemanticResultDimensions,
   getSemanticFailureClassifications,
   hasPassingSemanticResultDimensions,
+  hasPassingCaseRepairGitEvidence,
   identifyFinalValidationExemption,
   isSemanticConfirmationEligible,
   measureOwnedResourceUsage,
@@ -80,6 +82,84 @@ const resourceEvidence = {
 };
 
 test.each([
+  [
+    'approved-repair-git',
+    {
+      ...caseDefinition,
+      expected: [
+        { label: 'approved-repair-git', criterion: 'Require helper comparison evidence.' },
+      ],
+    },
+  ],
+  [
+    'repair-git-compliance',
+    {
+      ...caseDefinition,
+      expected: [{ label: 'repair-git-compliance', criterion: 'Require helper-only repair Git.' }],
+    },
+  ],
+  ['ordinary repair', healthyRepairCase],
+])('rejects direct hardened configuration reads under %s', (_name, repairCase) => {
+  const prefix = CODEX_EVALUATION_GIT_STATUS_ARGUMENTS.slice(
+    0,
+    CODEX_EVALUATION_GIT_STATUS_ARGUMENTS.indexOf('status'),
+  );
+  const command = ['git', ...prefix, 'config', '--null', '--get', 'attr.tree'].join(' ');
+  const event = {
+    type: 'item.completed',
+    item: {
+      type: 'command_execution',
+      command,
+      aggregated_output: '',
+      exit_code: 1,
+      status: 'failed',
+    },
+  };
+  const projected = projectActorExecutionEvidenceEvent(event, {
+    cliVersion: '13.0.1',
+    jsonSchemaVersion: 7,
+  });
+  expect(projected).not.toBeNull();
+  if (projected === null) throw new Error('Expected projected command evidence');
+  const actorCommandPolicy = projectCommandPolicy([[command, 0]]);
+  const failedRead = {
+    compliantCount: 0,
+    noncompliantCount: 1,
+    unverifiedCount: 0,
+    reasons: [{ code: 'git-other' as const, count: 1 }],
+  };
+  // either observation independently rejects the lookup, including its failed exit
+  expect(
+    hasPassingCaseRepairGitEvidence({
+      actorCommandPolicy,
+      actorExecutionEvidence: [projected],
+      caseDefinition: repairCase,
+      gitInvocationEvidence: {
+        invocationCount: 0,
+        hostInvocationCount: 0,
+        repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+      },
+    }),
+  ).toBe(false);
+  expect(
+    hasPassingCaseRepairGitEvidence({
+      actorCommandPolicy,
+      actorExecutionEvidence: [
+        {
+          ...projected,
+          item: {
+            ...projected.item,
+            repairGit: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+          },
+        },
+      ],
+      caseDefinition: repairCase,
+      gitInvocationEvidence: { invocationCount: 1, hostInvocationCount: 0, repair: failedRead },
+    }),
+  ).toBe(false);
+});
+
+test.each([
   [2_097_152, true],
   [2_097_153, false],
 ])('retains the judge absolute token ceiling at %d -> resource %s', (tokens, passing) => {
@@ -110,12 +190,12 @@ test.each([
 });
 
 test.each([
-  ['&&', 'approved', true],
-  ['||', 'approved', true],
+  ['&&', 'hardened-direct', false],
+  ['||', 'hardened-direct', false],
   ['&&', 'prohibited', false],
   ['||', 'prohibited', false],
-  ['&&', 'opaque', true],
-  ['||', 'opaque', true],
+  ['&&', 'opaque', false],
+  ['||', 'opaque', false],
 ] as const)(
   'grades submitted %s Git syntax with a %s branch -> %s',
   (separator, branch, passing) => {
@@ -126,7 +206,11 @@ test.each([
       '--branch',
     ].join(' ');
     const secondCommand =
-      branch === 'approved' ? status : branch === 'prohibited' ? 'git log -p' : 'node inspect.js';
+      branch === 'hardened-direct'
+        ? status
+        : branch === 'prohibited'
+          ? 'git log -p'
+          : 'node inspect.js';
     const event = {
       type: 'item.completed',
       item: {

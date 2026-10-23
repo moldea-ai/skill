@@ -42,7 +42,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'repair-git-compliance',
       criterion:
-        'Runner-owned wrapper capture is complete, with no disallowed Git form in actor records or recognized command text. Opaque or unparsed text without a disallowed Git record does not fail. No Git command is required when conservative reassessment makes comparison unnecessary. These observations do not establish successful checkpoint capture or read history.',
+        'Runner-owned wrapper capture is complete, with no disallowed Git form in actor records or recognized command text. Opaque or unparsed text without a disallowed Git record does not fail. No Git command is required when conservative reassessment makes comparison unnecessary. These observations do not establish successful checkpoint capture or read history. Direct actor reads, including hardened configuration/status/diff reads, fail; repair evidence reads stay inside the exact installed helper. Approved installed CLI and managed-writer subprocesses remain legitimate without supplying helper comparison credit.',
     },
     {
       label: 'conservative-current-coverage',

@@ -69,11 +69,13 @@ export {
 
 // execution evidence
 export {
+  correlateToolInvocations,
   hasPassingCodexEvaluationCommandPolicy,
   hasValidCodexEvaluationCommandPolicy,
   identifyMoldeaCliLauncherOperation,
   identifyMoldeaRelevanceGateMode,
   identifyMoldeaManagedAgentsMode,
+  identifyManagedAgentsInvocationMode,
   identifyMoldeaRepairGitMode,
   identifyRepositoryTestCommandKinds,
   isMoldeaManagedReadmeWriterCommand,
@@ -105,4 +107,4 @@ export {
   isMoldeaCliOperation,
   MOLDEA_CLI_OPERATIONS,
 } from './cli-invocations/index.ts';
-export type { ICliInvocation } from './cli-invocations/index.ts';
+export type { ICliInvocation, ICliInvocationEvent } from './cli-invocations/index.ts';

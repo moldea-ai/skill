@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { test } from 'vitest';
 
 import {
+  correlateToolInvocations,
   hasPassingCodexEvaluationCommandPolicy,
   hasValidCodexEvaluationCommandPolicy,
   hasValidRepairGitCommandEvidence,
@@ -38,6 +39,49 @@ const createCommandEvent = (
       ...overrides,
     },
   });
+
+test.each([
+  ['direct', ['node ./tool.mjs'], [['/opt/node', '/mnt/tool.mjs']], 1, true],
+  ['wrapped', ["node -e 'wrapper'"], [['/opt/node', '-e', 'wrapper']], 1, true],
+  ['shell wrapper', ["/bin/bash -lc 'node -e wrapper'"], [['/opt/node', '-e', 'wrapper']], 1, true],
+  ['missing', ['node ./tool.mjs'], [], 1, false],
+  ['different caller', ["node -e 'other'"], [['/opt/node', '-e', 'wrapper']], 1, false],
+  [
+    'duplicate commands',
+    ['node ./tool.mjs', 'node ./tool.mjs'],
+    [['/opt/node', '/mnt/tool.mjs']],
+    1,
+    false,
+  ],
+  ['duplicate invocations', ['node ./tool.mjs'], [['/opt/node', '/mnt/tool.mjs']], 2, false],
+  ['dynamic syntax', ['node "$ENTRYPOINT"'], [['/opt/node', '/mnt/tool.mjs']], 1, false],
+  [
+    'compound syntax',
+    ['node tool.mjs; node other.mjs'],
+    [['/opt/node', '/mnt/tool.mjs']],
+    1,
+    false,
+  ],
+] as const)(
+  'runtime correspondence rejects ambiguity: %s',
+  (_name, commands, callers, count, matches) => {
+    const invocation = {
+      arguments: [],
+      stdout: 'updated\n',
+      outputByteCount: 8,
+      exitCode: 0,
+      callers: callers.map((caller) => [...caller]),
+    };
+    const result = correlateToolInvocations(
+      commands,
+      Array.from({ length: count }, () => invocation),
+    );
+    assert.deepEqual(
+      result,
+      commands.map(() => (matches ? invocation : null)),
+    );
+  },
+);
 
 type IExpectedCommandPolicy = Pick<
   ICodexEvaluationCommandPolicyEvidence,

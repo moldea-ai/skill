@@ -1167,6 +1167,16 @@ export const runCodexEvaluationHost = async ({
     readOnlyWorkspacePaths,
     includeWorkspaceBinaryDirectory,
   );
+  const writerEntrypoint = '/mnt/.agents/skills/moldea/scripts/managed-agents.mjs';
+  const hasImmutableWriter =
+    workspaceAccess === 'read-only' ||
+    [
+      ...protectedWorkspacePaths.map((path) => `/mnt/${path}`),
+      ...readOnlyMounts.map(({ target }) => target),
+    ].some((root) => {
+      const path = resolve('/', root);
+      return path === writerEntrypoint || isPathWithin(path, writerEntrypoint);
+    });
   await mkdir(join(sandboxHome, 'tmp'), { recursive: true, mode: 0o700 });
   const { prepareGitCommandPolicyBoundary } = await loadGitCommandPolicyBoundary();
   await prepareGitCommandPolicyBoundary(join(sandboxHome, 'bin'), {
@@ -1241,7 +1251,9 @@ export const runCodexEvaluationHost = async ({
     });
     try {
       const evidence = await readGitInvocationEvidence(gitInvocationLogPath);
-      const invocations = await readCliInvocations(cliInvocationLogPath);
+      const invocations = (await readCliInvocations(cliInvocationLogPath)).filter(
+        (invocation) => invocation.entrypoint !== 'managed-agents' || hasImmutableWriter,
+      );
       const canonicalState =
         canonicalInitial === undefined
           ? {}
@@ -1251,7 +1263,7 @@ export const runCodexEvaluationHost = async ({
                 ? null
                 : observeCanonicalDigest(join(cwd, 'moldea')),
             };
-      const captureFrames = `${JSON.stringify({ type: 'moldea.git-invocations', evidence })}\n${JSON.stringify({ type: 'moldea.cli-invocations', invocations, ...canonicalState })}`;
+      const captureFrames = `${JSON.stringify({ type: 'moldea.git-invocations', evidence })}\n${JSON.stringify({ type: 'moldea.cli-invocations', observesManagedAgents: true, invocations, ...canonicalState })}`;
       trace?.capture(Buffer.from(`${captureFrames}\n`));
       traceOutcome = 'completed';
       return `${output}\n${captureFrames}`;

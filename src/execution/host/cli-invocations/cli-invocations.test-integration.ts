@@ -49,6 +49,7 @@ test('overlapping launcher intervals retain calls but cannot prove canonical chr
     await writeFile(path, records.map((record) => JSON.stringify(record)).join('\n') + '\n');
     const captured = await readCliInvocations(path);
     expect(captured).toHaveLength(2);
+    expect(captured.map((invocation) => invocation.callers)).toStrictEqual([[], []]);
     expect(
       captured.every(
         (invocation) => invocation.canonicalBefore === null && invocation.canonicalAfter === null,
@@ -116,7 +117,12 @@ test('Node startup records direct and wrapped launchers, early failures and filt
       const result = spawnSync(
         'bwrap',
         buildCodexEvaluationBwrapArguments({
-          command: ['codex', ...command],
+          // the fake Codex supervisor launches the same /opt/node used by actual actor commands
+          command: [
+            'codex',
+            '-e',
+            `const r=require('node:child_process').spawnSync('/opt/node',${JSON.stringify(command)},{stdio:'inherit'});process.exitCode=r.status??1;`,
+          ],
           cwd: repository,
           sandboxHome: home,
           hostExecutable: process.execPath,
@@ -239,7 +245,7 @@ test('Node startup records direct and wrapped launchers, early failures and filt
             type: 'item.completed',
             item: {
               type: 'command_execution',
-              command: `/opt/node ${commandArguments.join(' ')}`,
+              command: `/opt/node ${commandArguments.map((argument) => `'${argument.replaceAll("'", "'\\''")}'`).join(' ')}`,
               aggregated_output: attempt.result.stdout + attempt.result.stderr,
               exit_code: attempt.result.status,
               status: 'failed',
@@ -257,7 +263,11 @@ test('Node startup records direct and wrapped launchers, early failures and filt
               repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
             },
           },
-          { type: 'moldea.cli-invocations', invocations: attempt.invocations },
+          {
+            type: 'moldea.cli-invocations',
+            observesManagedAgents: true,
+            invocations: attempt.invocations,
+          },
         ]
           .map((event) => JSON.stringify(event))
           .join('\n'),
@@ -313,13 +323,11 @@ test('Node startup records direct and wrapped launchers, early failures and filt
     ).toBe(false);
     for (const method of ['spawnSync', 'execFileSync'] as const) {
       const compositionArgs = [launcher, '--repository', '/mnt', '--', 'composition', '--json'];
-      const wrappedFailure = await run(
-        [
-          '-e',
-          `const cp = require('node:child_process'); try { const result = cp.${method}(process.execPath, ${JSON.stringify(compositionArgs)}, {stdio:'pipe'}); process.exitCode = result.status ?? 0; } catch (error) { process.exitCode = error.status ?? 1; }`,
-        ],
-        false,
-      );
+      const wrapperArgs = [
+        '-e',
+        `const cp = require('node:child_process'); try { const result = cp.${method}(process.execPath, ${JSON.stringify(compositionArgs)}, {stdio:'pipe'}); process.exitCode = result.status ?? 0; } catch (error) { process.exitCode = error.status ?? 1; }`,
+      ];
+      const wrappedFailure = await run(wrapperArgs, false);
       expect(wrappedFailure.result.status).not.toBe(0);
       expect(wrappedFailure.invocations).toHaveLength(1);
       expect(wrappedFailure.invocations[0]).toMatchObject({
@@ -327,6 +335,22 @@ test('Node startup records direct and wrapped launchers, early failures and filt
         stdout: '',
       });
       expect(wrappedFailure.invocations[0]?.exitCode).not.toBe(0);
+      const projected = projectFailedAttempt(wrapperArgs, wrappedFailure);
+      expect(projected.commandPolicyEvidence.moldeaEvents).toContainEqual({
+        kind: 'command',
+        operation: 'composition',
+        ownership: 'cli',
+        outputByteCount: 0,
+      });
+      expect(
+        projected.actorExecutionEvidence.filter(({ item }) => item.commandKind === 'moldea'),
+      ).toMatchObject([{ item: { status: 'failed', outputEvidence: { facts: [] } } }]);
+      const unmatched = projectFailedAttempt(['-e', 'different wrapper'], wrappedFailure);
+      expect(
+        unmatched.commandPolicyEvidence.moldeaEvents.some(
+          (event) => event.kind === 'command' && event.operation === 'composition',
+        ),
+      ).toBe(false);
     }
     await rm(join(repository, '.agents/skills/moldea/scripts/moldea-cli.mjs'));
     const missingEntry = await run(args);

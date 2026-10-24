@@ -3,6 +3,7 @@ import { hashValue } from 'jg-crypto';
 import {
   hasValidRepairGitCommandEvidence,
   identifyCliInvocationOperation,
+  identifyManagedAgentsInvocationMode,
   isMoldeaCliOperation,
   MOLDEA_CLI_OPERATIONS,
   identifyMoldeaCliLauncherOperation,
@@ -820,6 +821,7 @@ const hasValidEntry = (
  * @param event The native command result.
  * @param options The accepted release CLI identity.
  * @param recognizeCliFromCommand Whether transcript-only callers may infer CLI use from command text.
+ * @param recognizeManagedAgentsFromCommand Whether transcript-only callers may infer writer use.
  * @returns Content-free evidence, or null for another event kind.
  * @throws If the command evidence or release identity is invalid.
  */
@@ -827,6 +829,7 @@ export const projectActorExecutionEvidenceEvent = (
   event: unknown,
   options: ISemanticActorExecutionEvidenceOptions,
   recognizeCliFromCommand = true,
+  recognizeManagedAgentsFromCommand = true,
 ): ISemanticActorExecutionEvidence | null => {
   if (!hasValidProjectionOptions(options)) {
     throw new Error('Actor execution evidence requires a valid release CLI identity.');
@@ -856,7 +859,10 @@ export const projectActorExecutionEvidenceEvent = (
   const isManagedReadmeWriter =
     operation === null && gateMode === null && isMoldeaManagedReadmeWriterCommand(command);
   const agentsMode =
-    operation === null && gateMode === null && !isManagedReadmeWriter
+    recognizeManagedAgentsFromCommand &&
+    operation === null &&
+    gateMode === null &&
+    !isManagedReadmeWriter
       ? identifyMoldeaManagedAgentsMode(command)
       : null;
   const testKinds =
@@ -888,6 +894,37 @@ export const projectActorExecutionEvidenceEvent = (
     throw new Error('A Codex actor execution evidence item has an unsupported shape.');
   }
   return entry;
+};
+
+/**
+ * Attaches a uniquely corresponding immutable writer's result to its existing host command.
+ * @returns The original command with captured method output, preserving its status and Git evidence.
+ * @throws If captured method evidence cannot satisfy the existing bounded output contract.
+ */
+export const projectManagedAgentsInvocationEvidence = (
+  entry: ISemanticActorExecutionEvidence,
+  invocation: ICliInvocation,
+  options: ISemanticActorExecutionEvidenceOptions,
+): ISemanticActorExecutionEvidence => {
+  const mode = identifyManagedAgentsInvocationMode(invocation);
+  if (mode === null || invocation.exitCode !== entry.item.exitCode) return entry;
+  const outputEvidence = createOutputEvidence(
+    invocation.stdout,
+    null,
+    null,
+    false,
+    mode,
+    null,
+    invocation.exitCode,
+    options,
+    null,
+  );
+  if (outputEvidence.facts.length === 0 || invocation.outputByteCount !== outputEvidence.byteCount)
+    return entry;
+  const result = { ...entry, item: { ...entry.item, outputEvidence } };
+  if (!hasValidEntry(result, options))
+    throw new Error('Managed writer invocation evidence has an unsupported shape.');
+  return result;
 };
 
 /**

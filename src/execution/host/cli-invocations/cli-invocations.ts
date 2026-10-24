@@ -67,7 +67,7 @@ export const readCliInvocations = async (path: string): Promise<ICliInvocation[]
       throw new Error('CLI invocation capture is incomplete.');
     const starts = new Map<
       string,
-      { arguments: ICliInvocation['arguments']; canonicalBefore?: string | null }
+      Pick<ICliInvocation, 'arguments' | 'canonicalBefore' | 'entrypoint' | 'callers'>
     >();
     const exits = new Map<string, ICliInvocation>();
     let hasOverlap = false;
@@ -78,6 +78,8 @@ export const readCliInvocations = async (path: string): Promise<ICliInvocation[]
         if (starts.size !== exits.size) hasOverlap = true;
         starts.set(record.id, {
           arguments: record.arguments,
+          ...(record.entrypoint === undefined ? {} : { entrypoint: record.entrypoint }),
+          ...(record.callers === undefined ? {} : { callers: record.callers }),
           ...(record.canonicalBefore === undefined
             ? {}
             : { canonicalBefore: record.canonicalBefore }),
@@ -106,7 +108,7 @@ export const readCliInvocations = async (path: string): Promise<ICliInvocation[]
       invocations: [...starts.keys()].map((id) => {
         const invocation = exits.get(id);
         return hasOverlap && invocation !== undefined
-          ? { ...invocation, canonicalBefore: null, canonicalAfter: null }
+          ? { ...invocation, callers: [], canonicalBefore: null, canonicalAfter: null }
           : invocation;
       }),
     }).invocations;

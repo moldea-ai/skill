@@ -834,6 +834,53 @@ const getStandaloneCommandWords = (command: unknown): readonly string[] | null =
   return commands?.length === 1 ? commands[0]! : null;
 };
 
+/** Matches runtime invocations only when both the observed caller and host command are unique. */
+export const correlateToolInvocations = (
+  commands: readonly unknown[],
+  invocations: readonly ICliInvocation[],
+): Array<ICliInvocation | null> => {
+  const key = (words: readonly string[]): string => {
+    const normalized = [...words];
+    if (isTrustedLocalExecutable(normalized[0], 'node')) {
+      normalized[0] = 'node';
+      if (normalized[1] !== undefined && !normalized[1].startsWith('-'))
+        normalized[1] = posix.resolve('/mnt', normalized[1]);
+    }
+    return JSON.stringify(normalized);
+  };
+  const commandIndices = new Map<string, number[]>();
+  commands.forEach((command, index) => {
+    const words = getStandaloneCommandWords(command);
+    if (words === null) return;
+    const identity = key(words);
+    const indices = commandIndices.get(identity) ?? [];
+    indices.push(index);
+    commandIndices.set(identity, indices);
+  });
+  const candidates = invocations.map((invocation) => [
+    ...new Set(
+      (invocation.callers ?? []).flatMap((caller) => {
+        const executable = caller[0];
+        if (executable === undefined) return [];
+        return [caller, [posix.basename(executable), ...caller.slice(1)]].flatMap(
+          (words) => commandIndices.get(key(words)) ?? [],
+        );
+      }),
+    ),
+  ]);
+  return commands.map((_, index) => {
+    const matching = candidates.flatMap((indices, invocationIndex) =>
+      indices.includes(index) ? [invocationIndex] : [],
+    );
+    const invocationIndex = matching[0];
+    return matching.length === 1 &&
+      invocationIndex !== undefined &&
+      candidates[invocationIndex]?.length === 1
+      ? (invocations[invocationIndex] ?? null)
+      : null;
+  });
+};
+
 /**
  * Identifies one exact bundled relevance-gate invocation without retaining its command.
  * @param command The host command to classify.
@@ -952,6 +999,18 @@ const getManagedAgentsMode = (words: readonly string[]): IMoldeaManagedAgentsMod
     return isPrint ? 'claude-print' : 'claude-write';
   return null;
 };
+
+/** Identifies the closed writer mode from the observed immutable Node entrypoint's arguments. */
+export const identifyManagedAgentsInvocationMode = (
+  invocation: ICliInvocation,
+): IMoldeaManagedAgentsMode | null =>
+  invocation.entrypoint === 'managed-agents'
+    ? getManagedAgentsMode([
+        '/opt/node',
+        '/mnt/.agents/skills/moldea/scripts/managed-agents.mjs',
+        ...invocation.arguments,
+      ])
+    : null;
 
 /** Returns the exact helper mode without retaining raw command text. */
 export const identifyMoldeaManagedAgentsMode = (
@@ -2261,28 +2320,42 @@ export const projectCodexEvaluationExecutionEvidence = (
   let moldeaCommandCount = 0;
   let moldeaOutputByteCount = 0;
   let usage: IUsage | null = null;
-  let cliInvocations: ICliInvocation[] | null = null;
-  let cliCapture: ICliInvocationEvent | null = null;
+  const events = source
+    .split('\n')
+    .filter((line) => line.trim() !== '')
+    .map((eventLine) => {
+      let event: unknown;
+      try {
+        event = JSON.parse(eventLine) as unknown;
+      } catch (error) {
+        throw new Error('Codex execution evidence contains malformed JSONL.', {
+          cause: error,
+        });
+      }
+      if (!isPlainRecord(event) || typeof event['type'] !== 'string') {
+        throw new Error('Codex execution evidence contains an unsupported event.');
+      }
+      return event;
+    });
+  const captures = events.filter((event) => event['type'] === 'moldea.cli-invocations');
+  if (captures.length > 1) throw new Error('CLI invocation capture is duplicated.');
+  const cliCapture = captures.length === 0 ? null : CliInvocationEventSchema.parse(captures[0]);
+  const cliInvocations =
+    cliCapture?.invocations.filter((invocation) => invocation.entrypoint !== 'managed-agents') ??
+    null;
+  const hostCommands = events.filter(
+    (event) =>
+      event['type'] === 'item.completed' &&
+      isPlainRecord(event['item']) &&
+      event['item']['type'] === 'command_execution',
+  );
+  const correspondingInvocations = correlateToolInvocations(
+    hostCommands.map((event) => (isPlainRecord(event['item']) ? event['item']['command'] : null)),
+    cliCapture?.invocations ?? [],
+  );
 
-  for (const eventLine of source.split('\n')) {
-    if (eventLine.trim() === '') continue;
-    let event: unknown;
-    try {
-      event = JSON.parse(eventLine) as unknown;
-    } catch (error) {
-      throw new Error('Codex execution evidence contains malformed JSONL.', {
-        cause: error,
-      });
-    }
-    if (!isPlainRecord(event) || typeof event['type'] !== 'string') {
-      throw new Error('Codex execution evidence contains an unsupported event.');
-    }
+  for (const event of events) {
     if (hasCredentialExposureInEvent(event)) credentialExposureCount += 1;
-    if (event['type'] === 'moldea.cli-invocations') {
-      if (cliInvocations !== null) throw new Error('CLI invocation capture is duplicated.');
-      cliCapture = CliInvocationEventSchema.parse(event);
-      cliInvocations = cliCapture.invocations;
-    }
     const eventUsage = extractUsageCandidate(event);
     if (eventUsage !== null) usage = eventUsage;
 
@@ -2333,6 +2406,29 @@ export const projectCodexEvaluationExecutionEvidence = (
     }
 
     const classification = classifyCommand(command);
+    const invocation = correspondingInvocations[projectedEvents.length];
+    if (
+      invocation !== undefined &&
+      invocation !== null &&
+      identifyManagedAgentsInvocationMode(invocation) !== null
+    ) {
+      classification.ownership = 'helper';
+      classification.moldeaOperation = null;
+    } else if (
+      cliCapture?.observesManagedAgents === true &&
+      classification.moldeaOperation === 'composition'
+    ) {
+      classification.moldeaOperation = null;
+    }
+    if (
+      invocation !== undefined &&
+      invocation !== null &&
+      invocation.entrypoint !== 'managed-agents' &&
+      identifyCliInvocationOperation(invocation.arguments) === 'composition'
+    ) {
+      classification.ownership = 'cli';
+      classification.moldeaOperation = 'composition';
+    }
     const outputByteCount = Buffer.byteLength(aggregatedOutput, 'utf8');
     maximumCommandOutputByteCount = Math.max(maximumCommandOutputByteCount, outputByteCount);
     modelVisibleToolOutputByteCount += outputByteCount;
@@ -2380,7 +2476,8 @@ export const projectCodexEvaluationExecutionEvidence = (
       0,
     );
   }
-  if (cliCapture !== null) placeCanonicalWriteObservations(moldeaEvents, cliCapture);
+  if (cliCapture !== null && cliInvocations !== null)
+    placeCanonicalWriteObservations(moldeaEvents, { ...cliCapture, invocations: cliInvocations });
   assertWithinResourceLimit(
     'moldea command count',
     'commands',

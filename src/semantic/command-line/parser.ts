@@ -4,6 +4,7 @@ import {
   EVALUATION_BATCH_DEFAULT_WORKER_COUNT,
   type IEvaluationBatchWorkerCount,
 } from '../../execution/batch/index.ts';
+import { SEMANTIC_CANDIDATE_TOKEN_LIMIT } from '../recording/index.ts';
 
 import type { ISemanticDiagnosticSelector, ISemanticEvaluationArguments } from './types.ts';
 
@@ -27,6 +28,7 @@ const SEMANTIC_EVALUATION_OPTIONS = {
   'record-checkpoint': FLAG,
   restart: FLAG,
   'resume-stopped-stage': FLAG,
+  'token-limit': VALUE,
   'unresolved-from': VALUE,
   'verify-attempts': FLAG,
   workers: VALUE,
@@ -89,6 +91,8 @@ const createDiagnosticSelector = (
  * - INVALID_ARGUMENTS: an unknown option, a positional argument, a missing or empty value, a
  * repeated option, or a missing required one
  * - The options don't form one supported recording, diagnostic, or verification run.
+ * - --token-limit requires --diagnose-batch.
+ * - --token-limit must be a positive safe integer no greater than 128000000.
  */
 export const parseSemanticEvaluationArguments = (
   arguments_: readonly string[],
@@ -148,6 +152,20 @@ export const parseSemanticEvaluationArguments = (
     throw new Error('--workers requires --record or --diagnose-batch.');
   }
 
+  const tokenValue = getOptionValue(values, '--token-limit');
+  const tokenLimit = tokenValue === undefined ? null : Number(tokenValue);
+  if (tokenValue !== undefined && !isDiagnoseBatchRequested) {
+    throw new Error('--token-limit requires --diagnose-batch.');
+  }
+  if (
+    tokenLimit !== null &&
+    (!/^[1-9]\d*$/u.test(tokenValue ?? '') ||
+      !Number.isSafeInteger(tokenLimit) ||
+      tokenLimit > SEMANTIC_CANDIDATE_TOKEN_LIMIT)
+  ) {
+    throw new Error('--token-limit must be a positive safe integer no greater than 128000000.');
+  }
+
   const allowedOptions = isRecordRequested
     ? new Set(['--record', '--cases', '--restart', '--resume-stopped-stage', '--workers'])
     : isDiagnoseBatchRequested
@@ -158,6 +176,7 @@ export const parseSemanticEvaluationArguments = (
           '--diagnose-batch',
           '--restart',
           '--resume-stopped-stage',
+          '--token-limit',
           '--unresolved-from',
           '--workers',
         ])
@@ -198,6 +217,7 @@ export const parseSemanticEvaluationArguments = (
     isVerifyAttemptsRequested,
     recordCaseIds,
     requestedCaseId,
+    tokenLimit,
     workerCount,
   };
 };

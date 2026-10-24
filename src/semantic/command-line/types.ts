@@ -14,5 +14,6 @@ export interface ISemanticEvaluationArguments {
   isVerifyAttemptsRequested: boolean;
   recordCaseIds: string[] | null;
   requestedCaseId: string | undefined;
+  tokenLimit: number | null;
   workerCount: IEvaluationBatchWorkerCount | null;
 }

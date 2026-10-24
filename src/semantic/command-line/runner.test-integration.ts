@@ -45,6 +45,7 @@ import {
   runSemanticTrial,
   type ISemanticRunnerTrialExecutionOptions,
 } from './runner.ts';
+import { parseSemanticEvaluationArguments } from './parser.ts';
 
 const SHA256 = 'a'.repeat(64);
 const EMPTY_COMMAND_POLICY: ICodexEvaluationCommandPolicyEvidence = {
@@ -275,6 +276,9 @@ const prepareCompletedRecording = async (
     await cp(path.join(sourceRoot, name), path.join(root, name));
   }
   await symlink(path.join(sourceRoot, 'node_modules'), path.join(root, 'node_modules'), 'junction');
+  await cp(path.join(sourceRoot, 'dist/runtime'), path.join(root, 'dist/runtime'), {
+    recursive: true,
+  });
   const definition = createCase('checkpoint-host');
   definition.coverageClaimIds = SEMANTIC_COVERAGE_CLAIMS.map(({ id }) => id);
   const caseDirectory = path.join(root, 'src/semantic/cases', definition.id);
@@ -341,10 +345,10 @@ const prepareCompletedRecording = async (
     },
   ];
   await writeSemanticCheckpoint(root, checkpoint);
-  const run = () =>
+  const run = (arguments_: string[] = ['--record', '--workers', '1']) =>
     spawnSync(
       process.execPath,
-      [path.join(root, 'src/semantic/command-line/runner.ts'), '--record', '--workers', '1'],
+      [path.join(root, 'src/semantic/command-line/runner.ts'), ...arguments_],
       {
         cwd: root,
         encoding: 'utf8',
@@ -358,8 +362,78 @@ const prepareCompletedRecording = async (
         },
       },
     );
-  return { root, checkpoint, recordedTrial, modelCallsPath, run };
+  return { root, checkpoint, definition, recordedTrial, modelCallsPath, run };
 };
+
+test('passes the diagnostic CLI limit to paid-stage admission before calling a host', async () => {
+  const fixture = await prepareCompletedRecording(false, false);
+  fixture.checkpoint.mode = 'diagnostic';
+  fixture.checkpoint.cases = [];
+  await writeSemanticCheckpoint(fixture.root, fixture.checkpoint);
+  const result = fixture.run(['--diagnose-batch', '--all', '--workers', '1', '--token-limit', '1']);
+  expect(result.status).toBe(1);
+  expect(result.stderr).toContain('1 maximum.');
+  expect(existsSync(fixture.modelCallsPath)).toBe(false);
+  expect((await readSemanticCheckpoint(fixture.root))?.cases).toStrictEqual([]);
+});
+
+test('resumes diagnostic admission with existing charges counted exactly once', async () => {
+  const repositoryRoot = await mkdtemp(path.join(tmpdir(), 'moldea-admission-resume-'));
+  temporaryRoots.push(repositoryRoot);
+  const completed = createCase('completed-case');
+  const pending = createCase('pending-case');
+  const next = createCase('next-case');
+  const checkpoint = createCandidateCheckpoint([completed, pending, next]);
+  checkpoint.mode = 'diagnostic';
+  checkpoint.cases = [
+    {
+      id: completed.id,
+      status: 'passed',
+      confirmationStatus: 'not-required',
+      trials: [
+        createRecordedTrial({ caseDefinition: completed, confirmationIndex: null, passed: true }),
+      ],
+    },
+  ];
+  const consumed = getSemanticCandidatePaidTokenCount(checkpoint.cases, {});
+  expect(consumed).toBe(4);
+  const reservation = 2_097_152;
+  const arguments_ = parseSemanticEvaluationArguments([
+    '--diagnose-batch',
+    '--all',
+    '--token-limit',
+    String(consumed + reservation),
+  ]);
+  let callCount = 0;
+  await executeSemanticCases({
+    cases: [pending],
+    checkpoint,
+    repositoryRoot,
+    workerCount: 1,
+    tokenLimit: arguments_.tokenLimit ?? 0,
+    executeTrial: async ({ tokenController, caseDefinition, confirmationIndex }) => {
+      tokenController.reserve('resumed-actor');
+      callCount++;
+      tokenController.release('resumed-actor');
+      return createRecordedTrial({ caseDefinition, confirmationIndex, passed: true });
+    },
+  });
+  expect(callCount).toBe(1);
+  expect(getSemanticCandidatePaidTokenCount(checkpoint.cases, {})).toBe(8);
+  await expect(
+    executeSemanticCases({
+      cases: [next],
+      checkpoint,
+      repositoryRoot,
+      workerCount: 1,
+      tokenLimit: arguments_.tokenLimit ?? 0,
+      executeTrial: async ({ tokenController }) => {
+        tokenController.reserve('next-actor');
+        throw new Error('Admission should stop before this synthetic call.');
+      },
+    }),
+  ).rejects.toThrow('8 tokens consumed');
+});
 
 test.each([
   [true, false],
@@ -445,6 +519,23 @@ test.each(['artifactDigest', 'caseSuiteDigest', 'coverageDigest'] as const)(
     expect(existsSync(fixture.modelCallsPath)).toBe(false);
   },
 );
+
+test('rejects checkpoint role and CLI drift without calling a host', async () => {
+  const fixture = await prepareCompletedRecording(true, true);
+  fixture.checkpoint.actorHost.role = 'judge';
+  await writeFile(getSemanticCheckpointPath(fixture.root), JSON.stringify(fixture.checkpoint));
+  const wrongRole = fixture.run();
+  expect(wrongRole.status).toBe(1);
+  expect(wrongRole.stderr).toContain('actorHost');
+  expect(existsSync(fixture.modelCallsPath)).toBe(false);
+  fixture.checkpoint.actorHost.role = 'actor';
+  fixture.checkpoint.cli.version = '13.0.2';
+  await writeSemanticCheckpoint(fixture.root, fixture.checkpoint);
+  const wrongCli = fixture.run();
+  expect(wrongCli.status).toBe(1);
+  expect(wrongCli.stderr).toContain('The semantic checkpoint does not match this exact run.');
+  expect(existsSync(fixture.modelCallsPath)).toBe(false);
+});
 
 test('an over-ceiling actor cycle records a resource failure and confirmations without stopping later cases', async () => {
   const root = await mkdtemp(path.join(tmpdir(), 'moldea-token-ceiling-'));

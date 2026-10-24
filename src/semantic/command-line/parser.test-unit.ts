@@ -24,6 +24,7 @@ describe('semantic evaluation argument parsing', () => {
       isVerifyAttemptsRequested: false,
       recordCaseIds: null,
       requestedCaseId: undefined,
+      tokenLimit: null,
       workerCount: 4,
     });
     expect(parseSemanticEvaluationArguments(['--record', '--workers', '2']).workerCount).toBe(2);
@@ -55,6 +56,49 @@ describe('semantic evaluation argument parsing', () => {
     expect(() =>
       parseSemanticEvaluationArguments(['--case', 'unrelated-review', '--record']),
     ).toThrow(/diagnostic-only/u);
+  });
+
+  test('accepts only a lower diagnostic admission ceiling', () => {
+    expect(parseSemanticEvaluationArguments(['--diagnose-batch', '--all']).tokenLimit).toBeNull();
+    expect(
+      parseSemanticEvaluationArguments(['--diagnose-batch', '--all', '--token-limit', '64000000'])
+        .tokenLimit,
+    ).toBe(64_000_000);
+    expect(
+      parseSemanticEvaluationArguments(['--diagnose-batch', '--all', '--token-limit', '128000000'])
+        .tokenLimit,
+    ).toBe(128_000_000);
+    for (const tokenLimit of [
+      '0',
+      '-1',
+      '1.5',
+      'NaN',
+      'Infinity',
+      '128000001',
+      '9007199254740992',
+      '1e6',
+      '0x10',
+      ' 10',
+    ]) {
+      expect(() =>
+        parseSemanticEvaluationArguments([
+          '--diagnose-batch',
+          '--all',
+          `--token-limit=${tokenLimit}`,
+        ]),
+      ).toThrow(/token-limit/u);
+    }
+    for (const mode of [
+      ['--record'],
+      ['--preflight'],
+      ['--case', 'one'],
+      ['--record-checkpoint'],
+      ['--verify-attempts'],
+    ]) {
+      expect(() =>
+        parseSemanticEvaluationArguments([...mode, '--token-limit', '64000000']),
+      ).toThrow();
+    }
   });
 
   test('requires one exact diagnostic batch selector', () => {

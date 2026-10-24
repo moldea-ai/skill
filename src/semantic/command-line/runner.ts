@@ -91,6 +91,7 @@ import {
 } from '../recording/index.ts';
 import {
   createSemanticActorStageIdentity,
+  createSemanticHostContract,
   createSemanticJudgeStageIdentity,
   createSemanticStageReuseRecord,
 } from '../stages/index.ts';
@@ -105,7 +106,6 @@ import {
   type ISemanticCaseTrialExecutionOptions,
 } from './case-execution.ts';
 import { runSemanticActorSession } from './actor-session/index.ts';
-import { createSemanticHostContract } from './host-contract.ts';
 import { parseSemanticEvaluationArguments } from './parser.ts';
 import type { ISemanticDiagnosticSelector } from './types.ts';
 
@@ -157,6 +157,7 @@ type ISemanticCaseRunnerOptions = {
   checkpoint: ISemanticCandidateCheckpoint | null;
   executeTrial: ISemanticRunnerTrialExecutor;
   repositoryRoot: string;
+  tokenLimit?: number;
   workerCount: IEvaluationBatchWorkerCount;
 };
 
@@ -780,6 +781,8 @@ export const runSemanticTrial = async (options: {
  * - Semantic case resolution requires an initial trial checkpoint.
  * - Semantic confirmation policy did not resolve the selected case.
  * - Evaluation worker count must be 1, 2, or 4.
+ * - Semantic token limit must be a positive safe integer no greater than 128000000.
+ * - Paid-stage admission exceeds the configured limit.
  */
 export const executeSemanticCases = async (
   options: ISemanticCaseRunnerOptions,
@@ -803,6 +806,7 @@ export const executeSemanticCases = async (
     Object.entries(options.checkpoint?.caseCheckpoints ?? {}),
   );
   const tokenController = createSemanticTokenAdmissionController({
+    ...(options.tokenLimit === undefined ? {} : { tokenLimit: options.tokenLimit }),
     getConsumedTokenCount: () =>
       getSemanticCandidatePaidTokenCount(
         options.checkpoint?.cases ?? [],
@@ -1214,6 +1218,7 @@ const run = async (): Promise<void> => {
       return trialExecution.recordedTrial;
     },
     repositoryRoot: REPOSITORY_ROOT,
+    ...(arguments_.tokenLimit === null ? {} : { tokenLimit: arguments_.tokenLimit }),
     workerCount,
   });
 

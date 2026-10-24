@@ -11,6 +11,7 @@ export type {
 // identity
 export {
   createSemanticActorStageIdentity,
+  createSemanticHostContract,
   createSemanticJudgeStageIdentity,
   createSemanticStageValueDigest,
   serializeSemanticStageValue,

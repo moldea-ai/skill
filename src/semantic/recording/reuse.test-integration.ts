@@ -338,7 +338,7 @@ test('a reviewed passing initial remains reusable with retained historical confi
   expect(candidates[0]?.recordedTrial.trial.confirmationIndex).toBeNull();
 });
 
-test.each([53, SEMANTIC_EVALUATION_PROTOCOL_VERSION + 1])(
+test.each([53, 54, SEMANTIC_EVALUATION_PROTOCOL_VERSION + 1])(
   'grading protocol %d is not reusable under helper-only grading',
   async (protocol) => {
     const root = await mkdtemp(path.join(tmpdir(), 'moldea-protocol-reuse-'));
@@ -454,6 +454,51 @@ const createIdentifiedTrial = (
   recorded.stageIdentities = createIdentities(definition, recorded);
   return recorded;
 };
+
+test('reuses version-only host changes while rejecting every other host contract change', async () => {
+  const root = await mkdtemp(path.join(tmpdir(), 'moldea-version-reuse-'));
+  temporaryRoots.push(root);
+  const definition = createReuseCase('case-one');
+  const recorded = createIdentifiedTrial(definition, true);
+  const original = structuredClone(recorded);
+  await storeRun(
+    root,
+    'sem-version-reuse',
+    [recorded],
+    'passed',
+    SEMANTIC_EVALUATION_PROTOCOL_VERSION,
+    definition.id,
+  );
+  const candidates = await loadSemanticReusableTrials(root);
+  const current = structuredClone(recorded);
+  current.trial.actorHost.version = 'new-actor-version';
+  current.trial.judgeHost.version = 'new-judge-version';
+  const select = (trial: ISemanticRecordedTrial) => {
+    const identities = createIdentities(definition, trial);
+    return selectSemanticReusableTrial({
+      activeTrial: null,
+      actorIdentitySha256: identities.actorSha256,
+      judgeIdentitySha256: () => identities.judgeSha256,
+      candidates,
+      caseId: definition.id,
+      confirmationIndex: null,
+    });
+  };
+  expect(select(current)?.recordedTrial).toStrictEqual(original);
+  for (const host of ['actorHost', 'judgeHost'] as const) {
+    for (const [field, mismatch] of [
+      ['model', 'other-model'],
+      ['reasoningEffort', 'low'],
+      ['name', 'other-host'],
+      ['developerInstructionsSha256', 'b'.repeat(64)],
+    ] as const) {
+      const changed = structuredClone(current);
+      changed.trial[host][field] = mismatch;
+      expect(select(changed)).toBeNull();
+    }
+  }
+  expect(recorded).toStrictEqual(original);
+});
 
 test.each(['private', 'fixed'] as const)(
   'saved/load identities reuse every unaffected passing quorum when one case is %s',

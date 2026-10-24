@@ -12,6 +12,17 @@ const SHA256_PATTERN = /^[a-f0-9]{64}$/u;
 const isPlainRecord = (input: unknown): input is Record<string, unknown> =>
   input !== null && typeof input === 'object' && !Array.isArray(input);
 
+/** Projects the host contract while keeping version only in recorded observations. */
+export const createSemanticHostContract = (
+  host: ISemanticModelHostIdentity,
+): Omit<ISemanticModelHostIdentity, 'version'> => ({
+  developerInstructionsSha256: host.developerInstructionsSha256,
+  model: host.model,
+  name: host.name,
+  reasoningEffort: host.reasoningEffort,
+  role: host.role,
+});
+
 /** Serializes JSON-compatible evidence independently of object key insertion order. */
 export const serializeSemanticStageValue = (value: unknown): string =>
   typeof value === 'object' && value !== null
@@ -89,7 +100,9 @@ export const createSemanticActorStageIdentity = (options: {
 
   const contract: Record<string, unknown> = {
     actorCommandSha256: createSemanticStageValueDigest(options.actorCommand),
-    actorHost: requireHostIdentity(options.actorHost, 'Actor host', 'actor'),
+    actorHost: createSemanticHostContract(
+      requireHostIdentity(options.actorHost, 'Actor host', 'actor'),
+    ),
     actorPromptSha256: createSemanticStageValueDigest(options.actorPrompt),
     authoredRequestsSha256: createSemanticStageValueDigest([
       options.actorPrompt,
@@ -135,7 +148,9 @@ export const createSemanticJudgeStageIdentity = (options: {
     caseDefinitionDigest: requireSha256(options.caseDefinitionDigest, 'Semantic case definition'),
     evaluationProtocolVersion: requireProtocolVersion(options.evaluationProtocolVersion),
     judgeCommandSha256: createSemanticStageValueDigest(options.judgeCommand),
-    judgeHost: requireHostIdentity(options.judgeHost, 'Judge host', 'judge'),
+    judgeHost: createSemanticHostContract(
+      requireHostIdentity(options.judgeHost, 'Judge host', 'judge'),
+    ),
     judgePromptSha256: createSemanticStageValueDigest(options.judgePrompt),
     schemaVersion: 1,
     stage: 'judge',

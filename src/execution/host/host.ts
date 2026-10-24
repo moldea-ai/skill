@@ -14,7 +14,7 @@ import { z } from 'zod';
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../resources/index.ts';
 
 import { readGitInvocationEvidence } from './git-invocations.ts';
-import { readCliInvocations } from './cli-invocations/index.ts';
+import { observeCanonicalDigest, readCliInvocations } from './cli-invocations/index.ts';
 import { createPrivateTrace } from './private-trace.ts';
 
 import type {
@@ -1207,6 +1207,19 @@ export const runCodexEvaluationHost = async ({
 
   try {
     await waitForProxyReady(proxyProcess);
+    // host-side snapshots cannot establish writes when extra mounts change the canonical view.
+    const hasCanonicalOverlay = readOnlyMounts.some(({ target }) => {
+      const path = resolve('/', target);
+      return (
+        path === '/' || path === '/mnt' || path === '/mnt/moldea' || path.startsWith('/mnt/moldea/')
+      );
+    });
+    const canonicalInitial =
+      role === 'actor'
+        ? hasCanonicalOverlay
+          ? null
+          : observeCanonicalDigest(join(cwd, 'moldea'))
+        : undefined;
     const output = await runBubblewrapProcess({
       argumentsList: buildCodexEvaluationBwrapArguments({
         command: sandboxCommand,
@@ -1229,8 +1242,19 @@ export const runCodexEvaluationHost = async ({
     try {
       const evidence = await readGitInvocationEvidence(gitInvocationLogPath);
       const invocations = await readCliInvocations(cliInvocationLogPath);
+      const canonicalState =
+        canonicalInitial === undefined
+          ? {}
+          : {
+              canonicalInitial,
+              canonicalFinal: hasCanonicalOverlay
+                ? null
+                : observeCanonicalDigest(join(cwd, 'moldea')),
+            };
+      const captureFrames = `${JSON.stringify({ type: 'moldea.git-invocations', evidence })}\n${JSON.stringify({ type: 'moldea.cli-invocations', invocations, ...canonicalState })}`;
+      trace?.capture(Buffer.from(`${captureFrames}\n`));
       traceOutcome = 'completed';
-      return `${output}\n${JSON.stringify({ type: 'moldea.git-invocations', evidence })}\n${JSON.stringify({ type: 'moldea.cli-invocations', invocations })}`;
+      return `${output}\n${captureFrames}`;
     } catch (error) {
       throw new CodexEvaluationHostError(
         CODEX_EVALUATION_HOST_FAILURE_KINDS.ExecutionFailed,

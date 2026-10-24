@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { execFileSync, spawnSync } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
 import { copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -17,6 +18,46 @@ import { prepareGitCommandPolicyBoundary } from '../git-command-policy-boundary.
 import { readCliInvocations } from './cli-invocations.ts';
 
 const { cliVersion } = readReleaseIdentity(process.cwd());
+
+test('overlapping launcher intervals retain calls but cannot prove canonical chronology', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'moldea-cli-overlap-'));
+  try {
+    const path = join(root, 'capture.jsonl');
+    const first = randomUUID();
+    const second = randomUUID();
+    const args = ['--repository', '/mnt', '--', 'validate', '--json'];
+    const records = [
+      { kind: 'start', id: first, arguments: args, canonicalBefore: 'a'.repeat(64) },
+      { kind: 'start', id: second, arguments: args, canonicalBefore: 'b'.repeat(64) },
+      {
+        kind: 'exit',
+        id: first,
+        exitCode: 0,
+        outputByteCount: 0,
+        stdout: '',
+        canonicalAfter: 'b'.repeat(64),
+      },
+      {
+        kind: 'exit',
+        id: second,
+        exitCode: 0,
+        outputByteCount: 0,
+        stdout: '',
+        canonicalAfter: 'b'.repeat(64),
+      },
+    ];
+    await writeFile(path, records.map((record) => JSON.stringify(record)).join('\n') + '\n');
+    const captured = await readCliInvocations(path);
+    expect(captured).toHaveLength(2);
+    expect(
+      captured.every(
+        (invocation) => invocation.canonicalBefore === null && invocation.canonicalAfter === null,
+      ),
+    ).toBe(true);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
 
 test('Node startup records direct and wrapped launchers, early failures and filtered output without model calls', async () => {
   const root = await mkdtemp(join(tmpdir(), 'moldea-cli-capture-'));

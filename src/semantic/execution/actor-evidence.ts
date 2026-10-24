@@ -1,8 +1,10 @@
-import { posix } from 'node:path';
 import { hashValue } from 'jg-crypto';
 
 import {
   hasValidRepairGitCommandEvidence,
+  identifyCliInvocationOperation,
+  isMoldeaCliOperation,
+  MOLDEA_CLI_OPERATIONS,
   identifyMoldeaCliLauncherOperation,
   identifyMoldeaRelevanceGateMode,
   identifyMoldeaManagedAgentsMode,
@@ -37,13 +39,6 @@ type IMoldeaStatus = Extract<
 type IOutputDisposition = ISemanticActorExecutionOutputEvidence['disposition'];
 
 const COMMAND_COMPLETED_STATUSES: ReadonlySet<string> = new Set(['completed', 'failed']);
-const MOLDEA_COMMANDS: ReadonlySet<string> = new Set([
-  'composition',
-  'content',
-  'inspect',
-  'scope',
-  'validate',
-]);
 const MOLDEA_STATUSES: ReadonlySet<string> = new Set(['error', 'invalid', 'valid']);
 const MOLDEA_ERROR_CODE_PATTERN = /^[A-Z][A-Z0-9_]{0,63}$/u;
 const OUTPUT_DISPOSITIONS: ReadonlySet<string> = new Set([
@@ -64,7 +59,7 @@ const MAX_AGGREGATE_MOLDEA_OUTPUT_BYTES =
   MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxMoldeaOutputBytes;
 const MAX_MOLDEA_COMMAND_COUNT = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxMoldeaCommandCount;
 const MOLDEA_RESOURCE_OPERATIONS: ReadonlySet<string> = new Set([
-  ...MOLDEA_COMMANDS,
+  ...MOLDEA_CLI_OPERATIONS,
   'unrecognized',
 ]);
 const NODE_TEST_SUMMARY_FIELDS = [
@@ -124,9 +119,6 @@ const hasExactKeys = (
 
 const isCommandCompletedStatus = (input: unknown): input is ICommandCompletedStatus =>
   typeof input === 'string' && COMMAND_COMPLETED_STATUSES.has(input);
-
-const isMoldeaOperation = (input: unknown): input is IMoldeaCliOperation =>
-  typeof input === 'string' && MOLDEA_COMMANDS.has(input);
 
 const isMoldeaStatus = (input: unknown): input is IMoldeaStatus =>
   typeof input === 'string' && MOLDEA_STATUSES.has(input);
@@ -335,7 +327,7 @@ const hasValidMoldeaFact = (
     kind !== 'moldea-cli-envelope' ||
     cliVersion !== options.cliVersion ||
     schemaVersion !== options.jsonSchemaVersion ||
-    !isMoldeaOperation(command) ||
+    !isMoldeaCliOperation(command) ||
     !isMoldeaStatus(status) ||
     typeof containsContent !== 'boolean' ||
     (errorCode !== null &&
@@ -907,17 +899,8 @@ export const projectCliInvocationEvidence = (
   invocation: ICliInvocation,
   options: ISemanticActorExecutionEvidenceOptions,
 ): ISemanticActorExecutionEvidence => {
-  const [repositoryFlag, repository, separator, command] = invocation.arguments;
   // startup proves the entry point; the launcher itself validates all remaining arguments
-  const operation =
-    repositoryFlag === '--repository' &&
-    typeof repository === 'string' &&
-    repository !== '' &&
-    posix.resolve('/mnt', repository) === '/mnt' &&
-    separator === '--' &&
-    isMoldeaOperation(command)
-      ? command
-      : null;
+  const operation = identifyCliInvocationOperation(invocation.arguments);
   const outputEvidence = createOutputEvidence(
     invocation.stdout,
     operation,

@@ -1,4 +1,10 @@
 // invocation capture
-export { readCliInvocations } from './cli-invocations.ts';
+export {
+  identifyCliInvocationOperation,
+  isMoldeaCliOperation,
+  MOLDEA_CLI_OPERATIONS,
+  readCliInvocations,
+} from './cli-invocations.ts';
+export { observeCanonicalDigest } from './canonical-observation.ts';
 export { CliInvocationEventSchema } from './types.ts';
-export type { ICliInvocation } from './types.ts';
+export type { ICliInvocation, ICliInvocationEvent } from './types.ts';

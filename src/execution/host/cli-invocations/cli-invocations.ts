@@ -1,13 +1,44 @@
 import { constants } from 'node:fs';
 import { open } from 'node:fs/promises';
+import { posix } from 'node:path';
 
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../resources/index.ts';
+
+import type { IMoldeaCliOperation } from '../types.ts';
 
 import {
   CliInvocationEventSchema,
   CliInvocationRecordSchema,
   type ICliInvocation,
 } from './types.ts';
+
+// closed launcher operations shared by capture and grading
+export const MOLDEA_CLI_OPERATIONS = [
+  'composition',
+  'content',
+  'inspect',
+  'scope',
+  'validate',
+] as const;
+
+/** Recognizes the five closed launcher operations shared by capture and grading. */
+export const isMoldeaCliOperation = (input: unknown): input is IMoldeaCliOperation =>
+  MOLDEA_CLI_OPERATIONS.some((operation) => operation === input);
+
+/** Identifies the operation from observed launcher argv for the exact sandbox repository. */
+export const identifyCliInvocationOperation = (
+  argumentsList: readonly string[],
+): IMoldeaCliOperation | null => {
+  const [flag, repository, separator, operation] = argumentsList;
+  return flag === '--repository' &&
+    typeof repository === 'string' &&
+    repository !== '' &&
+    posix.resolve('/mnt', repository) === '/mnt' &&
+    separator === '--' &&
+    isMoldeaCliOperation(operation)
+    ? operation
+    : null;
+};
 
 /**
  * Reads bounded startup/exit pairs in invocation order, without accepting incomplete capture.
@@ -34,26 +65,37 @@ export const readCliInvocations = async (path: string): Promise<ICliInvocation[]
     const source = content.toString('utf8');
     if (!Buffer.from(source).equals(content) || (source !== '' && !source.endsWith('\n')))
       throw new Error('CLI invocation capture is incomplete.');
-    const starts = new Map<string, ICliInvocation['arguments']>();
+    const starts = new Map<
+      string,
+      { arguments: ICliInvocation['arguments']; canonicalBefore?: string | null }
+    >();
     const exits = new Map<string, ICliInvocation>();
+    let hasOverlap = false;
     for (const line of source.split('\n').slice(0, -1)) {
       const record = CliInvocationRecordSchema.parse(JSON.parse(line));
       if (record.kind === 'start') {
         if (starts.has(record.id)) throw new Error('CLI invocation startup is duplicated.');
-        starts.set(record.id, record.arguments);
+        if (starts.size !== exits.size) hasOverlap = true;
+        starts.set(record.id, {
+          arguments: record.arguments,
+          ...(record.canonicalBefore === undefined
+            ? {}
+            : { canonicalBefore: record.canonicalBefore }),
+        });
       } else {
-        const argumentsList = starts.get(record.id);
+        const start = starts.get(record.id);
         if (
-          argumentsList === undefined ||
+          start === undefined ||
           exits.has(record.id) ||
           Buffer.byteLength(record.stdout) > record.outputByteCount
         )
           throw new Error('CLI invocation exit does not match its startup.');
         exits.set(record.id, {
-          arguments: argumentsList,
+          ...start,
           exitCode: record.exitCode,
           stdout: record.stdout,
           outputByteCount: record.outputByteCount,
+          ...(record.canonicalAfter === undefined ? {} : { canonicalAfter: record.canonicalAfter }),
         });
       }
     }
@@ -61,7 +103,12 @@ export const readCliInvocations = async (path: string): Promise<ICliInvocation[]
       throw new Error('CLI invocation capture has an unfinished launcher.');
     return CliInvocationEventSchema.parse({
       type: 'moldea.cli-invocations',
-      invocations: [...starts.keys()].map((id) => exits.get(id)),
+      invocations: [...starts.keys()].map((id) => {
+        const invocation = exits.get(id);
+        return hasOverlap && invocation !== undefined
+          ? { ...invocation, canonicalBefore: null, canonicalAfter: null }
+          : invocation;
+      }),
     }).invocations;
   } finally {
     await handle.close();

@@ -6,6 +6,8 @@ import { StringDecoder } from 'node:string_decoder';
 
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../resources/index.ts';
 
+import { observeCanonicalDigest } from './canonical-observation.ts';
+
 // Linux-only evaluator preload. NODE_OPTIONS propagates through cooperative Node wrappers.
 const launcher = '/mnt/.agents/skills/moldea/scripts/moldea-cli.mjs';
 const log = '/home/evaluator/cli-invocations.jsonl';
@@ -25,7 +27,13 @@ const observeLauncher = (): void => {
   if (!isMainThread || process.argv[1] === undefined || resolve(process.argv[1]) !== launcher)
     return;
   const id = randomUUID();
-  appendRecord({ kind: 'start', id, arguments: process.argv.slice(2) });
+  const observesCanonicalState = process.argv[5] === 'validate';
+  appendRecord({
+    kind: 'start',
+    id,
+    arguments: process.argv.slice(2),
+    ...(observesCanonicalState ? { canonicalBefore: observeCanonicalDigest('/mnt/moldea') } : {}),
+  });
   let outputByteCount = 0;
   let stdoutByteCount = 0;
   const chunks: Buffer[] = [];
@@ -53,6 +61,7 @@ const observeLauncher = (): void => {
       exitCode,
       outputByteCount,
       stdout: new StringDecoder('utf8').write(Buffer.concat(chunks)),
+      ...(observesCanonicalState ? { canonicalAfter: observeCanonicalDigest('/mnt/moldea') } : {}),
     });
   });
 };

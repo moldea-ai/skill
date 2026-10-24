@@ -6,7 +6,13 @@ import { normalizeScopePath } from '../../portable/index.ts';
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../resources/index.ts';
 
 import { isApprovedRepairGitArguments } from './git-command-policy-boundary.ts';
-import { CliInvocationEventSchema, type ICliInvocation } from './cli-invocations/index.ts';
+import {
+  CliInvocationEventSchema,
+  identifyCliInvocationOperation,
+  isMoldeaCliOperation,
+  type ICliInvocation,
+  type ICliInvocationEvent,
+} from './cli-invocations/index.ts';
 
 import type {
   ICodexEvaluationCommandOwnership,
@@ -273,7 +279,6 @@ const SAFE_MOLDEA_CLI_LAUNCHER_PATHS = new Set([
   './.agents/skills/moldea/scripts/moldea-cli.mjs',
   '/mnt/.agents/skills/moldea/scripts/moldea-cli.mjs',
 ]);
-const MOLDEA_CLI_OPERATIONS = new Set(['composition', 'content', 'inspect', 'scope', 'validate']);
 const MOLDEA_CLI_VALUE_OPTIONS = new Set([
   '--cursor',
   '--max-output-bytes',
@@ -1031,10 +1036,6 @@ const parseMoldeaCliOperationArguments = (
 };
 
 /** Returns the supported operation for one exact launcher command word sequence. */
-const isMoldeaCliOperation = (value: string | undefined): value is IMoldeaCliOperation =>
-  value !== undefined && MOLDEA_CLI_OPERATIONS.has(value);
-
-/** Returns the supported operation for one exact launcher command word sequence. */
 const identifyMoldeaCliLauncherOperationFromWords = (
   words: readonly string[],
 ): IMoldeaCliOperation | null => {
@@ -1690,6 +1691,78 @@ const classifyFileChangeMoldeaPath = (
   return isTouching ? 'touching' : 'not-touching';
 };
 
+/** Places observed canonical differences only beside uniquely corresponding launcher calls. */
+const placeCanonicalWriteObservations = (
+  events: ICodexEvaluationMoldeaEvent[],
+  capture: ICliInvocationEvent,
+): void => {
+  if (capture.canonicalInitial === undefined || capture.canonicalFinal === undefined) return;
+  const commands = events.filter(
+    (event): event is Extract<ICodexEvaluationMoldeaEvent, { kind: 'command' }> =>
+      event.kind === 'command' && event.ownership === 'cli',
+  );
+  const operations = capture.invocations.map(({ arguments: argumentsList }) =>
+    identifyCliInvocationOperation(argumentsList),
+  );
+  if (
+    commands.length !== operations.length ||
+    commands.some(
+      (event, index) => event.operation !== operations[index] || event.operation === null,
+    )
+  )
+    return;
+  const validations = capture.invocations.filter((_, index) => operations[index] === 'validate');
+  if (
+    capture.canonicalInitial === null ||
+    capture.canonicalFinal === null ||
+    validations.length === 0 ||
+    validations.some(
+      (invocation) => invocation.canonicalBefore == null || invocation.canonicalAfter == null,
+    )
+  )
+    return;
+  const ordered: ICodexEvaluationMoldeaEvent[] = [];
+  let lastDigest: string = capture.canonicalInitial;
+  let invocationIndex = 0;
+  let hasKnownWrite = false;
+  for (const event of events) {
+    if (event.kind !== 'command' || event.ownership !== 'cli') {
+      ordered.push(event);
+      if (event.kind === 'file-change' && event.moldeaPath === 'touching') hasKnownWrite = true;
+      continue;
+    }
+    const invocation = capture.invocations[invocationIndex++];
+    if (invocation === undefined)
+      throw new Error('Canonical observation lost launcher correspondence.');
+    if (event.operation !== 'validate') {
+      ordered.push(event);
+      continue;
+    }
+    const before = invocation.canonicalBefore;
+    const after = invocation.canonicalAfter;
+    if (before == null || after == null)
+      throw new Error('Canonical validation observation was lost.');
+    if (before !== lastDigest && !hasKnownWrite)
+      ordered.push({ kind: 'file-change', moldeaPath: 'touching' });
+    ordered.push(event);
+    hasKnownWrite = false;
+    if (after !== before) {
+      ordered.push({ kind: 'file-change', moldeaPath: 'touching' });
+      hasKnownWrite = true;
+    }
+    lastDigest = after;
+  }
+  if (lastDigest !== capture.canonicalFinal && !hasKnownWrite)
+    ordered.push({ kind: 'file-change', moldeaPath: 'touching' });
+  assertWithinResourceLimit(
+    'file change count',
+    'changes',
+    ordered.filter((event) => event.kind === 'file-change').length,
+    MAX_FILE_CHANGE_COUNT,
+  );
+  events.splice(0, events.length, ...ordered);
+};
+
 /** Classifies one complete command without retaining its content. */
 const classifyCommand = (command: string): ICommandClassification => {
   if (Buffer.byteLength(command, 'utf8') > MAX_COMMAND_BYTES) {
@@ -1977,7 +2050,7 @@ const hasValidMoldeaEvent = (event: unknown): event is ICodexEvaluationMoldeaEve
     (operation === null ||
       (event['ownership'] === 'cli' &&
         typeof operation === 'string' &&
-        MOLDEA_CLI_OPERATIONS.has(operation)))
+        isMoldeaCliOperation(operation)))
   );
 };
 
@@ -2189,6 +2262,7 @@ export const projectCodexEvaluationExecutionEvidence = (
   let moldeaOutputByteCount = 0;
   let usage: IUsage | null = null;
   let cliInvocations: ICliInvocation[] | null = null;
+  let cliCapture: ICliInvocationEvent | null = null;
 
   for (const eventLine of source.split('\n')) {
     if (eventLine.trim() === '') continue;
@@ -2206,7 +2280,8 @@ export const projectCodexEvaluationExecutionEvidence = (
     if (hasCredentialExposureInEvent(event)) credentialExposureCount += 1;
     if (event['type'] === 'moldea.cli-invocations') {
       if (cliInvocations !== null) throw new Error('CLI invocation capture is duplicated.');
-      cliInvocations = CliInvocationEventSchema.parse(event).invocations;
+      cliCapture = CliInvocationEventSchema.parse(event);
+      cliInvocations = cliCapture.invocations;
     }
     const eventUsage = extractUsageCandidate(event);
     if (eventUsage !== null) usage = eventUsage;
@@ -2305,6 +2380,7 @@ export const projectCodexEvaluationExecutionEvidence = (
       0,
     );
   }
+  if (cliCapture !== null) placeCanonicalWriteObservations(moldeaEvents, cliCapture);
   assertWithinResourceLimit(
     'moldea command count',
     'commands',

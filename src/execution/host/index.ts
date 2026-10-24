@@ -99,5 +99,10 @@ export { GitInvocationEventSchema, GitInvocationEvidenceSchema } from './git-inv
 export type { IGitInvocationEvidence } from './git-invocations.ts';
 
 // cooperative Node-startup CLI capture
-export { CliInvocationEventSchema } from './cli-invocations/index.ts';
+export {
+  CliInvocationEventSchema,
+  identifyCliInvocationOperation,
+  isMoldeaCliOperation,
+  MOLDEA_CLI_OPERATIONS,
+} from './cli-invocations/index.ts';
 export type { ICliInvocation } from './cli-invocations/index.ts';

@@ -1930,6 +1930,113 @@ test('ordered moldea events keep command and patch order without commands or pat
   assert.equal(JSON.stringify(commandPolicy).includes('project.md'), false);
 });
 
+test.each([
+  ['changed before validation', 'a', 'b', 'b', 'b', true, false],
+  ['changed after validation', 'a', 'b', 'a', 'a', false, true],
+  ['changed during validation', 'a', 'b', 'a', 'b', false, true],
+  ['unchanged', 'a', 'a', 'a', 'a', false, false],
+  ['unknown initial', null, 'b', 'b', 'b', false, false],
+  ['unknown final', 'a', null, 'b', 'b', false, false],
+  ['unknown startup', 'a', 'b', null, 'b', false, false],
+  ['unknown exit', 'a', 'b', 'b', null, false, false],
+] as const)(
+  'runtime canonical observation %s preserves defensible placement',
+  (_name, initial, final, before, after, hasBefore, hasAfter) => {
+    const digest = (letter: string | null) => (letter === null ? null : letter.repeat(64));
+    const command = `node ${SKILL_SCRIPTS}/moldea-cli.mjs --repository /mnt -- validate --json --max-output-bytes 65536`;
+    const result = projectCodexEvaluationExecutionEvidence(
+      [
+        createCommandEvent(command),
+        JSON.stringify({
+          type: 'moldea.cli-invocations',
+          canonicalInitial: digest(initial),
+          canonicalFinal: digest(final),
+          invocations: [
+            {
+              arguments: [
+                '--repository',
+                '/mnt',
+                '--',
+                'validate',
+                '--json',
+                '--max-output-bytes',
+                '65536',
+              ],
+              exitCode: 0,
+              outputByteCount: 0,
+              stdout: '',
+              canonicalBefore: digest(before),
+              canonicalAfter: digest(after),
+            },
+          ],
+        }),
+      ].join('\n'),
+    );
+    const expected: unknown[] = [];
+    if (hasBefore) expected.push({ kind: 'file-change', moldeaPath: 'touching' });
+    expected.push({ kind: 'command', operation: 'validate', outputByteCount: 0, ownership: 'cli' });
+    if (hasAfter) expected.push({ kind: 'file-change', moldeaPath: 'touching' });
+    assert.deepEqual(result.commandPolicy.moldeaEvents, expected);
+    assert.equal(JSON.stringify(result).includes('canonicalInitial'), false);
+  },
+);
+
+test('ambiguous launcher correspondence grants no canonical write evidence', () => {
+  const result = projectCodexEvaluationExecutionEvidence(
+    [
+      createCommandEvent('node -e "wrapped launcher"'),
+      JSON.stringify({
+        type: 'moldea.cli-invocations',
+        canonicalInitial: 'a'.repeat(64),
+        canonicalFinal: 'b'.repeat(64),
+        invocations: [
+          {
+            arguments: ['--repository', '/mnt', '--', 'validate', '--json'],
+            exitCode: 0,
+            outputByteCount: 0,
+            stdout: '',
+            canonicalBefore: 'b'.repeat(64),
+            canonicalAfter: 'b'.repeat(64),
+          },
+        ],
+      }),
+    ].join('\n'),
+  );
+  assert.equal(
+    result.commandPolicy.moldeaEvents.some((event) => event.kind === 'file-change'),
+    false,
+  );
+});
+
+test('runtime observation does not duplicate existing known canonical patch evidence', () => {
+  const command = `node ${SKILL_SCRIPTS}/moldea-cli.mjs --repository /mnt -- validate --json --max-output-bytes 65536`;
+  const result = projectCodexEvaluationExecutionEvidence(
+    [
+      createFileChangeEvent([{ path: '/mnt/moldea/project.md', kind: 'update' }]),
+      createCommandEvent(command),
+      JSON.stringify({
+        type: 'moldea.cli-invocations',
+        canonicalInitial: 'a'.repeat(64),
+        canonicalFinal: 'b'.repeat(64),
+        invocations: [
+          {
+            arguments: ['--repository', '/mnt', '--', 'validate', '--json'],
+            exitCode: 0,
+            outputByteCount: 0,
+            stdout: '',
+            canonicalBefore: 'b'.repeat(64),
+            canonicalAfter: 'b'.repeat(64),
+          },
+        ],
+      }),
+    ].join('\n'),
+  );
+  assert.equal(
+    result.commandPolicy.moldeaEvents.filter((event) => event.kind === 'file-change').length,
+    1,
+  );
+});
+
 test('ordered moldea evidence rejects inconsistent ownership totals and events', () => {
   const { commandPolicy } = projectCodexEvaluationExecutionEvidence(
     [

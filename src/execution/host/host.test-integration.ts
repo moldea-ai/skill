@@ -89,6 +89,32 @@ const unwrapHostOutput = (output: string): string => {
   return lines.join('\n');
 };
 
+test('sandbox exposes the host search executable without exposing its installation directory', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'moldea-search-'));
+  try {
+    const repositoryPath = join(root, 'repository');
+    const sandboxHome = join(root, 'home');
+    mkdirSync(join(repositoryPath, 'src'), { recursive: true });
+    writeFileSync(join(repositoryPath, 'src/owner.js'), 'export const owner = true;\n');
+    await prepareEmptyCodexEvaluationHome(sandboxHome, root);
+    const result = spawnSync(
+      'bwrap',
+      buildCodexEvaluationBwrapArguments({
+        command: ['codex', '-c', 'rg --files src'],
+        cwd: repositoryPath,
+        sandboxHome,
+        hostExecutable: realpathSync('/bin/sh'),
+        nodeExecutable: process.execPath,
+      }),
+      { encoding: 'utf8', timeout: 2000 },
+    );
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout, 'src/owner.js\n');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test('sandbox npm probe is immutable, reports the fixture version, and rejects execution', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-npm-probe-test-'));
   const repositoryPath = join(evaluationRoot, 'repository');

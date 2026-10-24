@@ -6,7 +6,7 @@ export const semanticCase = defineSemanticCase({
   id: 'evaluate-dirty-working-tree',
   setup: createSemanticCaseSetup('evaluate-dirty-working-tree'),
   scenario:
-    'The developer names no path scope, and the host establishes staged, unstaged, untracked, renamed, and deleted paths relative to HEAD.',
+    'The developer names no path scope, and the host establishes staged, unstaged, untracked, renamed, and deleted paths relative to HEAD with inert tracked hunks and untracked source evidence.',
   operation: 'evaluate',
   input: {
     developerDirection:

@@ -80,6 +80,68 @@ const runWrappedGit = (
     env: { ...process.env, GIT_ATTR_NOSYSTEM: '1' },
   });
 
+test('scoped hardened diffs are inert and reject output-file options', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'moldea-diff-'));
+  try {
+    const repository = join(root, 'repository');
+    mkdirSync(repository);
+    runSystemGit(repository, ['init', '--quiet']);
+    writeFileSync(join(repository, 'owner.js'), 'export const owner = "before";\n');
+    runSystemGit(repository, ['add', '--', 'owner.js']);
+    runSystemGit(repository, [
+      '-c',
+      'user.name=Evaluation',
+      '-c',
+      'user.email=evaluation@invalid.example',
+      'commit',
+      '--quiet',
+      '-m',
+      'test: seed diff',
+    ]);
+    writeFileSync(join(repository, 'owner.js'), 'export const owner = "after";\n');
+    const wrapper = await prepareGitCommandPolicyBoundary(join(root, 'bin'), {
+      realGitExecutable: '/usr/bin/git',
+      invocationLogPath: join(root, 'git.jsonl'),
+    });
+    const prefix = CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX.slice(0, -1);
+    const result = runWrappedGit(wrapper, repository, [...prefix, 'HEAD', '--', 'owner.js']);
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /\+export const owner = "after"/u);
+    const rejected = runWrappedGit(wrapper, repository, [
+      ...prefix,
+      '--output=written.patch',
+      '--',
+      'owner.js',
+    ]);
+    assert.equal(rejected.status, 2, rejected.stderr);
+    assert.equal(existsSync(join(repository, 'written.patch')), false);
+    for (const tail of [
+      ['--output', 'written.patch', '--', 'owner.js'],
+      ['--no-index', '--', 'owner.js', '/dev/null'],
+      ['--ext-diff', '--', 'owner.js'],
+      ['--textconv', '--', 'owner.js'],
+      ['--ignore-submodules=none', '--', 'owner.js'],
+      ['--', '../outside.js'],
+      ['--', ':(top,literal)owner.js'],
+    ]) {
+      const invalid = runWrappedGit(wrapper, repository, [...prefix, ...tail]);
+      assert.equal(invalid.status, 2, JSON.stringify(tail));
+    }
+    runSystemGit(repository, ['add', '--', 'owner.js']);
+    const staged = runWrappedGit(wrapper, repository, [
+      ...prefix,
+      '--cached',
+      'HEAD',
+      '--',
+      'owner.js',
+    ]);
+    assert.equal(staged.status, 0, staged.stderr);
+    assert.match(staged.stdout, /\+export const owner = "after"/u);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test.each(['unborn', 'committed', 'detached'] as const)(
   'checkpoint status captures %s identity and NUL-delimited paths without mutation',
   async (state) => {

@@ -181,6 +181,7 @@ export interface ICodexEvaluationBwrapOptions {
   hostExecutable: string;
   includeWorkspaceBinaryDirectory?: boolean;
   nodeExecutable?: string;
+  searchExecutable?: string;
   readOnlyMounts?: readonly ICodexEvaluationReadOnlyMount[];
   readOnlyWorkspacePaths?: readonly string[];
   sandboxHome: string;

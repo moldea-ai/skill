@@ -670,6 +670,7 @@ export const identifyCodexEvaluationHostConfiguration = ({
  * Builds the isolated Bubblewrap invocation for one disposable repository.
  * @param options The host command, mounts, runtime paths, and disposable directories.
  * @returns The Bubblewrap argument list.
+ * @throws If the host search executable cannot be resolved.
  */
 export const buildCodexEvaluationBwrapArguments = ({
   command,
@@ -678,6 +679,7 @@ export const buildCodexEvaluationBwrapArguments = ({
   hostExecutable,
   includeWorkspaceBinaryDirectory = false,
   nodeExecutable = NODE_EXECUTABLE_PATH,
+  searchExecutable = resolveExecutablePath('rg'),
   readOnlyMounts = [],
   readOnlyWorkspacePaths = [],
   sandboxHome,
@@ -754,6 +756,9 @@ export const buildCodexEvaluationBwrapArguments = ({
     '--ro-bind',
     nodeExecutable,
     '/opt/node',
+    '--ro-bind',
+    searchExecutable,
+    '/opt/rg',
     '--dir',
     '/home',
     '--dir',
@@ -1119,6 +1124,7 @@ export const stopCodexEvaluationProxyProcess = async (
  * - If MOLDEA_EVAL_HOST_TIMEOUT_MS is not a positive integer
  * - If a retained session is requested for a judge or a continuation lacks an exact UUID
  * - If private diagnostic paths are unsafe or capture cannot be completed and flushed
+ * - If the host search executable cannot be resolved
  */
 export const runCodexEvaluationHost = async ({
   actorSession,

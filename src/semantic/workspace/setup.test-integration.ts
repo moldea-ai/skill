@@ -125,6 +125,54 @@ const materializeCase = async (caseId: string, withGitBaseline = false) => {
   });
 };
 
+test('dirty-tree evaluation supplies inert change evidence through the actual actor prompt', async () => {
+  const { caseDefinition, repositoryPath } = await materializeCase(
+    'evaluate-dirty-working-tree',
+    true,
+  );
+  const before = await snapshotSemanticWorkspace(repositoryPath);
+  const prompt = buildSemanticActorPrompt(caseDefinition);
+  assert.match(prompt, /Host-established inert HEAD-relative diff/u);
+  for (const text of [
+    'diff --git a/src/staged.js b/src/staged.js',
+    'diff --git a/src/unstaged.js b/src/unstaged.js',
+    'diff --git a/src/deleted.js b/src/deleted.js',
+    'diff --git a/src/renamed-before.js b/src/renamed-before.js',
+    'diff --git a/src/renamed-after.js b/src/renamed-after.js',
+    '+export const state = "staged";',
+    '+export const state = "unstaged";',
+    'export const state = "untracked";',
+  ])
+    assert.ok(prompt.includes(text), `Missing inert input: ${text}`);
+  assert.deepEqual(await snapshotSemanticWorkspace(repositoryPath), before);
+});
+
+test('dirty-tree evaluation refuses missing inert source before an actor can run', async () => {
+  const original = cases.find(({ id }) => id === 'evaluate-dirty-working-tree');
+  assert.ok(original);
+  const definition: ISemanticCase = {
+    ...original,
+    setup: async (context) => {
+      const setup = await original.setup?.(context);
+      return {
+        ...setup,
+        afterBaseline: async () => {
+          await setup?.afterBaseline?.();
+          rmSync(join(context.repositoryPath, 'src/untracked.js'));
+        },
+      };
+    },
+  };
+  const root = mkdtempSync(join(tmpdir(), 'moldea-inert-missing-'));
+  temporaryRoots.push(root);
+  await withEmptyCodexHome(root, async () => {
+    await assert.rejects(
+      createActorRepository(root, definition, join(root, 'home'), join(root, 'tools')),
+      /Unable to prepare inert untracked evaluation evidence/u,
+    );
+  });
+});
+
 const gateResult = (repositoryPath: string, paths: string[], isAdoptionOnly = false): string => {
   const result = spawnSync(
     process.execPath,

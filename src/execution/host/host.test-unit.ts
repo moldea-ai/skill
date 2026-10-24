@@ -320,10 +320,20 @@ test('sandbox uses an empty root, isolated network, and restricted relay', () =>
     hostCompanionExecutable: '/runtime/codex-code-mode-host',
     hostExecutable: '/usr/bin/codex',
     nodeExecutable: '/runtime/node',
+    searchExecutable: '/runtime/search/rg',
     sandboxHome: '/tmp/evaluation-home',
   });
   assert.deepEqual(argumentsList.slice(0, 2), ['--die-with-parent', '--new-session']);
   assert.ok(argumentsList.includes('--unshare-net'));
+  assert.ok(
+    argumentsList.some(
+      (part, index) =>
+        part === '--ro-bind' &&
+        argumentsList[index + 1] === '/runtime/search/rg' &&
+        argumentsList[index + 2] === '/opt/rg',
+    ),
+  );
+  assert.equal(argumentsList.includes('/runtime/search'), false);
   assert.ok(
     argumentsList.some((part) => part.includes('TCP-LISTEN:3128,bind=127.0.0.1,reuseaddr,fork')),
   );

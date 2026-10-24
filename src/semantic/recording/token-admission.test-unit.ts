@@ -1,4 +1,5 @@
 // @vitest-environment node
+import { readFileSync } from 'node:fs';
 import { describe, expect, test } from 'vitest';
 
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../resources/index.ts';
@@ -35,6 +36,17 @@ const createChargedCase = (
   }) as ISemanticRecordedCase;
 
 describe('semantic token admission', () => {
+  test('documents the current candidate admission ceiling', () => {
+    const documentation = readFileSync(
+      new URL('../../../docs/semantic-evaluation.md', import.meta.url),
+      'utf8',
+    );
+
+    expect(documentation).toContain(
+      `the ${SEMANTIC_CANDIDATE_TOKEN_LIMIT.toLocaleString('en-US')}-token admission ceiling`,
+    );
+  });
+
   test('charges direct usage and failed calls while reused and carried trials remain free', () => {
     expect(
       getSemanticCandidatePaidTokenCount(
@@ -145,5 +157,14 @@ describe('semantic token admission', () => {
 
     expect(() => controller.reserve('continued-case')).not.toThrow();
     controller.release('continued-case');
+  });
+
+  test('resumes the stopped recording while retaining its consumed tokens', () => {
+    const controller = createSemanticTokenAdmissionController({
+      getConsumedTokenCount: () => 62_785_381,
+    });
+
+    expect(() => controller.reserve('pending-judge')).not.toThrow();
+    controller.release('pending-judge');
   });
 });

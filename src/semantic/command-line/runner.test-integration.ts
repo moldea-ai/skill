@@ -1,19 +1,32 @@
 // @vitest-environment node
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { chmod, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { chmod, cp, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import {
   buildCodexEvaluationHostCommand,
+  identifyCodexEvaluationHost,
   prepareCodexEvaluationHome,
   type ICodexEvaluationCommandPolicyEvidence,
 } from '../../execution/host/index.ts';
-import { ensureDirectory } from '../../filesystem/index.ts';
+import { readCompletedEvidenceRun } from '../../evidence/index.ts';
+import { ensureDirectory, EXCLUDED_DIRECTORY_NAMES } from '../../filesystem/index.ts';
+import { createPortableSkillArtifactDigest } from '../../portable/index.ts';
+import { createSemanticCliIdentity } from '../../release/index.ts';
 
-import { loadSemanticCases, type ISemanticCase } from '../cases/index.ts';
+import {
+  createSemanticCaseSuiteDigest,
+  loadSemanticCases,
+  type ISemanticCase,
+} from '../cases/index.ts';
+import {
+  createSemanticCoverage,
+  createSemanticCoverageDigest,
+  SEMANTIC_COVERAGE_CLAIMS,
+} from '../coverage/index.ts';
 import {
   createSemanticActiveTrial,
   createSemanticTokenAdmissionController,
@@ -226,11 +239,212 @@ const createDeferred = (): { promise: Promise<void>; resolve: () => void } => {
   return { promise, resolve };
 };
 
+/** Prepares the real recording entrypoint with terminal synthetic evidence and non-model hosts. */
+const prepareCompletedRecording = async (
+  actorVersionChanged: boolean,
+  judgeVersionChanged: boolean,
+) => {
+  const sourceRoot = path.resolve(import.meta.dirname, '../../..');
+  const root = await mkdtemp(path.join(tmpdir(), 'moldea-resume-'));
+  temporaryRoots.push(root);
+  const sourceDirectory = path.join(sourceRoot, 'src');
+  await cp(sourceDirectory, path.join(root, 'src'), {
+    recursive: true,
+    filter: (source) => {
+      const parts = path.relative(sourceDirectory, source).split(path.sep);
+      if (parts.some((part) => EXCLUDED_DIRECTORY_NAMES.has(part))) return false;
+      if (/\.test-(?:unit|integration|e2e|bench)\./u.test(path.basename(source))) return false;
+      return !(
+        parts[0] === 'semantic' &&
+        parts[1] === 'cases' &&
+        parts[2] !== undefined &&
+        !parts[2].endsWith('.ts')
+      );
+    },
+  });
+  const portableRoot = path.join(sourceRoot, 'moldea');
+  await cp(portableRoot, path.join(root, 'moldea'), {
+    recursive: true,
+    filter: (source) =>
+      !path
+        .relative(portableRoot, source)
+        .split(path.sep)
+        .some((part) => EXCLUDED_DIRECTORY_NAMES.has(part)),
+  });
+  for (const name of ['package.json', 'package-lock.json']) {
+    await cp(path.join(sourceRoot, name), path.join(root, name));
+  }
+  await symlink(path.join(sourceRoot, 'node_modules'), path.join(root, 'node_modules'), 'junction');
+  const definition = createCase('checkpoint-host');
+  definition.coverageClaimIds = SEMANTIC_COVERAGE_CLAIMS.map(({ id }) => id);
+  const caseDirectory = path.join(root, 'src/semantic/cases', definition.id);
+  await mkdir(caseDirectory);
+  await writeFile(
+    path.join(caseDirectory, 'case.ts'),
+    `export const semanticCase = ${JSON.stringify(definition)};\n`,
+  );
+  const modelCallsPath = path.join(root, 'model-calls.txt');
+  const createCommand = async (role: 'actor' | 'judge') => {
+    const directory = path.join(root, role);
+    await mkdir(directory);
+    const executable = path.join(directory, 'codex');
+    await writeFile(
+      executable,
+      `#!${process.execPath}\nimport { appendFileSync } from 'node:fs';\nif (process.argv[2] === '--version') process.stdout.write('codex 2.0.0\\n');\nelse { appendFileSync(${JSON.stringify(modelCallsPath)}, '${role}\\n'); process.exitCode = 97; }\n`,
+    );
+    await chmod(executable, 0o755);
+    return [
+      executable,
+      'exec',
+      '--ignore-user-config',
+      '--ignore-rules',
+      '--ephemeral',
+      '--skip-git-repo-check',
+      '--dangerously-bypass-approvals-and-sandbox',
+      '-c',
+      'shell_environment_policy.inherit=none',
+      '-',
+    ];
+  };
+  const actorCommand = await createCommand('actor');
+  const judgeCommand = await createCommand('judge');
+  const checkpoint = createCandidateCheckpoint([definition]);
+  // reuse discovery ignores this reserved filename, allowing an export-only storage failure
+  checkpoint.attemptId = 'latest';
+  checkpoint.actorHost = identifyCodexEvaluationHost(
+    buildCodexEvaluationHostCommand(actorCommand, 'actor'),
+    'actor',
+  );
+  checkpoint.judgeHost = identifyCodexEvaluationHost(
+    buildCodexEvaluationHostCommand(judgeCommand, 'judge'),
+    'judge',
+  );
+  if (actorVersionChanged) checkpoint.actorHost.version = 'codex 1.0.0';
+  if (judgeVersionChanged) checkpoint.judgeHost.version = 'codex 1.0.0';
+  checkpoint.artifactDigest = createPortableSkillArtifactDigest(root);
+  checkpoint.cli = createSemanticCliIdentity(root);
+  checkpoint.caseSuiteDigest = createSemanticCaseSuiteDigest([definition]);
+  checkpoint.coverageDigest = createSemanticCoverageDigest(createSemanticCoverage([definition]));
+  const recordedTrial = createRecordedTrial({
+    caseDefinition: definition,
+    confirmationIndex: null,
+    passed: true,
+  });
+  recordedTrial.trial.actorHost = { ...checkpoint.actorHost, role: 'actor' };
+  recordedTrial.trial.judgeHost = { ...checkpoint.judgeHost, role: 'judge' };
+  checkpoint.cases = [
+    {
+      id: definition.id,
+      status: 'passed',
+      confirmationStatus: 'not-required',
+      trials: [recordedTrial],
+    },
+  ];
+  await writeSemanticCheckpoint(root, checkpoint);
+  const run = () =>
+    spawnSync(
+      process.execPath,
+      [path.join(root, 'src/semantic/command-line/runner.ts'), '--record', '--workers', '1'],
+      {
+        cwd: root,
+        encoding: 'utf8',
+        timeout: 30_000,
+        maxBuffer: 1_048_576,
+        env: {
+          ...process.env,
+          CODEX_HOME: path.join(root, 'empty-home'),
+          MOLDEA_EVAL_ACTOR_COMMAND_JSON: JSON.stringify(actorCommand),
+          MOLDEA_EVAL_JUDGE_COMMAND_JSON: JSON.stringify(judgeCommand),
+        },
+      },
+    );
+  return { root, checkpoint, recordedTrial, modelCallsPath, run };
+};
+
+test.each([
+  [true, false],
+  [false, true],
+  [true, true],
+])(
+  'finalizes a completed recording across version drift (actor %s, judge %s)',
+  async (actorChanged, judgeChanged) => {
+    const fixture = await prepareCompletedRecording(actorChanged, judgeChanged);
+    const runsDirectory = path.join(fixture.root, '.evidence/runs/semantic');
+    await mkdir(runsDirectory, { recursive: true });
+    const blockedStorage = path.join(runsDirectory, 'latest.json');
+    await mkdir(blockedStorage);
+    const blocked = fixture.run();
+    expect(blocked.status).toBe(1);
+    expect(blocked.stderr).toMatch(/EEXIST|EISDIR/u);
+    expect(await readSemanticCheckpoint(fixture.root)).toStrictEqual(fixture.checkpoint);
+    expect(existsSync(fixture.modelCallsPath)).toBe(false);
+    await rm(blockedStorage, { recursive: true });
+    const completed = fixture.run();
+    expect(completed.status, completed.stderr).toBe(0);
+    const bundle = await readCompletedEvidenceRun(
+      fixture.root,
+      'semantic',
+      fixture.checkpoint.attemptId,
+    );
+    expect(bundle.run.attemptId).toBe(fixture.checkpoint.attemptId);
+    expect(bundle.run.status).toBe('passed');
+    const evidence = bundle.artifacts.files.find(({ path: artifactPath }) =>
+      artifactPath.endsWith('/evidence.json'),
+    );
+    const blob = bundle.artifacts.blobs.find(({ sha256 }) => sha256 === evidence?.sha256);
+    expect(blob).toBeDefined();
+    expect(JSON.parse(Buffer.from(blob!.contentBase64, 'base64').toString('utf8'))).toStrictEqual({
+      cases: fixture.checkpoint.cases,
+      schemaVersion: 15,
+    });
+    expect(getSemanticCandidatePaidTokenCount(fixture.checkpoint.cases, {})).toBe(4);
+    expect(existsSync(getSemanticCheckpointPath(fixture.root))).toBe(false);
+    expect(existsSync(fixture.modelCallsPath)).toBe(false);
+  },
+);
+
+test.each([
+  ['actorHost', 'model', 'other-model'],
+  ['judgeHost', 'model', 'other-model'],
+  ['actorHost', 'reasoningEffort', 'low'],
+  ['judgeHost', 'reasoningEffort', 'low'],
+  ['actorHost', 'developerInstructionsSha256', 'b'.repeat(64)],
+  ['judgeHost', 'developerInstructionsSha256', 'b'.repeat(64)],
+  ['actorHost', 'name', 'other-host'],
+  ['judgeHost', 'name', 'other-host'],
+] as const)(
+  'rejects a checkpoint %s.%s mismatch without a model call',
+  async (host, field, mismatch) => {
+    const fixture = await prepareCompletedRecording(false, false);
+    fixture.checkpoint[host][field] = mismatch;
+    await writeSemanticCheckpoint(fixture.root, fixture.checkpoint);
+    const result = fixture.run();
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('The semantic checkpoint does not match this exact run.');
+    expect(await readSemanticCheckpoint(fixture.root)).toStrictEqual(fixture.checkpoint);
+    expect(existsSync(fixture.modelCallsPath)).toBe(false);
+  },
+);
+
 afterEach(async () => {
   await Promise.all(
     temporaryRoots.splice(0).map((root) => rm(root, { force: true, recursive: true })),
   );
 });
+
+test.each(['artifactDigest', 'caseSuiteDigest', 'coverageDigest'] as const)(
+  'rejects a checkpoint %s mismatch without a model call',
+  async (field) => {
+    const fixture = await prepareCompletedRecording(true, true);
+    fixture.checkpoint[field] = 'b'.repeat(64);
+    await writeSemanticCheckpoint(fixture.root, fixture.checkpoint);
+    const result = fixture.run();
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('The semantic checkpoint does not match this exact run.');
+    expect(await readSemanticCheckpoint(fixture.root)).toStrictEqual(fixture.checkpoint);
+    expect(existsSync(fixture.modelCallsPath)).toBe(false);
+  },
+);
 
 test('an over-ceiling actor cycle records a resource failure and confirmations without stopping later cases', async () => {
   const root = await mkdtemp(path.join(tmpdir(), 'moldea-token-ceiling-'));

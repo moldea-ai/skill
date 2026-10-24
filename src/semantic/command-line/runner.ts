@@ -105,6 +105,7 @@ import {
   type ISemanticCaseTrialExecutionOptions,
 } from './case-execution.ts';
 import { runSemanticActorSession } from './actor-session/index.ts';
+import { createSemanticHostContract } from './host-contract.ts';
 import { parseSemanticEvaluationArguments } from './parser.ts';
 import type { ISemanticDiagnosticSelector } from './types.ts';
 
@@ -914,17 +915,11 @@ const createAttemptRecord = (options: {
     failedCaseCount,
     hostContract: {
       actor: {
-        developerInstructionsSha256: options.actorHost.developerInstructionsSha256,
-        model: options.actorHost.model,
-        name: options.actorHost.name,
-        reasoningEffort: options.actorHost.reasoningEffort,
+        ...createSemanticHostContract(options.actorHost),
         role: 'actor',
       },
       judge: {
-        developerInstructionsSha256: options.judgeHost.developerInstructionsSha256,
-        model: options.judgeHost.model,
-        name: options.judgeHost.name,
-        reasoningEffort: options.judgeHost.reasoningEffort,
+        ...createSemanticHostContract(options.judgeHost),
         role: 'judge',
       },
     },
@@ -985,7 +980,7 @@ const recordSemanticAttempt = async (options: {
         path: attemptPath,
       },
       {
-        content: Buffer.from(`${JSON.stringify(evidenceRecord, null, 2)}\n`),
+        content: Buffer.from(`${JSON.stringify(evidenceRecord)}\n`),
         mediaType: 'application/json',
         path: evidencePath,
       },
@@ -1105,22 +1100,22 @@ const run = async (): Promise<void> => {
     } else if (existsSync(checkpointPath)) {
       checkpoint = await readSemanticCheckpoint(REPOSITORY_ROOT);
       const expectedIdentity = {
-        actorHost,
+        actorHost: createSemanticHostContract(actorHost),
         artifactDigest,
         caseSuiteDigest,
         cli,
         coverageDigest,
-        judgeHost,
+        judgeHost: createSemanticHostContract(judgeHost),
         mode: checkpointMode,
         selectedCaseIds,
       };
       const actualIdentity = {
-        actorHost: checkpoint.actorHost,
+        actorHost: createSemanticHostContract(checkpoint.actorHost),
         artifactDigest: checkpoint.artifactDigest,
         caseSuiteDigest: checkpoint.caseSuiteDigest,
         cli: checkpoint.cli,
         coverageDigest: checkpoint.coverageDigest,
-        judgeHost: checkpoint.judgeHost,
+        judgeHost: createSemanticHostContract(checkpoint.judgeHost),
         mode: checkpoint.mode,
         selectedCaseIds: checkpoint.selectedCaseIds,
       };

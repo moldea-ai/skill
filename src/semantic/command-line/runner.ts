@@ -330,6 +330,7 @@ export const runSemanticTrial = async (options: {
   cli: ISemanticCliIdentity;
   confirmationIndex: 1 | 2 | 3 | null;
   artifactDigest: string;
+  privateTraceAttemptId?: string;
   isOperationalResumeRequested: boolean;
   judgeCommand: readonly string[];
   judgeHost: ICodexEvaluationHostIdentity;
@@ -560,6 +561,16 @@ export const runSemanticTrial = async (options: {
               command: options.actorCommand,
               cwd: repositoryPath,
               includeWorkspaceBinaryDirectory: hasWorkspaceBinaryDirectory,
+              ...(options.privateTraceAttemptId === undefined
+                ? {}
+                : {
+                    privateTrace: {
+                      repositoryRoot: REPOSITORY_ROOT,
+                      attemptId: options.privateTraceAttemptId,
+                      caseId: options.caseDefinition.id,
+                      invocation: `t${options.confirmationIndex ?? 0}-a`,
+                    },
+                  }),
               readOnlyMounts,
               readOnlyWorkspacePaths: ['.agents', '.git'],
               sandboxHome: actorHome,
@@ -634,6 +645,16 @@ export const runSemanticTrial = async (options: {
             command: options.judgeCommand,
             cwd: repositoryPath,
             prompt: judgePrompt,
+            ...(options.privateTraceAttemptId === undefined
+              ? {}
+              : {
+                  privateTrace: {
+                    repositoryRoot: REPOSITORY_ROOT,
+                    attemptId: options.privateTraceAttemptId,
+                    caseId: options.caseDefinition.id,
+                    invocation: `t${options.confirmationIndex ?? 0}-j`,
+                  },
+                }),
             readOnlyMounts: relatedMounts,
             readOnlyWorkspacePaths: ['.agents', '.git'],
             role: 'judge',
@@ -1179,6 +1200,7 @@ const run = async (): Promise<void> => {
         actorCommand,
         actorHost,
         artifactDigest,
+        privateTraceAttemptId: attemptId,
         caseDefinition,
         cli,
         confirmationIndex,

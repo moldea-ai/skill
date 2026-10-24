@@ -96,6 +96,24 @@ afterEach(async () => {
 });
 
 describe('GitHub evidence release assets', () => {
+  test('rejects private diagnostic evidence before any publication call', async () => {
+    const root = await mkdtemp(path.join(tmpdir(), 'moldea-release-evidence-'));
+    temporaryRoots.push(root);
+    const bundle = createOfficialBundle();
+    bundle.payload = { moldeaPrivateTrace: true };
+    const client = new FakeGitHubReleaseClient();
+    await expect(
+      publishEvidenceBundle({
+        bundle,
+        client,
+        repository: 'moldea-ai/skill',
+        tag: 'evidence-semantic-attempt-1',
+        temporaryDirectory: root,
+      }),
+    ).rejects.toThrow(/private diagnostic/u);
+    expect(client.events).toStrictEqual([]);
+    expect(client.assets.size).toBe(0);
+  });
   test('recovers from a partial upload without clobbering the exact asset', async () => {
     const root = await mkdtemp(path.join(tmpdir(), 'moldea-release-evidence-'));
     temporaryRoots.push(root);

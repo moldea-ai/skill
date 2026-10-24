@@ -149,6 +149,14 @@ export interface ICodexEvaluationReadOnlyMount {
 
 export type ICodexEvaluationWorkspaceAccess = 'read-only' | 'read-write';
 
+// trusted runner destinations; these options never enter recorded evidence
+export interface ICodexEvaluationPrivateTraceOptions {
+  repositoryRoot: string;
+  attemptId: string;
+  caseId: string;
+  invocation: string;
+}
+
 export interface ICodexEvaluationHostRunOptions {
   // only authored multi-request actor trials retain a session
   actorSession?: { kind: 'start' } | { kind: 'resume'; sessionId: string };
@@ -156,6 +164,7 @@ export interface ICodexEvaluationHostRunOptions {
   cwd: string;
   defaultHostTimeoutMs?: number;
   includeWorkspaceBinaryDirectory?: boolean;
+  privateTrace?: ICodexEvaluationPrivateTraceOptions;
   prompt: string;
   readOnlyMounts?: readonly ICodexEvaluationReadOnlyMount[];
   readOnlyWorkspacePaths?: readonly string[];

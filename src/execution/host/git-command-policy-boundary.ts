@@ -287,7 +287,8 @@ const TRUSTED_READ_ONLY_WORKSPACE_PATHS_PLACEHOLDER =
 // wrapper source that prevents repository configuration from delegating Git execution
 const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
   '#!/opt/node',
-  "const { spawnSync } = require('node:child_process');",
+  "const { spawnSync: spawnSyncDirect } = require('node:child_process');",
+  "const { connect } = require('node:net');",
   "const { appendFileSync, existsSync, statSync, readlinkSync, realpathSync, closeSync, constants, fstatSync, lstatSync, opendirSync, openSync, readSync } = require('node:fs');",
   "const { dirname, join, resolve, sep } = require('node:path');",
   '',
@@ -296,6 +297,39 @@ const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
   "const FILTER_ATTRIBUTE = Buffer.from('filter');",
   'const REAL_GIT_EXECUTABLE = __REAL_GIT_EXECUTABLE__;',
   'const INVOCATION_LOG_PATH = __INVOCATION_LOG_PATH__;',
+  'const DIAGNOSTIC_SOCKET_PATH = __DIAGNOSTIC_SOCKET_PATH__;',
+  'const diagnosticCalls = [];',
+  'const diagnosticWrapperStderr = [];',
+  'let diagnosticBytes = 0;',
+  'let diagnosticIncomplete = false;',
+  'if (DIAGNOSTIC_SOCKET_PATH !== null) {',
+  '  const writeStderr = process.stderr.write.bind(process.stderr);',
+  '  process.stderr.write = (chunk, ...argumentsList) => {',
+  '    const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk, typeof argumentsList[0] === "string" ? argumentsList[0] : "utf8");',
+  '    diagnosticBytes += bytes.length;',
+  '    if (diagnosticBytes <= 16777216) diagnosticWrapperStderr.push(bytes);',
+  '    else diagnosticIncomplete = true;',
+  '    return writeStderr(chunk, ...argumentsList);',
+  '  };',
+  '}',
+  'const spawnSync = (executable, argumentsList, options) => {',
+  '  if (DIAGNOSTIC_SOCKET_PATH === null) return spawnSyncDirect(executable, argumentsList, options);',
+  '  const inherited = options.stdio === "inherit";',
+  '  const result = spawnSyncDirect(executable, argumentsList, inherited ? { ...options, stdio: ["inherit", "inherit", "pipe"], maxBuffer: 16777216 } : options);',
+  '  const stderr = Buffer.isBuffer(result.stderr) ? result.stderr : Buffer.from(result.stderr ?? "");',
+  '  if (inherited) process.stderr.write(stderr);',
+  '  diagnosticBytes += stderr.length;',
+  '  diagnosticCalls.push({ kind: "subprocess", arguments: argumentsList, status: result.status, signal: result.signal, stderr: diagnosticBytes <= 16777216 ? stderr.toString("base64") : "", incomplete: diagnosticBytes > 16777216 || Boolean(result.error) });',
+  '  return result;',
+  '};',
+  'const sendDiagnostic = () => {',
+  '  if (DIAGNOSTIC_SOCKET_PATH === null) return;',
+  '  const client = connect(DIAGNOSTIC_SOCKET_PATH);',
+  '  client.setTimeout(5000, () => client.destroy());',
+  '  client.on("error", () => client.destroy());',
+  '  client.on("data", () => {});',
+  '  client.on("connect", () => client.end(JSON.stringify({ arguments: process.argv.slice(2), status: process.exitCode ?? 0, calls: [...diagnosticCalls, { kind: "wrapper", arguments: process.argv.slice(2), status: process.exitCode ?? 0, signal: null, stderr: Buffer.concat(diagnosticWrapperStderr).toString("base64"), incomplete: diagnosticIncomplete }] })));',
+  '};',
   'const MAX_GIT_ATTRIBUTE_TRAVERSAL_DEPTH = 64;',
   'const MAX_GIT_ATTRIBUTE_TRAVERSAL_ENTRIES = 4_096;',
   'const MAX_GIT_FILE_BYTES = 32_768;',
@@ -840,6 +874,7 @@ const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
   "  process.stderr.write('Git command blocked: repository attribute safety was not established.\\n');",
   '  process.exitCode = 2;',
   '}',
+  'sendDiagnostic();',
   '',
 ].join('\n');
 
@@ -852,13 +887,15 @@ const createGitCommandPolicyWrapperSource = (
   trustedReadOnlyWorkspacePaths: readonly string[],
   realGitExecutable: string,
   invocationLogPath: string,
+  diagnosticSocketPath: string | undefined,
 ): string =>
   GIT_COMMAND_POLICY_WRAPPER_SOURCE.replace(
     TRUSTED_READ_ONLY_WORKSPACE_PATHS_PLACEHOLDER,
     JSON.stringify(trustedReadOnlyWorkspacePaths),
   )
     .replace('__REAL_GIT_EXECUTABLE__', JSON.stringify(realGitExecutable))
-    .replace('__INVOCATION_LOG_PATH__', JSON.stringify(invocationLogPath));
+    .replace('__INVOCATION_LOG_PATH__', JSON.stringify(invocationLogPath))
+    .replace('__DIAGNOSTIC_SOCKET_PATH__', JSON.stringify(diagnosticSocketPath ?? null));
 
 /**
  * Installs the evaluator-owned Git boundary ahead of the system executable.
@@ -874,10 +911,12 @@ export const prepareGitCommandPolicyBoundary = async (
     trustedReadOnlyWorkspacePaths = [],
     realGitExecutable,
     invocationLogPath,
+    diagnosticSocketPath,
   }: {
     trustedReadOnlyWorkspacePaths?: readonly string[];
     realGitExecutable: string;
     invocationLogPath: string;
+    diagnosticSocketPath?: string;
   },
 ): Promise<string> => {
   const wrapperPath = join(directoryPath, 'git');
@@ -885,6 +924,7 @@ export const prepareGitCommandPolicyBoundary = async (
     normalizeTrustedReadOnlyWorkspacePaths(trustedReadOnlyWorkspacePaths),
     realGitExecutable,
     invocationLogPath,
+    diagnosticSocketPath,
   );
   await mkdir(directoryPath, { recursive: true, mode: 0o700 });
   await writeFile(wrapperPath, wrapperSource, 'utf8');

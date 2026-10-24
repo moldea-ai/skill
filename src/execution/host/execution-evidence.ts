@@ -1,5 +1,7 @@
 import { posix } from 'node:path';
 
+import { redactSecrets } from 'jg-utilities';
+
 import { normalizeScopePath } from '../../portable/index.ts';
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../resources/index.ts';
 
@@ -1788,6 +1790,14 @@ const hasCredentialExposure = (source: string): boolean =>
     pattern.lastIndex = 0;
     return pattern.test(source);
   });
+
+/** Redacts the same credentials detected by public evidence, including canonical Basic auth. */
+export const redactCodexDiagnosticText = (source: string): string => {
+  const redacted = redactSecrets(source, { patterns: CREDENTIAL_PATTERNS }).text;
+  return redacted.replace(BASIC_AUTHORIZATION_PATTERN, (match: string) =>
+    hasBasicAuthorizationCredential(match) ? '[redacted]' : match,
+  );
+};
 
 /** Detects credentials only in plaintext event fields that can expose them to the model or logs. */
 const hasCredentialExposureInEvent = (event: unknown): boolean => {

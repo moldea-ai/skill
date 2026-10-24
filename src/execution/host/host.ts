@@ -8,12 +8,14 @@ import type { Readable } from 'node:stream';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { hashValue } from 'jg-crypto';
+import { isPathWithin } from 'jg-fs';
 import { z } from 'zod';
 
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../resources/index.ts';
 
 import { readGitInvocationEvidence } from './git-invocations.ts';
 import { readCliInvocations } from './cli-invocations/index.ts';
+import { createPrivateTrace } from './private-trace.ts';
 
 import type {
   ICodexEvaluationBwrapOptions,
@@ -35,6 +37,7 @@ type IGitCommandPolicyBoundaryModule = {
       trustedReadOnlyWorkspacePaths?: readonly string[];
       realGitExecutable: string;
       invocationLogPath: string;
+      diagnosticSocketPath?: string;
     },
   ) => Promise<string>;
 };
@@ -864,11 +867,13 @@ const runBubblewrapProcess = ({
   prompt,
   signal,
   timeoutMs,
+  capture,
 }: {
   argumentsList: string[];
   prompt: string;
   signal?: AbortSignal | undefined;
   timeoutMs: number;
+  capture?: ((chunk: Buffer) => void) | undefined;
 }): Promise<string> =>
   new Promise<string>((resolvePromise, rejectPromise) => {
     const sandboxProcess = spawn('bwrap', argumentsList, {
@@ -877,7 +882,7 @@ const runBubblewrapProcess = ({
     const stdoutChunks: Buffer[] = [];
     const stderrChunks: Buffer[] = [];
     let outputBytes = 0;
-    let pendingError: CodexEvaluationHostError | null = null;
+    let pendingError: Error | null = null;
     let hasSettled = false;
     let sandboxChildPid: number | null = null;
     let statusOutput = '';
@@ -932,7 +937,16 @@ const runBubblewrapProcess = ({
       chunks.push(chunk);
     };
 
-    sandboxProcess.stdout?.on('data', (chunk: Buffer) => captureChunk(stdoutChunks, chunk));
+    sandboxProcess.stdout?.on('data', (chunk: Buffer) => {
+      try {
+        capture?.(chunk);
+      } catch (error) {
+        pendingError =
+          error instanceof Error ? error : new Error('Private diagnostic capture failed.');
+        killSandbox();
+      }
+      captureChunk(stdoutChunks, chunk);
+    });
     sandboxProcess.stderr?.on('data', (chunk: Buffer) => captureChunk(stderrChunks, chunk));
     sandboxProcess.stdin?.on('error', () => {
       // process close owns the actionable exit status and captured diagnostic output
@@ -1104,6 +1118,7 @@ export const stopCodexEvaluationProxyProcess = async (
  * - If defaultHostTimeoutMs is not a positive integer and no environment override is present
  * - If MOLDEA_EVAL_HOST_TIMEOUT_MS is not a positive integer
  * - If a retained session is requested for a judge or a continuation lacks an exact UUID
+ * - If private diagnostic paths are unsafe or capture cannot be completed and flushed
  */
 export const runCodexEvaluationHost = async ({
   actorSession,
@@ -1111,6 +1126,7 @@ export const runCodexEvaluationHost = async ({
   cwd,
   defaultHostTimeoutMs = CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS,
   includeWorkspaceBinaryDirectory = false,
+  privateTrace,
   prompt,
   readOnlyMounts = [],
   readOnlyWorkspacePaths = [],
@@ -1137,6 +1153,16 @@ export const runCodexEvaluationHost = async ({
   if (!['read-only', 'read-write'].includes(workspaceAccess)) {
     throw new Error(`Unsupported evaluation workspace access: ${workspaceAccess}`);
   }
+  if (privateTrace !== undefined) {
+    const destination = join(privateTrace.repositoryRoot, '.evidence', 'private-semantic');
+    if (
+      [cwd, sandboxHome, ...readOnlyMounts.map(({ source }) => source)].some(
+        (root) => resolve(root) === resolve(destination) || isPathWithin(root, destination),
+      )
+    ) {
+      throw new Error('Private diagnostic files must be outside every sandbox mount.');
+    }
+  }
   const protectedWorkspacePaths = getProtectedWorkspacePaths(
     readOnlyWorkspacePaths,
     includeWorkspaceBinaryDirectory,
@@ -1147,6 +1173,7 @@ export const runCodexEvaluationHost = async ({
     trustedReadOnlyWorkspacePaths: protectedWorkspacePaths,
     realGitExecutable: '/opt/moldea-real-git/git',
     invocationLogPath: '/home/evaluator/git-invocations.jsonl',
+    ...(privateTrace === undefined ? {} : { diagnosticSocketPath: '/home/evaluator/git.sock' }),
   });
   const gitInvocationLogPath = join(sandboxHome, 'git-invocations.jsonl');
   const cliInvocationLogPath = join(sandboxHome, 'cli-invocations.jsonl');
@@ -1165,6 +1192,11 @@ export const runCodexEvaluationHost = async ({
   const hostConfiguration = identifyCodexEvaluationHostConfiguration({
     defaultHostTimeoutMs,
   });
+  const trace =
+    privateTrace === undefined
+      ? undefined
+      : await createPrivateTrace(privateTrace, join(sandboxHome, 'git.sock'));
+  let traceOutcome: 'completed' | 'failed' = 'failed';
   const proxyProcess = spawn(process.execPath, [EGRESS_PROXY_PATH], {
     env: {
       MOLDEA_EVAL_ALLOWED_HOSTS: hostConfiguration.allowedEgressHosts.join(','),
@@ -1192,10 +1224,12 @@ export const runCodexEvaluationHost = async ({
       prompt,
       signal,
       timeoutMs: hostConfiguration.hostTimeoutMs,
+      capture: trace?.capture,
     });
     try {
       const evidence = await readGitInvocationEvidence(gitInvocationLogPath);
       const invocations = await readCliInvocations(cliInvocationLogPath);
+      traceOutcome = 'completed';
       return `${output}\n${JSON.stringify({ type: 'moldea.git-invocations', evidence })}\n${JSON.stringify({ type: 'moldea.cli-invocations', invocations })}`;
     } catch (error) {
       throw new CodexEvaluationHostError(
@@ -1208,8 +1242,20 @@ export const runCodexEvaluationHost = async ({
     try {
       await stopCodexEvaluationProxyProcess(proxyProcess);
     } finally {
-      await rm(gitInvocationLogPath, { force: true });
-      await rm(cliInvocationLogPath, { force: true });
+      try {
+        if (trace !== undefined) {
+          let expectedCount = -1;
+          try {
+            expectedCount = (await readGitInvocationEvidence(gitInvocationLogPath)).invocationCount;
+          } catch {
+            /* finish records the incomplete capture and stops without an operational retry */
+          }
+          await trace.finish(traceOutcome, expectedCount);
+        }
+      } finally {
+        await rm(gitInvocationLogPath, { force: true });
+        await rm(cliInvocationLogPath, { force: true });
+      }
     }
   }
 };

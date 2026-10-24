@@ -25,7 +25,10 @@ export const getCompletedEvidenceRunPath = (
   );
 };
 
-/** Persists one complete validated run for local reuse and later publication packing. */
+/**
+ * Persists one complete validated run for local reuse and later publication packing.
+ * @throws If evidence validation (including private diagnostics) or storage fails.
+ */
 export const storeCompletedEvidenceRun = async (
   repositoryRoot: string,
   input: unknown,
@@ -36,7 +39,10 @@ export const storeCompletedEvidenceRun = async (
   return runPath;
 };
 
-/** Reads one exact local completed-run record. */
+/**
+ * Reads one exact local completed-run record.
+ * @throws If the record is unavailable or evidence validation rejects it, including private diagnostics.
+ */
 export const readCompletedEvidenceRun = async (
   repositoryRoot: string,
   kind: IEvidenceKind,
@@ -49,7 +55,10 @@ export const readCompletedEvidenceRun = async (
   return validateEvidenceBundle(bundle);
 };
 
-/** Packs one local completed-run record into its bounded release-asset representation. */
+/**
+ * Packs one local completed-run record into its bounded release-asset representation.
+ * @throws If reading, evidence validation (including private diagnostics), encoding or storage fails.
+ */
 export const packCompletedEvidenceRun = async (
   repositoryRoot: string,
   kind: IEvidenceKind,

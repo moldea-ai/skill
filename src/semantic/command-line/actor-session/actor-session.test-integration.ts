@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { execFileSync } from 'node:child_process';
-import { chmod, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { chmod, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -84,7 +84,17 @@ if (!(${JSON.stringify(scenario)} === 'missing-initial-usage' && count === 0)) {
       const runSession = () =>
         runSemanticActorSession({
           cli: { version: '11.0.6', jsonSchemaVersion: 7 },
-          host: { command, cwd, sandboxHome },
+          host: {
+            command,
+            cwd,
+            sandboxHome,
+            privateTrace: {
+              repositoryRoot: root,
+              attemptId: 'attempt',
+              caseId: 'retained',
+              invocation: 't0-a',
+            },
+          },
           invoke: async (operation) => {
             expect(
               JSON.parse(
@@ -111,6 +121,18 @@ if (!(${JSON.stringify(scenario)} === 'missing-initial-usage' && count === 0)) {
         return;
       }
       const cycles = await runSession();
+      const traceDirectory = path.join(root, '.evidence/private-semantic/attempt/retained');
+      const traces = await readdir(traceDirectory);
+      expect(traces).toHaveLength(6);
+      for (const requestIndex of [0, 1, 2]) {
+        expect(traces.filter((name) => name.startsWith(`t0-a-r${requestIndex}-`))).toHaveLength(2);
+      }
+      for (const name of traces)
+        expect(await readFile(path.join(traceDirectory, name), 'utf8')).toContain(
+          '"complete":true',
+        );
+      expect(JSON.stringify(cycles)).not.toContain('private-semantic');
+      expect(JSON.stringify(cycles)).not.toContain('moldeaPrivateTrace');
       expect(cycles).toStrictEqual(persisted);
       expect(
         cycles.map(({ requestIndex, developerRequest, response, usage }) => ({

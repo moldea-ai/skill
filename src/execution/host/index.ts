@@ -12,6 +12,7 @@ export type {
   ICodexEvaluationHostFailureKind,
   ICodexEvaluationHostIdentity,
   ICodexEvaluationHostRunOptions,
+  ICodexEvaluationPrivateTraceOptions,
   ICodexEvaluationMoldeaEvent,
   ICodexEvaluationOperationalExhaustion,
   ICodexEvaluationOperationalFailureCategory,

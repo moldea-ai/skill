@@ -36,6 +36,50 @@ const createBundle = () =>
   });
 
 describe('evidence bundles', () => {
+  test.each([
+    ['.evidence/private-semantic/attempt/case/actor.jsonl', 'ordinary text'],
+    ['renamed.txt', '{"moldeaPrivateTrace":true}\n{"type":"item.completed"}\n'],
+  ])('rejects private diagnostic artifacts at %s', (path, content) => {
+    const original = createBundle();
+
+    expect(() =>
+      createEvidenceBundle({
+        classification: original.classification,
+        kind: original.kind,
+        payload: original.payload,
+        run: original.run,
+        artifacts: [{ path, content: Buffer.from(content), mediaType: 'text/plain' }],
+      }),
+    ).toThrow(/private diagnostic/u);
+  });
+
+  test('rejects private diagnostic paths and markers in public payloads', () => {
+    for (const payload of [
+      { tracePath: '.evidence/private-semantic/attempt/case/actor.jsonl' },
+      { moldeaPrivateTrace: true },
+    ]) {
+      const bundle = createBundle();
+      bundle.payload = payload;
+
+      expect(() => validateEvidenceBundle(bundle)).toThrow(/private diagnostic/u);
+      expect(() => encodeEvidenceBundle(bundle)).toThrow(/private diagnostic/u);
+    }
+  });
+
+  test('rejects private diagnostics in provenance and unreferenced blobs', () => {
+    const bundle = createBundle();
+    bundle.run.provenance['trace'] = '.evidence/private-semantic/attempt/case/actor.jsonl';
+    expect(() => validateEvidenceBundle(bundle)).toThrow(/private diagnostic/u);
+    delete bundle.run.provenance['trace'];
+    const content = Buffer.from('{"moldeaPrivateTrace":true}\n');
+    bundle.artifacts.blobs.push({
+      byteCount: content.length,
+      contentBase64: content.toString('base64'),
+      sha256: calculateSha256(content),
+    });
+    expect(() => validateEvidenceBundle(bundle)).toThrow(/private diagnostic/u);
+  });
+
   test('round trips a complete bundle and deduplicates exact artifact bytes', () => {
     const bundle = createBundle();
     const encoded = encodeEvidenceBundle(bundle);

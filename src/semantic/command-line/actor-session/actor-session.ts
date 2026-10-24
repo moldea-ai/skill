@@ -90,6 +90,14 @@ export const runSemanticActorSession = async (options: {
     const evidence = await options.invoke(async () => {
       const output = await runCodexEvaluationHost({
         ...options.host,
+        ...(options.host.privateTrace === undefined
+          ? {}
+          : {
+              privateTrace: {
+                ...options.host.privateTrace,
+                invocation: `${options.host.privateTrace.invocation}-r${requestIndex}`,
+              },
+            }),
         ...(options.requests.length === 1
           ? {}
           : {

@@ -202,11 +202,15 @@ const CANDIDATE_TARGET_CASE_IDS = [
   'routing-description-fallback',
 ];
 
-test('the release selection excludes only the two retained reserve failures', async () => {
+test('the release selection retains the three disclosed private cases', async () => {
   const cases = await loadSemanticCases(import.meta.dirname);
   expect(
     cases.filter(({ publication }) => publication === 'private').map(({ id }) => id),
-  ).toStrictEqual(['exact-binding-relevance', 'read-only-git-helper-suppression']);
+  ).toStrictEqual([
+    'exact-binding-relevance',
+    'read-only-git-helper-suppression',
+    'repair-stale-integration',
+  ]);
 });
 
 test.each(CANDIDATE_TARGET_CASE_IDS)(

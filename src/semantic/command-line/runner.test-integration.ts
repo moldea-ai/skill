@@ -529,7 +529,7 @@ test('rejects checkpoint role and CLI drift without calling a host', async () =>
   expect(wrongRole.stderr).toContain('actorHost');
   expect(existsSync(fixture.modelCallsPath)).toBe(false);
   fixture.checkpoint.actorHost.role = 'actor';
-  fixture.checkpoint.cli.version = '13.0.2';
+  fixture.checkpoint.cli.version = '99.0.0';
   await writeSemanticCheckpoint(fixture.root, fixture.checkpoint);
   const wrongCli = fixture.run();
   expect(wrongCli.status).toBe(1);

@@ -8,6 +8,7 @@ import { expect, test, vi } from 'vitest';
 import { z } from 'zod';
 
 import { projectCodexEvaluationExecutionEvidence } from '../../../execution/host/index.ts';
+import { createSemanticCliIdentity } from '../../../release/index.ts';
 import {
   type ISemanticActorExecutionEvidence,
   createMoldeaResourceEvidence,
@@ -48,7 +49,10 @@ test('real content pages and final validation straddle the unchanged ordinary al
     );
     const events: unknown[] = [];
     const captures: ISemanticActorExecutionEvidence[] = [];
-    const cliIdentity = { cliVersion: '13.0.1', jsonSchemaVersion: 7 };
+    const { version: cliVersion, jsonSchemaVersion } = createSemanticCliIdentity(
+      join(import.meta.dirname, '../../../..'),
+    );
+    const cliIdentity = { cliVersion, jsonSchemaVersion };
     const runHelper = (filename: string, args: string[]) => {
       const result = spawnSync(
         process.execPath,

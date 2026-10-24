@@ -7,6 +7,23 @@ import { join, relative as relative2, sep as sep2 } from "node:path";
 // node_modules/jg-exception/dist/shared/constants.js
 var UNKNOWN_ERROR_CODE = "UNKNOWN_ERROR";
 var REDACTED_VALUE = "[redacted]";
+var MAX_NESTING_DEPTH = 256;
+
+// node_modules/jg-exception/dist/shared/utilities.js
+var stringifyWithinDepth = (value) => {
+  const levels = /* @__PURE__ */ new WeakMap();
+  const limitDepth = function(_key, member) {
+    if (typeof member === "object" && member !== null) {
+      const level = (levels.get(this) ?? 0) + 1;
+      if (level > MAX_NESTING_DEPTH) {
+        throw new RangeError("The value is nested too deeply to serialize.");
+      }
+      levels.set(member, level);
+    }
+    return member;
+  };
+  return JSON.stringify(value, limitDepth);
+};
 
 // node_modules/jg-exception/dist/error-handler/utilities.js
 var collectSensitiveRanges = (message, sensitiveValues) => {
@@ -137,12 +154,15 @@ var redactPrimitive = (value, values) => {
   const redacted = redactSensitiveValues(text, values);
   return redacted === text ? value : redacted;
 };
-var redactJson = (value, values, ancestors) => {
+var redactJson = (value, values, ancestors, depth) => {
   if (typeof value !== "object" || value === null) {
     return typeof value === "function" || typeof value === "symbol" || typeof value === "bigint" ? void 0 : redactPrimitive(value, values);
   }
   if (ancestors.has(value)) {
     return void 0;
+  }
+  if (depth >= MAX_NESTING_DEPTH) {
+    throw new RangeError("The data is nested too deeply to copy.");
   }
   ancestors.add(value);
   try {
@@ -151,14 +171,14 @@ var redactJson = (value, values, ancestors) => {
       const copy2 = [];
       for (const [key, item] of entries) {
         if (ARRAY_INDEX.test(key)) {
-          copy2[Number(key)] = redactJson(item, values, ancestors) ?? null;
+          copy2[Number(key)] = redactJson(item, values, ancestors, depth + 1) ?? null;
         }
       }
       return copy2;
     }
     const copy = {};
     for (const [key, item] of entries) {
-      const redacted = redactJson(item, values, ancestors);
+      const redacted = redactJson(item, values, ancestors, depth + 1);
       if (redacted !== void 0) {
         defineValue(copy, key, redacted, true);
       }
@@ -170,12 +190,12 @@ var redactJson = (value, values, ancestors) => {
 };
 var redactData = (data, values) => {
   try {
-    return redactJson(data, values, /* @__PURE__ */ new Set());
+    return redactJson(data, values, /* @__PURE__ */ new Set(), 0);
   } catch {
     return null;
   }
 };
-var createSnapshot = (cause, context) => {
+var createSnapshot = (cause, context, depth) => {
   const { values, exceptionClass, snapshots } = context;
   const isRecognisedException = readProperty(cause, EXCEPTION_BRAND, false) === true;
   const message = readProperty(cause, "message", false);
@@ -207,23 +227,19 @@ var createSnapshot = (cause, context) => {
   } catch {
     hasCause = false;
   }
-  if (hasCause) {
-    defineValue(snapshot, "cause", redactCause(readProperty(cause, "cause", false), context), false);
+  if (hasCause && depth < MAX_NESTING_DEPTH) {
+    defineValue(snapshot, "cause", redactCause(readProperty(cause, "cause", false), context, depth + 1), false);
   }
   return snapshot;
 };
-var redactCause = (cause, context) => {
+var redactCause = (cause, context, depth) => {
   if (isPrimitive(cause)) {
     return redactPrimitive(cause, context.values);
   }
   if (context.snapshots.has(cause)) {
     return context.snapshots.get(cause);
   }
-  try {
-    return createSnapshot(cause, context);
-  } catch {
-    return void 0;
-  }
+  return createSnapshot(cause, context, depth);
 };
 var toRedactionValues = (redact) => {
   const values = /* @__PURE__ */ new Set();
@@ -255,14 +271,14 @@ var redactExceptionParts = (parts, redact, exceptionClass) => {
   return {
     message,
     data: parts.data === void 0 ? void 0 : redactData(parts.data, values),
-    cause: redactCause(parts.cause, { values, exceptionClass, snapshots: /* @__PURE__ */ new Map() })
+    cause: redactCause(parts.cause, { values, exceptionClass, snapshots: /* @__PURE__ */ new Map() }, 1)
   };
 };
 
 // node_modules/jg-exception/dist/exception/exception.js
 var toSerializableData = (data) => {
   try {
-    const serialized = JSON.stringify(data);
+    const serialized = stringifyWithinDepth(data);
     return serialized === void 0 ? null : JSON.parse(serialized);
   } catch {
     return null;
@@ -299,8 +315,8 @@ var Exception = class _Exception extends Error {
   }
   /**
    * Converts the exception to a plain object, which `JSON.stringify` calls.
-   * @returns The name, code, message, and data, with `null` for data that is missing or can't be
-   * serialized.
+   * @returns The name, code, message, and data, with `null` for data that is missing, can't be
+   * serialized, or is nested more than 256 levels deep.
    * @example
    * import { Exception } from 'jg-exception';
    *

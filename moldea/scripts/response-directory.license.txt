@@ -1,4 +1,4 @@
-jg-fs@1.6.0
+jg-fs@1.7.0
 
 MIT License
 

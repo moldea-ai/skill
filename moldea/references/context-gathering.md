@@ -23,6 +23,8 @@ Do not turn plans, historical notes, branch-local experiments, transient status,
 
 ## Bound host discovery
 
+Before each read, choose the smallest exact path and passage that can change the conclusion. Reuse a successful read shared by several owners instead of repeating it. Reuse known byte lengths to bound reads; establish a bounded read when size is unknown. Use a bounded excerpt or the selected content page when a whole file cannot fit. Do not fall back from an unavailable search tool to an unbounded `find`, recursive `grep`, dependency listing or whole-file dump. Retain the evidence gap and next bounded query when no suitable tool is available.
+
 Prefer exact paths and targeted searches over recursive discovery. When recursion is necessary, exclude VCS internals, dependency trees, generated output, caches, package stores, and archive or backup directories before execution. Do not enumerate or print complete `node_modules`, `.pnpm-store`, `.yarn`, `.git`, `dist`, `build`, `.next`, `.turbo`, or `coverage` trees.
 
 Read the package manifest and only the relevant lockfile entry instead of dumping a complete lockfile or dependency inventory. Use output-limiting options, exact patterns, pagination, or smaller path scopes so one ordinary host command cannot emit more than 65,536 model-visible bytes. If the necessary evidence cannot fit, preserve the incomplete conclusion and identify the next bounded query instead of widening the output.

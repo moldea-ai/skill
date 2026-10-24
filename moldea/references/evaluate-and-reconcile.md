@@ -25,6 +25,8 @@ If no source was identified, or the one source is absent, inaccessible, inconclu
 
 Apply the smallest coherent repair across directly affected canonical owners, declarations, relationships, mirrors, consumers, and tests. Remove superseded parallel paths made unnecessary by the repair. Preserve unrelated state and rerun only the checks affected by the changed contract.
 
+After final validation, report its status and material diagnostics, explicitly including their absence when none. Name the binding file/export checks completed and keep unverified dynamic runtime connections separate. A structurally valid repaired declaration does not prove its runtime connection; give the smallest missing evidence instead of calling that connection verified.
+
 ## Preserve host workflow ownership
 
 Evaluation leaves repository state unchanged; disposable response files in private external temporary storage are permitted under `local-tooling.md` unless the host prohibits scratch writes. Reuse the host review or task workflow's root, HEAD, exact named or targeted task paths, changed paths, hunks, branch state, diffs, and completed checks. Do not create temporary indexes, Git objects, candidate trees, fingerprints, repeated status probes, or publication checks for moldea. The host workflow decides readiness, commit identity, and publication.

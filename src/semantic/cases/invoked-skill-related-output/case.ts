@@ -6,7 +6,7 @@ export const semanticCase = defineSemanticCase({
   id: 'invoked-skill-related-output',
   setup: createInvokedSkillSetup(true),
   scenario:
-    'Another project-owned skill consumes unbound instructions and input, but its requested report output has one exact declared canonical authority.',
+    'A project-owned skill loads bound instructions and unbound input; its actual requested report output independently has one exact declared canonical authority.',
   operation: 'run-related-project-skill',
   input: {
     developerDirection:
@@ -30,7 +30,7 @@ export const semanticCase = defineSemanticCase({
       },
       {
         claim:
-          'Only the requested report output matches the release policy owner; the skill and input paths do not.',
+          'The report output and skill instruction paths match the release policy owner, but only the output is a task path; the input is unbound.',
         source: {
           kind: 'workspace-path',
           path: 'moldea/moldea.yaml',

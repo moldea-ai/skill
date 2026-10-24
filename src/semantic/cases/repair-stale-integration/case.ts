@@ -4,7 +4,6 @@ import { createStaleIntegrationSetup } from './setup.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'repair-stale-integration',
-  publication: 'private',
   setup: createStaleIntegrationSetup(false),
   scenario:
     'A frozen 10.0.1 managed bridge is stale beside the immutable 10.0.2 installation, behind a contained AGENTS.md link with unrelated BOM/CRLF instructions.',

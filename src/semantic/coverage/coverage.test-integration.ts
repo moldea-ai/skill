@@ -43,6 +43,9 @@ describe('discovered semantic coverage', () => {
     const published = createSemanticCoverage(
       cases.filter(({ publication }) => publication !== 'private'),
     );
+    expect(cases).toHaveLength(143);
+    expect(cases.filter(({ publication }) => publication === 'private')).toStrictEqual([]);
+    expect(published).toStrictEqual(coverage);
     for (const definition of cases.filter(({ publication }) => publication === 'private')) {
       expect(
         published.claims.flatMap(({ evidence }) => evidence).some(({ id }) => id === definition.id),

@@ -17,7 +17,7 @@ const ScopeSchema = z.object({
 test.each([
   ['invoked-skill-unrelated-run', false],
   ['invoked-skill-related-output', true],
-] as const)('%s binds only the intended project output -> %s', async (id, hasRelatedOutput) => {
+] as const)('%s: instruction binding and task relevance -> %s', async (id, hasRelatedOutput) => {
   const root = await mkdtemp(join(tmpdir(), 'moldea-invoked-skill-'));
   try {
     const sourceHome = join(root, 'source-home');
@@ -53,10 +53,23 @@ test.each([
       return result.stdout;
     };
     for (const [path, expected] of [
-      ['.agents/skills/report-note/SKILL.md', false],
+      ['.agents/skills/report-note/SKILL.md', true],
       ['docs/release-input.md', false],
       ['reports/release-note.md', hasRelatedOutput],
     ] as const) {
+      const gate = spawnSync(
+        process.execPath,
+        [
+          join(repositoryPath, '.agents/skills/moldea/scripts/relevance-gate.mjs'),
+          '--repository',
+          repositoryPath,
+          '--path',
+          path,
+        ],
+        { encoding: 'utf8', timeout: 10_000, maxBuffer: 65536 },
+      );
+      expect(gate.status, gate.stderr).toBe(0);
+      expect(gate.stdout.trim()).toBe(expected ? '1' : '0');
       expect(
         ScopeSchema.parse(JSON.parse(run(['scope', '--paths-stdin'], `${path}\0`))).result.relevant,
       ).toBe(expected);

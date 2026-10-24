@@ -6,7 +6,7 @@ export const semanticCase = defineSemanticCase({
   id: 'invoked-skill-unrelated-run',
   setup: createInvokedSkillSetup(false),
   scenario:
-    'An adopted project runs another project-owned skill whose instructional resource, input and requested output have no declared relationships.',
+    'An adopted project runs a project-owned skill with a bound instructional resource, while its actual task input and requested output have no declared relationships.',
   operation: 'run-project-skill',
   input: {
     developerDirection:
@@ -31,7 +31,7 @@ export const semanticCase = defineSemanticCase({
       },
       {
         claim:
-          'The requested input, output and skill instruction paths have no declared relationships.',
+          'The input and requested output have no declared relationships; the skill instruction path is bound but is loaded only as host instructions.',
         source: {
           kind: 'workspace-path',
           path: 'moldea/moldea.yaml',

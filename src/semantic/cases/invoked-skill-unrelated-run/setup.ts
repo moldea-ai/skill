@@ -5,7 +5,7 @@ import { createSemanticCaseSetup } from '../../workspace/index.ts';
 import type { ISemanticCaseSetup } from '../index.ts';
 
 /**
- * Creates the same invoked-skill task with either a bound or unbound report output.
+ * Binds instruction behavior while varying only the actual report output's relevance.
  * @returns The setup callback for the selected relationship boundary.
  */
 export const createInvokedSkillSetup =
@@ -13,6 +13,7 @@ export const createInvokedSkillSetup =
   async (context) => {
     const result = await createSemanticCaseSetup('adopted-relevance-no-change')(context);
     const files = [
+      ['.gitignore', '.agents/skills/moldea/\nnode_modules/\n'],
       [
         '.agents/skills/report-note/SKILL.md',
         '---\nname: report-note\ndescription: Write a release note from supplied verified and queued work.\n---\n\nRead the requested input and write the requested report. Distinguish verified work from queued work. Do not change release approval or modify this skill.\n',
@@ -30,7 +31,7 @@ export const createInvokedSkillSetup =
       ],
       [
         'moldea/moldea.yaml',
-        `version: 1\ncontext:\n  /moldea/context/release-style.md:\n    affectedBy:\n      - /${hasRelatedOutput ? 'reports/release-note.md' : 'src/legacy-report.js'}\n`,
+        `version: 1\ncontext:\n  /moldea/context/release-style.md:\n    affectedBy:\n      - /.agents/skills/report-note/SKILL.md\n      - /${hasRelatedOutput ? 'reports/release-note.md' : 'src/legacy-report.js'}\n`,
       ],
     ] as const;
     for (const [relativePath, contents] of files) {

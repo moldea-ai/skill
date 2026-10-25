@@ -27,7 +27,7 @@ export const createBoundaryLedger = (): string => {
     ].join(' | '),
   );
   return (
-    '# Contract review authority\n\nEach row governs a distinct active contract. Review deadlines and retention are calendar days; evidence windows are hours after delivery confirmation. Missing proof requires the named escalation authority. Human reviewers retain refund approval. This ledger is authoritative; summarize its count and deadline range without editing contract requirements.\n\n| Contract | Region | Channel | Product | Review days | Evidence hours | Review kind | Proof source | Proof count | Queue | Escalation | Authority | Retention days | Decision |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n' +
+    '# Contracts\n\nReview/retention: calendar days; evidence: hours after confirmed delivery. Missing proof: escalate to listed authority. Human reviewers approve refunds. Summarize count/deadlines; preserve rows.\n\n|ID|Region|Channel|Product|Days|Hours|Review|Proof|Count|Queue|Escalate|Authority|Retention|Decision|\n|---|---|---|---|---|---|---|---|---|---|---|---|---|---|\n' +
     rows.map((row) => `| ${row} |`).join('\n') +
     '\n'
   );

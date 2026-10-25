@@ -148,6 +148,7 @@ test('real content pages and final validation straddle the unchanged ordinary al
     let content = '';
     let pages = 0;
     let beforeValidationBytes = Buffer.byteLength(gateOutput) + Buffer.byteLength(directoryOutput);
+    let contentPageBytes = 0;
     do {
       const output = call([
         'content',
@@ -160,6 +161,7 @@ test('real content pages and final validation straddle the unchanged ordinary al
           : []),
       ]);
       beforeValidationBytes += Buffer.byteLength(output);
+      contentPageBytes += Buffer.byteLength(output);
       const page = PageSchema.parse(JSON.parse(output));
       content += page.result.chunk.content;
       cursor = page.result.cursor;
@@ -191,6 +193,10 @@ test('real content pages and final validation straddle the unchanged ordinary al
       result: { errorCount: 0, warningCount: 0 },
     });
     expect(beforeValidationBytes).toBeLessThanOrEqual(524288);
+    // retain room for the observed 338-byte canonical read without weakening the crossing rule
+    expect(beforeValidationBytes + 338).toBeLessThanOrEqual(524288);
+    expect(contentPageBytes).toBeGreaterThan(523792);
+    expect(contentPageBytes).toBeLessThanOrEqual(523920);
     expect(beforeValidationBytes + Buffer.byteLength(validation)).toBeGreaterThan(524288);
     const commandPolicy = projectCodexEvaluationExecutionEvidence(
       [...events, { type: 'moldea.cli-invocations', invocations }]

@@ -32,4 +32,6 @@ During ordinary maintenance, add or correct relationships only for owners whose 
 
 When assessing a selected binding, name its canonical owner, declared file/export and what the current change establishes about that relationship. A path match or unchanged prose alone is not the assessment. State missing runtime evidence separately; an accurate unchanged relationship requires no canonical edit.
 
+An enabled flag, file or export check establishes only static facts. For agent or runtime owners, distinguish actual instruction consumption from answer behavior. State each as unverified unless the available execution evidence establishes it; static alignment alone verifies neither.
+
 Bind only paths the task has already inspected. If a path's role cannot be established, name the path and the reason under **Needs input** in explicit repair, or report the unresolved relationship in ordinary work. Do not silently add, remove, or omit a material relationship, invent an owner, or widen a pattern to hide uncertainty.

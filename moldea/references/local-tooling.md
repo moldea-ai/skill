@@ -4,6 +4,8 @@ Read this reference only after relevance when local CLI proof, machine-contract 
 
 For a direct request about installed CLI availability, executable provenance, or package composition, apply this reference before inspecting a declared dependency, package-manager provider, binary link, or other provider evidence and before reaching any conclusion. The required first proof attempt is the closed launcher `composition --json` call below. Requested structural validation instead invokes launcher `validate` directly: a verified `valid` or `invalid` response proves that invocation worked, without a separate composition call. A failed launcher invocation follows the existing blocked-tooling or authorized recovery procedure; it grants no automatic composition retry, installation, or alternate executable.
 
+When the launcher cannot run the CLI after a relationship hit, use the entrypoint's required final reply line: `moldea: <full launcher refusal, unchanged>`, including its next step. Suggesting installation does not authorize performing it.
+
 ## Supported contract
 
 Skill 10.0.3 supports Git `>=2.32.0`, Node.js `>=22.17.0`, stable `@moldea.ai/core` releases satisfying `^9.0.0`, stable `@moldea.ai/cli` releases satisfying `^13.0.0`, repository format 1, and CLI JSON schema 7. Never substitute a global, transient, out-of-range, or prerelease CLI.

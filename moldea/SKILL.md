@@ -16,7 +16,7 @@ Spell `moldea` lowercase except in exact identifiers.
 
 ## Reuse installation and instructions
 
-`<installed-skill-root>` is the host-selected installation. Resolve scripts/references there; bare `.md` names mean `references/`. Never guess or substitute a copy.
+`<installed-skill-root>` is the host-selected install. Resolve scripts/references there; bare `.md` names mean `references/`. Never guess or substitute a copy.
 
 Reuse complete unchanged instructions; reload missing ones after compaction, never summaries. Read only needed references. Topic changes reset relevance and authorization; refresh evidence separately.
 
@@ -57,7 +57,7 @@ node <installed-skill-root>/scripts/moldea-cli.mjs --repository <absolute-reposi
 
 Encode each checked path as UTF-8 followed by one NUL, with no leading delimiter; pass the complete batch once on stdin within 2 MiB.
 
-Accept only exit 0, JSON schema 7, `error: null`, `status: valid`, `result.valid: true`, and `result.relevant: true`. Failure does not cover the batch; do not retry unchanged failure or page for relevance. If the launcher cannot run the CLI in this checkout, quote its full message and next step in one line, make no canonical reads, and continue the host task. Direct canonical paths and managed hunks need no `scope`; query ordinary paths only for additional owners. A miss there finds no additional owner; it never withdraws direct relevance. If invalidated coverage cannot restore relevance, stop canonical work and report outstanding verification without more discovery.
+Accept only exit 0, JSON schema 7, `error: null`, `status: valid`, `result.valid: true`, and `result.relevant: true`. Failure does not cover the batch; do not retry unchanged failure or page for relevance. If the launcher cannot run the CLI, end your reply with `moldea: <full launcher refusal, unchanged>`, including its next step. Make no canonical reads; continue the host task. Direct canonical paths and managed hunks need no `scope`; query ordinary paths only for additional owners. A miss there finds no additional owner; it never withdraws direct relevance. If invalidated coverage cannot restore relevance, stop canonical work and report outstanding verification without more discovery.
 
 ## Select the operation owner
 

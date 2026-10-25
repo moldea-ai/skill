@@ -98,7 +98,7 @@ export interface ISemanticCandidateCheckpoint {
   createdAt: string;
   judgeHost: ICodexEvaluationHostIdentity;
   mode: ISemanticEvaluationMode;
-  schemaVersion: 3;
+  schemaVersion: 4;
   selectedCaseIds: string[];
   updatedAt: string;
 }

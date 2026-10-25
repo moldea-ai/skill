@@ -69,11 +69,17 @@ export interface ICodexEvaluationOwnedCommandTotals {
   outputByteCount: number;
 }
 
+// observed child operations inside one owned host command, without arguments or paths
+export type ICodexEvaluationMoldeaOperation =
+  | { kind: 'cli'; operation: IMoldeaCliOperation; outputByteCount: number }
+  | { kind: 'managed-agents' }
+  | { kind: 'file-change'; moldeaPath: 'not-touching' | 'touching' | 'unreadable' };
+
 // one content-free moldea event, in the order Codex completed it
 export type ICodexEvaluationMoldeaEvent =
   | {
       kind: 'command';
-      operation: IMoldeaCliOperation | null;
+      operations: ICodexEvaluationMoldeaOperation[] | null;
       outputByteCount: number;
       ownership: 'canonical' | 'cli' | 'helper';
     }

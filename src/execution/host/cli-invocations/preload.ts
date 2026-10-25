@@ -15,35 +15,49 @@ const launcher = '/mnt/.agents/skills/moldea/scripts/moldea-cli.mjs';
 const writer = '/mnt/.agents/skills/moldea/scripts/managed-agents.mjs';
 const log = '/home/evaluator/cli-invocations.jsonl';
 
-/** Observes a bounded live caller chain for command correspondence, without reading environment. */
-const observeCallers = (): string[][] => {
+/** Reads one live process identity without observing its environment. */
+const observeProcess = (pid: number) => {
+  const root = `/proc/${pid}`;
+  const stats = readBoundedFile(`${root}/stat`, 4096).toString('utf8');
+  const fields = stats.slice(stats.lastIndexOf(')') + 2).split(' ');
+  const parent = fields[1];
+  const start = fields[19];
+  if (parent === undefined || start === undefined || !/^\d+$/u.test(parent + start))
+    throw new Error('Process identity was unavailable.');
+  const executable = readlinkSync(`${root}/exe`);
+  const bytes = readBoundedFile(
+    `${root}/cmdline`,
+    MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxCommandTextBytes,
+  );
+  const source = bytes.toString('utf8');
+  if (bytes.length === 0 || bytes.at(-1) !== 0 || !Buffer.from(source).equals(bytes))
+    throw new Error('Process arguments were unavailable.');
+  const args = source.split('\0').slice(0, -1);
+  if (args.length > 4096) throw new Error('Process argument count exceeded its bound.');
+  return { identity: `${pid}:${start}`, parent: Number(parent), executable, args };
+};
+
+const isCodexProcess = (processInfo: ReturnType<typeof observeProcess>): boolean =>
+  ['/opt/codex', '/opt/codex-code-mode-host'].includes(processInfo.executable) ||
+  ['/opt/codex', '/opt/codex-code-mode-host'].includes(processInfo.args[1] ?? '');
+
+/** Observes bounded caller argv and process instances, without reading environment. */
+const observeCallers = (): { callers: string[][]; callerIdentities: string[] } => {
   const callers: string[][] = [];
+  const callerIdentities: string[] = [];
   let pid = process.pid;
   while (pid > 0 && callers.length < 8) {
     try {
-      const root = `/proc/${pid}`;
-      const executable = readlinkSync(`${root}/exe`);
-      if (executable === '/opt/codex' || executable === '/opt/codex-code-mode-host') break;
-      const bytes = readBoundedFile(
-        `${root}/cmdline`,
-        MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxCommandTextBytes,
-      );
-      if (bytes.length === 0 || bytes.at(-1) !== 0) break;
-      const source = bytes.toString('utf8');
-      if (!Buffer.from(source).equals(bytes)) break;
-      const args = source.split('\0').slice(0, -1);
-      if (args[1] === '/opt/codex' || args[1] === '/opt/codex-code-mode-host' || args.length > 4096)
-        break;
-      callers.push([executable, ...args.slice(1)]);
-      const stats = readBoundedFile(`${root}/stat`, 4096).toString('utf8');
-      const parent = stats.slice(stats.lastIndexOf(')') + 2).split(' ')[1];
-      if (parent === undefined || !/^\d+$/u.test(parent)) break;
-      pid = Number(parent);
+      const observed = observeProcess(pid);
+      if (isCodexProcess(observed)) break;
+      callers.push([observed.executable, ...observed.args.slice(1)]);
+      callerIdentities.push(observed.identity);
+      pid = observed.parent;
     } catch {
       break;
     }
   }
-  return callers;
+  return { callers, callerIdentities };
 };
 
 /** Signals capture failure independently of the launcher's own exit status or response. */
@@ -75,7 +89,7 @@ const observeLauncher = (): void => {
     id,
     arguments: process.argv.slice(2),
     entrypoint: entrypoint === launcher ? 'cli' : 'managed-agents',
-    callers: observeCallers(),
+    ...observeCallers(),
     ...(observesCanonicalState ? { canonicalBefore: observeCanonicalDigest('/mnt/moldea') } : {}),
   });
   let outputByteCount = 0;
@@ -110,4 +124,24 @@ const observeLauncher = (): void => {
   });
 };
 
-observeLauncher();
+if (
+  process.argv[1] === '/home/evaluator/bin/cli-invocation-preload.mjs' &&
+  process.argv[2] === '--observe-shell' &&
+  process.argv.length === 3
+) {
+  try {
+    const shell = observeProcess(process.ppid);
+    if (
+      ['/bin/bash', '/usr/bin/bash'].includes(shell.executable) &&
+      isCodexProcess(observeProcess(shell.parent))
+    )
+      appendRecord({
+        kind: 'command',
+        identity: shell.identity,
+        arguments: [shell.executable, ...shell.args.slice(1)],
+      });
+  } catch (error) {
+    process.stderr.write('MOLDEA_CLI_CAPTURE_FAILED\n');
+    throw error;
+  }
+} else observeLauncher();

@@ -3,6 +3,8 @@ import { describe, expect, test } from 'vitest';
 
 import {
   CODEX_EVALUATION_GIT_STATUS_ARGUMENTS,
+  identifyMoldeaCliLauncherOperation,
+  type ICliInvocation,
   projectCodexEvaluationExecutionEvidence,
 } from '../../execution/host/index.ts';
 import { defineSemanticCase } from '../cases/index.ts';
@@ -836,27 +838,48 @@ const MOLDEA_CHANGE = {
 
 type IStreamEntry = readonly ['command', string, number] | readonly ['file-change', unknown];
 
-/** Projects command-policy evidence from ordered commands and completed Codex patches. */
-const projectStream = (entries: readonly IStreamEntry[]) =>
-  projectCodexEvaluationExecutionEvidence(
-    entries
-      .map((entry) =>
-        JSON.stringify({
-          type: 'item.completed',
-          item:
-            entry[0] === 'command'
-              ? {
-                  type: 'command_execution',
-                  command: entry[1],
-                  aggregated_output: 'x'.repeat(entry[2]),
-                  exit_code: 0,
-                  status: 'completed',
-                }
-              : { type: 'file_change', changes: entry[1], status: 'completed' },
-        }),
-      )
+/** Supplies synthetic observed parent argv for ordered launcher calls and completed patches. */
+const projectStream = (entries: readonly IStreamEntry[]) => {
+  const invocations: ICliInvocation[] = [];
+  const events = entries.map((entry, index) => {
+    if (entry[0] === 'file-change')
+      return {
+        type: 'item.completed',
+        item: { type: 'file_change', changes: entry[1], status: 'completed' },
+      };
+    let command = entry[1];
+    if (identifyMoldeaCliLauncherOperation(command) !== null) {
+      const args = command.split(' ').slice(2);
+      const script = `/* observed launcher ${index} */`;
+      invocations.push({
+        arguments: args,
+        exitCode: 0,
+        stdout: '',
+        outputByteCount: entry[2],
+        callers: [
+          ['/opt/node', '/mnt/.agents/skills/moldea/scripts/moldea-cli.mjs', ...args],
+          ['/opt/node', '-e', script],
+        ],
+      });
+      command = `node -e '${script}'`;
+    }
+    return {
+      type: 'item.completed',
+      item: {
+        type: 'command_execution',
+        command,
+        aggregated_output: 'x'.repeat(entry[2]),
+        exit_code: 0,
+        status: 'completed',
+      },
+    };
+  });
+  return projectCodexEvaluationExecutionEvidence(
+    [...events, { type: 'moldea.cli-invocations', invocations }]
+      .map((event) => JSON.stringify(event))
       .join('\n'),
   ).commandPolicy;
+};
 
 /** Builds the launcher captures for the given operations and launcher output sizes. */
 const createLauncherCaptures = (calls: ReadonlyArray<readonly ['scope' | 'validate', number]>) => ({

@@ -227,7 +227,7 @@ const createCandidateCheckpoint = (cases: ISemanticCase[]): ISemanticCandidateCh
     version: '1.0.0',
   },
   mode: 'official',
-  schemaVersion: 3,
+  schemaVersion: 4,
   selectedCaseIds: cases.map(({ id }) => id),
   updatedAt: '2026-09-20T00:00:00.000Z',
 });
@@ -469,7 +469,7 @@ test.each([
     expect(blob).toBeDefined();
     expect(JSON.parse(Buffer.from(blob!.contentBase64, 'base64').toString('utf8'))).toStrictEqual({
       cases: fixture.checkpoint.cases,
-      schemaVersion: 15,
+      schemaVersion: 16,
     });
     expect(getSemanticCandidatePaidTokenCount(fixture.checkpoint.cases, {})).toBe(4);
     expect(existsSync(getSemanticCheckpointPath(fixture.root))).toBe(false);

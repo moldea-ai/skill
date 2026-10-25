@@ -14,6 +14,7 @@ export type {
   ICodexEvaluationHostRunOptions,
   ICodexEvaluationPrivateTraceOptions,
   ICodexEvaluationMoldeaEvent,
+  ICodexEvaluationMoldeaOperation,
   ICodexEvaluationOperationalExhaustion,
   ICodexEvaluationOperationalFailureCategory,
   ICodexEvaluationOperationalRetry,
@@ -82,6 +83,7 @@ export {
   isRepositoryTestCommand,
   hasValidRepairGitCommandEvidence,
   projectCodexEvaluationExecutionEvidence,
+  projectMoldeaInvocationOperations,
   projectRepairGitCommandEvidence,
 } from './execution-evidence.ts';
 

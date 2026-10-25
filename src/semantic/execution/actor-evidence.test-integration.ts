@@ -35,6 +35,17 @@ test('real launcher composition agrees with sandbox Node recognition and resourc
       invocations: [
         {
           arguments: ['--repository', '/mnt', '--', 'composition', '--json'],
+          callers: [
+            [
+              '/opt/node',
+              '/mnt/.agents/skills/moldea/scripts/moldea-cli.mjs',
+              '--repository',
+              '/mnt/.',
+              '--',
+              'composition',
+              '--json',
+            ],
+          ],
           stdout: composition.stdout,
           outputByteCount: Buffer.byteLength(composition.stdout),
           exitCode: composition.status,
@@ -109,7 +120,28 @@ test('real installed helper print survives host projection and verifies the judg
       '\n',
     );
     const stream = [
-      { type: 'moldea.cli-invocations', invocations: [] },
+      {
+        type: 'moldea.cli-invocations',
+        observesManagedAgents: true,
+        invocations: [
+          {
+            arguments: ['--repository', '/mnt', '--print'],
+            entrypoint: 'managed-agents',
+            callers: [
+              [
+                '/opt/node',
+                '/mnt/.agents/skills/moldea/scripts/managed-agents.mjs',
+                '--repository',
+                '/mnt',
+                '--print',
+              ],
+            ],
+            stdout: printed.stdout,
+            outputByteCount: Buffer.byteLength(printed.stdout),
+            exitCode: printed.status,
+          },
+        ],
+      },
       {
         type: 'item.completed',
         item: {
@@ -137,7 +169,10 @@ test('real installed helper print survives host projection and verifies the judg
       cliVersion: '11.0.4',
       jsonSchemaVersion: 7,
     });
-    expect(projected.actorExecutionEvidence[0]?.item.outputEvidence.facts).toStrictEqual([
+    expect(
+      projected.actorExecutionEvidence.find(({ item }) => item.commandKind === 'managed-agents')
+        ?.item.outputEvidence.facts,
+    ).toStrictEqual([
       {
         kind: 'managed-agents-print-result',
         blockSha256: createHash('sha256').update(printed.stdout.trimEnd()).digest('hex'),

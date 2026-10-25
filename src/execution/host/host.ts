@@ -14,7 +14,7 @@ import { z } from 'zod';
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../resources/index.ts';
 
 import { readGitInvocationEvidence } from './git-invocations.ts';
-import { observeCanonicalDigest, readCliInvocations } from './cli-invocations/index.ts';
+import { observeCanonicalDigest, readCliInvocationCapture } from './cli-invocations/index.ts';
 import { createPrivateTrace } from './private-trace.ts';
 
 import type {
@@ -92,6 +92,7 @@ const EGRESS_PROXY_PATH = join(RUNTIME_DIRECTORY, 'codex-evaluation-proxy.mjs');
 const GIT_COMMAND_POLICY_BOUNDARY_PATH = join(RUNTIME_DIRECTORY, 'git-command-policy-boundary.mjs');
 const CLI_INVOCATION_PRELOAD_PATH = join(RUNTIME_DIRECTORY, 'cli-invocation-preload.mjs');
 const SANDBOX_NODE_OPTIONS = '--import=file:///home/evaluator/bin/cli-invocation-preload.mjs';
+const SANDBOX_SHELL_STARTUP = '/home/evaluator/bin/shell-start.sh';
 const EGRESS_PROXY_PORT = 3128;
 const EGRESS_PROXY_SHUTDOWN_TIMEOUT_MS = 5_000;
 const MAX_HOST_OUTPUT_BYTES = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostOutputBytes;
@@ -586,6 +587,20 @@ export const prepareCodexEvaluationHome = async (sandboxHome: string): Promise<v
     CLI_INVOCATION_PRELOAD_PATH,
     join(sandboxBinDirectory, 'cli-invocation-preload.mjs'),
   );
+  await writeFile(
+    join(sandboxBinDirectory, 'shell-start.sh'),
+    [
+      '# Sourced by sandbox Bash; preserve shell options and command exit status.',
+      'NODE_OPTIONS= /opt/node /home/evaluator/bin/cli-invocation-preload.mjs --observe-shell || exit "$?"',
+      // An EXIT trap prevents Bash replacing itself with its last command and losing parent argv.
+      "trap ':' EXIT",
+      '',
+    ].join('\n'),
+    { mode: 0o600 },
+  );
+  // Bash treats socket-backed command input as a remote shell and reads .bashrc instead of BASH_ENV.
+  for (const filename of ['.bashrc', '.bash_profile'])
+    await writeFile(join(sandboxHome, filename), `. ${SANDBOX_SHELL_STARTUP}\n`, { mode: 0o600 });
   const { prepareGitCommandPolicyBoundary } = await loadGitCommandPolicyBoundary();
   await prepareGitCommandPolicyBoundary(sandboxBinDirectory, {
     realGitExecutable: '/opt/moldea-real-git/git',
@@ -823,6 +838,9 @@ export const buildCodexEvaluationBwrapArguments = ({
     '--setenv',
     'NODE_OPTIONS',
     SANDBOX_NODE_OPTIONS,
+    '--setenv',
+    'BASH_ENV',
+    SANDBOX_SHELL_STARTUP,
     '--setenv',
     'TMPDIR',
     '/tmp',
@@ -1203,6 +1221,8 @@ export const runCodexEvaluationHost = async ({
     `shell_environment_policy.set.PATH=${JSON.stringify(getSandboxPath(includeWorkspaceBinaryDirectory))}`,
     '-c',
     `shell_environment_policy.set.NODE_OPTIONS=${JSON.stringify(SANDBOX_NODE_OPTIONS)}`,
+    '-c',
+    `shell_environment_policy.set.BASH_ENV=${JSON.stringify(SANDBOX_SHELL_STARTUP)}`,
     '-',
   ];
   const hostConfiguration = identifyCodexEvaluationHostConfiguration({
@@ -1257,7 +1277,8 @@ export const runCodexEvaluationHost = async ({
     });
     try {
       const evidence = await readGitInvocationEvidence(gitInvocationLogPath);
-      const invocations = (await readCliInvocations(cliInvocationLogPath)).filter(
+      const capture = await readCliInvocationCapture(cliInvocationLogPath);
+      const invocations = capture.invocations.filter(
         (invocation) => invocation.entrypoint !== 'managed-agents' || hasImmutableWriter,
       );
       const canonicalState =
@@ -1269,7 +1290,7 @@ export const runCodexEvaluationHost = async ({
                 ? null
                 : observeCanonicalDigest(join(cwd, 'moldea')),
             };
-      const captureFrames = `${JSON.stringify({ type: 'moldea.git-invocations', evidence })}\n${JSON.stringify({ type: 'moldea.cli-invocations', observesManagedAgents: true, invocations, ...canonicalState })}`;
+      const captureFrames = `${JSON.stringify({ type: 'moldea.git-invocations', evidence })}\n${JSON.stringify({ type: 'moldea.cli-invocations', observesManagedAgents: true, invocations, commandInstances: capture.commandInstances, ...canonicalState })}`;
       trace?.capture(Buffer.from(`${captureFrames}\n`));
       traceOutcome = 'completed';
       return `${output}\n${captureFrames}`;

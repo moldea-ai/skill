@@ -273,7 +273,7 @@ const prepareSemanticActorToolDirectory = async (
 ): Promise<void> => {
   await mkdir(actorToolDirectory, { recursive: true });
   await Promise.all(
-    ['npm', 'cli-invocation-preload.mjs'].map((filename) =>
+    ['npm', 'cli-invocation-preload.mjs', 'shell-start.sh'].map((filename) =>
       copyFile(join(sandboxHome, 'bin', filename), join(actorToolDirectory, filename)),
     ),
   );

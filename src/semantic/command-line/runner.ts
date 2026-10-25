@@ -1165,7 +1165,7 @@ const run = async (): Promise<void> => {
       createdAt,
       judgeHost,
       mode: checkpointMode,
-      schemaVersion: 3,
+      schemaVersion: 4,
       selectedCaseIds,
       updatedAt: createdAt,
     };

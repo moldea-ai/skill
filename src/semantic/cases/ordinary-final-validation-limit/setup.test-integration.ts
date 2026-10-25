@@ -7,7 +7,10 @@ import { isPathWithin } from 'jg-fs';
 import { expect, test, vi } from 'vitest';
 import { z } from 'zod';
 
-import { projectCodexEvaluationExecutionEvidence } from '../../../execution/host/index.ts';
+import {
+  projectCodexEvaluationExecutionEvidence,
+  type ICliInvocation,
+} from '../../../execution/host/index.ts';
 import { createSemanticCliIdentity } from '../../../release/index.ts';
 import {
   type ISemanticActorExecutionEvidence,
@@ -48,6 +51,7 @@ test('real content pages and final validation straddle the unchanged ordinary al
       await readFile(join(repositoryPath, 'moldea/project.md'), 'utf8'),
     );
     const events: unknown[] = [];
+    const invocations: ICliInvocation[] = [];
     const captures: ISemanticActorExecutionEvidence[] = [];
     const { version: cliVersion, jsonSchemaVersion } = createSemanticCliIdentity(
       join(import.meta.dirname, '../../../..'),
@@ -110,6 +114,25 @@ test('real content pages and final validation straddle the unchanged ordinary al
         },
       };
       events.push(event);
+      invocations.push({
+        arguments: ['--repository', '/mnt', '--', ...args, '--json', '--max-output-bytes', '65536'],
+        callers: [
+          [
+            '/opt/node',
+            '/mnt/.agents/skills/moldea/scripts/moldea-cli.mjs',
+            '--repository',
+            '/mnt',
+            '--',
+            ...args,
+            '--json',
+            '--max-output-bytes',
+            '65536',
+          ],
+        ],
+        exitCode: result.status!,
+        outputByteCount: Buffer.byteLength(result.stdout),
+        stdout: result.stdout,
+      });
       const capture = projectActorExecutionEvidenceEvent(event, cliIdentity);
       if (!capture) throw new Error('Missing launcher projection');
       captures.push(capture);
@@ -121,7 +144,6 @@ test('real content pages and final validation straddle the unchanged ordinary al
     const responseDirectory = directoryOutput.trim();
     expect(responseDirectory).not.toBe(root);
     expect(isPathWithin(root, responseDirectory)).toBe(true);
-    const saved = join(responseDirectory, 'page.json');
     let cursor: string | null = null;
     let content = '';
     let pages = 0;
@@ -132,8 +154,10 @@ test('real content pages and final validation straddle the unchanged ordinary al
         '--path',
         '/moldea/context/contracts.md',
         '--save-response',
-        saved,
-        ...(pages ? ['--cursor-from-response', saved] : []),
+        join(responseDirectory, `page-${pages}.json`),
+        ...(pages
+          ? ['--cursor-from-response', join(responseDirectory, `page-${pages - 1}.json`)]
+          : []),
       ]);
       beforeValidationBytes += Buffer.byteLength(output);
       const page = PageSchema.parse(JSON.parse(output));
@@ -169,7 +193,9 @@ test('real content pages and final validation straddle the unchanged ordinary al
     expect(beforeValidationBytes).toBeLessThanOrEqual(524288);
     expect(beforeValidationBytes + Buffer.byteLength(validation)).toBeGreaterThan(524288);
     const commandPolicy = projectCodexEvaluationExecutionEvidence(
-      events.map((event) => JSON.stringify(event)).join('\n'),
+      [...events, { type: 'moldea.cli-invocations', invocations }]
+        .map((event) => JSON.stringify(event))
+        .join('\n'),
     ).commandPolicy;
     const changes = diffSemanticWorkspaceSnapshots(
       before,

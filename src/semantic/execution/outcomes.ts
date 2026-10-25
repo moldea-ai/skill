@@ -2,6 +2,7 @@ import {
   hasPassingCodexEvaluationCommandPolicy,
   type ICodexEvaluationCommandOwnership,
   type ICodexEvaluationCommandPolicyEvidence,
+  type ICodexEvaluationMoldeaOperation,
   type IGitInvocationEvidence,
 } from '../../execution/host/index.ts';
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../resources/index.ts';
@@ -122,11 +123,17 @@ export const identifyFinalValidationExemption = (options: {
   workspaceChanges: ISemanticWorkspaceChanges | undefined;
 }): number | null => {
   if (options.profileName !== 'ordinary' || options.workspaceChanges === undefined) return null;
-  const events = options.commandPolicy.moldeaEvents;
+  const events: Array<ICodexEvaluationMoldeaOperation | { kind: 'owned-command' }> = [];
+  for (const event of options.commandPolicy.moldeaEvents) {
+    if (event.kind === 'file-change') events.push(event);
+    else {
+      if (event.operations === null) return null;
+      if (event.operations.length === 0) events.push({ kind: 'owned-command' });
+      else events.push(...event.operations);
+    }
+  }
   // every captured launcher call must have a placed command event with the same operation
-  const cliOperations = events.flatMap((event) =>
-    event.kind === 'command' && event.ownership === 'cli' ? [event.operation] : [],
-  );
+  const cliOperations = events.flatMap((event) => (event.kind === 'cli' ? [event.operation] : []));
   const capturedOperations = options.resourceEvidence.operations;
   if (
     cliOperations.length !== capturedOperations.length ||
@@ -145,9 +152,9 @@ export const identifyFinalValidationExemption = (options: {
   if (!hasKnownWrite) return null;
   const laterCommands = events
     .slice(lastWriteIndex + 1)
-    .flatMap((event) => (event.kind === 'command' ? [event] : []));
+    .filter((event) => event.kind !== 'file-change');
   const validations = laterCommands.filter(
-    (event) => event.ownership === 'cli' && event.operation === 'validate',
+    (event) => event.kind === 'cli' && event.operation === 'validate',
   );
   const finalCommand = laterCommands.at(-1);
   const finalInvocation = options.actorExecutionEvidence
@@ -156,6 +163,7 @@ export const identifyFinalValidationExemption = (options: {
   if (
     validations.length !== 1 ||
     finalCommand === undefined ||
+    finalCommand.kind !== 'cli' ||
     finalCommand !== validations[0] ||
     finalInvocation === undefined ||
     capturedOperations.at(-1) !== 'validate' ||

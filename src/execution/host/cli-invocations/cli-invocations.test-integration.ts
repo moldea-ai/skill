@@ -166,7 +166,7 @@ test('Node startup records direct and wrapped launchers, early failures and filt
             command:
               form === 'direct' || form === 'smaller-page'
                 ? `/opt/node ${invocationArgs.join(' ')}`
-                : 'node -e "wrapped call"',
+                : `/opt/node -e ${JSON.stringify(script)}`,
             aggregated_output: result.stdout,
             exit_code: 0,
             status: 'completed',
@@ -287,7 +287,13 @@ test('Node startup records direct and wrapped launchers, early failures and filt
     });
     expect(failedComposition.commandPolicyEvidence.moldeaEvents).toContainEqual({
       kind: 'command',
-      operation: 'composition',
+      operations: [
+        {
+          kind: 'cli',
+          operation: 'composition',
+          outputByteCount: failed.invocations[0]!.outputByteCount,
+        },
+      ],
       ownership: 'cli',
       outputByteCount: Buffer.byteLength(failed.result.stdout + failed.result.stderr),
     });
@@ -310,7 +316,13 @@ test('Node startup records direct and wrapped launchers, early failures and filt
     ).toHaveLength(1);
     expect(validationEvidence.commandPolicyEvidence.moldeaEvents).toContainEqual({
       kind: 'command',
-      operation: 'validate',
+      operations: [
+        {
+          kind: 'cli',
+          operation: 'validate',
+          outputByteCount: failedValidation.invocations[0]!.outputByteCount,
+        },
+      ],
       ownership: 'cli',
       outputByteCount: Buffer.byteLength(
         failedValidation.result.stdout + failedValidation.result.stderr,
@@ -318,7 +330,11 @@ test('Node startup records direct and wrapped launchers, early failures and filt
     });
     expect(
       validationEvidence.commandPolicyEvidence.moldeaEvents.some(
-        (event) => event.kind === 'command' && event.operation === 'composition',
+        (event) =>
+          event.kind === 'command' &&
+          event.operations?.some(
+            (operation) => operation.kind === 'cli' && operation.operation === 'composition',
+          ),
       ),
     ).toBe(false);
     for (const method of ['spawnSync', 'execFileSync'] as const) {
@@ -338,7 +354,13 @@ test('Node startup records direct and wrapped launchers, early failures and filt
       const projected = projectFailedAttempt(wrapperArgs, wrappedFailure);
       expect(projected.commandPolicyEvidence.moldeaEvents).toContainEqual({
         kind: 'command',
-        operation: 'composition',
+        operations: [
+          {
+            kind: 'cli',
+            operation: 'composition',
+            outputByteCount: wrappedFailure.invocations[0]!.outputByteCount,
+          },
+        ],
         ownership: 'cli',
         outputByteCount: 0,
       });
@@ -348,7 +370,11 @@ test('Node startup records direct and wrapped launchers, early failures and filt
       const unmatched = projectFailedAttempt(['-e', 'different wrapper'], wrappedFailure);
       expect(
         unmatched.commandPolicyEvidence.moldeaEvents.some(
-          (event) => event.kind === 'command' && event.operation === 'composition',
+          (event) =>
+            event.kind === 'command' &&
+            event.operations?.some(
+              (operation) => operation.kind === 'cli' && operation.operation === 'composition',
+            ),
         ),
       ).toBe(false);
     }
@@ -373,6 +399,8 @@ test.each([
   'exit-before-start',
   'wrong-bytes',
   'partial-line',
+  'caller-identities',
+  'process-identity',
 ] as const)(
   'CLI capture rejects %s instead of granting empty or duplicate credit',
   async (scenario) => {
@@ -404,7 +432,19 @@ test.each([
                 ? [exit, start]
                 : scenario === 'wrong-bytes'
                   ? [start, { ...exit, outputByteCount: 0 }]
-                  : [start, exit];
+                  : scenario === 'caller-identities'
+                    ? [{ ...start, callers: [], callerIdentities: ['1:1'] }, exit]
+                    : scenario === 'process-identity'
+                      ? [
+                          {
+                            kind: 'command',
+                            identity: 'invalid',
+                            arguments: ['/bin/bash', '-c', 'true'],
+                          },
+                          start,
+                          exit,
+                        ]
+                      : [start, exit];
       const log = join(root, 'capture.jsonl');
       await writeFile(
         log,

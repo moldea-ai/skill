@@ -7,6 +7,68 @@ const EMPTY_CLI_CAPTURE = { type: 'moldea.cli-invocations', invocations: [] };
 
 const OPTIONS = { cliVersion: '9.0.0', jsonSchemaVersion: 5 } as const;
 
+test('projects each wrapped writer result without inflating host-command counts', () => {
+  const script = 'run the writer twice';
+  const args = ['--repository', '/mnt'];
+  const invocations = ['updated\n', 'unchanged\n'].map((stdout) => ({
+    arguments: args,
+    entrypoint: 'managed-agents',
+    exitCode: 0,
+    stdout,
+    outputByteCount: Buffer.byteLength(stdout),
+    callers: [
+      ['/opt/node', '/mnt/.agents/skills/moldea/scripts/managed-agents.mjs', ...args],
+      ['/opt/node', '-e', script],
+    ],
+  }));
+  const parsed = parseSemanticEvaluationHostOutput(
+    [
+      {
+        type: 'item.completed',
+        item: {
+          type: 'command_execution',
+          command: `node -e '${script}'`,
+          aggregated_output: 'done\n',
+          exit_code: 0,
+          status: 'completed',
+        },
+      },
+      { type: 'item.completed', item: { type: 'agent_message', text: 'Repaired.' } },
+      { type: 'moldea.cli-invocations', observesManagedAgents: true, invocations },
+      {
+        type: 'moldea.git-invocations',
+        evidence: {
+          invocationCount: 0,
+          hostInvocationCount: 0,
+          repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+        },
+      },
+    ]
+      .map((event) => JSON.stringify(event))
+      .join('\n'),
+    OPTIONS,
+  );
+  expect(parsed.commandPolicyEvidence.completedCommandCount).toBe(1);
+  expect(
+    parsed.actorExecutionEvidence.filter(({ item }) => item.commandKind === 'other'),
+  ).toHaveLength(1);
+  expect(parsed.actorResourceEvidence.commandCount).toBe(0);
+  expect(
+    parsed.actorExecutionEvidence.flatMap(({ item }) => item.outputEvidence.facts),
+  ).toStrictEqual([
+    { kind: 'managed-agents-result', status: 'updated' },
+    { kind: 'managed-agents-result', status: 'unchanged' },
+  ]);
+  expect(parsed.commandPolicyEvidence.moldeaEvents).toStrictEqual([
+    {
+      kind: 'command',
+      ownership: 'helper',
+      outputByteCount: 5,
+      operations: [{ kind: 'managed-agents' }, { kind: 'managed-agents' }],
+    },
+  ]);
+});
+
 test('requires startup capture and refuses validation credit from command text or an unsuccessful envelope', () => {
   const envelope = JSON.stringify({
     schemaVersion: 5,

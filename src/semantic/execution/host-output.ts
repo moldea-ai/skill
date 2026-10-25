@@ -8,6 +8,7 @@ import {
   CliInvocationEventSchema,
   correlateToolInvocations,
   type ICliInvocationEvent,
+  type ICliInvocation,
   type IGitInvocationEvidence,
   type ICodexEvaluationCommandPolicyEvidence,
 } from '../../execution/host/index.ts';
@@ -34,6 +35,19 @@ const AgentMessageEventSchema = z.looseObject({
   type: z.literal('item.completed'),
   item: z.looseObject({ type: z.literal('agent_message'), text: z.string() }),
 });
+
+/** Retains a captured call's resource charge without awarding unplaced method evidence. */
+const projectUnplacedCliInvocation = (
+  invocation: ICliInvocation,
+  options: ISemanticActorExecutionEvidenceOptions,
+): ISemanticActorExecutionEvidence => {
+  const entry = projectCliInvocationEvidence(invocation, options);
+  entry.item.outputEvidence.facts = [];
+  if (entry.item.outputEvidence.disposition === 'projected')
+    entry.item.outputEvidence.disposition =
+      entry.item.outputEvidence.byteCount === 0 ? 'empty' : 'unrecognized';
+  return entry;
+};
 
 export interface ISemanticHostOutput {
   actorExecutionEvidence: ISemanticActorExecutionEvidence[];
@@ -71,6 +85,7 @@ export const parseSemanticEvaluationHostOutput = (
   let response: string | null = null;
   let gitInvocationEvidence: IGitInvocationEvidence | null = null;
   let capture: ICliInvocationEvent | null = null;
+  const hostEvents: unknown[] = [];
 
   for (const line of output.split('\n')) {
     if (line.trim() === '') continue;
@@ -83,6 +98,7 @@ export const parseSemanticEvaluationHostOutput = (
       });
     }
     const event = HostEventSchema.parse(parsed);
+    hostEvents.push(parsed);
     const invocationFailure = GitCaptureCommandSchema.safeParse(parsed);
     if (invocationFailure.success)
       nativeCommands.push({ event: parsed, command: invocationFailure.data.item['command'] });
@@ -113,32 +129,31 @@ export const parseSemanticEvaluationHostOutput = (
   const correspondingInvocations = correlateToolInvocations(
     nativeCommands.map(({ command }) => command),
     capture?.invocations ?? [],
+    { commandInstances: capture?.commandInstances ?? [], events: hostEvents },
   );
+  const placedInvocations = new Set(correspondingInvocations.flatMap((group) => group ?? []));
   for (const [index, { event }] of nativeCommands.entries()) {
-    let executionEvidence = projectActorExecutionEvidenceEvent(
-      event,
-      options,
-      false,
-      capture?.observesManagedAgents !== true,
-    );
-    const invocation = correspondingInvocations[index];
-    if (executionEvidence !== null && invocation !== null && invocation !== undefined)
-      executionEvidence = projectManagedAgentsInvocationEvidence(
-        executionEvidence,
-        invocation,
-        options,
-      );
+    const executionEvidence = projectActorExecutionEvidenceEvent(event, options, false, false);
     if (executionEvidence !== null) {
       actorExecutionEvidence.push(executionEvidence);
-      if (!hasValidActorExecutionEvidence(actorExecutionEvidence, options)) {
-        throw new Error('Codex actor execution evidence exceeded its item limit.');
-      }
     }
+    for (const invocation of correspondingInvocations[index] ?? []) {
+      const child =
+        invocation.entrypoint === 'managed-agents'
+          ? projectManagedAgentsInvocationEvidence(invocation, options)
+          : projectCliInvocationEvidence(invocation, options);
+      if (child !== null) actorExecutionEvidence.push(child);
+    }
+    if (!hasValidActorExecutionEvidence(actorExecutionEvidence, options))
+      throw new Error('Codex actor execution evidence exceeded its item limit.');
   }
   actorExecutionEvidence.push(
     ...(capture?.invocations ?? [])
-      .filter((invocation) => invocation.entrypoint !== 'managed-agents')
-      .map((invocation) => projectCliInvocationEvidence(invocation, options)),
+      .filter(
+        (invocation) =>
+          invocation.entrypoint !== 'managed-agents' && !placedInvocations.has(invocation),
+      )
+      .map((invocation) => projectUnplacedCliInvocation(invocation, options)),
   );
   if (!hasValidActorExecutionEvidence(actorExecutionEvidence, options))
     throw new Error('Codex actor execution evidence exceeded its item limit.');

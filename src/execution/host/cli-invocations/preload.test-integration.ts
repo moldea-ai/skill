@@ -18,10 +18,126 @@ import {
 } from '../../../semantic/workspace/index.ts';
 
 import { buildCodexEvaluationHostCommand, runCodexEvaluationHost } from '../host.ts';
+import { CliInvocationEventSchema } from './index.ts';
+
+test.each(['sequential', 'overlapping', 'failed-command'] as const)(
+  'associates real repeated compound shells only with %s SDK command lifetimes',
+  async (form) => {
+    const root = await mkdtemp(join(tmpdir(), 'moldea-shell-instance-'));
+    try {
+      await mkdir(join(root, 'source-home'));
+      vi.stubEnv('CODEX_HOME', join(root, 'source-home'));
+      const home = join(root, 'home');
+      const tools = join(root, 'tools');
+      const { repositoryPath, readOnlyMounts } = await createActorRepository(
+        root,
+        staleIntegrationCase,
+        home,
+        tools,
+      );
+      const args = [
+        '/mnt/.agents/skills/moldea/scripts/moldea-cli.mjs',
+        '--repository',
+        '/mnt',
+        '--',
+        'validate',
+        '--json',
+        '--max-output-bytes',
+        '65536',
+      ];
+      await writeFile(join(repositoryPath, 'consume.mjs'), 'void 0;\n');
+      await writeFile(
+        join(repositoryPath, 'next.mjs'),
+        `import { spawnSync } from 'node:child_process';\nconst r = spawnSync('/opt/node', ${JSON.stringify(args)}, {stdio:'inherit'});\nprocess.exitCode = r.status ?? 1;\n`,
+      );
+      const script =
+        'node /mnt/consume.mjs\nnode /mnt/next.mjs' + (form === 'failed-command' ? '\nexit 7' : '');
+      const display = `/bin/bash -lc '${script}'`;
+      await writeFile(
+        join(tools, 'codex'),
+        '#!/opt/node\n' +
+          `const {spawnSync} = require('node:child_process');\n` +
+          `const emit=(type,id,result)=>console.log(JSON.stringify({type,item:{id,type:'command_execution',command:${JSON.stringify(display)},...(result?{status:result.status===0?'completed':'failed',exit_code:result.status,aggregated_output:result.stdout+result.stderr}:{})}}));\n` +
+          (form === 'overlapping'
+            ? `emit('item.started','first');emit('item.started','second');\n`
+            : '') +
+          `for (const id of ['first','second']) { ${form !== 'overlapping' ? "emit('item.started',id);" : ''} const r=spawnSync('/bin/bash',['-c',${JSON.stringify(script)}],{encoding:'utf8'});emit('item.completed',id,r); }\n` +
+          `console.log(JSON.stringify({type:'item.completed',item:{type:'agent_message',text:'Complete.'}}));\n`,
+        { mode: 0o755 },
+      );
+      await writeFile(join(tools, 'codex-code-mode-host'), '#!/bin/sh\nexit 0\n', { mode: 0o755 });
+      vi.stubEnv('PATH', `${tools}:${process.env['PATH'] ?? ''}`);
+      const output = await runCodexEvaluationHost({
+        command: buildCodexEvaluationHostCommand(
+          [
+            'codex',
+            'exec',
+            '--ephemeral',
+            '--ignore-rules',
+            '--ignore-user-config',
+            '--skip-git-repo-check',
+            '--dangerously-bypass-approvals-and-sandbox',
+            '-c',
+            'shell_environment_policy.inherit=none',
+            '-',
+          ],
+          'actor',
+        ),
+        cwd: repositoryPath,
+        sandboxHome: home,
+        role: 'actor',
+        prompt: 'Observe repeated shells',
+        readOnlyMounts,
+      });
+      const captured = output
+        .split('\n')
+        .map((line) => CliInvocationEventSchema.safeParse(JSON.parse(line) as unknown))
+        .find((event) => event.success);
+      if (!captured?.success) throw new Error('Missing invocation capture.');
+      const capture = captured.data;
+      expect(capture.commandInstances).toHaveLength(2);
+      expect(new Set(capture.commandInstances!.map((instance) => instance.identity)).size).toBe(2);
+      expect(capture.invocations).toHaveLength(2);
+      const identity = readReleaseIdentity(process.cwd());
+      const parsed = parseSemanticEvaluationHostOutput(output, {
+        cliVersion: identity.cliVersion,
+        jsonSchemaVersion: 7,
+      });
+      expect(parsed.commandPolicyEvidence.completedCommandCount).toBe(2);
+      expect(parsed.actorResourceEvidence.commandCount).toBe(2);
+      const facts = parsed.actorExecutionEvidence.flatMap(({ item }) => item.outputEvidence.facts);
+      expect(facts.filter((fact) => fact.kind === 'moldea-cli-envelope')).toHaveLength(
+        form !== 'overlapping' ? 2 : 0,
+      );
+      if (form !== 'overlapping')
+        expect(
+          parsed.commandPolicyEvidence.moldeaEvents.flatMap((event) =>
+            event.kind === 'command' ? (event.operations ?? []) : [],
+          ),
+        ).toMatchObject([
+          { kind: 'cli', operation: 'validate' },
+          { kind: 'cli', operation: 'validate' },
+        ]);
+      expect(JSON.stringify(parsed)).not.toContain('callerIdentities');
+      expect(JSON.stringify(parsed)).not.toContain('commandInstances');
+      if (form === 'failed-command')
+        expect(
+          parsed.actorExecutionEvidence
+            .filter(({ item }) => item.commandKind === 'other')
+            .map(({ item }) => item.exitCode),
+        ).toStrictEqual([7, 7]);
+    } finally {
+      vi.unstubAllEnvs();
+      await rm(root, { recursive: true, force: true });
+    }
+  },
+);
 
 test.each([
   'direct',
   'wrapped',
+  'wrapped-twice',
+  'heredoc',
   'filtered',
   'copied',
   'failed',
@@ -60,22 +176,26 @@ test.each([
         ? '/mnt/copied/scripts/managed-agents.mjs'
         : '/mnt/.agents/skills/moldea/scripts/managed-agents.mjs';
     const args = [writer, '--repository', '/mnt', ...(form === 'failed' ? ['--unknown'] : [])];
-    const wrapper = `const r=require('node:child_process').spawnSync('/opt/node',${JSON.stringify(args)},{encoding:'utf8'});${form === 'filtered' ? '' : 'process.stdout.write(r.stdout);process.stderr.write(r.stderr);'}${form === 'oversized' ? "process.stdout.write('x'.repeat(262145));" : ''}process.exitCode=r.status;`;
+    const wrapper = `for(let i=0;i<${form === 'wrapped-twice' ? 2 : 1};i++){const r=require('node:child_process').spawnSync('/opt/node',${JSON.stringify(args)},{encoding:'utf8'});${form === 'filtered' ? '' : 'process.stdout.write(r.stdout);process.stderr.write(r.stderr);'}${form === 'oversized' ? "process.stdout.write('x'.repeat(262145));" : ''}process.exitCode=r.status;}`;
     const executionArgs =
-      form === 'node-flags'
-        ? ['--no-warnings', ...args]
-        : form === 'direct' || form === 'copied' || form === 'failed'
-          ? args
-          : ['-e', wrapper];
+      form === 'heredoc'
+        ? ['-c', `/opt/node <<'NODE'\n${wrapper}\nNODE`]
+        : form === 'node-flags'
+          ? ['--no-warnings', ...args]
+          : form === 'direct' || form === 'copied' || form === 'failed'
+            ? args
+            : ['-e', wrapper];
     const command =
       form === 'unmatched'
         ? '/opt/node -e "unrelated wrapper"'
-        : '/opt/node ' +
-          executionArgs.map((argument) => `'${argument.replaceAll("'", "'\\''")}'`).join(' ');
+        : form === 'heredoc'
+          ? `/bin/bash -lc '${executionArgs[1]!.replaceAll("'", "'\\''")}'`
+          : '/opt/node ' +
+            executionArgs.map((argument) => `'${argument.replaceAll("'", "'\\''")}'`).join(' ');
     await writeFile(
       join(tools, 'codex'),
       '#!/opt/node\n' +
-        `const r=require('node:child_process').spawnSync('/opt/node',${JSON.stringify(executionArgs)},{encoding:'utf8'${form === 'uncaptured' ? ",env:{...process.env,NODE_OPTIONS:''}" : ''}});` +
+        `const r=require('node:child_process').spawnSync('${form === 'heredoc' ? '/bin/bash' : '/opt/node'}',${JSON.stringify(executionArgs)},{encoding:'utf8'${form === 'uncaptured' ? ",env:{...process.env,NODE_OPTIONS:''}" : ''}});` +
         `for(let i=0;i<${form === 'ambiguous' ? 2 : 1};i++)console.log(JSON.stringify({type:'item.completed',item:{type:'command_execution',command:${JSON.stringify(command)},status:r.status===0?'completed':'failed',exit_code:r.status,aggregated_output:r.stdout+r.stderr}}));` +
         `console.log(JSON.stringify({type:'item.completed',item:{type:'agent_message',text:'Writer observation complete.'}}));\n`,
       { mode: 0o755 },
@@ -132,7 +252,12 @@ test.each([
         'linked',
       ].includes(form)
         ? []
-        : [{ kind: 'managed-agents-result', status: 'updated' }],
+        : [
+            { kind: 'managed-agents-result', status: 'updated' },
+            ...(form === 'wrapped-twice'
+              ? [{ kind: 'managed-agents-result', status: 'unchanged' }]
+              : []),
+          ],
     );
     expect(parsed.actorResourceEvidence.commandCount).toBe(0);
     expect(parsed.commandPolicyEvidence.completedCommandCount).toBe(form === 'ambiguous' ? 2 : 1);
@@ -213,9 +338,10 @@ test.each([
     ];
     const write =
       "fs.appendFileSync('/mnt/moldea/project.md','\\nConfirmed canonical summary update.\\n');\n";
-    const invocation = (operation: 'validate' | 'inspect') => {
+    const invocation = (operation: 'validate' | 'inspect', repeated = false) => {
       const invocationArgs = [...args];
       invocationArgs[4] = operation;
+      if (repeated) invocationArgs.unshift('--no-warnings');
       return `{const result=cp.spawnSync('/opt/node',${JSON.stringify(invocationArgs)},{encoding:'utf8'});console.log(JSON.stringify({type:'item.completed',item:{type:'command_execution',command:${JSON.stringify(scenario === 'ambiguous-command' ? 'node -e "wrapped launcher"' : `/opt/node ${invocationArgs.join(' ')}`)},status:'completed',exit_code:result.status,aggregated_output:result.stdout+result.stderr}}));}\n`;
     };
     const script =
@@ -224,7 +350,7 @@ test.each([
       (['after-validation', 'no-write', 'read-only-overlay'].includes(scenario) ? '' : write) +
       invocation('validate') +
       (['after-validation', 'later-write'].includes(scenario) ? write : '') +
-      (scenario === 'double-validation' ? invocation('validate') : '') +
+      (scenario === 'double-validation' ? invocation('validate', true) : '') +
       (scenario === 'later-assessment' ? invocation('inspect') : '') +
       "console.log(JSON.stringify({type:'item.completed',item:{type:'agent_message',text:'Completed synthetic ordering scenario.'}}));\n";
     // use the fixture's existing immutable tool mount for the fake host, without a provider
@@ -286,11 +412,21 @@ test.each([
     if (scenario === 'read-only-overlay')
       expect(events.some((event) => event.kind === 'file-change')).toBe(false);
     if (scenario === 'before-validation') {
-      expect(events[0]).toStrictEqual({ kind: 'file-change', moldeaPath: 'touching' });
-      expect(events[1]).toMatchObject({ kind: 'command', ownership: 'cli', operation: 'validate' });
+      expect(events[0]).toMatchObject({
+        kind: 'command',
+        ownership: 'cli',
+        operations: [
+          { kind: 'file-change', moldeaPath: 'touching' },
+          { kind: 'cli', operation: 'validate' },
+        ],
+      });
     }
     if (scenario === 'double-validation')
-      expect(events.filter((event) => event.kind === 'file-change')).toHaveLength(1);
+      expect(
+        events
+          .flatMap((event) => (event.kind === 'command' ? (event.operations ?? []) : [event]))
+          .filter((event) => event.kind === 'file-change'),
+      ).toHaveLength(1);
     if (scenario === 'later-write' || scenario === 'after-validation')
       expect(events.at(-1)).toStrictEqual({ kind: 'file-change', moldeaPath: 'touching' });
   } finally {

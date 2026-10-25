@@ -12,6 +12,7 @@ import {
   isMoldeaCliOperation,
   type ICliInvocation,
   type ICliInvocationEvent,
+  type ICliCommandInstance,
 } from './cli-invocations/index.ts';
 
 import type {
@@ -22,6 +23,7 @@ import type {
   ICodexEvaluationCommandPolicyStatus,
   ICodexEvaluationExecutionEvidence,
   ICodexEvaluationMoldeaEvent,
+  ICodexEvaluationMoldeaOperation,
   ICodexEvaluationOwnedCommandTotals,
   IMoldeaCliOperation,
   IMoldeaCliLauncherMissReasonCode,
@@ -834,51 +836,159 @@ const getStandaloneCommandWords = (command: unknown): readonly string[] | null =
   return commands?.length === 1 ? commands[0]! : null;
 };
 
-/** Matches runtime invocations only when both the observed caller and host command are unique. */
-export const correlateToolInvocations = (
+/** Maps repeated shell instances only when complete SDK lifetimes prove their sequential order. */
+const correlateObservedCommandInstances = (
   commands: readonly unknown[],
-  invocations: readonly ICliInvocation[],
-): Array<ICliInvocation | null> => {
+  commandIndices: Map<string, number[]>,
+  instances: readonly ICliCommandInstance[],
+  events: readonly unknown[],
+  key: (argumentsList: readonly string[]) => string,
+): Map<string, number> => {
+  const starts = new Map<string, { position: number; command: string } | null>();
+  const intervals: Array<{ start: number; end: number } | null> = [];
+  for (const [position, event] of events.entries()) {
+    if (!isPlainRecord(event) || !isPlainRecord(event['item'])) continue;
+    const item = event['item'];
+    if (item['type'] !== 'command_execution') continue;
+    const id = item['id'];
+    if (
+      event['type'] === 'item.started' &&
+      typeof id === 'string' &&
+      typeof item['command'] === 'string'
+    )
+      starts.set(id, starts.has(id) ? null : { position, command: item['command'] });
+    if (event['type'] !== 'item.completed') continue;
+    const start = typeof id === 'string' ? starts.get(id) : null;
+    intervals.push(
+      start != null &&
+        start.command === item['command'] &&
+        commands[intervals.length] === item['command']
+        ? { start: start.position, end: position }
+        : null,
+    );
+  }
+  const groups = new Map<string, ICliCommandInstance[]>();
+  for (const instance of instances) {
+    const identity = key(instance.arguments);
+    const group = groups.get(identity) ?? [];
+    group.push(instance);
+    groups.set(identity, group);
+  }
+  const result = new Map<string, number>();
+  if (new Set(instances.map((instance) => instance.identity)).size !== instances.length)
+    return result;
+  for (const [identity, group] of groups) {
+    const indices = commandIndices.get(identity) ?? [];
+    if (indices.length !== group.length) continue;
+    if (
+      indices.length > 1 &&
+      indices.some((index, ordinal) => {
+        const interval = intervals[index];
+        const previous = ordinal === 0 ? null : intervals[indices[ordinal - 1]!];
+        return (
+          interval == null || (ordinal > 0 && (previous == null || previous.end >= interval.start))
+        );
+      })
+    )
+      continue;
+    group.forEach((instance, index) => result.set(instance.identity, indices[index]!));
+  }
+  return result;
+};
+
+/**
+ * Groups runtime children by an observed parent, using process instances for repeated commands.
+ * The metadata-only boundary also supports private replay without reconstructing stripped output.
+ */
+export const correlateToolInvocations = <
+  T extends Pick<ICliInvocation, 'callers' | 'callerIdentities'>,
+>(
+  commands: readonly unknown[],
+  invocations: readonly T[],
+  observations: { commandInstances?: ICliCommandInstance[]; events?: readonly unknown[] } = {},
+): Array<T[] | null> => {
   const key = (words: readonly string[]): string => {
     const normalized = [...words];
     if (isTrustedLocalExecutable(normalized[0], 'node')) {
       normalized[0] = 'node';
       if (normalized[1] !== undefined && !normalized[1].startsWith('-'))
         normalized[1] = posix.resolve('/mnt', normalized[1]);
+    } else if (['bash', '/bin/bash', '/usr/bin/bash'].includes(normalized[0] ?? '')) {
+      normalized[0] = 'bash';
+      // Codex displays its fixed login wrapper even when the sandbox runs Bash without login.
+      if (normalized.length === 3 && ['-c', '-lc'].includes(normalized[1] ?? ''))
+        normalized[1] = '-c';
     }
     return JSON.stringify(normalized);
   };
   const commandIndices = new Map<string, number[]>();
   commands.forEach((command, index) => {
-    const words = getStandaloneCommandWords(command);
-    if (words === null) return;
-    const identity = key(words);
-    const indices = commandIndices.get(identity) ?? [];
-    indices.push(index);
-    commandIndices.set(identity, indices);
+    if (typeof command !== 'string' || Buffer.byteLength(command) > MAX_COMMAND_BYTES) return;
+    const unwrapped = unwrapCodexShellCommand(command);
+    const candidates: Array<readonly string[] | null> = [getStandaloneCommandWords(command)];
+    if (unwrapped !== null) {
+      // Bash may exec its terminal command, leaving observed argv without a shell parent.
+      const terminal = parseStaticShellList(stripSafeShellRedirections(unwrapped))?.commands.at(-1);
+      if (terminal !== undefined) candidates.push(terminal);
+      if (unwrapped !== command) candidates.push(['bash', '-lc', unwrapped]);
+    }
+    for (const words of candidates) {
+      if (words === null) continue;
+      const identity = key(words);
+      const indices = commandIndices.get(identity) ?? [];
+      if (!indices.includes(index)) indices.push(index);
+      commandIndices.set(identity, indices);
+    }
   });
-  const candidates = invocations.map((invocation) => [
-    ...new Set(
-      (invocation.callers ?? []).flatMap((caller) => {
-        const executable = caller[0];
-        if (executable === undefined) return [];
-        return [caller, [posix.basename(executable), ...caller.slice(1)]].flatMap(
-          (words) => commandIndices.get(key(words)) ?? [],
-        );
-      }),
-    ),
-  ]);
-  return commands.map((_, index) => {
-    const matching = candidates.flatMap((indices, invocationIndex) =>
-      indices.includes(index) ? [invocationIndex] : [],
-    );
-    const invocationIndex = matching[0];
-    return matching.length === 1 &&
-      invocationIndex !== undefined &&
-      candidates[invocationIndex]?.length === 1
-      ? (invocations[invocationIndex] ?? null)
-      : null;
+  const grouped: Array<Array<{ invocation: T; depth: number; position: number }>> = commands.map(
+    () => [],
+  );
+  const instances = observations.commandInstances ?? [];
+  const instanceIdentities = new Set(instances.map((instance) => instance.identity));
+  const instanceIndices = correlateObservedCommandInstances(
+    commands,
+    commandIndices,
+    instances,
+    observations.events ?? [],
+    key,
+  );
+  invocations.forEach((invocation, position) => {
+    const callers = invocation.callers ?? [];
+    for (let depth = callers.length - 1; depth >= 0; depth--) {
+      const identity = invocation.callerIdentities?.[depth];
+      if (identity !== undefined && instanceIdentities.has(identity)) {
+        const index = instanceIndices.get(identity);
+        if (index !== undefined) grouped[index]!.push({ invocation, depth, position });
+        return;
+      }
+      const caller = callers[depth]!;
+      const executable = caller[0];
+      if (executable === undefined) continue;
+      const matches = [
+        ...new Set(
+          [caller, [posix.basename(executable), ...caller.slice(1)]].flatMap(
+            (words) => commandIndices.get(key(words)) ?? [],
+          ),
+        ),
+      ];
+      if (matches.length === 0) continue;
+      if (matches.length === 1) grouped[matches[0]!]!.push({ invocation, depth, position });
+      return;
+    }
   });
+  const accepted = grouped.map((group) =>
+    group.length === 0 || (group.length > 1 && group.some(({ depth }) => depth === 0))
+      ? null
+      : group,
+  );
+  let lastPosition = -1;
+  for (const group of accepted) {
+    for (const { position } of group ?? []) {
+      if (position <= lastPosition) return commands.map(() => null);
+      lastPosition = position;
+    }
+  }
+  return accepted.map((group) => group?.map(({ invocation }) => invocation) ?? null);
 };
 
 /**
@@ -1002,7 +1112,7 @@ const getManagedAgentsMode = (words: readonly string[]): IMoldeaManagedAgentsMod
 
 /** Identifies the closed writer mode from the observed immutable Node entrypoint's arguments. */
 export const identifyManagedAgentsInvocationMode = (
-  invocation: ICliInvocation,
+  invocation: Pick<ICliInvocation, 'arguments' | 'entrypoint'>,
 ): IMoldeaManagedAgentsMode | null =>
   invocation.entrypoint === 'managed-agents'
     ? getManagedAgentsMode([
@@ -1750,76 +1860,96 @@ const classifyFileChangeMoldeaPath = (
   return isTouching ? 'touching' : 'not-touching';
 };
 
-/** Places observed canonical differences only beside uniquely corresponding launcher calls. */
-const placeCanonicalWriteObservations = (
+/**
+ * Places captured child operations and digest-supported writes inside their owned host command.
+ * Metadata-only inputs let private replay exercise the same placement without inventing output.
+ * @throws If invocation groups disagree with owned commands or exceed the existing event bounds.
+ */
+export const projectMoldeaInvocationOperations = <
+  T extends Pick<
+    ICliInvocation,
+    'arguments' | 'entrypoint' | 'outputByteCount' | 'canonicalBefore' | 'canonicalAfter'
+  >,
+>(
   events: ICodexEvaluationMoldeaEvent[],
-  capture: ICliInvocationEvent,
+  capture: Pick<ICliInvocationEvent, 'canonicalInitial' | 'canonicalFinal'> & { invocations: T[] },
+  groups: Array<T[] | null>,
 ): void => {
-  if (capture.canonicalInitial === undefined || capture.canonicalFinal === undefined) return;
-  const commands = events.filter(
-    (event): event is Extract<ICodexEvaluationMoldeaEvent, { kind: 'command' }> =>
-      event.kind === 'command' && event.ownership === 'cli',
-  );
-  const operations = capture.invocations.map(({ arguments: argumentsList }) =>
-    identifyCliInvocationOperation(argumentsList),
-  );
-  if (
-    commands.length !== operations.length ||
-    commands.some(
-      (event, index) => event.operation !== operations[index] || event.operation === null,
-    )
-  )
+  const commands = events.filter((event) => event.kind === 'command');
+  if (commands.length !== groups.length)
+    throw new Error('Owned commands lost invocation-group correspondence.');
+  const placed = groups.flatMap((group) => group ?? []);
+  const isComplete =
+    placed.length === capture.invocations.length &&
+    placed.every((invocation, index) => invocation === capture.invocations[index]);
+  if (!isComplete) {
+    for (const command of commands) command.operations = null;
     return;
-  const validations = capture.invocations.filter((_, index) => operations[index] === 'validate');
-  if (
-    capture.canonicalInitial === null ||
-    capture.canonicalFinal === null ||
-    validations.length === 0 ||
-    validations.some(
-      (invocation) => invocation.canonicalBefore == null || invocation.canonicalAfter == null,
-    )
-  )
-    return;
-  const ordered: ICodexEvaluationMoldeaEvent[] = [];
-  let lastDigest: string = capture.canonicalInitial;
-  let invocationIndex = 0;
-  let hasKnownWrite = false;
-  for (const event of events) {
-    if (event.kind !== 'command' || event.ownership !== 'cli') {
-      ordered.push(event);
-      if (event.kind === 'file-change' && event.moldeaPath === 'touching') hasKnownWrite = true;
-      continue;
-    }
-    const invocation = capture.invocations[invocationIndex++];
-    if (invocation === undefined)
-      throw new Error('Canonical observation lost launcher correspondence.');
-    if (event.operation !== 'validate') {
-      ordered.push(event);
-      continue;
-    }
-    const before = invocation.canonicalBefore;
-    const after = invocation.canonicalAfter;
-    if (before == null || after == null)
-      throw new Error('Canonical validation observation was lost.');
-    if (before !== lastDigest && !hasKnownWrite)
-      ordered.push({ kind: 'file-change', moldeaPath: 'touching' });
-    ordered.push(event);
-    hasKnownWrite = false;
-    if (after !== before) {
-      ordered.push({ kind: 'file-change', moldeaPath: 'touching' });
-      hasKnownWrite = true;
-    }
-    lastDigest = after;
   }
-  if (lastDigest !== capture.canonicalFinal && !hasKnownWrite)
-    ordered.push({ kind: 'file-change', moldeaPath: 'touching' });
-  assertWithinResourceLimit(
-    'file change count',
-    'changes',
-    ordered.filter((event) => event.kind === 'file-change').length,
-    MAX_FILE_CHANGE_COUNT,
+  const validations = placed.filter(
+    (invocation) =>
+      invocation.entrypoint !== 'managed-agents' &&
+      identifyCliInvocationOperation(invocation.arguments) === 'validate',
   );
-  events.splice(0, events.length, ...ordered);
+  const canObserveWrites =
+    capture.canonicalInitial != null &&
+    capture.canonicalFinal != null &&
+    validations.length > 0 &&
+    validations.every(
+      (invocation) => invocation.canonicalBefore != null && invocation.canonicalAfter != null,
+    );
+  let lastDigest = capture.canonicalInitial;
+  let hasKnownWrite = false;
+  let commandIndex = 0;
+  for (const event of events) {
+    if (event.kind === 'file-change') {
+      if (event.moldeaPath === 'touching') hasKnownWrite = true;
+      continue;
+    }
+    const group = groups[commandIndex++] ?? [];
+    const operations: ICodexEvaluationMoldeaOperation[] = [];
+    let isKnown = true;
+    for (const invocation of group) {
+      if (invocation.entrypoint === 'managed-agents') {
+        if (identifyManagedAgentsInvocationMode(invocation) === null) {
+          isKnown = false;
+          break;
+        }
+        operations.push({ kind: 'managed-agents' });
+        continue;
+      }
+      const operation = identifyCliInvocationOperation(invocation.arguments);
+      if (operation === null) {
+        isKnown = false;
+        break;
+      }
+      if (operation === 'validate' && canObserveWrites) {
+        if (invocation.canonicalBefore !== lastDigest && !hasKnownWrite)
+          operations.push({ kind: 'file-change', moldeaPath: 'touching' });
+        hasKnownWrite = false;
+      }
+      operations.push({ kind: 'cli', operation, outputByteCount: invocation.outputByteCount });
+      if (operation === 'validate' && canObserveWrites) {
+        if (invocation.canonicalAfter !== invocation.canonicalBefore) {
+          operations.push({ kind: 'file-change', moldeaPath: 'touching' });
+          hasKnownWrite = true;
+        }
+        lastDigest = invocation.canonicalAfter;
+      }
+    }
+    event.operations = isKnown ? operations : null;
+  }
+  if (canObserveWrites && lastDigest !== capture.canonicalFinal && !hasKnownWrite)
+    events.push({ kind: 'file-change', moldeaPath: 'touching' });
+  const changeCount = events.reduce(
+    (count, event) =>
+      count +
+      (event.kind === 'file-change'
+        ? 1
+        : (event.operations ?? []).filter((operation) => operation.kind === 'file-change').length),
+    0,
+  );
+  assertWithinResourceLimit('file change count', 'changes', changeCount, MAX_FILE_CHANGE_COUNT);
 };
 
 /** Classifies one complete command without retaining its content. */
@@ -2100,16 +2230,32 @@ const hasValidMoldeaEvent = (event: unknown): event is ICodexEvaluationMoldeaEve
       ['not-touching', 'touching', 'unreadable'].includes(event['moldeaPath'] as string)
     );
   }
-  if (!hasExactKeys(event, ['kind', 'operation', 'outputByteCount', 'ownership'])) return false;
-  const operation = event['operation'];
+  if (!hasExactKeys(event, ['kind', 'operations', 'outputByteCount', 'ownership'])) return false;
+  const operations = event['operations'];
   return (
     event['kind'] === 'command' &&
     MOLDEA_EVENT_OWNERSHIPS.has(event['ownership'] as ICodexEvaluationCommandOwnership) &&
     isBoundedNonNegativeInteger(event['outputByteCount'], MAX_MODEL_VISIBLE_TOOL_OUTPUT_BYTES) &&
-    (operation === null ||
-      (event['ownership'] === 'cli' &&
-        typeof operation === 'string' &&
-        isMoldeaCliOperation(operation)))
+    (operations === null ||
+      (Array.isArray(operations) &&
+        operations.length <= MAX_COMPLETED_COMMAND_COUNT + MAX_FILE_CHANGE_COUNT &&
+        operations.every((operation) => {
+          if (hasExactKeys(operation, ['kind', 'moldeaPath']))
+            return (
+              operation['kind'] === 'file-change' &&
+              ['not-touching', 'touching', 'unreadable'].includes(operation['moldeaPath'] as string)
+            );
+          if (hasExactKeys(operation, ['kind']))
+            return operation['kind'] === 'managed-agents' && event['ownership'] !== 'canonical';
+          return (
+            hasExactKeys(operation, ['kind', 'operation', 'outputByteCount']) &&
+            operation['kind'] === 'cli' &&
+            event['ownership'] === 'cli' &&
+            typeof operation['operation'] === 'string' &&
+            isMoldeaCliOperation(operation['operation']) &&
+            isBoundedNonNegativeInteger(operation['outputByteCount'], MAX_MOLDEA_OUTPUT_BYTES)
+          );
+        })))
   );
 };
 
@@ -2121,6 +2267,8 @@ const hasValidCommandOwnership = (
     completedCommandCount: number;
     maximumCommandOutputByteCount: number;
     modelVisibleToolOutputByteCount: number;
+    moldeaCommandCount: number;
+    moldeaOutputByteCount: number;
   },
 ): boolean => {
   if (
@@ -2138,14 +2286,23 @@ const hasValidCommandOwnership = (
     (ownership) => commandOwnership[ownership] as ICodexEvaluationOwnedCommandTotals,
   );
   const commandEvents = moldeaEvents.filter((event) => event.kind === 'command');
+  const nestedOperations = commandEvents.flatMap((event) => event.operations ?? []);
+  const nestedWrites = nestedOperations.filter(
+    (operation) => operation.kind === 'file-change',
+  ).length;
+  const nestedCli = nestedOperations.filter((operation) => operation.kind === 'cli');
   return (
+    nestedCli.length <= aggregate.moldeaCommandCount &&
+    nestedCli.reduce((total, operation) => total + operation.outputByteCount, 0) <=
+      aggregate.moldeaOutputByteCount &&
+    nestedOperations.length - nestedWrites <= MAX_COMPLETED_COMMAND_COUNT &&
     totals.reduce((total, { commandCount }) => total + commandCount, 0) ===
       aggregate.completedCommandCount &&
     totals.reduce((total, { outputByteCount }) => total + outputByteCount, 0) ===
       aggregate.modelVisibleToolOutputByteCount &&
     Math.max(0, ...totals.map(({ maximumOutputByteCount }) => maximumOutputByteCount)) ===
       aggregate.maximumCommandOutputByteCount &&
-    moldeaEvents.length - commandEvents.length <= MAX_FILE_CHANGE_COUNT &&
+    moldeaEvents.length - commandEvents.length + nestedWrites <= MAX_FILE_CHANGE_COUNT &&
     [...MOLDEA_EVENT_OWNERSHIPS].every((ownership) => {
       const ownedEvents = commandEvents.filter((event) => event.ownership === ownership);
       const ownedTotals = commandOwnership[ownership] as ICodexEvaluationOwnedCommandTotals;
@@ -2211,6 +2368,8 @@ export const hasValidCodexEvaluationCommandPolicy = (
       completedCommandCount,
       maximumCommandOutputByteCount,
       modelVisibleToolOutputByteCount,
+      moldeaCommandCount,
+      moldeaOutputByteCount,
     })
   ) {
     return false;
@@ -2313,6 +2472,7 @@ export const projectCodexEvaluationExecutionEvidence = (
     ]),
   ) as ICodexEvaluationCommandPolicyEvidence['commandOwnership'];
   const moldeaEvents: ICodexEvaluationMoldeaEvent[] = [];
+  const ownedInvocationGroups: Array<ICliInvocation[] | null> = [];
   let fileChangeCount = 0;
   let credentialExposureCount = 0;
   let maximumCommandOutputByteCount = 0;
@@ -2352,6 +2512,7 @@ export const projectCodexEvaluationExecutionEvidence = (
   const correspondingInvocations = correlateToolInvocations(
     hostCommands.map((event) => (isPlainRecord(event['item']) ? event['item']['command'] : null)),
     cliCapture?.invocations ?? [],
+    { commandInstances: cliCapture?.commandInstances ?? [], events },
   );
 
   for (const event of events) {
@@ -2406,29 +2567,25 @@ export const projectCodexEvaluationExecutionEvidence = (
     }
 
     const classification = classifyCommand(command);
-    const invocation = correspondingInvocations[projectedEvents.length];
-    if (
-      invocation !== undefined &&
-      invocation !== null &&
-      identifyManagedAgentsInvocationMode(invocation) !== null
-    ) {
-      classification.ownership = 'helper';
-      classification.moldeaOperation = null;
+    const invocationGroup = correspondingInvocations[projectedEvents.length] ?? null;
+    if (invocationGroup !== null) {
+      classification.ownership = invocationGroup.some(
+        (invocation) => invocation.entrypoint !== 'managed-agents',
+      )
+        ? 'cli'
+        : 'helper';
     } else if (
-      cliCapture?.observesManagedAgents === true &&
-      classification.moldeaOperation === 'composition'
+      cliCapture !== null &&
+      classification.ownership === 'cli' &&
+      classification.moldeaCommandCount === 0
     ) {
-      classification.moldeaOperation = null;
+      // A script containing launcher text supplies neither runtime credit nor CLI ownership.
+      classification.ownership = 'source';
     }
-    if (
-      invocation !== undefined &&
-      invocation !== null &&
-      invocation.entrypoint !== 'managed-agents' &&
-      identifyCliInvocationOperation(invocation.arguments) === 'composition'
-    ) {
-      classification.ownership = 'cli';
-      classification.moldeaOperation = 'composition';
-    }
+    if (cliCapture !== null)
+      classification.moldeaCommandCount =
+        invocationGroup?.filter((invocation) => invocation.entrypoint !== 'managed-agents')
+          .length ?? 0;
     const outputByteCount = Buffer.byteLength(aggregatedOutput, 'utf8');
     maximumCommandOutputByteCount = Math.max(maximumCommandOutputByteCount, outputByteCount);
     modelVisibleToolOutputByteCount += outputByteCount;
@@ -2448,10 +2605,11 @@ export const projectCodexEvaluationExecutionEvidence = (
     ) {
       moldeaEvents.push({
         kind: 'command',
-        operation: classification.moldeaOperation,
+        operations: classification.ownership === 'cli' ? null : [],
         outputByteCount,
         ownership: classification.ownership,
       });
+      ownedInvocationGroups.push(invocationGroup);
     }
     assertWithinResourceLimit(
       'model-visible tool output',
@@ -2476,8 +2634,8 @@ export const projectCodexEvaluationExecutionEvidence = (
       0,
     );
   }
-  if (cliCapture !== null && cliInvocations !== null)
-    placeCanonicalWriteObservations(moldeaEvents, { ...cliCapture, invocations: cliInvocations });
+  if (cliCapture !== null)
+    projectMoldeaInvocationOperations(moldeaEvents, cliCapture, ownedInvocationGroups);
   assertWithinResourceLimit(
     'moldea command count',
     'commands',

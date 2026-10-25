@@ -130,7 +130,7 @@ const isOutputDisposition = (input: unknown): input is IOutputDisposition =>
 const isCommandKind = (
   input: unknown,
 ): input is ISemanticActorExecutionEvidence['item']['commandKind'] =>
-  input === 'moldea' || input === 'other';
+  input === 'managed-agents' || input === 'moldea' || input === 'other';
 
 const hasValidProjectionOptions = (
   options: unknown,
@@ -760,11 +760,13 @@ const hasValidOutputEvidence = (
     facts.length === 1 &&
     (commandKind === 'moldea'
       ? hasValidMoldeaFact(facts[0], exitCode, options)
-      : hasValidRelevanceGateFact(facts[0], byteCount, exitCode) ||
-        hasValidManagedReadmeFact(facts[0], byteCount, exitCode) ||
-        hasValidManagedAgentsFact(facts[0], byteCount, exitCode) ||
-        hasValidNodeTestFact(facts[0], exitCode) ||
-        hasValidRepairGitResultFact(facts[0], exitCode))
+      : commandKind === 'managed-agents'
+        ? hasValidManagedAgentsFact(facts[0], byteCount, exitCode)
+        : hasValidRelevanceGateFact(facts[0], byteCount, exitCode) ||
+          hasValidManagedReadmeFact(facts[0], byteCount, exitCode) ||
+          hasValidManagedAgentsFact(facts[0], byteCount, exitCode) ||
+          hasValidNodeTestFact(facts[0], exitCode) ||
+          hasValidRepairGitResultFact(facts[0], exitCode))
   );
 };
 
@@ -897,17 +899,16 @@ export const projectActorExecutionEvidenceEvent = (
 };
 
 /**
- * Attaches a uniquely corresponding immutable writer's result to its existing host command.
- * @returns The original command with captured method output, preserving its status and Git evidence.
+ * Projects one corresponding immutable writer separately from its enclosing host command.
+ * @returns A bounded writer result, or null for an unsupported or inconsistent observation.
  * @throws If captured method evidence cannot satisfy the existing bounded output contract.
  */
 export const projectManagedAgentsInvocationEvidence = (
-  entry: ISemanticActorExecutionEvidence,
   invocation: ICliInvocation,
   options: ISemanticActorExecutionEvidenceOptions,
-): ISemanticActorExecutionEvidence => {
+): ISemanticActorExecutionEvidence | null => {
   const mode = identifyManagedAgentsInvocationMode(invocation);
-  if (mode === null || invocation.exitCode !== entry.item.exitCode) return entry;
+  if (mode === null) return null;
   const outputEvidence = createOutputEvidence(
     invocation.stdout,
     null,
@@ -919,9 +920,18 @@ export const projectManagedAgentsInvocationEvidence = (
     options,
     null,
   );
-  if (outputEvidence.facts.length === 0 || invocation.outputByteCount !== outputEvidence.byteCount)
-    return entry;
-  const result = { ...entry, item: { ...entry.item, outputEvidence } };
+  if (invocation.outputByteCount !== outputEvidence.byteCount) return null;
+  const result: ISemanticActorExecutionEvidence = {
+    eventType: 'item.completed',
+    item: {
+      type: 'command_execution',
+      commandKind: 'managed-agents',
+      exitCode: invocation.exitCode,
+      status: invocation.exitCode === 0 ? 'completed' : 'failed',
+      repairGit: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+      outputEvidence,
+    },
+  };
   if (!hasValidEntry(result, options))
     throw new Error('Managed writer invocation evidence has an unsupported shape.');
   return result;

@@ -49,7 +49,7 @@ const createCheckpoint = (): ISemanticCandidateCheckpoint => ({
     version: '1.0.0',
   },
   mode: 'official',
-  schemaVersion: 3,
+  schemaVersion: 4,
   selectedCaseIds: ['case-one', 'case-two'],
   updatedAt: '2026-09-19T12:00:00.000Z',
 });
@@ -290,7 +290,30 @@ test('round trips projected Git and print evidence and rejects malformed command
   const evidence = parseSemanticEvaluationHostOutput(
     output +
       '\n' +
-      JSON.stringify({ type: 'moldea.cli-invocations', invocations: [] }) +
+      JSON.stringify({
+        type: 'moldea.cli-invocations',
+        observesManagedAgents: true,
+        invocations: [
+          {
+            arguments: ['--repository', '/mnt', '--print'],
+            entrypoint: 'managed-agents',
+            callers: [
+              [
+                '/opt/node',
+                '/mnt/.agents/skills/moldea/scripts/managed-agents.mjs',
+                '--repository',
+                '/mnt',
+                '--print',
+              ],
+            ],
+            stdout: '<!-- moldea:start -->\n\nUse this skill.\n<!-- moldea:end -->\n',
+            outputByteCount: Buffer.byteLength(
+              '<!-- moldea:start -->\n\nUse this skill.\n<!-- moldea:end -->\n',
+            ),
+            exitCode: 0,
+          },
+        ],
+      }) +
       '\n' +
       JSON.stringify({
         type: 'moldea.git-invocations',
@@ -344,7 +367,10 @@ test('round trips projected Git and print evidence and rejects malformed command
   expect(evidence.commandPolicyEvidence.moldeaLauncherMissReasons).toStrictEqual([
     { code: 'unrecognized-node-path', count: 1 },
   ]);
-  const [entry, printed] = evidence.actorExecutionEvidence;
+  const [entry] = evidence.actorExecutionEvidence;
+  const printed = evidence.actorExecutionEvidence.find(
+    ({ item }) => item.commandKind === 'managed-agents',
+  );
   const printFact = printed?.item.outputEvidence.facts[0];
   expect(printFact?.kind).toBe('managed-agents-print-result');
   expect(

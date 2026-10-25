@@ -4,7 +4,7 @@ import { mkdtemp, readdir, rm, statfs } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { hashValue } from 'jg-crypto';
-import { isMainModule } from 'jg-process';
+import { createShutdownSignal, isMainModule } from 'jg-process';
 
 import type { IEvaluationReplayModel } from '@moldea.ai/website-ui/evaluation-replay-model';
 import { z } from 'zod';
@@ -23,6 +23,8 @@ import {
   prepareCodexEvaluationHome,
   runCodexEvaluationHost,
   runCodexEvaluationOperationalStage,
+  CodexEvaluationHostError,
+  CODEX_EVALUATION_HOST_FAILURE_KINDS,
   type ICodexEvaluationHostIdentity,
 } from '../../execution/host/index.ts';
 import { storeCompletedEvidenceRun } from '../../evidence/index.ts';
@@ -158,6 +160,7 @@ type ISemanticCaseRunnerOptions = {
   executeTrial: ISemanticRunnerTrialExecutor;
   repositoryRoot: string;
   tokenLimit?: number;
+  signal?: AbortSignal | undefined;
   workerCount: IEvaluationBatchWorkerCount;
 };
 
@@ -204,6 +207,18 @@ const getCompletedActorCycles = (
 ): ISemanticCycleEvidence[] =>
   invocations.flatMap(({ cycle }) => (cycle === undefined ? [] : [cycle]));
 
+/**
+ * Stops before setup or another paid boundary, using the existing aborted-host contract.
+ * @throws Evaluation host execution was aborted.
+ */
+const throwIfSemanticExecutionAborted = (signal: AbortSignal | undefined): void => {
+  if (signal?.aborted)
+    throw new CodexEvaluationHostError(
+      CODEX_EVALUATION_HOST_FAILURE_KINDS.Aborted,
+      'Evaluation host execution was aborted.',
+    );
+};
+
 const runHostStage = async <T>(options: {
   activeTrial: ISemanticActiveTrialCheckpoint;
   isOperationalResumeRequested: boolean;
@@ -215,6 +230,7 @@ const runHostStage = async <T>(options: {
   persistActiveTrial: (activeTrial: ISemanticActiveTrialCheckpoint) => Promise<void>;
   reservationId: string;
   stage: 'actor' | 'judge';
+  signal?: AbortSignal | undefined;
   temporaryRoot: string;
   tokenController: ISemanticTokenAdmissionController;
 }): Promise<{
@@ -222,6 +238,7 @@ const runHostStage = async <T>(options: {
   output: T;
 }> => {
   let activeTrial = options.activeTrial;
+  throwIfSemanticExecutionAborted(options.signal);
   let isReservationActive = false;
   const failureCountKey = `${options.stage}FailureCount` as const;
   const isStopped = isSemanticActiveTrialStopped(activeTrial);
@@ -239,77 +256,86 @@ const runHostStage = async <T>(options: {
     isReservationActive = false;
   };
   try {
-    const output = await runWithEvaluationTemporaryStorageGuard(options.temporaryRoot, (signal) =>
-      runCodexEvaluationOperationalStage({
-        initialFailureCount,
-        maximumRetryCount: MAXIMUM_OPERATIONAL_RETRY_COUNT,
-        onExhausted: async (exhaustion) => {
-          activeTrial = stopSemanticOperationalStage(
-            activeTrial,
-            options.stage,
-            exhaustion,
-            isStopped,
-          );
-          await options.persistActiveTrial(activeTrial);
-          releaseReservation();
-        },
-        onRetry: async (retry) => {
-          activeTrial = appendSemanticOperationalRetry(activeTrial, options.stage, retry);
-          await options.persistActiveTrial(activeTrial);
-          releaseReservation();
-        },
-        operation: async () =>
-          options.operation(
-            signal,
-            async (operation) => {
-              options.tokenController.reserve(options.reservationId);
-              isReservationActive = true;
-              const invocationIndex = activeTrial.paidInvocations.length;
-              activeTrial = {
-                ...activeTrial,
-                paidInvocations: [
-                  ...activeTrial.paidInvocations,
-                  { stage: options.stage, usage: null },
-                ],
-              };
-              try {
-                // Durable unknown usage owns the reservation before the process can start.
+    const output = await runWithEvaluationTemporaryStorageGuard(
+      options.temporaryRoot,
+      (storageSignal) => {
+        const signal =
+          options.signal === undefined
+            ? storageSignal
+            : AbortSignal.any([storageSignal, options.signal]);
+        return runCodexEvaluationOperationalStage({
+          initialFailureCount,
+          maximumRetryCount: MAXIMUM_OPERATIONAL_RETRY_COUNT,
+          onExhausted: async (exhaustion) => {
+            activeTrial = stopSemanticOperationalStage(
+              activeTrial,
+              options.stage,
+              exhaustion,
+              isStopped,
+            );
+            await options.persistActiveTrial(activeTrial);
+            releaseReservation();
+          },
+          onRetry: async (retry) => {
+            activeTrial = appendSemanticOperationalRetry(activeTrial, options.stage, retry);
+            await options.persistActiveTrial(activeTrial);
+            releaseReservation();
+          },
+          operation: async () =>
+            options.operation(
+              signal,
+              async (operation) => {
+                throwIfSemanticExecutionAborted(signal);
+                options.tokenController.reserve(options.reservationId);
+                isReservationActive = true;
+                const invocationIndex = activeTrial.paidInvocations.length;
+                activeTrial = {
+                  ...activeTrial,
+                  paidInvocations: [
+                    ...activeTrial.paidInvocations,
+                    { stage: options.stage, usage: null },
+                  ],
+                };
+                try {
+                  // Durable unknown usage owns the reservation before the process can start.
+                  await options.persistActiveTrial(activeTrial);
+                } finally {
+                  releaseReservation();
+                }
+                throwIfSemanticExecutionAborted(signal);
+                const output = await operation();
+                activeTrial = {
+                  ...activeTrial,
+                  paidInvocations: activeTrial.paidInvocations.map((invocation, index) =>
+                    index === invocationIndex
+                      ? {
+                          ...invocation,
+                          usage: output.usage,
+                          commandPolicyEvidence: output.commandPolicyEvidence,
+                        }
+                      : invocation,
+                  ),
+                };
                 await options.persistActiveTrial(activeTrial);
-              } finally {
-                releaseReservation();
-              }
-              const output = await operation();
-              activeTrial = {
-                ...activeTrial,
-                paidInvocations: activeTrial.paidInvocations.map((invocation, index) =>
-                  index === invocationIndex
-                    ? {
-                        ...invocation,
-                        usage: output.usage,
-                        commandPolicyEvidence: output.commandPolicyEvidence,
-                      }
-                    : invocation,
-                ),
-              };
-              await options.persistActiveTrial(activeTrial);
-              return output;
-            },
-            async (cycles) => {
-              const cycle = cycles.at(-1);
-              activeTrial = {
-                ...activeTrial,
-                actorCycles: cycles,
-                paidInvocations: activeTrial.paidInvocations.map((invocation, index) =>
-                  cycle !== undefined && index === activeTrial.paidInvocations.length - 1
-                    ? { ...invocation, cycle }
-                    : invocation,
-                ),
-              };
-              await options.persistActiveTrial(activeTrial);
-            },
-          ),
-        signal,
-      }),
+                return output;
+              },
+              async (cycles) => {
+                const cycle = cycles.at(-1);
+                activeTrial = {
+                  ...activeTrial,
+                  actorCycles: cycles,
+                  paidInvocations: activeTrial.paidInvocations.map((invocation, index) =>
+                    cycle !== undefined && index === activeTrial.paidInvocations.length - 1
+                      ? { ...invocation, cycle }
+                      : invocation,
+                  ),
+                };
+                await options.persistActiveTrial(activeTrial);
+              },
+            ),
+          signal,
+        });
+      },
     );
     return { activeTrial, output };
   } catch (error) {
@@ -321,7 +347,7 @@ const runHostStage = async <T>(options: {
 /**
  * Executes one isolated actor session and its independently assessed durable trial.
  * @returns The complete private trial and its public projection.
- * @throws If checkpoint identity, bounded execution, paid admission or durable persistence fails.
+ * @throws If execution is cancelled, or checkpoint identity, bounded execution, paid admission or durable persistence fails.
  */
 export const runSemanticTrial = async (options: {
   activeTrial: ISemanticActiveTrialCheckpoint | null;
@@ -338,7 +364,9 @@ export const runSemanticTrial = async (options: {
   persistActiveTrial: (activeTrial: ISemanticActiveTrialCheckpoint) => Promise<void>;
   reusableTrials: readonly ISemanticReusableTrial[];
   tokenController: ISemanticTokenAdmissionController;
+  signal?: AbortSignal | undefined;
 }): Promise<ISemanticTrialExecution> => {
+  throwIfSemanticExecutionAborted(options.signal);
   const evaluationRoot = await mkdtemp(
     path.join(tmpdir(), `moldea-semantic-${options.caseDefinition.id}-`),
   );
@@ -517,6 +545,7 @@ export const runSemanticTrial = async (options: {
       let hasStartedAttempt = false;
       const actorExecution = await runHostStage({
         activeTrial,
+        signal: options.signal,
         isOperationalResumeRequested: options.isOperationalResumeRequested,
         operation: async (signal, invoke, persistCycles) => {
           if (hasStartedAttempt) {
@@ -639,6 +668,7 @@ export const runSemanticTrial = async (options: {
     });
     const judgeExecution = await runHostStage({
       activeTrial,
+      signal: options.signal,
       isOperationalResumeRequested: options.isOperationalResumeRequested,
       operation: async (signal, invoke) => {
         const judgeEvidence = await invoke(async () => {
@@ -783,10 +813,12 @@ export const runSemanticTrial = async (options: {
  * - Evaluation worker count must be 1, 2, or 4.
  * - Semantic token limit must be a positive safe integer no greater than 128000000.
  * - Paid-stage admission exceeds the configured limit.
+ * - Execution is cancelled before another case or paid boundary.
  */
 export const executeSemanticCases = async (
   options: ISemanticCaseRunnerOptions,
 ): Promise<ISemanticRecordedCase[]> => {
+  throwIfSemanticExecutionAborted(options.signal);
   let checkpointMutationQueue = Promise.resolve();
   const mutateCheckpoint = async (
     operation: (currentCheckpoint: ISemanticCandidateCheckpoint) => void,
@@ -841,7 +873,11 @@ export const executeSemanticCases = async (
         caseCheckpointStates.delete(recordedCase.id);
       });
     },
-    executeTrial: (trialOptions) => options.executeTrial({ ...trialOptions, tokenController }),
+    executeTrial: (trialOptions) => {
+      throwIfSemanticExecutionAborted(options.signal);
+      return options.executeTrial({ ...trialOptions, tokenController });
+    },
+    signal: options.signal,
     getCaseCheckpoint: (caseId) => caseCheckpointStates.get(caseId) ?? null,
     persistCaseCheckpoint: async (caseCheckpoint) => {
       caseCheckpointStates.set(caseCheckpoint.caseId, caseCheckpoint);
@@ -1038,7 +1074,8 @@ const verifyLocalSemanticRuns = async (): Promise<number> => {
   return fileNames.length;
 };
 
-const run = async (): Promise<void> => {
+const run = async (signal: AbortSignal): Promise<void> => {
+  throwIfSemanticExecutionAborted(signal);
   const arguments_ = parseSemanticEvaluationArguments(process.argv.slice(2));
   const catalog = await loadSemanticCases(CASES_ROOT);
   const cases = arguments_.isRecordRequested
@@ -1190,6 +1227,7 @@ const run = async (): Promise<void> => {
     temporaryFilesystem.bavail * temporaryFilesystem.bsize,
   );
   const recordedCases = await executeSemanticCases({
+    signal,
     cases: casesToExecute,
     checkpoint,
     executeTrial: async ({
@@ -1200,6 +1238,7 @@ const run = async (): Promise<void> => {
       tokenController,
     }) => {
       const trialExecution = await runSemanticTrial({
+        signal,
         activeTrial,
         actorCommand,
         actorHost,
@@ -1222,6 +1261,7 @@ const run = async (): Promise<void> => {
     workerCount,
   });
 
+  throwIfSemanticExecutionAborted(signal);
   if (!arguments_.isRecordRequested) {
     if (checkpointMode === 'diagnostic') {
       if (checkpoint === null) throw new Error('Completed semantic diagnostic has no checkpoint.');
@@ -1252,10 +1292,13 @@ const run = async (): Promise<void> => {
 };
 
 if (isMainModule(import.meta.url)) {
+  const shutdown = createShutdownSignal({ forceOnRepeat: true });
   try {
-    await run();
+    await run(shutdown.signal);
   } catch (error) {
     process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
-    process.exitCode = 1;
+    if (!shutdown.signal.aborted) process.exitCode = 1;
+  } finally {
+    shutdown.dispose();
   }
 }

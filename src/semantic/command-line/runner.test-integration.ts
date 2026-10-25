@@ -1,15 +1,28 @@
 // @vitest-environment node
 import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { chmod, cp, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
+import {
+  chmod,
+  cp,
+  mkdir,
+  mkdtemp,
+  readdir,
+  readFile,
+  rm,
+  symlink,
+  writeFile,
+} from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, test, vi } from 'vitest';
+import { startProcess, stopProcessTree } from 'jg-process';
 
 import {
   buildCodexEvaluationHostCommand,
   identifyCodexEvaluationHost,
   prepareCodexEvaluationHome,
+  CodexEvaluationHostError,
+  CODEX_EVALUATION_HOST_FAILURE_KINDS,
   type ICodexEvaluationCommandPolicyEvidence,
 } from '../../execution/host/index.ts';
 import { readCompletedEvidenceRun } from '../../evidence/index.ts';
@@ -240,6 +253,50 @@ const createDeferred = (): { promise: Promise<void>; resolve: () => void } => {
   return { promise, resolve };
 };
 
+test('cancellation drains active results without initializing another case or confirmations', async () => {
+  const root = await mkdtemp(path.join(tmpdir(), 'moldea-cancel-'));
+  temporaryRoots.push(root);
+  const cases = ['first', 'second', 'third'].map(createCase);
+  const checkpoint = createCandidateCheckpoint(cases);
+  const controller = new AbortController();
+  const release = createDeferred();
+  const started: string[] = [];
+  const running = executeSemanticCases({
+    cases,
+    checkpoint,
+    repositoryRoot: root,
+    workerCount: 2,
+    signal: controller.signal,
+    executeTrial: async ({ caseDefinition, confirmationIndex }) => {
+      started.push(caseDefinition.id);
+      await release.promise;
+      return createRecordedTrial({ caseDefinition, confirmationIndex, passed: true });
+    },
+  });
+  const result = running.catch((error: unknown) => error);
+  try {
+    await expect.poll(() => [...started].sort()).toStrictEqual(['first', 'second']);
+    controller.abort(
+      new CodexEvaluationHostError(
+        CODEX_EVALUATION_HOST_FAILURE_KINDS.Aborted,
+        'Evaluation host execution was aborted.',
+      ),
+    );
+    release.resolve();
+    expect(await result).toMatchObject({ kind: 'aborted' });
+    const saved = await readSemanticCheckpoint(root);
+    expect(Object.keys(saved.caseCheckpoints).sort()).toStrictEqual(['first', 'second']);
+    expect(Object.values(saved.caseCheckpoints).map(({ trials }) => trials.length)).toStrictEqual([
+      1, 1,
+    ]);
+    expect(started).toHaveLength(2);
+  } finally {
+    controller.abort();
+    release.resolve();
+    await result;
+  }
+});
+
 /** Prepares the real recording entrypoint with terminal synthetic evidence and non-model hosts. */
 const prepareCompletedRecording = async (
   actorVersionChanged: boolean,
@@ -362,8 +419,176 @@ const prepareCompletedRecording = async (
         },
       },
     );
-  return { root, checkpoint, definition, recordedTrial, modelCallsPath, run };
+  return {
+    root,
+    checkpoint,
+    definition,
+    recordedTrial,
+    modelCallsPath,
+    run,
+    actorCommand,
+    judgeCommand,
+  };
 };
+
+test.each(['SIGINT', 'SIGTERM'] as const)(
+  'the real CLI drains two workers on %s and resumes with retained unknown charges',
+  async (signal) => {
+    const fixture = await prepareCompletedRecording(false, false);
+    const definitions = [
+      'initialize-conflicting-package-manager',
+      'initialize-missing-package-manager',
+    ].map((id) => ({
+      ...createCase(id),
+      coverageClaimIds: SEMANTIC_COVERAGE_CLAIMS.map(({ id: claim }) => claim),
+    }));
+    await rm(path.join(fixture.root, 'src/semantic/cases', fixture.definition.id), {
+      recursive: true,
+    });
+    for (const definition of definitions) {
+      const directory = path.join(fixture.root, 'src/semantic/cases', definition.id);
+      await mkdir(directory);
+      await writeFile(
+        path.join(directory, 'case.ts'),
+        `export const semanticCase = ${JSON.stringify(definition)};\n`,
+      );
+    }
+    const checkpoint = {
+      ...fixture.checkpoint,
+      attemptId: 'sem-shutdown-test',
+      mode: 'diagnostic' as const,
+      selectedCaseIds: definitions.map(({ id }) => id),
+      cases: [],
+      caseCheckpoints: {},
+      caseSuiteDigest: createSemanticCaseSuiteDigest(definitions),
+      coverageDigest: createSemanticCoverageDigest(createSemanticCoverage(definitions)),
+    };
+    await writeSemanticCheckpoint(fixture.root, checkpoint);
+    const hostSource = (role: 'actor' | 'judge', hold: boolean) =>
+      '#!/usr/bin/env node\n' +
+      `if(process.argv[2]==='--version'){process.stdout.write('codex 2.0.0\\n');}else{\n` +
+      `const emit=e=>process.stdout.write(JSON.stringify(e)+'\\n');\n` +
+      (hold
+        ? `require('node:net').createServer().listen('/tmp/fake-host.sock',()=>emit({type:'turn.started'}));\n`
+        : `emit({type:'item.completed',item:{type:'agent_message',text:${JSON.stringify(role === 'actor' ? 'Synthetic actor response.' : JSON.stringify({ expected: { expected: true }, forbidden: { forbidden: false }, rationale: 'Synthetic passing assessment.' }))}}});emit({type:'turn.completed',usage:{input_tokens:1,cached_input_tokens:0,output_tokens:1}});\n`) +
+      '}\n';
+    for (const [role, command] of [
+      ['actor', fixture.actorCommand],
+      ['judge', fixture.judgeCommand],
+    ] as const) {
+      await writeFile(command[0]!, hostSource(role, true), { mode: 0o755 });
+      await writeFile(
+        path.join(path.dirname(command[0]!), 'codex-code-mode-host'),
+        '#!/bin/sh\nexit 0\n',
+        { mode: 0o755 },
+      );
+    }
+    const child = startProcess(
+      process.execPath,
+      [
+        path.join(fixture.root, 'src/semantic/command-line/runner.ts'),
+        '--diagnose-batch',
+        '--all',
+        '--workers',
+        '2',
+      ],
+      {
+        cwd: fixture.root,
+        stdio: ['ignore', 'pipe', 'pipe'],
+        env: {
+          ...process.env,
+          CODEX_HOME: path.join(fixture.root, 'empty-home'),
+          MOLDEA_EVAL_ACTOR_COMMAND_JSON: JSON.stringify(fixture.actorCommand),
+          MOLDEA_EVAL_JUDGE_COMMAND_JSON: JSON.stringify(fixture.judgeCommand),
+        },
+      },
+    );
+    let output = '';
+    child.stdout!.on('data', (chunk: Buffer) => {
+      output += chunk.toString();
+    });
+    child.stderr!.on('data', (chunk: Buffer) => {
+      output += chunk.toString();
+    });
+    const closed = new Promise<number | null>((resolve, reject) => {
+      child.once('error', reject);
+      child.once('close', resolve);
+    });
+    const traces = async () =>
+      Promise.all(
+        definitions.map(async ({ id }) => {
+          const directory = path.join(
+            fixture.root,
+            '.evidence/private-semantic',
+            checkpoint.attemptId,
+            id,
+          );
+          const names = await readdir(directory).catch(() => []);
+          const name = names.find(
+            (name) => name.endsWith('.jsonl') && !name.endsWith('.git.jsonl'),
+          );
+          return name === undefined ? '' : readFile(path.join(directory, name), 'utf8');
+        }),
+      );
+    try {
+      await expect
+        .poll(
+          async () => {
+            if (child.exitCode !== null) throw new Error(output);
+            return (await traces()).filter((text) => text.includes('"type":"turn.started"')).length;
+          },
+          { timeout: 20000 },
+        )
+        .toBe(2);
+      expect(child.kill(signal)).toBe(true);
+      await expect(closed, output).resolves.toBe(signal === 'SIGINT' ? 130 : 143);
+      const interrupted = await readSemanticCheckpoint(fixture.root);
+      expect(interrupted.attemptId).toBe(checkpoint.attemptId);
+      expect(
+        getSemanticCandidatePaidTokenCount(interrupted.cases, interrupted.caseCheckpoints),
+      ).toBe(4194304);
+      expect(
+        Object.values(interrupted.caseCheckpoints).map(
+          (entry) => entry.activeTrial?.paidInvocations,
+        ),
+      ).toStrictEqual([[{ stage: 'actor', usage: null }], [{ stage: 'actor', usage: null }]]);
+      for (const text of await traces()) {
+        const events = text
+          .trim()
+          .split('\n')
+          .map((line) => JSON.parse(line) as unknown);
+        expect(events.at(-1)).toMatchObject({ complete: true, outcome: 'failed' });
+        expect(events).toContainEqual(
+          expect.objectContaining({ type: 'moldea.cli-invocations', invocations: [] }),
+        );
+      }
+      await writeFile(fixture.actorCommand[0]!, hostSource('actor', false));
+      await writeFile(fixture.judgeCommand[0]!, hostSource('judge', false));
+      const resumed = fixture.run(['--diagnose-batch', '--all', '--workers', '2']);
+      expect(resumed.status, resumed.stderr + resumed.stdout).toBe(0);
+      expect(existsSync(getSemanticCheckpointPath(fixture.root))).toBe(false);
+      const archive = JSON.parse(
+        await readFile(
+          path.join(
+            fixture.root,
+            '.evidence/semantic/diagnostics',
+            checkpoint.attemptId,
+            'checkpoint.json',
+          ),
+          'utf8',
+        ),
+      ) as ISemanticCandidateCheckpoint;
+      expect(archive.attemptId).toBe(checkpoint.attemptId);
+      expect(getSemanticCandidatePaidTokenCount(archive.cases, archive.caseCheckpoints)).toBe(
+        4194312,
+      );
+      expect(archive.cases.map(({ status }) => status)).toStrictEqual(['passed', 'passed']);
+    } finally {
+      await stopProcessTree(child, 5);
+      await closed.catch(() => {});
+    }
+  },
+);
 
 test('passes the diagnostic CLI limit to paid-stage admission before calling a host', async () => {
   const fixture = await prepareCompletedRecording(false, false);

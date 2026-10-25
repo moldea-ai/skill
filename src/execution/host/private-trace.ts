@@ -188,6 +188,7 @@ export const createPrivateTrace = async (
   let writes = Promise.resolve();
   let line = '';
   let isFinished = false;
+  const activeCommands = new Set<string>();
   const decoder = new TextDecoder('utf8', { fatal: true });
   const clients = new Set<Socket>();
   let bufferedGitBytes = 0;
@@ -289,6 +290,10 @@ export const createPrivateTrace = async (
   }
   server.on('error', () => fail('Private Git diagnostic listener failed.'));
   return {
+    /** Marks missing runtime capture without discarding the retained diagnostic stream. */
+    markIncomplete(this: void): void {
+      fail('Private runtime invocation capture was incomplete.');
+    },
     /**
      * Accepts Codex stdout in stream order, without adding a second transcript buffer.
      * @throws If capture is closed, malformed, oversized or unavailable.
@@ -314,6 +319,29 @@ export const createPrivateTrace = async (
             throw new Error('Expected an event object.');
           append('events', sanitizePrivateTraceEvent(event));
           eventCount += 1;
+          if (
+            'type' in event &&
+            'item' in event &&
+            typeof event.item === 'object' &&
+            event.item !== null &&
+            'type' in event.item &&
+            event.item.type === 'command_execution'
+          ) {
+            if (event.type === 'item.started') {
+              if (
+                !('id' in event.item) ||
+                typeof event.item.id !== 'string' ||
+                activeCommands.has(event.item.id)
+              )
+                throw new Error('Invalid command start identity.');
+              activeCommands.add(event.item.id);
+            } else if (
+              event.type === 'item.completed' &&
+              'id' in event.item &&
+              typeof event.item.id === 'string'
+            )
+              activeCommands.delete(event.item.id);
+          }
         } catch {
           fail('Private diagnostic event stream was malformed.');
         }
@@ -338,6 +366,7 @@ export const createPrivateTrace = async (
         fail('Private diagnostic event stream ended with partial UTF-8.');
       }
       if (line.trim() !== '') fail('Private diagnostic event stream ended with a partial line.');
+      if (activeCommands.size > 0) fail('Private diagnostic command capture was incomplete.');
       await new Promise<void>((resolve) => {
         const timeout = setTimeout(() => {
           fail('Private Git diagnostic transport did not finish.');

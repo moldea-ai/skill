@@ -132,7 +132,7 @@ Scripted journeys cover six journeys and 21 requests in ordinary ChatGPT and Cla
 | `.github/workflows/pages.yml`             | Pages preflight, parallel verification/production build, and gated deployment.                                                                                            |
 | `.github/workflows/release-candidate.yml` | Exact package-candidate validation without publication.                                                                                                                   |
 
-The evaluation host owns bounded private command/usage traces and Git stderr sidecars, stored outside sandbox mounts and public evidence. See [isolation and bounded evidence](docs/semantic-evaluation.md#isolation-and-bounded-evidence) for capture limits and publication rejection.
+The evaluation host owns bounded private command/usage traces and Git stderr sidecars, stored outside sandbox mounts and public evidence. The semantic CLI cancels and drains active workers on shutdown while retaining paid charges and checkpoint progress. See [isolation and bounded evidence](docs/semantic-evaluation.md#isolation-and-bounded-evidence) for capture limits and publication rejection.
 
 Scripted-journey composition assembles one website snapshot from explicit local records. Whole provider/journey groups can update independently; retained results keep their original requests, versions, methods, dates and raw artifacts. New tests may have evidence from only one provider. Partial or mixed snapshots can display but do not satisfy current release assurance.
 

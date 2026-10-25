@@ -1233,6 +1233,7 @@ export const runCodexEvaluationHost = async ({
       ? undefined
       : await createPrivateTrace(privateTrace, join(sandboxHome, 'git.sock'));
   let traceOutcome: 'completed' | 'failed' = 'failed';
+  let hasCapturedInvocations = false;
   const proxyProcess = spawn(process.execPath, [EGRESS_PROXY_PATH], {
     env: {
       MOLDEA_EVAL_ALLOWED_HOSTS: hostConfiguration.allowedEgressHosts.join(','),
@@ -1292,6 +1293,7 @@ export const runCodexEvaluationHost = async ({
             };
       const captureFrames = `${JSON.stringify({ type: 'moldea.git-invocations', evidence })}\n${JSON.stringify({ type: 'moldea.cli-invocations', observesManagedAgents: true, invocations, commandInstances: capture.commandInstances, ...canonicalState })}`;
       trace?.capture(Buffer.from(`${captureFrames}\n`));
+      hasCapturedInvocations = true;
       traceOutcome = 'completed';
       return `${output}\n${captureFrames}`;
     } catch (error) {
@@ -1307,6 +1309,31 @@ export const runCodexEvaluationHost = async ({
     } finally {
       try {
         if (trace !== undefined) {
+          if (!hasCapturedInvocations) {
+            try {
+              const evidence = await readGitInvocationEvidence(gitInvocationLogPath);
+              const capture = await readCliInvocationCapture(cliInvocationLogPath);
+              trace.capture(
+                Buffer.from(
+                  [
+                    JSON.stringify({ type: 'moldea.git-invocations', evidence }),
+                    JSON.stringify({
+                      type: 'moldea.cli-invocations',
+                      observesManagedAgents: true,
+                      invocations: capture.invocations.filter(
+                        (invocation) =>
+                          invocation.entrypoint !== 'managed-agents' || hasImmutableWriter,
+                      ),
+                      commandInstances: capture.commandInstances,
+                    }),
+                    '',
+                  ].join('\n'),
+                ),
+              );
+            } catch {
+              trace.markIncomplete();
+            }
+          }
           let expectedCount = -1;
           try {
             expectedCount = (await readGitInvocationEvidence(gitInvocationLogPath)).invocationCount;

@@ -71,6 +71,49 @@ const readTraces = async (root: string) => {
   );
 };
 
+test.each(['open-command', 'missing-runtime'] as const)(
+  'incomplete cancellation capture (%s) blocks stage completion and retains an incomplete footer',
+  async (scenario) =>
+    withFixture(async (root, createPrivateTrace) => {
+      const trace = await createPrivateTrace(options(root), join(root, 'trace.sock'));
+      if (scenario === 'open-command')
+        trace.capture(
+          Buffer.from(
+            JSON.stringify({
+              type: 'item.started',
+              item: { id: 'command-one', type: 'command_execution', command: 'cat README.md' },
+            }) + '\n',
+          ),
+        );
+      else trace.markIncomplete();
+      await expect(trace.finish('failed', 0)).rejects.toThrow('incomplete');
+      for (const { text } of await readTraces(root))
+        expect(JSON.parse(text.trim().split('\n').at(-1)!)).toMatchObject({
+          complete: false,
+          outcome: 'failed',
+        });
+    }),
+);
+
+test('retains an invalid command-start event while marking its capture incomplete', async () =>
+  withFixture(async (root, createPrivateTrace) => {
+    const trace = await createPrivateTrace(options(root), join(root, 'trace.sock'));
+    const event = {
+      type: 'item.started',
+      item: { type: 'command_execution', command: 'cat README.md' },
+    };
+    expect(() => trace.capture(Buffer.from(JSON.stringify(event) + '\n'))).toThrow('malformed');
+    await expect(trace.finish('failed', 0)).rejects.toThrow('malformed');
+    const events = (await readTraces(root)).find(({ name }) => !name.endsWith('.git.jsonl'))!;
+    expect(
+      events.text
+        .trim()
+        .split('\n')
+        .map((line) => JSON.parse(line) as unknown),
+    ).toContainEqual(event);
+    expect(JSON.parse(events.text.trim().split('\n').at(-1)!)).toMatchObject({ complete: false });
+  }));
+
 test('host refuses observer storage inside the workspace or related mounts before starting', async () =>
   withFixture(async (root) => {
     const command = buildCodexEvaluationHostCommand(

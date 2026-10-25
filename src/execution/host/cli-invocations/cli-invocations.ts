@@ -146,8 +146,9 @@ export const readCliInvocationCapture = async (
         return overlappingIds.has(id) && invocation !== undefined
           ? {
               ...invocation,
-              callers: [],
-              callerIdentities: [],
+              overlapping: true,
+              callers: invocation.callers ?? [],
+              callerIdentities: invocation.callerIdentities ?? [],
               canonicalBefore: null,
               canonicalAfter: null,
             }

@@ -38,6 +38,9 @@ test.each([
     expect(await readFile(join(repositoryPath, 'reports/status.txt'), 'utf8')).toBe('pending\n');
     const prompt = buildSemanticActorPrompt(definition);
     expect(prompt).toContain('14 days instead of 30 days');
+    expect(prompt).toContain(
+      'This context update is blocked because the repository-local moldea CLI is not installed.',
+    );
     expect(definition.input.followUpDeveloperRequests).toHaveLength(1);
     expect(prompt).not.toContain(definition.input.followUpDeveloperRequests![0]);
     for (const criterion of [...definition.expected, ...definition.forbidden])

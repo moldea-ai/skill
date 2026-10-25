@@ -42,6 +42,8 @@ export const CliInvocationRecordSchema = z.discriminatedUnion('kind', [
 
 export const CliInvocationSchema = ExitSchema.omit({ kind: true, id: true })
   .extend({
+    // method provenance survives overlap; ordered-operation proof does not
+    overlapping: z.literal(true).optional(),
     arguments: ArgumentsSchema,
     entrypoint: z.enum(['cli', 'managed-agents']).optional(),
     callers: CallerArgumentsSchema.optional(),

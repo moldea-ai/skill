@@ -7,6 +7,7 @@ import { expect, test, vi } from 'vitest';
 import { readReleaseIdentity } from '../../../release/index.ts';
 import {
   createSemanticResultDimensions,
+  hasVerifiedManagedAgentsHandoff,
   parseSemanticEvaluationHostOutput,
 } from '../../../semantic/execution/index.ts';
 import { semanticCase } from '../../../semantic/cases/ordinary-final-validation-limit/case.ts';
@@ -19,6 +20,95 @@ import {
 
 import { buildCodexEvaluationHostCommand, runCodexEvaluationHost } from '../host.ts';
 import { CliInvocationEventSchema } from './index.ts';
+
+test('parallel real validation and writer print retain separately proved results', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'moldea-parallel-tools-'));
+  try {
+    await mkdir(join(root, 'source-home'));
+    vi.stubEnv('CODEX_HOME', join(root, 'source-home'));
+    const home = join(root, 'home');
+    const tools = join(root, 'tools');
+    const { repositoryPath, readOnlyMounts } = await createActorRepository(
+      root,
+      staleIntegrationCase,
+      home,
+      tools,
+    );
+    const commands = [
+      'node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt -- validate --json --max-output-bytes 65536',
+      'node /mnt/.agents/skills/moldea/scripts/managed-agents.mjs --repository /mnt --print',
+    ];
+    await writeFile(
+      join(tools, 'codex'),
+      '#!/opt/node\n' +
+        `const {spawn}=require('node:child_process');\n` +
+        `const commands=${JSON.stringify(commands)};\n` +
+        `const emit=(type,index,result)=>console.log(JSON.stringify({type,item:{id:'parallel-'+index,type:'command_execution',command:"/bin/bash -lc '"+commands[index]+"'",...(result?{status:result.code===0?'completed':'failed',exit_code:result.code,aggregated_output:result.stdout+result.stderr}:{})}}));\n` +
+        `Promise.all(commands.map((command,index)=>new Promise((resolve,reject)=>{emit('item.started',index);const child=spawn('/bin/bash',['-c',command]);let stdout='',stderr='';child.stdout.on('data',chunk=>stdout+=chunk);child.stderr.on('data',chunk=>stderr+=chunk);child.once('error',reject);child.once('close',code=>resolve({index,code,stdout,stderr}));}))).then(results=>{for(const result of results.toReversed())emit('item.completed',result.index,result);console.log(JSON.stringify({type:'item.completed',item:{type:'agent_message',text:results[1].stdout}}));}).catch(error=>{console.error(error);process.exitCode=1;});\n`,
+      { mode: 0o755 },
+    );
+    await writeFile(join(tools, 'codex-code-mode-host'), '#!/bin/sh\nexit 0\n', { mode: 0o755 });
+    vi.stubEnv('PATH', `${tools}:${process.env['PATH'] ?? ''}`);
+    const output = await runCodexEvaluationHost({
+      command: buildCodexEvaluationHostCommand(
+        [
+          'codex',
+          'exec',
+          '--ephemeral',
+          '--ignore-rules',
+          '--ignore-user-config',
+          '--skip-git-repo-check',
+          '--dangerously-bypass-approvals-and-sandbox',
+          '-c',
+          'shell_environment_policy.inherit=none',
+          '-',
+        ],
+        'actor',
+      ),
+      cwd: repositoryPath,
+      sandboxHome: home,
+      role: 'actor',
+      prompt: 'Observe parallel installed tools',
+      readOnlyMounts,
+      readOnlyWorkspacePaths: ['.agents', '.git'],
+    });
+    const identity = readReleaseIdentity(process.cwd());
+    const parsed = parseSemanticEvaluationHostOutput(output, {
+      cliVersion: identity.cliVersion,
+      jsonSchemaVersion: identity.cliJsonSchemaVersion,
+    });
+    const facts = parsed.actorExecutionEvidence.flatMap(({ item }) => item.outputEvidence.facts);
+    expect(facts.filter((fact) => fact.kind === 'moldea-cli-envelope')).toHaveLength(1);
+    expect(facts.filter((fact) => fact.kind === 'managed-agents-print-result')).toHaveLength(1);
+    expect(hasVerifiedManagedAgentsHandoff(parsed.actorExecutionEvidence, parsed.response)).toBe(
+      true,
+    );
+    expect(parsed.commandPolicyEvidence.completedCommandCount).toBe(2);
+    expect(parsed.actorResourceEvidence.commandCount).toBe(1);
+    const capture = output.split('\n').flatMap((line) => {
+      if (line === '') return [];
+      const result = CliInvocationEventSchema.safeParse(JSON.parse(line) as unknown);
+      return result.success ? [result.data] : [];
+    });
+    expect(capture).toHaveLength(1);
+    expect(capture[0]!.invocations).toHaveLength(2);
+    expect(
+      capture[0]!.invocations.every((invocation) => (invocation.callers?.length ?? 0) > 0),
+    ).toBe(true);
+    if (capture[0]!.invocations.some((invocation) => invocation.overlapping === true)) {
+      expect(
+        parsed.commandPolicyEvidence.moldeaEvents.every(
+          (event) => event.kind !== 'command' || event.operations === null,
+        ),
+      ).toBe(true);
+    }
+    expect(JSON.stringify(parsed)).not.toContain('callerIdentities');
+    expect(JSON.stringify(parsed)).not.toContain('overlapping');
+  } finally {
+    vi.unstubAllEnvs();
+    await rm(root, { recursive: true, force: true });
+  }
+});
 
 test.each(['sequential', 'overlapping', 'failed-command'] as const)(
   'associates real repeated compound shells only with %s SDK command lifetimes',

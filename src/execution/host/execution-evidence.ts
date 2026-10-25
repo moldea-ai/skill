@@ -897,7 +897,8 @@ const correlateObservedCommandInstances = (
 };
 
 /**
- * Groups runtime children by an observed parent, using process instances for repeated commands.
+ * Groups runtime children by an observed parent, independently of cross-command completion order.
+ * Process instances and SDK lifetimes disambiguate repeated commands; operation ordering is separate.
  * The metadata-only boundary also supports private replay without reconstructing stripped output.
  */
 export const correlateToolInvocations = <
@@ -940,9 +941,7 @@ export const correlateToolInvocations = <
       commandIndices.set(identity, indices);
     }
   });
-  const grouped: Array<Array<{ invocation: T; depth: number; position: number }>> = commands.map(
-    () => [],
-  );
+  const grouped: Array<Array<{ invocation: T; depth: number }>> = commands.map(() => []);
   const instances = observations.commandInstances ?? [];
   const instanceIdentities = new Set(instances.map((instance) => instance.identity));
   const instanceIndices = correlateObservedCommandInstances(
@@ -952,13 +951,13 @@ export const correlateToolInvocations = <
     observations.events ?? [],
     key,
   );
-  invocations.forEach((invocation, position) => {
+  invocations.forEach((invocation) => {
     const callers = invocation.callers ?? [];
     for (let depth = callers.length - 1; depth >= 0; depth--) {
       const identity = invocation.callerIdentities?.[depth];
       if (identity !== undefined && instanceIdentities.has(identity)) {
         const index = instanceIndices.get(identity);
-        if (index !== undefined) grouped[index]!.push({ invocation, depth, position });
+        if (index !== undefined) grouped[index]!.push({ invocation, depth });
         return;
       }
       const caller = callers[depth]!;
@@ -972,7 +971,7 @@ export const correlateToolInvocations = <
         ),
       ];
       if (matches.length === 0) continue;
-      if (matches.length === 1) grouped[matches[0]!]!.push({ invocation, depth, position });
+      if (matches.length === 1) grouped[matches[0]!]!.push({ invocation, depth });
       return;
     }
   });
@@ -981,13 +980,6 @@ export const correlateToolInvocations = <
       ? null
       : group,
   );
-  let lastPosition = -1;
-  for (const group of accepted) {
-    for (const { position } of group ?? []) {
-      if (position <= lastPosition) return commands.map(() => null);
-      lastPosition = position;
-    }
-  }
   return accepted.map((group) => group?.map(({ invocation }) => invocation) ?? null);
 };
 
@@ -1868,7 +1860,12 @@ const classifyFileChangeMoldeaPath = (
 export const projectMoldeaInvocationOperations = <
   T extends Pick<
     ICliInvocation,
-    'arguments' | 'entrypoint' | 'outputByteCount' | 'canonicalBefore' | 'canonicalAfter'
+    | 'arguments'
+    | 'entrypoint'
+    | 'outputByteCount'
+    | 'canonicalBefore'
+    | 'canonicalAfter'
+    | 'overlapping'
   >,
 >(
   events: ICodexEvaluationMoldeaEvent[],
@@ -1881,7 +1878,10 @@ export const projectMoldeaInvocationOperations = <
   const placed = groups.flatMap((group) => group ?? []);
   const isComplete =
     placed.length === capture.invocations.length &&
-    placed.every((invocation, index) => invocation === capture.invocations[index]);
+    placed.every(
+      (invocation, index) =>
+        invocation === capture.invocations[index] && invocation.overlapping !== true,
+    );
   if (!isComplete) {
     for (const command of commands) command.operations = null;
     return;

@@ -15,9 +15,82 @@ import {
 
 import { buildCodexEvaluationBwrapArguments, prepareCodexEvaluationHome } from '../host.ts';
 import { prepareGitCommandPolicyBoundary } from '../git-command-policy-boundary.ts';
-import { readCliInvocations } from './cli-invocations.ts';
+import { readCliInvocationCapture, readCliInvocations } from './cli-invocations.ts';
 
 const { cliVersion } = readReleaseIdentity(process.cwd());
+
+test('distinct parallel commands retain method provenance without canonical chronology', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'moldea-parallel-proof-'));
+  try {
+    const path = join(root, 'capture.jsonl');
+    const ids = [randomUUID(), randomUUID()];
+    const commands = [
+      [
+        'node',
+        '/mnt/.agents/skills/moldea/scripts/moldea-cli.mjs',
+        '--repository',
+        '/mnt',
+        '--',
+        'validate',
+        '--json',
+        '--max-output-bytes',
+        '65536',
+      ],
+      [
+        'node',
+        '/mnt/.agents/skills/moldea/scripts/managed-agents.mjs',
+        '--repository',
+        '/mnt',
+        '--print',
+      ],
+    ];
+    const callers = commands.map((command) => ['/bin/bash', '-c', command.join(' ')]);
+    const identities = ['101:1', '102:1'];
+    const records = [
+      ...identities.map((identity, index) => ({
+        kind: 'command',
+        identity,
+        arguments: callers[index],
+      })),
+      ...ids.map((id, index) => ({
+        kind: 'start',
+        id,
+        arguments: commands[index]!.slice(2),
+        entrypoint: index === 0 ? 'cli' : 'managed-agents',
+        callers: [callers[index]],
+        callerIdentities: [identities[index]],
+        canonicalBefore: 'a'.repeat(64),
+      })),
+      ...ids.map((id) => ({
+        kind: 'exit',
+        id,
+        exitCode: 0,
+        outputByteCount: 0,
+        stdout: '',
+        canonicalAfter: 'a'.repeat(64),
+      })),
+    ];
+    await writeFile(path, records.map((record) => JSON.stringify(record)).join('\n') + '\n');
+    const captured = await readCliInvocationCapture(path);
+    expect(captured.invocations.map((invocation) => invocation.overlapping)).toStrictEqual([
+      true,
+      true,
+    ]);
+    expect(captured.invocations.map((invocation) => invocation.callers)).toStrictEqual(
+      callers.map((caller) => [caller]),
+    );
+    expect(captured.invocations.map((invocation) => invocation.callerIdentities)).toStrictEqual(
+      identities.map((identity) => [identity]),
+    );
+    expect(
+      captured.invocations.every(
+        (invocation) => invocation.canonicalBefore === null && invocation.canonicalAfter === null,
+      ),
+    ).toBe(true);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
 
 test('overlapping launcher intervals retain calls but cannot prove canonical chronology', async () => {
   const root = await mkdtemp(join(tmpdir(), 'moldea-cli-overlap-'));
@@ -60,7 +133,7 @@ test('overlapping launcher intervals retain calls but cannot prove canonical chr
   }
 });
 
-test('overlapping calls do not erase independent sequential caller and canonical evidence', async () => {
+test('overlapping calls retain method provenance but lose only their canonical chronology', async () => {
   const root = await mkdtemp(join(tmpdir(), 'moldea-cli-intervals-'));
   try {
     const path = join(root, 'capture.jsonl');
@@ -98,20 +171,12 @@ test('overlapping calls do not erase independent sequential caller and canonical
     ];
     await writeFile(path, records.map((record) => JSON.stringify(record)).join('\n') + '\n');
     const captured = await readCliInvocations(path);
-    expect(captured.map((invocation) => invocation.callers)).toStrictEqual([
-      [callers[0]],
-      [],
-      [],
-      [],
-      [callers[4]],
-    ]);
-    expect(captured.map((invocation) => invocation.callerIdentities)).toStrictEqual([
-      [identities[0]],
-      [],
-      [],
-      [],
-      [identities[4]],
-    ]);
+    expect(captured.map((invocation) => invocation.callers)).toStrictEqual(
+      callers.map((caller) => [caller]),
+    );
+    expect(captured.map((invocation) => invocation.callerIdentities)).toStrictEqual(
+      identities.map((identity) => [identity]),
+    );
     expect(captured.map((invocation) => invocation.canonicalBefore)).toStrictEqual([
       'a'.repeat(64),
       null,

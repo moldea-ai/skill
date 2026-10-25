@@ -15,6 +15,7 @@ import {
   isMoldeaManagedReadmeWriterCommand,
   isRepositoryTestCommand,
   projectCodexEvaluationExecutionEvidence,
+  projectMoldeaInvocationOperations,
   projectRepairGitCommandEvidence,
 } from './execution-evidence.ts';
 import {
@@ -39,6 +40,52 @@ const createCommandEvent = (
       ...overrides,
     },
   });
+
+test('distinct commands retain correspondence when parallel completion reverses startup order', () => {
+  const scripts = ['node /mnt/first.mjs', 'node /mnt/second.mjs'];
+  const commands = scripts.map((script) => `/bin/bash -lc '${script}'`);
+  const invocations = scripts.map((script, index) => ({
+    callers: [
+      ['/opt/node', `/mnt/${index === 0 ? 'first' : 'second'}.mjs`],
+      ['/bin/bash', '-c', script],
+    ],
+    callerIdentities: [`${201 + index}:1`, `${101 + index}:1`],
+  }));
+  assert.deepEqual(
+    correlateToolInvocations(commands.toReversed(), invocations, {
+      commandInstances: invocations.map((invocation) => ({
+        identity: invocation.callerIdentities[1]!,
+        arguments: invocation.callers[1]!,
+      })),
+    }),
+    [[invocations[1]], [invocations[0]]],
+  );
+});
+
+test('overlapping invocation provenance never grants ordered operation proof', () => {
+  const invocation = {
+    arguments: ['--repository', '/mnt', '--', 'validate', '--json'],
+    outputByteCount: 0,
+    overlapping: true as const,
+    canonicalBefore: null,
+    canonicalAfter: null,
+  };
+  const events: ICodexEvaluationCommandPolicyEvidence['moldeaEvents'] = [
+    { kind: 'file-change', moldeaPath: 'touching' },
+    { kind: 'command', ownership: 'cli', outputByteCount: 0, operations: null },
+  ];
+  projectMoldeaInvocationOperations(
+    events,
+    { invocations: [invocation], canonicalInitial: 'a'.repeat(64), canonicalFinal: 'b'.repeat(64) },
+    [[invocation]],
+  );
+  assert.deepEqual(events[1], {
+    kind: 'command',
+    ownership: 'cli',
+    outputByteCount: 0,
+    operations: null,
+  });
+});
 
 test('runtime correspondence groups sequential children by the enclosing observed shell', () => {
   const script = "node --input-type=module <<'JS'\nconsole.log('wrapper');\nJS";

@@ -80,7 +80,8 @@ export const readCliInvocationCapture = async (
     >();
     const exits = new Map<string, ICliInvocation>();
     const commandInstances = new Map<string, ICliCommandInstance>();
-    let hasOverlap = false;
+    const activeIds = new Set<string>();
+    const overlappingIds = new Set<string>();
     for (const line of source.split('\n').slice(0, -1)) {
       const record = CliInvocationRecordSchema.parse(JSON.parse(line));
       if (record.kind === 'command') {
@@ -94,7 +95,13 @@ export const readCliInvocationCapture = async (
       }
       if (record.kind === 'start') {
         if (starts.has(record.id)) throw new Error('CLI invocation startup is duplicated.');
-        if (starts.size !== exits.size) hasOverlap = true;
+        // every other active start was already marked when it joined an overlapping interval
+        const activeId = activeIds.values().next().value;
+        if (activeId !== undefined) {
+          overlappingIds.add(activeId);
+          overlappingIds.add(record.id);
+        }
+        activeIds.add(record.id);
         if (
           record.callerIdentities !== undefined &&
           record.callerIdentities.length !== record.callers?.length
@@ -126,6 +133,7 @@ export const readCliInvocationCapture = async (
           outputByteCount: record.outputByteCount,
           ...(record.canonicalAfter === undefined ? {} : { canonicalAfter: record.canonicalAfter }),
         });
+        activeIds.delete(record.id);
       }
     }
     if (starts.size !== exits.size)
@@ -135,7 +143,7 @@ export const readCliInvocationCapture = async (
       commandInstances: [...commandInstances.values()],
       invocations: [...starts.keys()].map((id) => {
         const invocation = exits.get(id);
-        return hasOverlap && invocation !== undefined
+        return overlappingIds.has(id) && invocation !== undefined
           ? {
               ...invocation,
               callers: [],

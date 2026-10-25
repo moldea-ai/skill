@@ -60,6 +60,77 @@ test('overlapping launcher intervals retain calls but cannot prove canonical chr
   }
 });
 
+test('overlapping calls do not erase independent sequential caller and canonical evidence', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'moldea-cli-intervals-'));
+  try {
+    const path = join(root, 'capture.jsonl');
+    const ids = Array.from({ length: 5 }, () => randomUUID());
+    const args = ['--repository', '/mnt', '--', 'validate', '--json'];
+    const callers = ids.map((_, index) => ['/bin/bash', '-lc', `launcher-${index}`]);
+    const identities = ids.map((_, index) => `${100 + index}:1`);
+    const starts = ids.map((id, index) => ({
+      kind: 'start',
+      id,
+      arguments: args,
+      callers: [callers[index]],
+      callerIdentities: [identities[index]],
+      canonicalBefore: 'a'.repeat(64),
+    }));
+    const exits = ids.map((id) => ({
+      kind: 'exit',
+      id,
+      exitCode: 0,
+      outputByteCount: 0,
+      stdout: '',
+      canonicalAfter: 'b'.repeat(64),
+    }));
+    const records = [
+      starts[0],
+      exits[0],
+      starts[1],
+      starts[2],
+      exits[1],
+      starts[3],
+      exits[2],
+      exits[3],
+      starts[4],
+      exits[4],
+    ];
+    await writeFile(path, records.map((record) => JSON.stringify(record)).join('\n') + '\n');
+    const captured = await readCliInvocations(path);
+    expect(captured.map((invocation) => invocation.callers)).toStrictEqual([
+      [callers[0]],
+      [],
+      [],
+      [],
+      [callers[4]],
+    ]);
+    expect(captured.map((invocation) => invocation.callerIdentities)).toStrictEqual([
+      [identities[0]],
+      [],
+      [],
+      [],
+      [identities[4]],
+    ]);
+    expect(captured.map((invocation) => invocation.canonicalBefore)).toStrictEqual([
+      'a'.repeat(64),
+      null,
+      null,
+      null,
+      'a'.repeat(64),
+    ]);
+    expect(captured.map((invocation) => invocation.canonicalAfter)).toStrictEqual([
+      'b'.repeat(64),
+      null,
+      null,
+      null,
+      'b'.repeat(64),
+    ]);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test('Node startup records direct and wrapped launchers, early failures and filtered output without model calls', async () => {
   const root = await mkdtemp(join(tmpdir(), 'moldea-cli-capture-'));
   const repository = join(root, 'repository');

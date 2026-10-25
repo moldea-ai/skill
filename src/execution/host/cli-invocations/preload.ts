@@ -14,6 +14,7 @@ import { observeCanonicalDigest } from './canonical-observation.ts';
 const launcher = '/mnt/.agents/skills/moldea/scripts/moldea-cli.mjs';
 const writer = '/mnt/.agents/skills/moldea/scripts/managed-agents.mjs';
 const log = '/home/evaluator/cli-invocations.jsonl';
+const HOST_EXECUTABLES = new Set(['/opt/codex', '/opt/codex-code-mode-host']);
 
 /** Reads one live process identity without observing its environment. */
 const observeProcess = (pid: number) => {
@@ -25,6 +26,9 @@ const observeProcess = (pid: number) => {
   if (parent === undefined || start === undefined || !/^\d+$/u.test(parent + start))
     throw new Error('Process identity was unavailable.');
   const executable = readlinkSync(`${root}/exe`);
+  // the native host identity needs no argv, which may include a large startup schema.
+  if (HOST_EXECUTABLES.has(executable))
+    return { identity: `${pid}:${start}`, parent: Number(parent), executable, args: [] };
   const bytes = readBoundedFile(
     `${root}/cmdline`,
     MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxCommandTextBytes,
@@ -38,8 +42,20 @@ const observeProcess = (pid: number) => {
 };
 
 const isCodexProcess = (processInfo: ReturnType<typeof observeProcess>): boolean =>
-  ['/opt/codex', '/opt/codex-code-mode-host'].includes(processInfo.executable) ||
-  ['/opt/codex', '/opt/codex-code-mode-host'].includes(processInfo.args[1] ?? '');
+  HOST_EXECUTABLES.has(processInfo.executable) || HOST_EXECUTABLES.has(processInfo.args[1] ?? '');
+
+/** Returns a proved host-owned shell; unavailable process metadata supplies no identity. */
+const observeHostShell = (): ReturnType<typeof observeProcess> | null => {
+  try {
+    const shell = observeProcess(process.ppid);
+    return ['/bin/bash', '/usr/bin/bash'].includes(shell.executable) &&
+      isCodexProcess(observeProcess(shell.parent))
+      ? shell
+      : null;
+  } catch {
+    return null;
+  }
+};
 
 /** Observes bounded caller argv and process instances, without reading environment. */
 const observeCallers = (): { callers: string[][]; callerIdentities: string[] } => {
@@ -129,19 +145,11 @@ if (
   process.argv[2] === '--observe-shell' &&
   process.argv.length === 3
 ) {
-  try {
-    const shell = observeProcess(process.ppid);
-    if (
-      ['/bin/bash', '/usr/bin/bash'].includes(shell.executable) &&
-      isCodexProcess(observeProcess(shell.parent))
-    )
-      appendRecord({
-        kind: 'command',
-        identity: shell.identity,
-        arguments: [shell.executable, ...shell.args.slice(1)],
-      });
-  } catch (error) {
-    process.stderr.write('MOLDEA_CLI_CAPTURE_FAILED\n');
-    throw error;
-  }
+  const shell = observeHostShell();
+  if (shell !== null)
+    appendRecord({
+      kind: 'command',
+      identity: shell.identity,
+      arguments: [shell.executable, ...shell.args.slice(1)],
+    });
 } else observeLauncher();

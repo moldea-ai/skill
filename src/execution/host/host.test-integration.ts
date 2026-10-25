@@ -21,7 +21,7 @@ import { semanticCase as healthyRepairCase } from '../../semantic/cases/repair-h
 import { createActorRepository } from '../../semantic/workspace/index.ts';
 
 import { GitInvocationEventSchema } from './git-invocations.ts';
-import { CliInvocationEventSchema } from './cli-invocations/index.ts';
+import { CliInvocationEventSchema, readCliInvocationCapture } from './cli-invocations/index.ts';
 import { CODEX_EVALUATION_GIT_STATUS_ARGUMENTS } from './git-command-policy-boundary.ts';
 import {
   CODEX_EVALUATION_HOST_FAILURE_KINDS,
@@ -114,6 +114,81 @@ test('sandbox exposes the host search executable without exposing its installati
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+test.each(['complete', 'unavailable-parent', 'unwritable-log'] as const)(
+  'shell startup with oversized native host argv and %s capture',
+  async (captureState) => {
+    const root = mkdtempSync(join(tmpdir(), 'moldea-host-argv-'));
+    try {
+      const repositoryPath = join(root, 'repository');
+      const sandboxHome = join(root, 'home');
+      mkdirSync(repositoryPath);
+      await prepareEmptyCodexEvaluationHome(sandboxHome, root);
+      const capturePath = join(sandboxHome, 'cli-invocations.jsonl');
+      if (captureState === 'unwritable-log') mkdirSync(capturePath);
+      else writeFileSync(capturePath, '');
+      if (captureState === 'unavailable-parent') {
+        // only the external process-metadata read fails; the production observer still runs.
+        const importSource = [
+          "import fs from 'node:fs';",
+          "import { syncBuiltinESMExports } from 'node:module';",
+          "const stat = fs.readFileSync(`/proc/${process.ppid}/stat`, 'utf8');",
+          "const parent = stat.slice(stat.lastIndexOf(')') + 2).split(' ')[1];",
+          'const original = fs.readlinkSync;',
+          'fs.readlinkSync = (path, ...args) => {',
+          '  if (path === `/proc/${parent}/exe`) throw Object.assign(new Error("denied"), {code: "EACCES"});',
+          '  return original(path, ...args);',
+          '};',
+          'syncBuiltinESMExports();',
+        ].join('\n');
+        const hookPath = join(sandboxHome, 'bin/shell-start.sh');
+        writeFileSync(
+          hookPath,
+          readFileSync(hookPath, 'utf8').replace(
+            '/opt/node ',
+            `/opt/node --import "data:text/javascript,${encodeURIComponent(importSource)}" `,
+          ),
+        );
+      }
+      const script = [
+        "const { spawnSync } = require('node:child_process');",
+        "const result = spawnSync('/bin/bash', ['-lc', 'pwd'], { encoding: 'utf8' });",
+        'process.stdout.write(result.stdout);',
+        'process.stderr.write(result.stderr);',
+        'process.exitCode = result.status ?? 1;',
+      ].join('\n');
+      const result = spawnSync(
+        'bwrap',
+        buildCodexEvaluationBwrapArguments({
+          command: ['codex', '-e', script, 'x'.repeat(32_768)],
+          cwd: repositoryPath,
+          sandboxHome,
+          hostExecutable: process.execPath,
+          nodeExecutable: process.execPath,
+        }),
+        { encoding: 'utf8', timeout: 2000 },
+      );
+      if (captureState === 'unwritable-log') {
+        assert.equal(result.status, 1);
+        assert.equal(result.stdout, '');
+        assert.match(result.stderr, /MOLDEA_CLI_CAPTURE_FAILED/u);
+        return;
+      }
+      assert.equal(result.status, 0, result.stderr);
+      assert.equal(result.stdout, '/mnt\n');
+      assert.equal(result.stderr, '');
+      if (captureState === 'unavailable-parent') {
+        assert.equal(readFileSync(capturePath, 'utf8'), '');
+        return;
+      }
+      const capture = await readCliInvocationCapture(capturePath);
+      assert.equal(capture.commandInstances.length, 1);
+      assert.deepEqual(capture.commandInstances[0]?.arguments, ['/bin/bash', '-lc', 'pwd']);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  },
+);
 
 test('sandbox npm probe is immutable, reports the fixture version, and rejects execution', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-npm-probe-test-'));

@@ -1,4 +1,5 @@
 // @vitest-environment node
+import { readFileSync } from 'node:fs';
 import { describe, expect, test } from 'vitest';
 
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../resources/index.ts';
@@ -35,6 +36,49 @@ const createChargedCase = (
   }) as ISemanticRecordedCase;
 
 describe('semantic token admission', () => {
+  test('enforces a lowered ceiling across concurrent reservations and retained charges', () => {
+    const allowance = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount;
+    let consumed = 100;
+    const controller = createSemanticTokenAdmissionController({
+      getConsumedTokenCount: () => consumed,
+      tokenLimit: allowance * 2 + 100,
+    });
+    controller.reserve('one');
+    controller.reserve('two');
+    expect(() => controller.reserve('three')).toThrow(`${allowance * 2 + 100} maximum.`);
+    consumed += allowance;
+    controller.release('one');
+    expect(() => controller.reserve('three')).toThrow(/stopped before a paid stage/u);
+    controller.release('two');
+    controller.reserve('three');
+    controller.release('three');
+  });
+
+  test.each([
+    0,
+    -1,
+    1.5,
+    Infinity,
+    NaN,
+    Number.MAX_SAFE_INTEGER + 1,
+    SEMANTIC_CANDIDATE_TOKEN_LIMIT + 1,
+  ])('rejects an invalid or raised token limit %s', (tokenLimit) => {
+    expect(() =>
+      createSemanticTokenAdmissionController({ getConsumedTokenCount: () => 0, tokenLimit }),
+    ).toThrow(/token limit/u);
+  });
+
+  test('documents the current candidate admission ceiling', () => {
+    const documentation = readFileSync(
+      new URL('../../../docs/semantic-evaluation.md', import.meta.url),
+      'utf8',
+    );
+
+    expect(documentation).toContain(
+      `the ${SEMANTIC_CANDIDATE_TOKEN_LIMIT.toLocaleString('en-US')}-token admission ceiling`,
+    );
+  });
+
   test('charges direct usage and failed calls while reused and carried trials remain free', () => {
     expect(
       getSemanticCandidatePaidTokenCount(
@@ -145,5 +189,14 @@ describe('semantic token admission', () => {
 
     expect(() => controller.reserve('continued-case')).not.toThrow();
     controller.release('continued-case');
+  });
+
+  test('resumes the stopped recording while retaining its consumed tokens', () => {
+    const controller = createSemanticTokenAdmissionController({
+      getConsumedTokenCount: () => 62_785_381,
+    });
+
+    expect(() => controller.reserve('pending-judge')).not.toThrow();
+    controller.release('pending-judge');
   });
 });

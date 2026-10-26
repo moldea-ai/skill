@@ -5,7 +5,7 @@ import type {
   ISemanticRecordedTrial,
 } from './types.ts';
 
-export const SEMANTIC_CANDIDATE_TOKEN_LIMIT = 64_000_000;
+export const SEMANTIC_CANDIDATE_TOKEN_LIMIT = 128_000_000;
 
 type ISemanticChargedTrial = Pick<ISemanticRecordedTrial, 'paidInvocations' | 'trial'>;
 type ISemanticChargedCase = { trials: readonly ISemanticChargedTrial[] };
@@ -69,11 +69,25 @@ export const getSemanticCandidatePaidTokenCount = (
 
 /**
  * Admits semantic paid-stage reservations across concurrent case workers. Each check and update
- * runs synchronously, so workers can't interleave them.
+ * runs synchronously, so workers can't interleave them. Returned methods reject invalid
+ * reservation transitions or admission beyond the limit.
+ * @throws
+ * - Semantic token limit must be a positive safe integer no greater than 128000000.
  */
 export const createSemanticTokenAdmissionController = (options: {
   getConsumedTokenCount: () => number;
+  tokenLimit?: number;
 }): ISemanticTokenAdmissionController => {
+  const tokenLimit = options.tokenLimit ?? SEMANTIC_CANDIDATE_TOKEN_LIMIT;
+  if (
+    !Number.isSafeInteger(tokenLimit) ||
+    tokenLimit < 1 ||
+    tokenLimit > SEMANTIC_CANDIDATE_TOKEN_LIMIT
+  ) {
+    throw new Error(
+      'Semantic token limit must be a positive safe integer no greater than 128000000.',
+    );
+  }
   const reservations = new Set<string>();
 
   return {
@@ -90,14 +104,11 @@ export const createSemanticTokenAdmissionController = (options: {
       const reservedTokenCount =
         reservations.size * MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount;
       const nextReservation = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount;
-      if (
-        consumedTokenCount + reservedTokenCount + nextReservation >
-        SEMANTIC_CANDIDATE_TOKEN_LIMIT
-      ) {
+      if (consumedTokenCount + reservedTokenCount + nextReservation > tokenLimit) {
         const error = new Error(
           `Semantic evaluation stopped before a paid stage: ${consumedTokenCount} tokens consumed, ` +
             `${reservedTokenCount} reserved, ${nextReservation} required, ` +
-            `${SEMANTIC_CANDIDATE_TOKEN_LIMIT} maximum.`,
+            `${tokenLimit} maximum.`,
         );
         error.name = 'SemanticEvaluationResourceStopError';
         throw error;

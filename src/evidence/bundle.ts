@@ -12,17 +12,28 @@ import {
 const SENSITIVE_PROPERTY_PATTERN =
   /^(?:accessToken|apiKey|authorization|cookie|privateKey|refreshToken|secret)$/iu;
 const EXECUTABLE_EXTENSION_PATTERN = /\.(?:bat|cmd|com|dll|dylib|exe|msi|ps1|so)$/iu;
+const PRIVATE_DIAGNOSTIC_PATH_PATTERN = /(?:^|[\\/])\.evidence[\\/]+private-semantic(?:[\\/]|$)/u;
+const PRIVATE_DIAGNOSTIC_MARKER_PATTERN = /"moldeaPrivateTrace"\s*:\s*true/u;
+
+const hasPrivateDiagnosticText = (text: string): boolean =>
+  PRIVATE_DIAGNOSTIC_PATH_PATTERN.test(text) || PRIVATE_DIAGNOSTIC_MARKER_PATTERN.test(text);
 
 const assertNoSensitiveProperties = (input: unknown): void => {
   const pendingValues: unknown[] = [input];
   while (pendingValues.length > 0) {
     const current = pendingValues.pop();
+    if (typeof current === 'string' && hasPrivateDiagnosticText(current)) {
+      throw new Error('Evidence contains private diagnostic data.');
+    }
     if (Array.isArray(current)) {
       for (const propertyValue of current as unknown[]) pendingValues.push(propertyValue);
       continue;
     }
     if (current === null || typeof current !== 'object') continue;
     for (const [key, propertyValue] of Object.entries(current)) {
+      if (key === 'moldeaPrivateTrace' && propertyValue === true) {
+        throw new Error('Evidence contains private diagnostic data.');
+      }
       if (SENSITIVE_PROPERTY_PATTERN.test(key) && propertyValue !== null && propertyValue !== '') {
         throw new Error(`Evidence payload contains forbidden sensitive property ${key}.`);
       }
@@ -32,6 +43,12 @@ const assertNoSensitiveProperties = (input: unknown): void => {
 };
 
 const assertArtifactContentIsSafe = (path: string, content: Uint8Array): void => {
+  if (
+    hasPrivateDiagnosticText(path) ||
+    hasPrivateDiagnosticText(Buffer.from(content).toString('utf8'))
+  ) {
+    throw new Error('Evidence contains private diagnostic data.');
+  }
   if (EXECUTABLE_EXTENSION_PATTERN.test(path)) {
     throw new Error(`Evidence artifact ${path} uses a forbidden executable extension.`);
   }
@@ -47,9 +64,11 @@ const assertArtifactContentIsSafe = (path: string, content: Uint8Array): void =>
  * Creates one validated evidence bundle while deduplicating exact artifact bytes.
  * @param options Recorded public payload, provenance, and downloadable artifact inputs.
  * @returns The validated format-version 1 evidence bundle.
+ * @throws If payload/artifacts are invalid, sensitive, private diagnostics, executable, or over limits.
  */
 export const createEvidenceBundle = (options: ICreateEvidenceBundleOptions): IEvidenceBundle => {
   assertNoSensitiveProperties(options.payload);
+  assertNoSensitiveProperties(options.run);
   const blobBySha256 = new Map<
     string,
     { byteCount: number; contentBase64: string; sha256: string }
@@ -82,10 +101,13 @@ export const createEvidenceBundle = (options: ICreateEvidenceBundleOptions): IEv
   return bundle;
 };
 
-/** Validates artifact references, content digests, paths, and aggregate limits. */
+/**
+ * Validates artifact references, content digests, paths, and aggregate limits.
+ * @throws If bundle structure, integrity, privacy or resource checks fail.
+ */
 export const validateEvidenceBundle = (input: unknown): IEvidenceBundle => {
   const bundle = EvidenceBundleSchema.parse(input);
-  assertNoSensitiveProperties(bundle.payload);
+  assertNoSensitiveProperties(bundle);
   assertEvidenceArtifactLimits(bundle);
 
   const blobBySha256 = new Map(bundle.artifacts.blobs.map((blob) => [blob.sha256, blob]));
@@ -106,6 +128,9 @@ export const validateEvidenceBundle = (input: unknown): IEvidenceBundle => {
   }
   for (const blob of bundle.artifacts.blobs) {
     const content = Buffer.from(blob.contentBase64, 'base64');
+    if (hasPrivateDiagnosticText(content.toString('utf8'))) {
+      throw new Error('Evidence contains private diagnostic data.');
+    }
     if (
       content.byteLength !== blob.byteCount ||
       content.toString('base64') !== blob.contentBase64 ||
@@ -122,7 +147,10 @@ export const validateEvidenceBundle = (input: unknown): IEvidenceBundle => {
   return bundle;
 };
 
-/** Serializes and gzip-compresses one validated evidence bundle within fixed bounds. */
+/**
+ * Serializes and gzip-compresses one validated evidence bundle within fixed bounds.
+ * @throws If bundle validation fails or compressed/expanded size exceeds the bound.
+ */
 export const encodeEvidenceBundle = (input: unknown): Buffer => {
   const bundle = validateEvidenceBundle(input);
   const source = Buffer.from(`${JSON.stringify(bundle)}\n`, 'utf8');
@@ -136,7 +164,10 @@ export const encodeEvidenceBundle = (input: unknown): Buffer => {
   return compressed;
 };
 
-/** Decompresses and validates one bounded evidence bundle. */
+/**
+ * Decompresses and validates one bounded evidence bundle.
+ * @throws If decompression, JSON parsing, bundle validation or resource checks fail.
+ */
 export const decodeEvidenceBundle = (compressed: Uint8Array): IEvidenceBundle => {
   if (compressed.byteLength > MAXIMUM_EVIDENCE_BUNDLE_BYTES) {
     throw new Error(`Evidence bundle exceeds ${MAXIMUM_EVIDENCE_BUNDLE_BYTES} compressed bytes.`);

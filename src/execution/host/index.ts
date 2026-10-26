@@ -12,7 +12,9 @@ export type {
   ICodexEvaluationHostFailureKind,
   ICodexEvaluationHostIdentity,
   ICodexEvaluationHostRunOptions,
+  ICodexEvaluationPrivateTraceOptions,
   ICodexEvaluationMoldeaEvent,
+  ICodexEvaluationMoldeaOperation,
   ICodexEvaluationOperationalExhaustion,
   ICodexEvaluationOperationalFailureCategory,
   ICodexEvaluationOperationalRetry,
@@ -68,17 +70,20 @@ export {
 
 // execution evidence
 export {
+  correlateToolInvocations,
   hasPassingCodexEvaluationCommandPolicy,
   hasValidCodexEvaluationCommandPolicy,
   identifyMoldeaCliLauncherOperation,
   identifyMoldeaRelevanceGateMode,
   identifyMoldeaManagedAgentsMode,
+  identifyManagedAgentsInvocationMode,
   identifyMoldeaRepairGitMode,
   identifyRepositoryTestCommandKinds,
   isMoldeaManagedReadmeWriterCommand,
   isRepositoryTestCommand,
   hasValidRepairGitCommandEvidence,
   projectCodexEvaluationExecutionEvidence,
+  projectMoldeaInvocationOperations,
   projectRepairGitCommandEvidence,
 } from './execution-evidence.ts';
 
@@ -98,5 +103,10 @@ export { GitInvocationEventSchema, GitInvocationEvidenceSchema } from './git-inv
 export type { IGitInvocationEvidence } from './git-invocations.ts';
 
 // cooperative Node-startup CLI capture
-export { CliInvocationEventSchema } from './cli-invocations/index.ts';
-export type { ICliInvocation } from './cli-invocations/index.ts';
+export {
+  CliInvocationEventSchema,
+  identifyCliInvocationOperation,
+  isMoldeaCliOperation,
+  MOLDEA_CLI_OPERATIONS,
+} from './cli-invocations/index.ts';
+export type { ICliInvocation, ICliInvocationEvent } from './cli-invocations/index.ts';

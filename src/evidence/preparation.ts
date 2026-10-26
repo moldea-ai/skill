@@ -152,6 +152,7 @@ const getCachedBundle = async (
  * Resolves the exact selected bundles and exposes an atomic prepared manifest.
  * @param options Selection, cache, output, download, and cancellation controls.
  * @returns The manifest tied to the exact successfully prepared selection.
+ * @throws If selection, download, evidence validation (including private diagnostics) or preparation fails.
  */
 export const prepareSelectedEvidence = async (
   options: IPrepareEvidenceOptions,
@@ -257,6 +258,7 @@ export const prepareSelectedEvidence = async (
 /**
  * Validates the already prepared selected evidence without downloading or changing any file.
  * @returns The exact manifest accepted for release assurance.
+ * @throws If prepared identity, integrity or evidence validation fails, including private diagnostics.
  */
 export const verifyPreparedReleaseEvidence = async (options: {
   preparedDirectory: string;

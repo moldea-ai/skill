@@ -104,7 +104,7 @@ export interface ISemanticActorExecutionOutputEvidence {
 export interface ISemanticActorExecutionEvidence {
   eventType: 'item.completed';
   item: {
-    commandKind: 'moldea' | 'other';
+    commandKind: 'managed-agents' | 'moldea' | 'other';
     repairGit: IRepairGitCommandEvidence;
     exitCode: number;
     outputEvidence: ISemanticActorExecutionOutputEvidence;

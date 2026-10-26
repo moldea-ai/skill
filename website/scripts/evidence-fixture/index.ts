@@ -52,7 +52,12 @@ const EMPTY_COMMAND_POLICY: ISemanticAttemptTrialModel['actorCommandPolicyEviden
   modelVisibleToolOutputByteCount: 128,
   moldeaCommandCount: 1,
   moldeaEvents: [
-    { kind: 'command', operation: 'validate', outputByteCount: 128, ownership: 'cli' },
+    {
+      kind: 'command',
+      operations: [{ kind: 'cli', operation: 'validate', outputByteCount: 128 }],
+      outputByteCount: 128,
+      ownership: 'cli',
+    },
   ],
   moldeaLauncherMissReasons: [],
   moldeaOutputByteCount: 128,

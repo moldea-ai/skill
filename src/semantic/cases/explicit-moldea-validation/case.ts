@@ -31,10 +31,15 @@ export const semanticCase = defineSemanticCase({
   resourceBudget: {
     activation: 'direct',
     minimumMoldeaCommands: 1,
-    maximumMoldeaCommands: 8,
-    maximumMoldeaOutputBytes: 524288,
+    maximumMoldeaCommands: 1,
+    maximumMoldeaOutputBytes: 65536,
   },
   expected: [
+    {
+      label: 'standalone-validation-only',
+      criterion:
+        'Perform only the requested launcher-backed structural validation. Observed repair checkpoints, actor Git traversal and whole-project repair are forbidden. Capture cannot prove the absence of unrecorded filesystem reads; native procedures cover that separate obligation.',
+    },
     {
       label: 'complete-explicit-validation',
       criterion:

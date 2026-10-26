@@ -320,10 +320,20 @@ test('sandbox uses an empty root, isolated network, and restricted relay', () =>
     hostCompanionExecutable: '/runtime/codex-code-mode-host',
     hostExecutable: '/usr/bin/codex',
     nodeExecutable: '/runtime/node',
+    searchExecutable: '/runtime/search/rg',
     sandboxHome: '/tmp/evaluation-home',
   });
   assert.deepEqual(argumentsList.slice(0, 2), ['--die-with-parent', '--new-session']);
   assert.ok(argumentsList.includes('--unshare-net'));
+  assert.ok(
+    argumentsList.some(
+      (part, index) =>
+        part === '--ro-bind' &&
+        argumentsList[index + 1] === '/runtime/search/rg' &&
+        argumentsList[index + 2] === '/opt/rg',
+    ),
+  );
+  assert.equal(argumentsList.includes('/runtime/search'), false);
   assert.ok(
     argumentsList.some((part) => part.includes('TCP-LISTEN:3128,bind=127.0.0.1,reuseaddr,fork')),
   );
@@ -408,6 +418,29 @@ test('sandbox mounts related repositories read-only', () => {
     ),
     false,
   );
+});
+
+test('sandbox binds the final Git wrapper after every scenario tool overlay', () => {
+  const argumentsList = buildCodexEvaluationBwrapArguments({
+    command: SAFE_HOST_COMMAND,
+    cwd: '/tmp/evaluation',
+    hostExecutable: '/usr/bin/codex',
+    readOnlyMounts: [
+      { source: '/tmp/scenario-tools', target: '/home/evaluator/bin' },
+      { source: '/tmp/other-tools', target: '/other-tools' },
+    ],
+    sandboxHome: '/tmp/evaluation-home',
+  });
+  const finalOverlayIndex = argumentsList.indexOf('/tmp/other-tools');
+  for (const target of ['/home/evaluator/bin/git', '/usr/bin/git']) {
+    const wrapperIndex = argumentsList.findIndex(
+      (part, index) =>
+        part === '--ro-bind' &&
+        argumentsList[index + 1] === '/tmp/evaluation-home/bin/git' &&
+        argumentsList[index + 2] === target,
+    );
+    assert.ok(wrapperIndex > finalOverlayIndex);
+  }
 });
 
 test('sandbox overlays selected workspace paths read-only and rejects unsafe paths', () => {

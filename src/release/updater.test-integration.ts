@@ -482,6 +482,7 @@ test('updateCliRelease preserves an externally changed artifact and restores its
   const externalContent = 'external artifact change\n';
 
   try {
+    assert.ok(conflictedPath, 'Expected a generated portable artifact for the conflict test.');
     await assert.rejects(
       updateCliRelease({
         repositoryRoot: temporaryRoot,

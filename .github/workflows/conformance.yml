@@ -76,7 +76,7 @@ jobs:
       - name: Install semantic sandbox dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install --yes apparmor-profiles apparmor-utils bubblewrap socat
+          sudo apt-get install --yes apparmor-profiles apparmor-utils bubblewrap ripgrep socat
           sudo install -m 0644 \
             /usr/share/apparmor/extra-profiles/bwrap-userns-restrict \
             /etc/apparmor.d/bwrap-userns-restrict

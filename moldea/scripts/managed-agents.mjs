@@ -33,11 +33,28 @@ var ERRORS = {
 };
 
 // node_modules/jg-process/dist/run-process/run-process.js
-import { spawn as spawn2 } from "node:child_process";
+import { spawn } from "node:child_process";
 
 // node_modules/jg-exception/dist/shared/constants.js
 var UNKNOWN_ERROR_CODE = "UNKNOWN_ERROR";
 var REDACTED_VALUE = "[redacted]";
+var MAX_NESTING_DEPTH = 256;
+
+// node_modules/jg-exception/dist/shared/utilities.js
+var stringifyWithinDepth = (value) => {
+  const levels = /* @__PURE__ */ new WeakMap();
+  const limitDepth = function(_key, member) {
+    if (typeof member === "object" && member !== null) {
+      const level = (levels.get(this) ?? 0) + 1;
+      if (level > MAX_NESTING_DEPTH) {
+        throw new RangeError("The value is nested too deeply to serialize.");
+      }
+      levels.set(member, level);
+    }
+    return member;
+  };
+  return JSON.stringify(value, limitDepth);
+};
 
 // node_modules/jg-exception/dist/error-handler/utilities.js
 var collectSensitiveRanges = (message, sensitiveValues) => {
@@ -168,12 +185,15 @@ var redactPrimitive = (value, values) => {
   const redacted = redactSensitiveValues(text, values);
   return redacted === text ? value : redacted;
 };
-var redactJson = (value, values, ancestors) => {
+var redactJson = (value, values, ancestors, depth) => {
   if (typeof value !== "object" || value === null) {
     return typeof value === "function" || typeof value === "symbol" || typeof value === "bigint" ? void 0 : redactPrimitive(value, values);
   }
   if (ancestors.has(value)) {
     return void 0;
+  }
+  if (depth >= MAX_NESTING_DEPTH) {
+    throw new RangeError("The data is nested too deeply to copy.");
   }
   ancestors.add(value);
   try {
@@ -182,14 +202,14 @@ var redactJson = (value, values, ancestors) => {
       const copy2 = [];
       for (const [key, item] of entries) {
         if (ARRAY_INDEX.test(key)) {
-          copy2[Number(key)] = redactJson(item, values, ancestors) ?? null;
+          copy2[Number(key)] = redactJson(item, values, ancestors, depth + 1) ?? null;
         }
       }
       return copy2;
     }
     const copy = {};
     for (const [key, item] of entries) {
-      const redacted = redactJson(item, values, ancestors);
+      const redacted = redactJson(item, values, ancestors, depth + 1);
       if (redacted !== void 0) {
         defineValue(copy, key, redacted, true);
       }
@@ -201,12 +221,12 @@ var redactJson = (value, values, ancestors) => {
 };
 var redactData = (data, values) => {
   try {
-    return redactJson(data, values, /* @__PURE__ */ new Set());
+    return redactJson(data, values, /* @__PURE__ */ new Set(), 0);
   } catch {
     return null;
   }
 };
-var createSnapshot = (cause, context) => {
+var createSnapshot = (cause, context, depth) => {
   const { values, exceptionClass, snapshots } = context;
   const isRecognisedException = readProperty(cause, EXCEPTION_BRAND, false) === true;
   const message = readProperty(cause, "message", false);
@@ -238,23 +258,19 @@ var createSnapshot = (cause, context) => {
   } catch {
     hasCause = false;
   }
-  if (hasCause) {
-    defineValue(snapshot, "cause", redactCause(readProperty(cause, "cause", false), context), false);
+  if (hasCause && depth < MAX_NESTING_DEPTH) {
+    defineValue(snapshot, "cause", redactCause(readProperty(cause, "cause", false), context, depth + 1), false);
   }
   return snapshot;
 };
-var redactCause = (cause, context) => {
+var redactCause = (cause, context, depth) => {
   if (isPrimitive(cause)) {
     return redactPrimitive(cause, context.values);
   }
   if (context.snapshots.has(cause)) {
     return context.snapshots.get(cause);
   }
-  try {
-    return createSnapshot(cause, context);
-  } catch {
-    return void 0;
-  }
+  return createSnapshot(cause, context, depth);
 };
 var toRedactionValues = (redact) => {
   const values = /* @__PURE__ */ new Set();
@@ -286,14 +302,14 @@ var redactExceptionParts = (parts, redact, exceptionClass) => {
   return {
     message,
     data: parts.data === void 0 ? void 0 : redactData(parts.data, values),
-    cause: redactCause(parts.cause, { values, exceptionClass, snapshots: /* @__PURE__ */ new Map() })
+    cause: redactCause(parts.cause, { values, exceptionClass, snapshots: /* @__PURE__ */ new Map() }, 1)
   };
 };
 
 // node_modules/jg-exception/dist/exception/exception.js
 var toSerializableData = (data) => {
   try {
-    const serialized = JSON.stringify(data);
+    const serialized = stringifyWithinDepth(data);
     return serialized === void 0 ? null : JSON.parse(serialized);
   } catch {
     return null;
@@ -330,8 +346,8 @@ var Exception = class _Exception extends Error {
   }
   /**
    * Converts the exception to a plain object, which `JSON.stringify` calls.
-   * @returns The name, code, message, and data, with `null` for data that is missing or can't be
-   * serialized.
+   * @returns The name, code, message, and data, with `null` for data that is missing, can't be
+   * serialized, or is nested more than 256 levels deep.
    * @example
    * import { Exception } from 'jg-exception';
    *
@@ -355,18 +371,107 @@ var Exception = class _Exception extends Error {
   }
 };
 
-// node_modules/jg-process/dist/process-tree/process-tree.js
-import { execFile, spawn } from "node:child_process";
-import { setTimeout as sleep } from "node:timers/promises";
-
 // node_modules/jg-process/dist/process-tree/constants.js
 var FORCED_STOP_SECONDS = 2;
 var WINDOWS_STOP_SECONDS = 10;
+var WINDOWS_PROCESS_LIST_COMMAND = "Get-CimInstance -ClassName Win32_Process | ForEach-Object { '{0} {1} {2}' -f $_.ProcessId, $_.ParentProcessId, $(if ($_.CreationDate) { $_.CreationDate.ToFileTimeUtc() } else { 0 }) }";
 var STOP_POLL_INTERVAL_MILLISECONDS = 50;
+var WINDOWS_PROCESS_LINE_PATTERN = /^(\d+) (\d+) (\d+)$/u;
+
+// node_modules/jg-process/dist/process-tree/stop-windows-tree.js
+import { execFile } from "node:child_process";
+
+// node_modules/jg-process/dist/process-tree/utilities.js
+import { setTimeout as sleep } from "node:timers/promises";
+var hasExited = (child) => child.exitCode !== null || child.signalCode !== null;
+var waitFor = async (condition, milliseconds) => {
+  const deadline = Date.now() + milliseconds;
+  while (!condition()) {
+    if (Date.now() >= deadline) {
+      return false;
+    }
+    await sleep(STOP_POLL_INTERVAL_MILLISECONDS);
+  }
+  return true;
+};
+var treeSurvived = (pid) => new Exception(`The process tree of pid ${pid} is still running after it was force-stopped.`, {
+  code: ERRORS.PROCESS_TREE_SURVIVED
+});
+var parseWindowsProcessList = (output) => output.split(/\r?\n/u).flatMap((line) => {
+  const match = WINDOWS_PROCESS_LINE_PATTERN.exec(line.trim());
+  if (match === null) {
+    return [];
+  }
+  const [, pid = "", parentPid = "", createdAt = ""] = match;
+  return [{ pid: Number(pid), parentPid: Number(parentPid), createdAt: BigInt(createdAt) }];
+});
+var findWindowsDescendants = (processes, pid) => {
+  const childrenByParent = /* @__PURE__ */ new Map();
+  for (const entry of processes) {
+    const siblings = childrenByParent.get(entry.parentPid);
+    if (siblings === void 0) {
+      childrenByParent.set(entry.parentPid, [entry]);
+    } else {
+      siblings.push(entry);
+    }
+  }
+  const root = processes.find((entry) => entry.pid === pid);
+  if (root === void 0) {
+    return [];
+  }
+  const tree = [root];
+  const seen = /* @__PURE__ */ new Set([pid]);
+  for (const parent of tree) {
+    for (const entry of childrenByParent.get(parent.pid) ?? []) {
+      if (!seen.has(entry.pid) && entry.createdAt >= parent.createdAt) {
+        seen.add(entry.pid);
+        tree.push(entry);
+      }
+    }
+  }
+  return tree.slice(1).map((entry) => entry.pid);
+};
+
+// node_modules/jg-process/dist/process-tree/stop-windows-tree.js
+var listWindowsDescendants = (pid) => new Promise((resolve4) => {
+  execFile("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", WINDOWS_PROCESS_LIST_COMMAND], { timeout: WINDOWS_STOP_SECONDS * 1e3, windowsHide: true }, (error, stdout) => {
+    resolve4(error === null ? findWindowsDescendants(parseWindowsProcessList(stdout), pid) : []);
+  });
+});
+var isOwnProcessRunning = (pid) => {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+};
+var stopWindowsTree = async (child, pid) => {
+  if (hasExited(child)) {
+    return;
+  }
+  const descendants = new Set(await listWindowsDescendants(pid));
+  if (hasExited(child)) {
+    return;
+  }
+  await new Promise((resolve4) => {
+    execFile("taskkill", ["/PID", String(pid), "/T", "/F"], { timeout: WINDOWS_STOP_SECONDS * 1e3, windowsHide: true }, () => resolve4());
+  });
+  const isStopped = () => {
+    for (const descendant of descendants) {
+      if (!isOwnProcessRunning(descendant)) {
+        descendants.delete(descendant);
+      }
+    }
+    return hasExited(child) && descendants.size === 0;
+  };
+  if (!await waitFor(isStopped, WINDOWS_STOP_SECONDS * 1e3)) {
+    throw treeSurvived(pid);
+  }
+};
 
 // node_modules/jg-process/dist/process-tree/process-tree.js
 var IS_WINDOWS = process.platform === "win32";
-var hasExited = (child) => child.exitCode !== null || child.signalCode !== null;
 var exists = (target) => {
   try {
     process.kill(target, 0);
@@ -389,19 +494,6 @@ var signalTree = (child, pid, signal) => {
     sendSignal(pid, signal);
   }
 };
-var waitFor = async (condition, milliseconds) => {
-  const deadline = Date.now() + milliseconds;
-  while (!condition()) {
-    if (Date.now() >= deadline) {
-      return false;
-    }
-    await sleep(STOP_POLL_INTERVAL_MILLISECONDS);
-  }
-  return true;
-};
-var treeSurvived = (pid) => new Exception(`The process tree of pid ${pid} is still running after it was force-stopped.`, {
-  code: ERRORS.PROCESS_TREE_SURVIVED
-});
 var stopPosixTree = async (child, pid, gracePeriodSeconds) => {
   const isStopped = () => isTreeStopped(child, pid);
   if (isStopped()) {
@@ -416,17 +508,6 @@ var stopPosixTree = async (child, pid, gracePeriodSeconds) => {
     return;
   }
   throw treeSurvived(pid);
-};
-var stopWindowsTree = async (child, pid) => {
-  if (hasExited(child)) {
-    return;
-  }
-  await new Promise((resolve4) => {
-    execFile("taskkill", ["/PID", String(pid), "/T", "/F"], { timeout: WINDOWS_STOP_SECONDS * 1e3, windowsHide: true }, () => resolve4());
-  });
-  if (!await waitFor(() => hasExited(child), WINDOWS_STOP_SECONDS * 1e3)) {
-    throw treeSurvived(pid);
-  }
 };
 var stopProcessTree = async (child, gracePeriodSeconds = DEFAULT_GRACE_PERIOD_SECONDS) => {
   const { pid } = child;
@@ -497,7 +578,7 @@ var runProcess = async (options) => {
   validateLimits(timeoutSeconds, maxOutputBytes);
   signal?.throwIfAborted();
   const startedAt = performance.now();
-  const child = spawn2(command, args, {
+  const child = spawn(command, args, {
     cwd,
     env,
     stdio: "pipe",
@@ -624,6 +705,7 @@ var validateByteLimit = (maxBytes) => {
 };
 
 // node_modules/jg-utilities/dist/utils/byte-cache.js
+var cloneBytes = (bytes) => new Uint8Array(bytes);
 var createByteCache = ({ maxBytes, maxEntries }) => {
   validateByteLimit(maxBytes);
   if (maxEntries !== void 0 && (!Number.isSafeInteger(maxEntries) || maxEntries < 1)) {
@@ -649,7 +731,7 @@ var createByteCache = ({ maxBytes, maxEntries }) => {
       }
       entries.delete(key);
       entries.set(key, entry);
-      return entry.bytes.slice();
+      return cloneBytes(entry.bytes);
     },
     set: (key, bytes) => {
       const existing = entries.get(key);
@@ -670,7 +752,7 @@ var createByteCache = ({ maxBytes, maxEntries }) => {
           evict(oldestKey, oldest);
         }
       }
-      entries.set(key, { bytes: bytes.slice(), retentions: 0 });
+      entries.set(key, { bytes: cloneBytes(bytes), retentions: 0 });
       byteLength += bytes.byteLength;
       return true;
     },
@@ -685,7 +767,7 @@ var createByteCache = ({ maxBytes, maxEntries }) => {
       }
       entry.retentions += 1;
       const retention = {
-        copyBytes: () => entry?.bytes.slice(),
+        copyBytes: () => entry === void 0 ? void 0 : cloneBytes(entry.bytes),
         release: () => {
           if (entry === void 0) {
             return;
@@ -1179,7 +1261,7 @@ var writeAtomically = async (path2, data, mode, beforeRename) => {
     await syncDirectory(directory);
   }
 };
-var writeFileAtomicIfUnchanged = (path2, data, expected) => writeAtomically(path2, data, void 0, async () => {
+var writeFileAtomicIfUnchanged = (path2, data, expected, mode) => writeAtomically(path2, data, mode, async () => {
   let current;
   try {
     current = await readBoundedFile(path2, expected === null ? 0 : expected.byteLength);
@@ -1246,6 +1328,7 @@ var DEFAULT_GIT_SSH_COMMAND = "ssh -o BatchMode=yes -o ConnectTimeout=10";
 var NON_INTERACTIVE_VARIABLES = {
   GIT_TERMINAL_PROMPT: "0",
   GIT_ASKPASS: "",
+  GCM_INTERACTIVE: "never",
   GIT_OPTIONAL_LOCKS: "0",
   GIT_NO_REPLACE_OBJECTS: "1",
   GIT_NO_LAZY_FETCH: "1",
@@ -1301,7 +1384,7 @@ var isDirectory = async (path2) => {
 var areArgsValid = (args) => Array.isArray(args) && args.every((arg) => typeof arg === "string" && !arg.includes("\0"));
 var isCallerVariable = (key) => {
   const name = key.toUpperCase();
-  return name !== "GIT_ASKPASS" && name !== "GIT_TERMINAL_PROMPT" && !name.startsWith("SSH_ASKPASS");
+  return name !== "GIT_ASKPASS" && name !== "GIT_TERMINAL_PROMPT" && name !== "GCM_INTERACTIVE" && !name.startsWith("SSH_ASKPASS");
 };
 var runGit = async (args, { cwd, timeoutSeconds = DEFAULT_GIT_TIMEOUT_SECONDS, maxOutputBytes = DEFAULT_GIT_MAX_OUTPUT_BYTES, input, signal, isolateConfig = false, useCredentialHelpers = false, env, encoding }) => {
   if (!areArgsValid(args)) {

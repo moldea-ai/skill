@@ -4,7 +4,7 @@
 
 [Get moldea on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or read the complete documentation at [skill.moldea.ai](https://skill.moldea.ai).
 
-This checkout targets release `10.0.2`. Install the latest published version from `main` inside each repository that will use it:
+This checkout contains `moldea` `10.0.3`. Install the latest published version from `main` inside each repository that will use it:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -13,7 +13,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the immutable release after publication:
 
 ```bash
-npx skills add "moldea-ai/skill#v10.0.2"
+npx skills add "moldea-ai/skill#v10.0.3"
 ```
 
 Both commands install the portable skill named `moldea`. They do not install the CLI globally or require a hosted account. See [Getting started](docs/getting-started.md) for initialization, updates, and removal.
@@ -73,7 +73,7 @@ Evaluation is read-only. Repair checks every owner, its material implementation 
 
 ## Compatibility
 
-Release `10.0.2` supports exactly:
+Release `10.0.3` supports exactly:
 
 - Git `>=2.32.0`
 - Node.js `>=22.17.0`
@@ -96,7 +96,7 @@ The entrypoint keeps routing and essential boundaries compact. It loads only the
 
 Mechanical repository evidence uses the installed skill's closed launcher. It exposes bounded `inspect`, `scope`, `content`, `validate`, and `composition` operations without making canonical document bodies part of ordinary metadata output. It normalizes repository-relative content paths and verifies response identity, status, and inspection/validation diagnostic totals before forwarding unchanged output. Detailed invocation, pagination, failure, and runtime guidance belongs to [Compatibility and local tooling](docs/compatibility-and-local-tooling.md).
 
-Repair uses a bundled helper for bounded checkpoint, continuation and written-file Git evidence. Before status or diff, it conservatively refuses any attribute file that mentions `filter`, including Git LFS declarations. Attribute inspection supports directory symlinks and Windows junctions only when every target resolves inside the repository; written-file review still refuses linked parents. Repair continuation checks combine actual actor Git-wrapper records with recognized command syntax. Direct trusted-host calls are counted separately and supply neither actor violations nor positive read credit. Disallowed actor forms in either fail; opaque commands without Git calls do not fail merely for being opaque. This measures cooperative compliance, not resistance to deliberate evasion. Published coverage gaps and included continuation scenarios are disclosed in [Semantic evaluation](docs/semantic-evaluation.md#cases-and-coverage). Semantic execution may project one fixed repository-root direct Node correctness-test invocation into aggregate pass/fail facts. Package-manager commands cannot contribute correctness evidence, and the projection never retains test names, assertions, paths, durations, or output bodies.
+Repair uses a bundled helper for bounded checkpoint, continuation and written-file Git evidence. Before status or diff, it conservatively refuses any attribute file that mentions `filter`, including Git LFS declarations. Attribute inspection supports directory symlinks and Windows junctions only when every target resolves inside the repository; written-file review still refuses linked parents. Every explicit repair case independently checks actual actor Git-wrapper records and recognized command syntax. Bounded immediate-parent executable and argument observation identifies exact immutable helper, CLI and writer entrypoints. Direct actor reads fail even with mechanically allowed hardened arguments; only observed repair-helper subprocesses supply positive comparison credit. Direct trusted-host calls are counted separately and supply neither actor violations nor positive read credit. Disallowed actor forms in either fail; opaque commands without Git calls do not fail merely for being opaque. This measures cooperative compliance, not resistance to deliberate evasion. Published coverage gaps and included continuation scenarios are disclosed in [Semantic evaluation](docs/semantic-evaluation.md#cases-and-coverage). Semantic execution may project one fixed repository-root direct Node correctness-test invocation into aggregate pass/fail facts. Package-manager commands cannot contribute correctness evidence, and the projection never retains test names, assertions, paths, durations, or output bodies.
 
 ### Safety and authority boundaries
 
@@ -132,6 +132,8 @@ Scripted journeys cover six journeys and 21 requests in ordinary ChatGPT and Cla
 | `.github/workflows/pages.yml`             | Pages preflight, parallel verification/production build, and gated deployment.                                                                                            |
 | `.github/workflows/release-candidate.yml` | Exact package-candidate validation without publication.                                                                                                                   |
 
+The evaluation host owns bounded private command/usage traces and Git stderr sidecars, stored outside sandbox mounts and public evidence. The semantic CLI cancels and drains active workers on shutdown while retaining paid charges and checkpoint progress. See [isolation and bounded evidence](docs/semantic-evaluation.md#isolation-and-bounded-evidence) for capture limits and publication rejection.
+
 Scripted-journey composition assembles one website snapshot from explicit local records. Whole provider/journey groups can update independently; retained results keep their original requests, versions, methods, dates and raw artifacts. New tests may have evidence from only one provider. Partial or mixed snapshots can display but do not satisfy current release assurance.
 
 The distributed artifact is exactly `moldea/`; development-only tooling is not installed with the skill. Portable builds use fixed compiler settings in checkouts and temporary release directories. Run `npm run matcher:generate` after changing the relevance gate's locked inputs and `npm run matcher:check` to verify the committed artifact.
@@ -164,7 +166,7 @@ The same release-candidate workflow is reusable by the packages trusted build. I
 
 Source and packed package candidates accept stable caret dependency minimums, including patch minimums such as `^2.0.3`. Candidate validation checks every resolved internal runtime package against its declared range; exact internal runtime dependency pins and incompatible versions are rejected.
 
-The root tooling and website consume Website UI `4.5.1` with the exact Astro `7.2.8` peer. Normal dependency resolution selects these versions without an override.
+The root tooling and website consume Website UI `4.5.3` with the exact Astro `7.2.8` peer. Normal dependency resolution selects these versions without an override.
 
 Run the deterministic boundaries:
 
@@ -205,9 +207,11 @@ The skill uses independent semantic versioning. Every release must:
 - preserve identical `moldea/` bytes across official distribution channels
 - use an immutable `v<version>` tag
 
-During prelaunch testing, skill tags require deterministic conformance, synchronized release identity, and installation checks. Semantic evaluation is a separate evidence-backed operation; a passing tag does not establish it. The selected 8.2.3 semantic recording contains 120 cases: 115 passed and five recovered. Its final cleanup reused verified full-recording and reserve trials without new model calls. Two unresolved cases remain private and are disclosed as not yet included. Historical evidence preserves its recorded versions, dates and sources and supplies no current-release assurance. See [Release evidence](docs/release-evidence.md) for the exact workflows.
+Skill tags require deterministic conformance, synchronized release identity, and installation checks. Semantic evaluation is a separate evidence-backed operation; a passing tag does not establish it. Historical evidence preserves its recorded versions, dates and sources and supplies no current-release assurance. See [Release evidence](docs/release-evidence.md) for the exact workflows.
 
-Release 10.0.2 retains the selected 8.2.3 semantic evidence. Its contained-link repair helper, instruction-consumption routing, read-only validation, context continuation, integration upgrade guidance, and digest clarification were not re-evaluated. Earlier changes from 8.2.4 through 10.0.1 also retain their historical qualifications. See [the 10.0.2 qualification](docs/release-evidence.md#skill-1002-evidence-reuse) and the preceding release records. Deterministic and keyboard checks do not establish current model adherence; manual testing precedes the next semantic evaluation.
+Release 10.0.2 retained the 8.2.3 semantic evidence and had no fresh public recording. Its private diagnostic campaign preserves failures and fixture corrections separately; the fresh/upgraded native-routing prerequisites completed before diagnostics. Earlier changes from 8.2.4 through 10.0.1 retain their historical qualifications. See [the 10.0.2 qualification](docs/release-evidence.md#skill-1002-evidence-reuse) and the preceding release records. Original candidate identities and diagnostic findings remain in [the 10.0.2 handoff](docs/semantic-evaluation.md#prepared-1002-campaign-handoff).
+
+Release 10.0.3 selects 142 historical cases: 134 passed and eight recovered, with none failed or pending. The source recording on `20e28fa7` covered 143 cases and failed `repair-unproven-adoption`, which is **not yet included**: the actor sometimes runs direct `git status` before the repair helper despite explicit instructions; no recorded run changed files or initialized anything. The exclusion-only cleanup ran no models and changed no recorded verdict. The release keeps `b1098a23`'s repair-reference sentence and four grader/case corrections; its single repair recheck failed the same way, so no behavior improvement is claimed. The candidate's deterministic checks passed. CLI `13.0.2`, Core `9.0.1`, the original failed first trials and all confirmations retain their provenance. See [the 10.0.3 evidence-reuse qualification](docs/release-evidence.md#skill-1003-evidence-reuse) for the release-specific acceptance and limits.
 
 ## License
 

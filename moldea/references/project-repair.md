@@ -4,9 +4,9 @@ Use for an explicit request to validate, evaluate, inspect, or repair this repos
 
 ## Select the requested operation
 
-For an adopted project with eligible installed tooling, run the requested `validate` or `inspect` through the closed launcher under `local-tooling.md`, without a repair checkpoint. These read-only checks do not install tooling, change files, or enter corrective repair. Evaluation retains its read-only `evaluate-and-reconcile.md` scope; structural validity alone does not establish semantic health.
+For an adopted project with eligible installed tooling, run the requested `validate` or `inspect` directly through the closed launcher under `local-tooling.md`, without a repair checkpoint. A completed launcher-verified `valid` or `invalid` validation response establishes successful invocation; do not add `composition` merely to prove tooling availability. An `invalid` result supplies project diagnostics and does not require a second tooling proof. These read-only checks do not install tooling, change files, or enter corrective repair. Evaluation retains its read-only `evaluate-and-reconcile.md` scope; structural validity alone does not establish semantic health.
 
-When adoption or tooling blocks the requested check, use the bounded inert diagnosis below and report what could not run. Its no-CLI restriction applies to that blocked branch, not eligible standalone validation. Only an actual repair continues through the repair Git boundary, tooling recovery, full owner assessment, corrections, and final validation.
+When adoption or tooling blocks the requested check, use the bounded inert diagnosis below and report what could not run. Its no-CLI restriction applies to that blocked branch, not eligible standalone validation. Never run Git directly from the start of an explicit setup check or repair, including before the adoption gate and during blocked diagnosis. Only an actual repair continues through its Git checkpoint, tooling recovery, full owner assessment, corrections, and final validation.
 
 ## Git read boundary
 
@@ -85,6 +85,8 @@ Use only the bundled `node <installed-skill-root>/scripts/managed-readme.mjs --r
 
 ## Check progressively
 
+Assess the existing representation before proposing any write. Valid `affectedBy` and binding declarations need no conversion, even when a more specific export binding is possible. A healthy manifest stays byte-identical; do not describe a preferred representation as a repaired defect.
+
 Checkpoint success establishes Git evidence, not tooling eligibility or a completed repair. Establish actual eligibility and composition through the installed skill's closed launcher, reusing current closure evidence when available. Necessary tooling recovery belongs solely to `tooling-installation.md`; do not install runtime SDKs or use package-manager CLI providers. A tooling prerequisite never authorizes switching a declared runtime to `custom`. Host execution controls govern every invocation.
 
 Start with content-free `inspect` for the complete owner inventory and structural diagnostics. A completed `invalid` envelope provides diagnostics, not validity; an operational error provides no inspection conclusion. If a malformed manifest prevents inventory, use its bounded diagnostic and exact source range to make only an established structural correction, then inspect the resulting state. Never retry unchanged failure. Binding coverage names each completed file/export check and each unchecked reason; it does not prove runtime wiring. Warnings neither invalidate the project nor authorize rewriting a valid design.
@@ -101,6 +103,10 @@ Process owners one at a time in inventory order: context, decisions, agents with
 Judge a relationship from the owner's text and the path first. Read a source file only when its role cannot be established that way, and read a file shared by several owners once per run. Load `agent-design.md` for agent or provenance corrections, or `continuous-maintenance.md` for context and requirement corrections, only when needed. Their initialization branches do not apply to repair; tooling recovery stays with `tooling-installation.md`. A broad repair is not the named-reconciliation one-body procedure; the entrypoint's unresolved-conflict stop still applies immediately to every owner. State both conflicting claims and ask which governs when no current developer decision or independent resolver selects one. Do not keep inspecting to justify a preferred claim or persist an answerable policy question as a requirement.
 
 ## Correct and verify
+
+Keep an owner-sized work queue from the completed inventory. Reuse assessed bodies, shared source reads and successful checks within this run; do not reread the inventory or dependency trees for each owner. Bound each read before execution, keep source evidence to the exact referenced paths and avoid printing complete files when a targeted passage suffices. If the next owner's assessment cannot fit, stop at the last complete owner and report the checkpoint instead of starting another traversal.
+
+Gather independent known-path evidence for several queued owners in a bounded host batch, then assess each owner in order. Bound combined output before execution and count every completion and emitted byte. Reuse an unchanged shared source once, rather than returning it separately for each owner. Batch native reads, not dependent CLI pages; preserve every required owner comparison and connection check. Use bounded local computation for mechanical summaries of already-read records instead of reprinting or reasoning through each row.
 
 Bind the smallest coherent repair set before writing. Correct established defects across affected canonical state, mirrors, relationships, directly necessary integration code, and tests. Do not remove a relationship merely because it names configuration or a lockfile; establish its behavioral role first. Preserve unrelated work and existing valid state. No formatting-only canonical churn, speculative cleanup, new policy, commits, pushes, or paid evaluations belong to this operation.
 
@@ -119,6 +125,8 @@ A completed owner is affected when its own canonical document is in that set; it
 If the recorded commit is unavailable, a Git read fails or exceeds the host command output limit, the checkpoint path list is missing, or the manifest was uncommitted at the checkpoint without its owner-entry list, treat every completed owner as affected. The checkpoint's uncommitted paths always require reassessment. Ask the developer to commit this run's corrections before continuing: a commit limits the next run to those corrections and later changes; without one, every correction since the last commit is reassessed again. The host owns the actual commit.
 
 ## Bounds and report
+
+If a conflict or prerequisite stops repair before final validation, explicitly report **final validation pending**, including when `inspect` established structural validity. A stopped assessment is not completed verification. For a protected AGENTS integration handoff, name repository-local `AGENTS.md` as the destination and the warning's subject path; supplying the block alone is incomplete.
 
 This explicit multi-owner operation uses `local-tooling.md`'s `largeTraversal` profile per cycle, as defined in its Resource limits section: 65,536-byte raw pages; at most 1,048,576 aggregate moldea-output bytes, 4,194,304 model-visible tool-output bytes including source reads made for this assessment, 262,144 bytes from one host command, 16 moldea CLI calls, and 64 completed host commands. The ordinary four-call target does not apply. Reserve capacity for final validation and supported correction validation. Follow only necessary cursors, never combine snapshots or reconstruct a project dump. Stop before exceeding a limit after a complete owner and report the continuation point; do not restart the audit to evade limits.
 

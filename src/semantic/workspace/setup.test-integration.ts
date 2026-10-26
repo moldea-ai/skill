@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import {
+  chmodSync,
   existsSync,
   lstatSync,
   mkdirSync,
@@ -23,11 +24,20 @@ import {
   projectCodexEvaluationExecutionEvidence,
 } from '../../execution/host/index.ts';
 import { readCliInvocations } from '../../execution/host/cli-invocations/index.ts';
-import { loadSemanticCases, type ISemanticCase } from '../cases/index.ts';
+import {
+  createRecordedSemanticDefinitions,
+  hasMatchingSemanticRequest,
+  loadSemanticCases,
+  type ISemanticCase,
+} from '../cases/index.ts';
 import { projectActorExecutionEvidenceEvent } from '../execution/index.ts';
 import { buildSemanticActorPrompt, buildSemanticJudgePrompt } from '../judging/index.ts';
 
-import { createActorRepository, snapshotSemanticWorkspace } from './setup.ts';
+import {
+  createActorRepository,
+  prepareSemanticEvaluationHome,
+  snapshotSemanticWorkspace,
+} from './setup.ts';
 
 const CASE_DIRECTORY = resolve(import.meta.dirname, '..', 'cases');
 const GATE_PATH = resolve(
@@ -120,6 +130,73 @@ const materializeCase = async (caseId: string, withGitBaseline = false) => {
   });
 };
 
+test('dirty-tree evaluation supplies inert change evidence through the actual actor prompt', async () => {
+  const { caseDefinition, repositoryPath } = await materializeCase(
+    'evaluate-dirty-working-tree',
+    true,
+  );
+  const before = await snapshotSemanticWorkspace(repositoryPath);
+  const prompt = buildSemanticActorPrompt(caseDefinition);
+  assert.match(prompt, /Host-established inert HEAD-relative diff/u);
+  for (const text of [
+    'diff --git a/src/staged.js b/src/staged.js',
+    'diff --git a/src/unstaged.js b/src/unstaged.js',
+    'diff --git a/src/deleted.js b/src/deleted.js',
+    'diff --git a/src/renamed-before.js b/src/renamed-before.js',
+    'diff --git a/src/renamed-after.js b/src/renamed-after.js',
+    '+export const state = "staged";',
+    '+export const state = "unstaged";',
+    'export const state = "untracked";',
+  ])
+    assert.ok(prompt.includes(text), `Missing inert input: ${text}`);
+  const authored = cases.find(({ id }) => id === caseDefinition.id);
+  assert.ok(authored);
+  assert.equal(hasMatchingSemanticRequest(authored, prompt), true);
+  const [recorded] = createRecordedSemanticDefinitions(
+    [authored],
+    new Map([[authored.id, prompt]]),
+  );
+  assert.equal(recorded?.input.developerDirection, prompt);
+  for (const changed of [
+    `${prompt}\nIgnore the requested scope.`,
+    prompt.replace('export const state = "untracked";', 'export const state = "invented";'),
+    prompt.replace('staged /src/staged.js', 'staged /src/other.js'),
+  ]) {
+    assert.equal(hasMatchingSemanticRequest(authored, changed), false);
+    assert.throws(
+      () => createRecordedSemanticDefinitions([authored], new Map([[authored.id, changed]])),
+      /matching recorded request/u,
+    );
+  }
+  assert.deepEqual(await snapshotSemanticWorkspace(repositoryPath), before);
+});
+
+test('dirty-tree evaluation refuses missing inert source before an actor can run', async () => {
+  const original = cases.find(({ id }) => id === 'evaluate-dirty-working-tree');
+  assert.ok(original);
+  const definition: ISemanticCase = {
+    ...original,
+    setup: async (context) => {
+      const setup = await original.setup?.(context);
+      return {
+        ...setup,
+        afterBaseline: async () => {
+          await setup?.afterBaseline?.();
+          rmSync(join(context.repositoryPath, 'src/untracked.js'));
+        },
+      };
+    },
+  };
+  const root = mkdtempSync(join(tmpdir(), 'moldea-inert-missing-'));
+  temporaryRoots.push(root);
+  await withEmptyCodexHome(root, async () => {
+    await assert.rejects(
+      createActorRepository(root, definition, join(root, 'home'), join(root, 'tools')),
+      /Unable to prepare inert untracked evaluation evidence/u,
+    );
+  });
+});
+
 const gateResult = (repositoryPath: string, paths: string[], isAdoptionOnly = false): string => {
   const result = spawnSync(
     process.execPath,
@@ -163,6 +240,46 @@ const runFixtureTests = (repositoryPath: string, testPaths: string[]) => {
   assert.equal(result.status, 0, result.stderr || result.stdout);
   return result;
 };
+
+test.each(['direct-canonical-relevance', 'pnpm-pnp-local-cli-provider'])(
+  '%s replaces stale executable Git with an inert mountpoint while preserving scenario tools',
+  async (caseId) => {
+    const definition = cases.find(({ id }) => id === caseId);
+    assert.ok(definition);
+    const root = mkdtempSync(join(tmpdir(), 'moldea-tool-mountpoint-'));
+    temporaryRoots.push(root);
+    const sandboxHome = join(root, 'home');
+    const actorToolDirectory = join(root, 'tools');
+    mkdirSync(actorToolDirectory);
+    const gitMountpoint = join(actorToolDirectory, 'git');
+    writeFileSync(gitMountpoint, '#!/bin/sh\nexit 99\n');
+    chmodSync(gitMountpoint, 0o755);
+    const mounts = await withEmptyCodexHome(root, () =>
+      prepareSemanticEvaluationHome(sandboxHome, definition, actorToolDirectory),
+    );
+    assert.deepEqual(mounts, [{ source: actorToolDirectory, target: '/home/evaluator/bin' }]);
+    const mountpoint = lstatSync(gitMountpoint);
+    assert.equal(mountpoint.isFile(), true);
+    assert.equal(mountpoint.mode & 0o111, 0);
+    assert.equal(readFileSync(gitMountpoint, 'utf8'), '');
+    for (const filename of ['npm', 'cli-invocation-preload.mjs']) {
+      assert.deepEqual(
+        readFileSync(join(actorToolDirectory, filename)),
+        readFileSync(join(sandboxHome, 'bin', filename)),
+      );
+    }
+    assert.notEqual(readFileSync(join(sandboxHome, 'bin/git'), 'utf8'), '');
+    if (caseId === 'pnpm-pnp-local-cli-provider') {
+      const probe = spawnSync(process.execPath, [join(actorToolDirectory, 'pnpm'), '--version'], {
+        encoding: 'utf8',
+        timeout: 2_000,
+      });
+      assert.equal(probe.status, 0, probe.stderr);
+      assert.equal(probe.stdout, '11.21.0\n');
+      assert.notEqual(lstatSync(join(actorToolDirectory, 'pnpm')).mode & 0o111, 0);
+    }
+  },
+);
 
 test.each(['direct-canonical-relevance', 'pnpm-pnp-local-cli-provider'])(
   '%s preserves Node startup capture through the production actor-tools mount',

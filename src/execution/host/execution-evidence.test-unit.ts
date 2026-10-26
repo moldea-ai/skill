@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { test } from 'vitest';
 
 import {
+  correlateToolInvocations,
   hasPassingCodexEvaluationCommandPolicy,
   hasValidCodexEvaluationCommandPolicy,
   hasValidRepairGitCommandEvidence,
@@ -14,6 +15,7 @@ import {
   isMoldeaManagedReadmeWriterCommand,
   isRepositoryTestCommand,
   projectCodexEvaluationExecutionEvidence,
+  projectMoldeaInvocationOperations,
   projectRepairGitCommandEvidence,
 } from './execution-evidence.ts';
 import {
@@ -38,6 +40,177 @@ const createCommandEvent = (
       ...overrides,
     },
   });
+
+test('distinct commands retain correspondence when parallel completion reverses startup order', () => {
+  const scripts = ['node /mnt/first.mjs', 'node /mnt/second.mjs'];
+  const commands = scripts.map((script) => `/bin/bash -lc '${script}'`);
+  const invocations = scripts.map((script, index) => ({
+    callers: [
+      ['/opt/node', `/mnt/${index === 0 ? 'first' : 'second'}.mjs`],
+      ['/bin/bash', '-c', script],
+    ],
+    callerIdentities: [`${201 + index}:1`, `${101 + index}:1`],
+  }));
+  assert.deepEqual(
+    correlateToolInvocations(commands.toReversed(), invocations, {
+      commandInstances: invocations.map((invocation) => ({
+        identity: invocation.callerIdentities[1]!,
+        arguments: invocation.callers[1]!,
+      })),
+    }),
+    [[invocations[1]], [invocations[0]]],
+  );
+});
+
+test('overlapping invocation provenance never grants ordered operation proof', () => {
+  const invocation = {
+    arguments: ['--repository', '/mnt', '--', 'validate', '--json'],
+    outputByteCount: 0,
+    overlapping: true as const,
+    canonicalBefore: null,
+    canonicalAfter: null,
+  };
+  const events: ICodexEvaluationCommandPolicyEvidence['moldeaEvents'] = [
+    { kind: 'file-change', moldeaPath: 'touching' },
+    { kind: 'command', ownership: 'cli', outputByteCount: 0, operations: null },
+  ];
+  projectMoldeaInvocationOperations(
+    events,
+    { invocations: [invocation], canonicalInitial: 'a'.repeat(64), canonicalFinal: 'b'.repeat(64) },
+    [[invocation]],
+  );
+  assert.deepEqual(events[1], {
+    kind: 'command',
+    ownership: 'cli',
+    outputByteCount: 0,
+    operations: null,
+  });
+});
+
+test('runtime correspondence groups sequential children by the enclosing observed shell', () => {
+  const script = "node --input-type=module <<'JS'\nconsole.log('wrapper');\nJS";
+  const shellCommand = `/bin/bash -lc '${script.replaceAll("'", "'\\''")}'`;
+  const directCommand = 'node /mnt/tool.mjs';
+  const createInvocation = (callers: string[][], stdout: string) => ({
+    arguments: [],
+    stdout,
+    outputByteCount: Buffer.byteLength(stdout),
+    exitCode: 0,
+    callers,
+  });
+  const first = createInvocation(
+    [
+      ['/opt/node', '/mnt/tool.mjs'],
+      ['/opt/node', '--input-type=module'],
+      ['/bin/bash', '-lc', script],
+    ],
+    'updated\n',
+  );
+  const second = createInvocation(first.callers, 'unchanged\n');
+  const direct = createInvocation([['/opt/node', '/mnt/tool.mjs']], 'unchanged\n');
+  assert.deepEqual(
+    correlateToolInvocations([shellCommand, directCommand], [first, second, direct]),
+    [[first, second], [direct]],
+  );
+});
+
+test.each([
+  ['sequential', true],
+  ['overlapping', false],
+  ['missing-starts', false],
+] as const)('repeated shell command instances require %s SDK lifetimes -> %s', (form, passing) => {
+  const script = 'node /mnt/pager.mjs';
+  const command = `/bin/bash -lc '${script}'`;
+  const instances = ['101:100', '102:100'].map((identity) => ({
+    identity,
+    arguments: ['/bin/bash', '-c', script],
+  }));
+  const invocations = instances.map((instance, index) => ({
+    callers: [
+      ['/opt/node', '/mnt/tool.mjs'],
+      ['/bin/bash', '-c', script],
+    ],
+    callerIdentities: [`${201 + index}:100`, instance.identity],
+  }));
+  const event = (type: string, id: string) => ({
+    type,
+    item: { id, type: 'command_execution', command },
+  });
+  const firstStart = event('item.started', 'first');
+  const firstEnd = event('item.completed', 'first');
+  const secondStart = event('item.started', 'second');
+  const secondEnd = event('item.completed', 'second');
+  const events =
+    form === 'missing-starts'
+      ? [firstEnd, secondEnd]
+      : form === 'overlapping'
+        ? [firstStart, secondStart, firstEnd, secondEnd]
+        : [firstStart, firstEnd, secondStart, secondEnd];
+  assert.deepEqual(
+    correlateToolInvocations([command, command], invocations, {
+      commandInstances: instances,
+      events,
+    }),
+    passing ? [[invocations[0]], [invocations[1]]] : [null, null],
+  );
+});
+
+test.each([
+  ['direct', ['node ./tool.mjs'], [['/opt/node', '/mnt/tool.mjs']], 1, true],
+  ['wrapped', ["node -e 'wrapper'"], [['/opt/node', '-e', 'wrapper']], 1, true],
+  ['shell wrapper', ["/bin/bash -lc 'node -e wrapper'"], [['/opt/node', '-e', 'wrapper']], 1, true],
+  [
+    'terminal exec after reads',
+    ['cat src/code.js; node ./tool.mjs'],
+    [['/opt/node', '/mnt/tool.mjs']],
+    1,
+    true,
+  ],
+  [
+    'non-login observed shell',
+    ["/bin/bash -lc 'node -e wrapper'"],
+    [['/bin/bash', '-c', 'node -e wrapper']],
+    1,
+    true,
+  ],
+  ['missing', ['node ./tool.mjs'], [], 1, false],
+  ['different caller', ["node -e 'other'"], [['/opt/node', '-e', 'wrapper']], 1, false],
+  [
+    'duplicate commands',
+    ['node ./tool.mjs', 'node ./tool.mjs'],
+    [['/opt/node', '/mnt/tool.mjs']],
+    1,
+    false,
+  ],
+  ['duplicate invocations', ['node ./tool.mjs'], [['/opt/node', '/mnt/tool.mjs']], 2, false],
+  ['dynamic syntax', ['node "$ENTRYPOINT"'], [['/opt/node', '/mnt/tool.mjs']], 1, false],
+  [
+    'compound syntax',
+    ['node tool.mjs; node other.mjs'],
+    [['/opt/node', '/mnt/tool.mjs']],
+    1,
+    false,
+  ],
+] as const)(
+  'runtime correspondence rejects ambiguity: %s',
+  (_name, commands, callers, count, matches) => {
+    const invocation = {
+      arguments: [],
+      stdout: 'updated\n',
+      outputByteCount: 8,
+      exitCode: 0,
+      callers: callers.map((caller) => [...caller]),
+    };
+    const result = correlateToolInvocations(
+      commands,
+      Array.from({ length: count }, () => invocation),
+    );
+    assert.deepEqual(
+      result,
+      commands.map(() => (matches ? [invocation] : null)),
+    );
+  },
+);
 
 type IExpectedCommandPolicy = Pick<
   ICodexEvaluationCommandPolicyEvidence,
@@ -1248,35 +1421,35 @@ test('projects complete repair Git syntax and rejects incomplete shell lists', (
     '--branch',
   ].join(' ');
   assert.deepEqual(projectRepairGitCommandEvidence(status), {
-    compliantCount: 1,
-    noncompliantCount: 0,
-    unverifiedCount: 0,
-    reasons: [],
-  });
-  assert.equal(projectRepairGitCommandEvidence(`${status} |`).unverifiedCount, 1);
-  assert.deepEqual(projectRepairGitCommandEvidence(`${status} # note`), {
-    compliantCount: 1,
-    noncompliantCount: 0,
-    unverifiedCount: 0,
-    reasons: [],
-  });
-  assert.deepEqual(projectRepairGitCommandEvidence(status.replaceAll(' ', ' \\\n')), {
-    compliantCount: 1,
-    noncompliantCount: 0,
-    unverifiedCount: 0,
-    reasons: [],
-  });
-  assert.deepEqual(projectRepairGitCommandEvidence(`${status}; git status --short`), {
-    compliantCount: 1,
+    compliantCount: 0,
     noncompliantCount: 1,
     unverifiedCount: 0,
     reasons: [{ code: 'git-status-arguments', count: 1 }],
   });
-  assert.deepEqual(projectRepairGitCommandEvidence(`cat README.md; ${status}`), {
-    compliantCount: 1,
-    noncompliantCount: 0,
+  assert.equal(projectRepairGitCommandEvidence(`${status} |`).unverifiedCount, 1);
+  assert.deepEqual(projectRepairGitCommandEvidence(`${status} # note`), {
+    compliantCount: 0,
+    noncompliantCount: 1,
     unverifiedCount: 0,
-    reasons: [],
+    reasons: [{ code: 'git-status-arguments', count: 1 }],
+  });
+  assert.deepEqual(projectRepairGitCommandEvidence(status.replaceAll(' ', ' \\\n')), {
+    compliantCount: 0,
+    noncompliantCount: 1,
+    unverifiedCount: 0,
+    reasons: [{ code: 'git-status-arguments', count: 1 }],
+  });
+  assert.deepEqual(projectRepairGitCommandEvidence(`${status}; git status --short`), {
+    compliantCount: 0,
+    noncompliantCount: 2,
+    unverifiedCount: 0,
+    reasons: [{ code: 'git-status-arguments', count: 2 }],
+  });
+  assert.deepEqual(projectRepairGitCommandEvidence(`cat README.md; ${status}`), {
+    compliantCount: 0,
+    noncompliantCount: 1,
+    unverifiedCount: 0,
+    reasons: [{ code: 'git-status-arguments', count: 1 }],
   });
   assert.deepEqual(projectRepairGitCommandEvidence(`false && git status --short`), {
     compliantCount: 0,
@@ -1285,10 +1458,10 @@ test('projects complete repair Git syntax and rejects incomplete shell lists', (
     reasons: [{ code: 'git-status-arguments', count: 1 }],
   });
   assert.deepEqual(projectRepairGitCommandEvidence(`/bin/bash -lc '${status}'`), {
-    compliantCount: 1,
-    noncompliantCount: 0,
+    compliantCount: 0,
+    noncompliantCount: 1,
     unverifiedCount: 0,
-    reasons: [],
+    reasons: [{ code: 'git-status-arguments', count: 1 }],
   });
 });
 
@@ -1359,10 +1532,10 @@ test.each(['&&', '||', '|', ';', '&'])(
       assert.deepEqual(
         projectRepairGitCommandEvidence(`${status} ${operator} ${status}${ending}`),
         {
-          compliantCount: 2,
-          noncompliantCount: 0,
+          compliantCount: 0,
+          noncompliantCount: 2,
           unverifiedCount: 0,
-          reasons: [],
+          reasons: [{ code: 'git-status-arguments', count: 2 }],
         },
       );
     }
@@ -1619,22 +1792,31 @@ test.each(['&&', '||', ';', '|', '&', '\n'])(
       '.',
     ].join(' ');
     assert.deepEqual(projectRepairGitCommandEvidence(`${status} ${separator} ${diff}`), {
-      compliantCount: 2,
-      noncompliantCount: 0,
+      compliantCount: 0,
+      noncompliantCount: 2,
       unverifiedCount: 0,
-      reasons: [],
+      reasons: [
+        { code: 'git-diff-arguments', count: 1 },
+        { code: 'git-status-arguments', count: 1 },
+      ],
     });
     assert.deepEqual(projectRepairGitCommandEvidence(`${status} ${separator} git log -p`), {
-      compliantCount: 1,
-      noncompliantCount: 1,
+      compliantCount: 0,
+      noncompliantCount: 2,
       unverifiedCount: 0,
-      reasons: [{ code: 'git-log', count: 1 }],
+      reasons: [
+        { code: 'git-log', count: 1 },
+        { code: 'git-status-arguments', count: 1 },
+      ],
     });
     assert.deepEqual(projectRepairGitCommandEvidence(`${status} ${separator} node inspect.js`), {
-      compliantCount: 1,
-      noncompliantCount: 0,
+      compliantCount: 0,
+      noncompliantCount: 1,
       unverifiedCount: 1,
-      reasons: [{ code: 'opaque-node', count: 1 }],
+      reasons: [
+        { code: 'git-status-arguments', count: 1 },
+        { code: 'opaque-node', count: 1 },
+      ],
     });
   },
 );
@@ -1694,13 +1876,13 @@ test.each([
   });
 });
 
-test('classifies hardened repair review diffs without admitting unbounded pathspecs', () => {
+test('rejects direct hardened repair review diffs, including bounded paths', () => {
   const prefix = CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX.join(' ');
   assert.deepEqual(projectRepairGitCommandEvidence(`git ${prefix} moldea/context/a.md README.md`), {
-    compliantCount: 1,
-    noncompliantCount: 0,
+    compliantCount: 0,
+    noncompliantCount: 1,
     unverifiedCount: 0,
-    reasons: [],
+    reasons: [{ code: 'git-diff-arguments', count: 1 }],
   });
   const evidence = projectRepairGitCommandEvidence(`git ${prefix} .`);
   assert.equal(evidence.noncompliantCount, 1);
@@ -1720,10 +1902,10 @@ test.each([
     '--branch',
   ].join(' ');
   assert.deepEqual(projectRepairGitCommandEvidence(`${prefix}${status}`), {
-    compliantCount: 1,
-    noncompliantCount: 0,
+    compliantCount: 0,
+    noncompliantCount: 1,
     unverifiedCount: 0,
-    reasons: [],
+    reasons: [{ code: 'git-status-arguments', count: 1 }],
   });
   assert.deepEqual(projectRepairGitCommandEvidence(`${prefix}git log -p`), {
     compliantCount: 0,
@@ -1786,13 +1968,18 @@ test('untrusted repair helper copies and hidden shell branches cannot acquire co
   }
 });
 
-test('only the exact hardened attribute-source configuration query is a passive Git read', () => {
+test('the hardened attribute-source lookup is mechanically passive but violates helper-only repair', () => {
   const prefix = CODEX_EVALUATION_GIT_STATUS_ARGUMENTS.slice(
     0,
     CODEX_EVALUATION_GIT_STATUS_ARGUMENTS.indexOf('status'),
   );
   const command = ['git', ...prefix, 'config', '--null', '--get', 'attr.tree'].join(' ');
-  assert.equal(projectRepairGitCommandEvidence(command).compliantCount, 1);
+  assert.deepEqual(projectRepairGitCommandEvidence(command), {
+    compliantCount: 0,
+    noncompliantCount: 1,
+    unverifiedCount: 0,
+    reasons: [{ code: 'git-other', count: 1 }],
+  });
   assert.equal(
     projectCodexEvaluationExecutionEvidence(createCommandEvent(command)).commandPolicy.networkAccess
       .status,
@@ -1901,19 +2088,144 @@ test('ordered moldea events keep command and patch order without commands or pat
   );
   assert.equal(hasValidCodexEvaluationCommandPolicy(commandPolicy), true);
   assert.deepEqual(commandPolicy.moldeaEvents, [
-    { kind: 'command', operation: null, outputByteCount: 10, ownership: 'canonical' },
+    { kind: 'command', operations: [], outputByteCount: 10, ownership: 'canonical' },
     { kind: 'file-change', moldeaPath: 'touching' },
     { kind: 'file-change', moldeaPath: 'not-touching' },
     { kind: 'file-change', moldeaPath: 'touching' },
     { kind: 'file-change', moldeaPath: 'unreadable' },
     { kind: 'file-change', moldeaPath: 'unreadable' },
     { kind: 'file-change', moldeaPath: 'unreadable' },
-    { kind: 'command', operation: 'validate', outputByteCount: 30, ownership: 'cli' },
+    { kind: 'command', operations: null, outputByteCount: 30, ownership: 'cli' },
     // an unparseable launcher call stays moldea work but cannot be placed as an operation
-    { kind: 'command', operation: null, outputByteCount: 40, ownership: 'cli' },
-    { kind: 'command', operation: null, outputByteCount: 0, ownership: 'helper' },
+    { kind: 'command', operations: null, outputByteCount: 40, ownership: 'cli' },
+    { kind: 'command', operations: [], outputByteCount: 0, ownership: 'helper' },
   ]);
   assert.equal(JSON.stringify(commandPolicy).includes('project.md'), false);
+});
+
+test.each([
+  ['changed before validation', 'a', 'b', 'b', 'b', true, false],
+  ['changed after validation', 'a', 'b', 'a', 'a', false, true],
+  ['changed during validation', 'a', 'b', 'a', 'b', false, true],
+  ['unchanged', 'a', 'a', 'a', 'a', false, false],
+  ['unknown initial', null, 'b', 'b', 'b', false, false],
+  ['unknown final', 'a', null, 'b', 'b', false, false],
+  ['unknown startup', 'a', 'b', null, 'b', false, false],
+  ['unknown exit', 'a', 'b', 'b', null, false, false],
+] as const)(
+  'runtime canonical observation %s preserves defensible placement',
+  (_name, initial, final, before, after, hasBefore, hasAfter) => {
+    const digest = (letter: string | null) => (letter === null ? null : letter.repeat(64));
+    const command = `node ${SKILL_SCRIPTS}/moldea-cli.mjs --repository /mnt -- validate --json --max-output-bytes 65536`;
+    const result = projectCodexEvaluationExecutionEvidence(
+      [
+        createCommandEvent(command),
+        JSON.stringify({
+          type: 'moldea.cli-invocations',
+          canonicalInitial: digest(initial),
+          canonicalFinal: digest(final),
+          invocations: [
+            {
+              arguments: [
+                '--repository',
+                '/mnt',
+                '--',
+                'validate',
+                '--json',
+                '--max-output-bytes',
+                '65536',
+              ],
+              exitCode: 0,
+              outputByteCount: 0,
+              stdout: '',
+              callers: [
+                [
+                  '/opt/node',
+                  '/mnt/.agents/skills/moldea/scripts/moldea-cli.mjs',
+                  '--repository',
+                  '/mnt',
+                  '--',
+                  'validate',
+                  '--json',
+                  '--max-output-bytes',
+                  '65536',
+                ],
+              ],
+              canonicalBefore: digest(before),
+              canonicalAfter: digest(after),
+            },
+          ],
+        }),
+      ].join('\n'),
+    );
+    const expected: unknown[] = [];
+    if (hasBefore) expected.push({ kind: 'file-change', moldeaPath: 'touching' });
+    expected.push({ kind: 'cli', operation: 'validate', outputByteCount: 0 });
+    if (hasAfter) expected.push({ kind: 'file-change', moldeaPath: 'touching' });
+    assert.deepEqual(
+      result.commandPolicy.moldeaEvents.flatMap((event) =>
+        event.kind === 'command' ? (event.operations ?? []) : [event],
+      ),
+      expected,
+    );
+    assert.equal(JSON.stringify(result).includes('canonicalInitial'), false);
+  },
+);
+
+test('ambiguous launcher correspondence grants no canonical write evidence', () => {
+  const result = projectCodexEvaluationExecutionEvidence(
+    [
+      createCommandEvent('node -e "wrapped launcher"'),
+      JSON.stringify({
+        type: 'moldea.cli-invocations',
+        canonicalInitial: 'a'.repeat(64),
+        canonicalFinal: 'b'.repeat(64),
+        invocations: [
+          {
+            arguments: ['--repository', '/mnt', '--', 'validate', '--json'],
+            exitCode: 0,
+            outputByteCount: 0,
+            stdout: '',
+            canonicalBefore: 'b'.repeat(64),
+            canonicalAfter: 'b'.repeat(64),
+          },
+        ],
+      }),
+    ].join('\n'),
+  );
+  assert.equal(
+    result.commandPolicy.moldeaEvents.some((event) => event.kind === 'file-change'),
+    false,
+  );
+});
+
+test('runtime observation does not duplicate existing known canonical patch evidence', () => {
+  const command = `node ${SKILL_SCRIPTS}/moldea-cli.mjs --repository /mnt -- validate --json --max-output-bytes 65536`;
+  const result = projectCodexEvaluationExecutionEvidence(
+    [
+      createFileChangeEvent([{ path: '/mnt/moldea/project.md', kind: 'update' }]),
+      createCommandEvent(command),
+      JSON.stringify({
+        type: 'moldea.cli-invocations',
+        canonicalInitial: 'a'.repeat(64),
+        canonicalFinal: 'b'.repeat(64),
+        invocations: [
+          {
+            arguments: ['--repository', '/mnt', '--', 'validate', '--json'],
+            exitCode: 0,
+            outputByteCount: 0,
+            stdout: '',
+            canonicalBefore: 'b'.repeat(64),
+            canonicalAfter: 'b'.repeat(64),
+          },
+        ],
+      }),
+    ].join('\n'),
+  );
+  assert.equal(
+    result.commandPolicy.moldeaEvents.filter((event) => event.kind === 'file-change').length,
+    1,
+  );
 });
 
 test('ordered moldea evidence rejects inconsistent ownership totals and events', () => {
@@ -1936,7 +2248,12 @@ test('ordered moldea evidence rejects inconsistent ownership totals and events',
     {
       ...commandPolicy,
       moldeaEvents: [
-        { kind: 'command', operation: 'validate', outputByteCount: 10, ownership: 'canonical' },
+        {
+          kind: 'command',
+          operations: [{ kind: 'cli', operation: 'validate', outputByteCount: 10 }],
+          outputByteCount: 10,
+          ownership: 'canonical',
+        },
         commandPolicy.moldeaEvents[1],
       ],
     },
@@ -1945,3 +2262,39 @@ test('ordered moldea evidence rejects inconsistent ownership totals and events',
     assert.equal(hasValidCodexEvaluationCommandPolicy(tampered), false);
   }
 });
+
+test.each(['count', 'bytes'] as const)(
+  'rejects grouped CLI %s exceeding captured totals',
+  (field) => {
+    const args = ['--repository', '/mnt', '--', 'validate', '--json'];
+    const { commandPolicy } = projectCodexEvaluationExecutionEvidence(
+      [
+        createCommandEvent(
+          `node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs ${args.join(' ')}`,
+          '{}',
+        ),
+        JSON.stringify({
+          type: 'moldea.cli-invocations',
+          invocations: [
+            {
+              arguments: args,
+              exitCode: 0,
+              stdout: '{}',
+              outputByteCount: 2,
+              callers: [
+                ['/opt/node', '/mnt/.agents/skills/moldea/scripts/moldea-cli.mjs', ...args],
+              ],
+            },
+          ],
+        }),
+      ].join('\n'),
+    );
+    assert.equal(hasValidCodexEvaluationCommandPolicy(commandPolicy), true);
+    const command = commandPolicy.moldeaEvents[0];
+    assert.ok(command?.kind === 'command' && command.operations !== null);
+    if (field === 'count')
+      command.operations.push({ kind: 'cli', operation: 'validate', outputByteCount: 0 });
+    else command.operations = [{ kind: 'cli', operation: 'validate', outputByteCount: 3 }];
+    assert.equal(hasValidCodexEvaluationCommandPolicy(commandPolicy), false);
+  },
+);

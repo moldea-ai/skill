@@ -4,6 +4,7 @@ import { defineSemanticCase } from '../define.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'repair-unproven-adoption',
+  publication: 'private',
   setup: createSemanticCaseSetup('repair-unproven-adoption'),
   scenario:
     'A partial moldea-looking draft exists without a reliable record that the repository was initialized.',
@@ -28,6 +29,11 @@ export const semanticCase = defineSemanticCase({
     maximumMoldeaOutputBytes: 0,
   },
   expected: [
+    {
+      label: 'repair-git-compliance',
+      criterion:
+        'Observed repair Git reads, including preliminary configuration lookups, come only from the exact installed repair helper. Direct actor Git reads violate this procedure even with hardened arguments. Approved installed CLI and managed-writer subprocesses and trusted-host calls supply no positive repair-comparison credit. Conservative no-Git diagnosis may pass without comparison when evidence is unavailable or comparison is unnecessary; failed calls do not establish successful reads.',
+    },
     {
       label: 'ask-whether-adopted',
       criterion:

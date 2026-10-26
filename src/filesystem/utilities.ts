@@ -1,7 +1,6 @@
 import { mkdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { hashValue } from 'jg-crypto';
-import { parse as parseYaml } from 'yaml';
 
 import type { IBoundarySchema } from './types.ts';
 
@@ -49,6 +48,8 @@ export const readYamlFile = async <TResult>(
   filePath: string,
   schema: IBoundarySchema<TResult>,
 ): Promise<TResult> => {
+  // keep parser side effects out of lightweight filesystem consumers and runtime bundles
+  const { parse: parseYaml } = await import('yaml');
   const source = await readFile(filePath, 'utf8');
   return schema.parse(parseYaml(source) as unknown);
 };

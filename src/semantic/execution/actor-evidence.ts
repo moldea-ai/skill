@@ -1,8 +1,11 @@
-import { posix } from 'node:path';
 import { hashValue } from 'jg-crypto';
 
 import {
   hasValidRepairGitCommandEvidence,
+  identifyCliInvocationOperation,
+  identifyManagedAgentsInvocationMode,
+  isMoldeaCliOperation,
+  MOLDEA_CLI_OPERATIONS,
   identifyMoldeaCliLauncherOperation,
   identifyMoldeaRelevanceGateMode,
   identifyMoldeaManagedAgentsMode,
@@ -37,13 +40,6 @@ type IMoldeaStatus = Extract<
 type IOutputDisposition = ISemanticActorExecutionOutputEvidence['disposition'];
 
 const COMMAND_COMPLETED_STATUSES: ReadonlySet<string> = new Set(['completed', 'failed']);
-const MOLDEA_COMMANDS: ReadonlySet<string> = new Set([
-  'composition',
-  'content',
-  'inspect',
-  'scope',
-  'validate',
-]);
 const MOLDEA_STATUSES: ReadonlySet<string> = new Set(['error', 'invalid', 'valid']);
 const MOLDEA_ERROR_CODE_PATTERN = /^[A-Z][A-Z0-9_]{0,63}$/u;
 const OUTPUT_DISPOSITIONS: ReadonlySet<string> = new Set([
@@ -64,7 +60,7 @@ const MAX_AGGREGATE_MOLDEA_OUTPUT_BYTES =
   MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxMoldeaOutputBytes;
 const MAX_MOLDEA_COMMAND_COUNT = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxMoldeaCommandCount;
 const MOLDEA_RESOURCE_OPERATIONS: ReadonlySet<string> = new Set([
-  ...MOLDEA_COMMANDS,
+  ...MOLDEA_CLI_OPERATIONS,
   'unrecognized',
 ]);
 const NODE_TEST_SUMMARY_FIELDS = [
@@ -125,9 +121,6 @@ const hasExactKeys = (
 const isCommandCompletedStatus = (input: unknown): input is ICommandCompletedStatus =>
   typeof input === 'string' && COMMAND_COMPLETED_STATUSES.has(input);
 
-const isMoldeaOperation = (input: unknown): input is IMoldeaCliOperation =>
-  typeof input === 'string' && MOLDEA_COMMANDS.has(input);
-
 const isMoldeaStatus = (input: unknown): input is IMoldeaStatus =>
   typeof input === 'string' && MOLDEA_STATUSES.has(input);
 
@@ -137,7 +130,7 @@ const isOutputDisposition = (input: unknown): input is IOutputDisposition =>
 const isCommandKind = (
   input: unknown,
 ): input is ISemanticActorExecutionEvidence['item']['commandKind'] =>
-  input === 'moldea' || input === 'other';
+  input === 'managed-agents' || input === 'moldea' || input === 'other';
 
 const hasValidProjectionOptions = (
   options: unknown,
@@ -335,7 +328,7 @@ const hasValidMoldeaFact = (
     kind !== 'moldea-cli-envelope' ||
     cliVersion !== options.cliVersion ||
     schemaVersion !== options.jsonSchemaVersion ||
-    !isMoldeaOperation(command) ||
+    !isMoldeaCliOperation(command) ||
     !isMoldeaStatus(status) ||
     typeof containsContent !== 'boolean' ||
     (errorCode !== null &&
@@ -767,11 +760,13 @@ const hasValidOutputEvidence = (
     facts.length === 1 &&
     (commandKind === 'moldea'
       ? hasValidMoldeaFact(facts[0], exitCode, options)
-      : hasValidRelevanceGateFact(facts[0], byteCount, exitCode) ||
-        hasValidManagedReadmeFact(facts[0], byteCount, exitCode) ||
-        hasValidManagedAgentsFact(facts[0], byteCount, exitCode) ||
-        hasValidNodeTestFact(facts[0], exitCode) ||
-        hasValidRepairGitResultFact(facts[0], exitCode))
+      : commandKind === 'managed-agents'
+        ? hasValidManagedAgentsFact(facts[0], byteCount, exitCode)
+        : hasValidRelevanceGateFact(facts[0], byteCount, exitCode) ||
+          hasValidManagedReadmeFact(facts[0], byteCount, exitCode) ||
+          hasValidManagedAgentsFact(facts[0], byteCount, exitCode) ||
+          hasValidNodeTestFact(facts[0], exitCode) ||
+          hasValidRepairGitResultFact(facts[0], exitCode))
   );
 };
 
@@ -828,6 +823,7 @@ const hasValidEntry = (
  * @param event The native command result.
  * @param options The accepted release CLI identity.
  * @param recognizeCliFromCommand Whether transcript-only callers may infer CLI use from command text.
+ * @param recognizeManagedAgentsFromCommand Whether transcript-only callers may infer writer use.
  * @returns Content-free evidence, or null for another event kind.
  * @throws If the command evidence or release identity is invalid.
  */
@@ -835,6 +831,7 @@ export const projectActorExecutionEvidenceEvent = (
   event: unknown,
   options: ISemanticActorExecutionEvidenceOptions,
   recognizeCliFromCommand = true,
+  recognizeManagedAgentsFromCommand = true,
 ): ISemanticActorExecutionEvidence | null => {
   if (!hasValidProjectionOptions(options)) {
     throw new Error('Actor execution evidence requires a valid release CLI identity.');
@@ -864,7 +861,10 @@ export const projectActorExecutionEvidenceEvent = (
   const isManagedReadmeWriter =
     operation === null && gateMode === null && isMoldeaManagedReadmeWriterCommand(command);
   const agentsMode =
-    operation === null && gateMode === null && !isManagedReadmeWriter
+    recognizeManagedAgentsFromCommand &&
+    operation === null &&
+    gateMode === null &&
+    !isManagedReadmeWriter
       ? identifyMoldeaManagedAgentsMode(command)
       : null;
   const testKinds =
@@ -899,6 +899,45 @@ export const projectActorExecutionEvidenceEvent = (
 };
 
 /**
+ * Projects one corresponding immutable writer separately from its enclosing host command.
+ * @returns A bounded writer result, or null for an unsupported or inconsistent observation.
+ * @throws If captured method evidence cannot satisfy the existing bounded output contract.
+ */
+export const projectManagedAgentsInvocationEvidence = (
+  invocation: ICliInvocation,
+  options: ISemanticActorExecutionEvidenceOptions,
+): ISemanticActorExecutionEvidence | null => {
+  const mode = identifyManagedAgentsInvocationMode(invocation);
+  if (mode === null) return null;
+  const outputEvidence = createOutputEvidence(
+    invocation.stdout,
+    null,
+    null,
+    false,
+    mode,
+    null,
+    invocation.exitCode,
+    options,
+    null,
+  );
+  if (invocation.outputByteCount !== outputEvidence.byteCount) return null;
+  const result: ISemanticActorExecutionEvidence = {
+    eventType: 'item.completed',
+    item: {
+      type: 'command_execution',
+      commandKind: 'managed-agents',
+      exitCode: invocation.exitCode,
+      status: invocation.exitCode === 0 ? 'completed' : 'failed',
+      repairGit: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+      outputEvidence,
+    },
+  };
+  if (!hasValidEntry(result, options))
+    throw new Error('Managed writer invocation evidence has an unsupported shape.');
+  return result;
+};
+
+/**
  * Projects a launcher execution; only a consistent successful envelope proves validation.
  * @returns Content-free attempt and response evidence.
  * @throws If the captured result cannot be projected into the bounded evidence contract.
@@ -907,17 +946,8 @@ export const projectCliInvocationEvidence = (
   invocation: ICliInvocation,
   options: ISemanticActorExecutionEvidenceOptions,
 ): ISemanticActorExecutionEvidence => {
-  const [repositoryFlag, repository, separator, command] = invocation.arguments;
   // startup proves the entry point; the launcher itself validates all remaining arguments
-  const operation =
-    repositoryFlag === '--repository' &&
-    typeof repository === 'string' &&
-    repository !== '' &&
-    posix.resolve('/mnt', repository) === '/mnt' &&
-    separator === '--' &&
-    isMoldeaOperation(command)
-      ? command
-      : null;
+  const operation = identifyCliInvocationOperation(invocation.arguments);
   const outputEvidence = createOutputEvidence(
     invocation.stdout,
     operation,

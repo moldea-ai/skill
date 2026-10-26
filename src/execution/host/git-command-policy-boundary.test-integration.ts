@@ -3,10 +3,12 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import {
   chmodSync,
+  copyFileSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  realpathSync,
   rmSync,
   writeFileSync,
 } from 'node:fs';
@@ -21,10 +23,16 @@ import {
   readTopLevel,
   runGit,
 } from 'jg-git-commands';
-import { test } from 'vitest';
+import { expect, test, vi } from 'vitest';
+import { z } from 'zod';
 
 import { resolveInstructionWriteTarget } from '../../portable/instruction-link/index.ts';
-import { collectRepairGitEvidence } from '../../portable/repair-git/index.ts';
+import {
+  collectRepairGitEvidence,
+  type IRepairGitOptions,
+} from '../../portable/repair-git/index.ts';
+import { semanticCase as healthyRepairCase } from '../../semantic/cases/repair-healthy-project/case.ts';
+import { createActorRepository } from '../../semantic/workspace/index.ts';
 
 import {
   CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX,
@@ -32,7 +40,8 @@ import {
   isApprovedRepairGitArguments,
   prepareGitCommandPolicyBoundary,
 } from './git-command-policy-boundary.ts';
-import { projectGitInvocations } from './git-invocations.ts';
+import { projectGitInvocations, readGitInvocationEvidence } from './git-invocations.ts';
+import { buildCodexEvaluationBwrapArguments } from './host.ts';
 
 // jg-git-commands 0.3.1's command prefix, which the release CLI and the writer's queries use
 const JG_GIT_PREFIX = [
@@ -50,6 +59,7 @@ const JG_GIT_PREFIX = [
   'credential.helper=',
   '--no-pager',
 ];
+const StatusEnvelopeSchema = z.object({ status: z.string() });
 
 const runSystemGit = (repositoryPath: string, argumentsList: readonly string[]): void => {
   const result = spawnSync('/usr/bin/git', argumentsList, {
@@ -69,6 +79,68 @@ const runWrappedGit = (
     encoding: 'utf8',
     env: { ...process.env, GIT_ATTR_NOSYSTEM: '1' },
   });
+
+test('scoped hardened diffs are inert and reject output-file options', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'moldea-diff-'));
+  try {
+    const repository = join(root, 'repository');
+    mkdirSync(repository);
+    runSystemGit(repository, ['init', '--quiet']);
+    writeFileSync(join(repository, 'owner.js'), 'export const owner = "before";\n');
+    runSystemGit(repository, ['add', '--', 'owner.js']);
+    runSystemGit(repository, [
+      '-c',
+      'user.name=Evaluation',
+      '-c',
+      'user.email=evaluation@invalid.example',
+      'commit',
+      '--quiet',
+      '-m',
+      'test: seed diff',
+    ]);
+    writeFileSync(join(repository, 'owner.js'), 'export const owner = "after";\n');
+    const wrapper = await prepareGitCommandPolicyBoundary(join(root, 'bin'), {
+      realGitExecutable: '/usr/bin/git',
+      invocationLogPath: join(root, 'git.jsonl'),
+    });
+    const prefix = CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX.slice(0, -1);
+    const result = runWrappedGit(wrapper, repository, [...prefix, 'HEAD', '--', 'owner.js']);
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /\+export const owner = "after"/u);
+    const rejected = runWrappedGit(wrapper, repository, [
+      ...prefix,
+      '--output=written.patch',
+      '--',
+      'owner.js',
+    ]);
+    assert.equal(rejected.status, 2, rejected.stderr);
+    assert.equal(existsSync(join(repository, 'written.patch')), false);
+    for (const tail of [
+      ['--output', 'written.patch', '--', 'owner.js'],
+      ['--no-index', '--', 'owner.js', '/dev/null'],
+      ['--ext-diff', '--', 'owner.js'],
+      ['--textconv', '--', 'owner.js'],
+      ['--ignore-submodules=none', '--', 'owner.js'],
+      ['--', '../outside.js'],
+      ['--', ':(top,literal)owner.js'],
+    ]) {
+      const invalid = runWrappedGit(wrapper, repository, [...prefix, ...tail]);
+      assert.equal(invalid.status, 2, JSON.stringify(tail));
+    }
+    runSystemGit(repository, ['add', '--', 'owner.js']);
+    const staged = runWrappedGit(wrapper, repository, [
+      ...prefix,
+      '--cached',
+      'HEAD',
+      '--',
+      'owner.js',
+    ]);
+    assert.equal(staged.status, 0, staged.stderr);
+    assert.match(staged.stdout, /\+export const owner = "after"/u);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
 
 test.each(['unborn', 'committed', 'detached'] as const)(
   'checkpoint status captures %s identity and NUL-delimited paths without mutation',
@@ -310,7 +382,7 @@ test('Git command-policy boundary admits the jg-git-commands reads of the helper
       { mode: 'continue', checkpoint },
       { mode: 'verify', checkpoint },
       { mode: 'review', paths: ['moldea/moldea.yaml'] },
-    ] as const) {
+    ] satisfies Omit<IRepairGitOptions, 'repositoryRoot'>[]) {
       const evidence = await collectRepairGitEvidence({
         repositoryRoot: repositoryPath,
         ...options,
@@ -324,19 +396,12 @@ test('Git command-policy boundary admits the jg-git-commands reads of the helper
     const records = log
       .trimEnd()
       .split('\n')
-      .map((line) => JSON.parse(line) as { approved: boolean; releaseCli: boolean });
+      .map((line) => JSON.parse(line) as { approved: boolean; caller: string });
     assert.ok(records.length > cliInvocationCount);
     assert.ok(records.every(({ approved }) => approved));
-    assert.ok(records.slice(0, cliInvocationCount).every(({ releaseCli }) => releaseCli));
-    const helperInvocationCount = records
-      .slice(cliInvocationCount)
-      .filter(({ releaseCli }) => !releaseCli).length;
-    assert.deepEqual(projectGitInvocations(log).repair, {
-      compliantCount: helperInvocationCount,
-      noncompliantCount: 0,
-      unverifiedCount: 0,
-      reasons: [],
-    });
+    assert.ok(records.every(({ caller }) => caller === 'actor'));
+    assert.equal(projectGitInvocations(log).repair.compliantCount, 0);
+    assert.equal(projectGitInvocations(log).repair.noncompliantCount, records.length);
   } finally {
     process.env['PATH'] = path;
     rmSync(testRoot, { force: true, recursive: true });
@@ -733,5 +798,126 @@ test('Git command-policy boundary refuses linked-worktree common attributes', as
     assert.equal(existsSync(sentinelPath), false);
   } finally {
     rmSync(testRoot, { force: true, recursive: true });
+  }
+});
+
+test('real sandbox attributes repair Git to immutable helpers rather than copied arguments', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'moldea-git-provenance-'));
+  const sandboxHome = join(root, 'home');
+  const invocationLogPath = join(sandboxHome, 'git-invocations.jsonl');
+  const emptyCodexHome = join(root, 'empty-codex-home');
+  try {
+    mkdirSync(emptyCodexHome);
+    vi.stubEnv('CODEX_HOME', emptyCodexHome);
+    const { repositoryPath, readOnlyMounts } = await createActorRepository(
+      root,
+      healthyRepairCase,
+      sandboxHome,
+      join(root, 'tools'),
+    );
+    await prepareGitCommandPolicyBoundary(join(sandboxHome, 'bin'), {
+      trustedReadOnlyWorkspacePaths: ['.agents', 'node_modules'],
+      realGitExecutable: '/opt/moldea-real-git/git',
+      invocationLogPath: '/home/evaluator/git-invocations.jsonl',
+    });
+    const hostExecutable = realpathSync('/bin/sh');
+    const run = async (command: string, actor = true) => {
+      writeFileSync(invocationLogPath, '', { mode: 0o600 });
+      const result = spawnSync(
+        'bwrap',
+        buildCodexEvaluationBwrapArguments({
+          command: [
+            'codex',
+            '-c',
+            `${actor ? 'export MOLDEA_EVAL_MODEL_COMMAND=1; ' : ''}${command}`,
+          ],
+          cwd: repositoryPath,
+          hostExecutable,
+          includeWorkspaceBinaryDirectory: true,
+          nodeExecutable: process.execPath,
+          readOnlyWorkspacePaths: ['.agents', '.git'],
+          readOnlyMounts,
+          sandboxHome,
+        }),
+        { encoding: 'utf8', timeout: 15_000, maxBuffer: 1_048_576 },
+      );
+      expect(result.error).toBeUndefined();
+      expect(result.status, result.stderr).toBe(0);
+      return { result, evidence: await readGitInvocationEvidence(invocationLogPath) };
+    };
+    const scripts = '/mnt/.agents/skills/moldea/scripts';
+    const helper = await run(`node ${scripts}/repair-git.mjs --repository /mnt -- checkpoint`);
+    expect(StatusEnvelopeSchema.parse(JSON.parse(helper.result.stdout)).status).toBe('available');
+    expect(helper.evidence.repair.compliantCount).toBeGreaterThan(0);
+    expect(helper.evidence.repair.noncompliantCount).toBe(0);
+    expect(helper.evidence.hostInvocationCount).toBe(0);
+
+    const cli = await run(
+      `node ${scripts}/moldea-cli.mjs --repository /mnt -- validate --json --max-output-bytes 65536`,
+    );
+    expect(StatusEnvelopeSchema.parse(JSON.parse(cli.result.stdout)).status).toBe('valid');
+    expect(cli.evidence.invocationCount).toBeGreaterThan(0);
+    expect(cli.evidence.repair).toStrictEqual({
+      compliantCount: 0,
+      noncompliantCount: 0,
+      unverifiedCount: 0,
+      reasons: [],
+    });
+
+    const writer = await run(`node ${scripts}/managed-agents.mjs --repository /mnt`);
+    expect(writer.evidence.invocationCount).toBeGreaterThan(0);
+    expect(writer.evidence.repair).toStrictEqual({
+      compliantCount: 0,
+      noncompliantCount: 0,
+      unverifiedCount: 0,
+      reasons: [],
+    });
+
+    copyFileSync(
+      join(repositoryPath, '.agents/skills/moldea/scripts/repair-git.mjs'),
+      join(repositoryPath, 'copied-repair.mjs'),
+    );
+    copyFileSync(
+      join(repositoryPath, '.agents/skills/moldea/scripts/repository-files.mjs'),
+      join(repositoryPath, 'repository-files.mjs'),
+    );
+    const copied = await run('node /mnt/copied-repair.mjs --repository /mnt -- checkpoint');
+    expect(StatusEnvelopeSchema.parse(JSON.parse(copied.result.stdout)).status).toBe('available');
+    expect(copied.evidence.repair.compliantCount).toBe(0);
+    expect(copied.evidence.repair.noncompliantCount).toBeGreaterThan(0);
+
+    // Node flags leave caller attribution inconclusive even when the real helper runs.
+    const inconclusive = await run(
+      `node --no-warnings ${scripts}/repair-git.mjs --repository /mnt -- checkpoint`,
+    );
+    expect(inconclusive.evidence.repair.compliantCount).toBe(0);
+    expect(inconclusive.evidence.repair.noncompliantCount).toBeGreaterThan(0);
+
+    const prefix = CODEX_EVALUATION_GIT_STATUS_ARGUMENTS.slice(
+      0,
+      CODEX_EVALUATION_GIT_STATUS_ARGUMENTS.indexOf('status'),
+    );
+    const argumentsList = [...prefix, 'config', '--null', '--get', 'attr.tree'];
+    const direct = await run(`git ${argumentsList.join(' ')}; :`);
+    expect(direct.evidence.repair).toStrictEqual({
+      compliantCount: 0,
+      noncompliantCount: 1,
+      unverifiedCount: 0,
+      reasons: [{ code: 'git-other', count: 1 }],
+    });
+    const node = await run(
+      `node -e 'const result = require("node:child_process").spawnSync("git", ${JSON.stringify(argumentsList)}); if (result.status !== 1) throw new Error("Expected missing attr.tree");'`,
+    );
+    expect(node.evidence.repair).toStrictEqual(direct.evidence.repair);
+
+    const host = await run(`git ${argumentsList.join(' ')}; :`, false);
+    expect(host.evidence).toStrictEqual({
+      invocationCount: 1,
+      hostInvocationCount: 1,
+      repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+    });
+  } finally {
+    vi.unstubAllEnvs();
+    rmSync(root, { recursive: true, force: true });
   }
 });

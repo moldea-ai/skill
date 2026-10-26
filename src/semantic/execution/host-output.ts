@@ -6,6 +6,9 @@ import {
   projectCodexEvaluationExecutionEvidence,
   GitInvocationEventSchema,
   CliInvocationEventSchema,
+  correlateToolInvocations,
+  type ICliInvocationEvent,
+  type ICliInvocation,
   type IGitInvocationEvidence,
   type ICodexEvaluationCommandPolicyEvidence,
 } from '../../execution/host/index.ts';
@@ -14,6 +17,7 @@ import {
   hasValidActorExecutionEvidence,
   projectActorExecutionEvidenceEvent,
   projectCliInvocationEvidence,
+  projectManagedAgentsInvocationEvidence,
 } from './actor-evidence.ts';
 import type {
   IMoldeaResourceEvidence,
@@ -31,6 +35,19 @@ const AgentMessageEventSchema = z.looseObject({
   type: z.literal('item.completed'),
   item: z.looseObject({ type: z.literal('agent_message'), text: z.string() }),
 });
+
+/** Retains a captured call's resource charge without awarding unplaced method evidence. */
+const projectUnplacedCliInvocation = (
+  invocation: ICliInvocation,
+  options: ISemanticActorExecutionEvidenceOptions,
+): ISemanticActorExecutionEvidence => {
+  const entry = projectCliInvocationEvidence(invocation, options);
+  entry.item.outputEvidence.facts = [];
+  if (entry.item.outputEvidence.disposition === 'projected')
+    entry.item.outputEvidence.disposition =
+      entry.item.outputEvidence.byteCount === 0 ? 'empty' : 'unrecognized';
+  return entry;
+};
 
 export interface ISemanticHostOutput {
   actorExecutionEvidence: ISemanticActorExecutionEvidence[];
@@ -62,11 +79,13 @@ export const parseSemanticEvaluationHostOutput = (
     output,
     sessionUsageBeforeRequest,
   );
+  const nativeCommands: Array<{ event: unknown; command: unknown }> = [];
   const actorExecutionEvidence: ISemanticActorExecutionEvidence[] = [];
   let hasOperationalFailureEvent = false;
   let response: string | null = null;
   let gitInvocationEvidence: IGitInvocationEvidence | null = null;
-  let hasCliCapture = false;
+  let capture: ICliInvocationEvent | null = null;
+  const hostEvents: unknown[] = [];
 
   for (const line of output.split('\n')) {
     if (line.trim() === '') continue;
@@ -79,7 +98,10 @@ export const parseSemanticEvaluationHostOutput = (
       });
     }
     const event = HostEventSchema.parse(parsed);
+    hostEvents.push(parsed);
     const invocationFailure = GitCaptureCommandSchema.safeParse(parsed);
+    if (invocationFailure.success)
+      nativeCommands.push({ event: parsed, command: invocationFailure.data.item['command'] });
     if (
       invocationFailure.success &&
       /(?:^|\n)MOLDEA_(?:GIT|CLI)_CAPTURE_FAILED(?:\r?\n|$)/u.test(
@@ -95,30 +117,46 @@ export const parseSemanticEvaluationHostOutput = (
       gitInvocationEvidence = GitInvocationEventSchema.parse(parsed).evidence;
     }
     if (event.type === 'moldea.cli-invocations') {
-      if (hasCliCapture) throw new Error('CLI invocation capture is duplicated.');
-      hasCliCapture = true;
-      actorExecutionEvidence.push(
-        ...CliInvocationEventSchema.parse(parsed).invocations.map((invocation) =>
-          projectCliInvocationEvidence(invocation, options),
-        ),
-      );
-      if (!hasValidActorExecutionEvidence(actorExecutionEvidence, options))
-        throw new Error('Codex actor execution evidence exceeded its item limit.');
+      if (capture !== null) throw new Error('CLI invocation capture is duplicated.');
+      capture = CliInvocationEventSchema.parse(parsed);
     }
     if (event.type === 'error' || event.type === 'turn.failed') {
       hasOperationalFailureEvent = true;
     }
     const messageEvent = AgentMessageEventSchema.safeParse(event);
     if (messageEvent.success) response = messageEvent.data.item.text;
-
-    const executionEvidence = projectActorExecutionEvidenceEvent(event, options, false);
+  }
+  const correspondingInvocations = correlateToolInvocations(
+    nativeCommands.map(({ command }) => command),
+    capture?.invocations ?? [],
+    { commandInstances: capture?.commandInstances ?? [], events: hostEvents },
+  );
+  const placedInvocations = new Set(correspondingInvocations.flatMap((group) => group ?? []));
+  for (const [index, { event }] of nativeCommands.entries()) {
+    const executionEvidence = projectActorExecutionEvidenceEvent(event, options, false, false);
     if (executionEvidence !== null) {
       actorExecutionEvidence.push(executionEvidence);
-      if (!hasValidActorExecutionEvidence(actorExecutionEvidence, options)) {
-        throw new Error('Codex actor execution evidence exceeded its item limit.');
-      }
     }
+    for (const invocation of correspondingInvocations[index] ?? []) {
+      const child =
+        invocation.entrypoint === 'managed-agents'
+          ? projectManagedAgentsInvocationEvidence(invocation, options)
+          : projectCliInvocationEvidence(invocation, options);
+      if (child !== null) actorExecutionEvidence.push(child);
+    }
+    if (!hasValidActorExecutionEvidence(actorExecutionEvidence, options))
+      throw new Error('Codex actor execution evidence exceeded its item limit.');
   }
+  actorExecutionEvidence.push(
+    ...(capture?.invocations ?? [])
+      .filter(
+        (invocation) =>
+          invocation.entrypoint !== 'managed-agents' && !placedInvocations.has(invocation),
+      )
+      .map((invocation) => projectUnplacedCliInvocation(invocation, options)),
+  );
+  if (!hasValidActorExecutionEvidence(actorExecutionEvidence, options))
+    throw new Error('Codex actor execution evidence exceeded its item limit.');
 
   if (response === null || response.trim() === '') {
     if (hasOperationalFailureEvent) {
@@ -131,7 +169,7 @@ export const parseSemanticEvaluationHostOutput = (
   }
 
   if (gitInvocationEvidence === null) throw new Error('Git invocation capture is missing.');
-  if (!hasCliCapture) throw new Error('CLI invocation capture is missing.');
+  if (capture === null) throw new Error('CLI invocation capture is missing.');
   return {
     actorExecutionEvidence,
     gitInvocationEvidence,

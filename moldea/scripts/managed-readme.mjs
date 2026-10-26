@@ -5,6 +5,23 @@
 var DEFAULT_MESSAGE = "The error message could not be extracted, check the logs for more information.";
 var UNKNOWN_ERROR_CODE = "UNKNOWN_ERROR";
 var REDACTED_VALUE = "[redacted]";
+var MAX_NESTING_DEPTH = 256;
+
+// node_modules/jg-exception/dist/shared/utilities.js
+var stringifyWithinDepth = (value) => {
+  const levels = /* @__PURE__ */ new WeakMap();
+  const limitDepth = function(_key, member) {
+    if (typeof member === "object" && member !== null) {
+      const level = (levels.get(this) ?? 0) + 1;
+      if (level > MAX_NESTING_DEPTH) {
+        throw new RangeError("The value is nested too deeply to serialize.");
+      }
+      levels.set(member, level);
+    }
+    return member;
+  };
+  return JSON.stringify(value, limitDepth);
+};
 
 // node_modules/jg-exception/dist/error-handler/utilities.js
 var collectSensitiveRanges = (message, sensitiveValues) => {
@@ -83,7 +100,7 @@ var MESSAGE_PROPERTIES = [
   "issues",
   "data"
 ];
-var extractMessageFrom = (error, visitedErrors) => {
+var extractMessageFrom = (error, visitedErrors, depth) => {
   if (typeof error === "string" && error.length) {
     return error;
   }
@@ -97,24 +114,25 @@ var extractMessageFrom = (error, visitedErrors) => {
     return DEFAULT_MESSAGE;
   }
   visitedErrors.add(error);
+  const canFollow = depth < MAX_NESTING_DEPTH;
   if (error instanceof Error && error.message) {
-    if (error.cause) {
-      return `${error.message}; [CAUSE]: ${extractMessageFrom(error.cause, visitedErrors)}`;
+    if (error.cause && canFollow) {
+      return `${error.message}; [CAUSE]: ${extractMessageFrom(error.cause, visitedErrors, depth + 1)}`;
     }
     return error.message;
   }
   const record = error;
   const property = MESSAGE_PROPERTIES.find((name) => Boolean(record[name]));
   if (property !== void 0) {
-    return extractMessageFrom(record[property], visitedErrors);
+    return canFollow ? extractMessageFrom(record[property], visitedErrors, depth + 1) : DEFAULT_MESSAGE;
   }
   try {
-    return JSON.stringify(error);
+    return stringifyWithinDepth(error) ?? DEFAULT_MESSAGE;
   } catch {
     return DEFAULT_MESSAGE;
   }
 };
-var extractMessage = (error) => extractMessageFrom(error, /* @__PURE__ */ new WeakSet());
+var extractMessage = (error) => extractMessageFrom(error, /* @__PURE__ */ new WeakSet(), 0);
 var getErrorCode = (error) => {
   if (typeof error !== "object" || error === null) {
     return null;
@@ -193,12 +211,15 @@ var redactPrimitive = (value, values) => {
   const redacted = redactSensitiveValues(text, values);
   return redacted === text ? value : redacted;
 };
-var redactJson = (value, values, ancestors) => {
+var redactJson = (value, values, ancestors, depth) => {
   if (typeof value !== "object" || value === null) {
     return typeof value === "function" || typeof value === "symbol" || typeof value === "bigint" ? void 0 : redactPrimitive(value, values);
   }
   if (ancestors.has(value)) {
     return void 0;
+  }
+  if (depth >= MAX_NESTING_DEPTH) {
+    throw new RangeError("The data is nested too deeply to copy.");
   }
   ancestors.add(value);
   try {
@@ -207,14 +228,14 @@ var redactJson = (value, values, ancestors) => {
       const copy2 = [];
       for (const [key, item] of entries) {
         if (ARRAY_INDEX.test(key)) {
-          copy2[Number(key)] = redactJson(item, values, ancestors) ?? null;
+          copy2[Number(key)] = redactJson(item, values, ancestors, depth + 1) ?? null;
         }
       }
       return copy2;
     }
     const copy = {};
     for (const [key, item] of entries) {
-      const redacted = redactJson(item, values, ancestors);
+      const redacted = redactJson(item, values, ancestors, depth + 1);
       if (redacted !== void 0) {
         defineValue(copy, key, redacted, true);
       }
@@ -226,12 +247,12 @@ var redactJson = (value, values, ancestors) => {
 };
 var redactData = (data, values) => {
   try {
-    return redactJson(data, values, /* @__PURE__ */ new Set());
+    return redactJson(data, values, /* @__PURE__ */ new Set(), 0);
   } catch {
     return null;
   }
 };
-var createSnapshot = (cause, context) => {
+var createSnapshot = (cause, context, depth) => {
   const { values, exceptionClass, snapshots } = context;
   const isRecognisedException = readProperty(cause, EXCEPTION_BRAND, false) === true;
   const message = readProperty(cause, "message", false);
@@ -263,23 +284,19 @@ var createSnapshot = (cause, context) => {
   } catch {
     hasCause = false;
   }
-  if (hasCause) {
-    defineValue(snapshot, "cause", redactCause(readProperty(cause, "cause", false), context), false);
+  if (hasCause && depth < MAX_NESTING_DEPTH) {
+    defineValue(snapshot, "cause", redactCause(readProperty(cause, "cause", false), context, depth + 1), false);
   }
   return snapshot;
 };
-var redactCause = (cause, context) => {
+var redactCause = (cause, context, depth) => {
   if (isPrimitive(cause)) {
     return redactPrimitive(cause, context.values);
   }
   if (context.snapshots.has(cause)) {
     return context.snapshots.get(cause);
   }
-  try {
-    return createSnapshot(cause, context);
-  } catch {
-    return void 0;
-  }
+  return createSnapshot(cause, context, depth);
 };
 var toRedactionValues = (redact) => {
   const values = /* @__PURE__ */ new Set();
@@ -311,14 +328,14 @@ var redactExceptionParts = (parts, redact, exceptionClass) => {
   return {
     message,
     data: parts.data === void 0 ? void 0 : redactData(parts.data, values),
-    cause: redactCause(parts.cause, { values, exceptionClass, snapshots: /* @__PURE__ */ new Map() })
+    cause: redactCause(parts.cause, { values, exceptionClass, snapshots: /* @__PURE__ */ new Map() }, 1)
   };
 };
 
 // node_modules/jg-exception/dist/exception/exception.js
 var toSerializableData = (data) => {
   try {
-    const serialized = JSON.stringify(data);
+    const serialized = stringifyWithinDepth(data);
     return serialized === void 0 ? null : JSON.parse(serialized);
   } catch {
     return null;
@@ -355,8 +372,8 @@ var Exception = class _Exception extends Error {
   }
   /**
    * Converts the exception to a plain object, which `JSON.stringify` calls.
-   * @returns The name, code, message, and data, with `null` for data that is missing or can't be
-   * serialized.
+   * @returns The name, code, message, and data, with `null` for data that is missing, can't be
+   * serialized, or is nested more than 256 levels deep.
    * @example
    * import { Exception } from 'jg-exception';
    *
@@ -752,7 +769,7 @@ var writeAtomically = async (path, data, mode, beforeRename) => {
     await syncDirectory(directory);
   }
 };
-var writeFileAtomicIfUnchanged = (path, data, expected) => writeAtomically(path, data, void 0, async () => {
+var writeFileAtomicIfUnchanged = (path, data, expected, mode) => writeAtomically(path, data, mode, async () => {
   let current;
   try {
     current = await readBoundedFile(path, expected === null ? 0 : expected.byteLength);

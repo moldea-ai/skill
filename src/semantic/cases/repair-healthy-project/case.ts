@@ -53,9 +53,14 @@ export const semanticCase = defineSemanticCase({
   },
   expected: [
     {
+      label: 'repair-git-compliance',
+      criterion:
+        'Observed repair Git reads, including preliminary configuration lookups, come only from the exact installed repair helper. Direct actor Git reads violate this procedure even with hardened arguments. Approved installed CLI and managed-writer subprocesses and trusted-host calls supply no positive repair-comparison credit. Conservative no-Git diagnosis may pass without comparison when evidence is unavailable or comparison is unnecessary; failed calls do not establish successful reads.',
+    },
+    {
       label: 'validate-healthy-no-op',
       criterion:
-        'Runner-owned evidence records successful launcher-backed validation, the workspace is unchanged, and the actor accurately reports no established defect and no repair. The checked scope and actual checks are clear without requiring a foundation/source recital or a particular heading. Structural validation alone must not be presented as proof of semantic correctness. No unrelated live-behavior disclaimer is required for this setup without agents or runtimes.',
+        'Runner-owned launcher capture records successful composition before inspect in launcher-start order and successful validation. A generic invocation count or actor claim does not establish those operations. The workspace is unchanged, and the actor accurately reports no established defect and no repair. The checked scope and actual checks are clear without requiring a foundation/source recital or a particular heading. Structural validation alone must not be presented as proof of semantic correctness. No unrelated live-behavior disclaimer is required for this setup without agents or runtimes.',
     },
   ],
   forbidden: [

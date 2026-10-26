@@ -26,6 +26,7 @@ export type ISemanticCaseTrialExecutor = (
 ) => Promise<ISemanticRecordedTrial>;
 
 type ISemanticCaseExecutionOptions = {
+  signal?: AbortSignal | undefined;
   cases: ISemanticCase[];
   commitCase: (recordedCase: ISemanticRecordedCase) => Promise<void>;
   executeTrial: ISemanticCaseTrialExecutor;
@@ -51,6 +52,7 @@ const initializeCaseCheckpoint = async (
   options: ISemanticCaseExecutionOptions,
   caseDefinition: ISemanticCase,
 ): Promise<ISemanticCaseCheckpoint> => {
+  options.signal?.throwIfAborted();
   const existingCheckpoint = options.getCaseCheckpoint(caseDefinition.id);
   if (existingCheckpoint !== null) {
     validateCaseCheckpoint(caseDefinition, existingCheckpoint);
@@ -111,6 +113,7 @@ const resolveSemanticCase = async (
   };
 
   while (true) {
+    options.signal?.throwIfAborted();
     const initialTrial = checkpoint.trials[0]?.trial;
     if (initialTrial === undefined) {
       throw new Error('Semantic case resolution requires an initial trial checkpoint.');
@@ -183,6 +186,7 @@ const resolveSemanticCase = async (
  * - Semantic case resolution requires an initial trial checkpoint.
  * - Semantic confirmation policy did not resolve the selected case.
  * - Evaluation worker count must be 1, 2, or 4.
+ * - Execution is cancelled before another case or confirmation.
  */
 export const runSemanticCaseExecution = async (
   options: ISemanticCaseExecutionOptions,

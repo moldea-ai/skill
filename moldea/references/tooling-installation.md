@@ -15,7 +15,7 @@ When installation is required, inspect only the exact manager configuration need
 Return one concise blocked-install result containing all four facts:
 
 1. No compatible exact local CLI was independently verified as installed.
-2. Name the configuration and executable hook or plugin that blocks automatic installation through the named manager.
+2. Name the configuration file, exact setting key (for example `.yarnrc.yml`'s `yarnPath`) and selected executable hook or plugin that block automatic installation through the named manager. Naming only the executable path omits the actionable setting.
 3. State that execution stopped before invoking the manager.
 4. State that CLI establishment must use the repository's approved trusted setup workflow, preserving its controls; retry moldea after it establishes compatible root-local tooling.
 

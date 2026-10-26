@@ -2,6 +2,7 @@ import {
   hasPassingCodexEvaluationCommandPolicy,
   type ICodexEvaluationCommandOwnership,
   type ICodexEvaluationCommandPolicyEvidence,
+  type ICodexEvaluationMoldeaOperation,
   type IGitInvocationEvidence,
 } from '../../execution/host/index.ts';
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../resources/index.ts';
@@ -122,11 +123,17 @@ export const identifyFinalValidationExemption = (options: {
   workspaceChanges: ISemanticWorkspaceChanges | undefined;
 }): number | null => {
   if (options.profileName !== 'ordinary' || options.workspaceChanges === undefined) return null;
-  const events = options.commandPolicy.moldeaEvents;
+  const events: Array<ICodexEvaluationMoldeaOperation | { kind: 'owned-command' }> = [];
+  for (const event of options.commandPolicy.moldeaEvents) {
+    if (event.kind === 'file-change') events.push(event);
+    else {
+      if (event.operations === null) return null;
+      if (event.operations.length === 0) events.push({ kind: 'owned-command' });
+      else events.push(...event.operations);
+    }
+  }
   // every captured launcher call must have a placed command event with the same operation
-  const cliOperations = events.flatMap((event) =>
-    event.kind === 'command' && event.ownership === 'cli' ? [event.operation] : [],
-  );
+  const cliOperations = events.flatMap((event) => (event.kind === 'cli' ? [event.operation] : []));
   const capturedOperations = options.resourceEvidence.operations;
   if (
     cliOperations.length !== capturedOperations.length ||
@@ -145,9 +152,9 @@ export const identifyFinalValidationExemption = (options: {
   if (!hasKnownWrite) return null;
   const laterCommands = events
     .slice(lastWriteIndex + 1)
-    .flatMap((event) => (event.kind === 'command' ? [event] : []));
+    .filter((event) => event.kind !== 'file-change');
   const validations = laterCommands.filter(
-    (event) => event.ownership === 'cli' && event.operation === 'validate',
+    (event) => event.kind === 'cli' && event.operation === 'validate',
   );
   const finalCommand = laterCommands.at(-1);
   const finalInvocation = options.actorExecutionEvidence
@@ -156,6 +163,7 @@ export const identifyFinalValidationExemption = (options: {
   if (
     validations.length !== 1 ||
     finalCommand === undefined ||
+    finalCommand.kind !== 'cli' ||
     finalCommand !== validations[0] ||
     finalInvocation === undefined ||
     capturedOperations.at(-1) !== 'validate' ||
@@ -172,7 +180,7 @@ export const identifyFinalValidationExemption = (options: {
   return hasNetMoldeaChange ? finalInvocation.item.outputEvidence.byteCount : null;
 };
 
-/** Enforces the case's complete repair-Git observations independently of the judge verdict. */
+/** Enforces helper-only Git compliance for explicitly labelled repair cases, independently of the judge. */
 export const hasPassingCaseRepairGitEvidence = (options: {
   actorCommandPolicy: ICodexEvaluationCommandPolicyEvidence;
   gitInvocationEvidence: IGitInvocationEvidence;
@@ -187,6 +195,24 @@ export const hasPassingCaseRepairGitEvidence = (options: {
     hasPassingRepairGitEvidence(options.actorExecutionEvidence, options.gitInvocationEvidence) &&
     (!options.caseDefinition.expected.some(({ label }) => label === 'approved-repair-git') ||
       options.gitInvocationEvidence.repair.compliantCount > 0));
+
+/** Rejects observed repair Git work in cases explicitly limited to structural validation. */
+const hasPassingValidationBoundary = (options: {
+  actorCommandPolicy: ICodexEvaluationCommandPolicyEvidence;
+  actorExecutionEvidence: ISemanticActorExecutionEvidence[];
+  caseDefinition: ISemanticCase;
+  gitInvocationEvidence: IGitInvocationEvidence;
+}): boolean =>
+  !options.caseDefinition.expected.some(({ label }) => label === 'standalone-validation-only') ||
+  (options.actorExecutionEvidence.filter(({ item }) => item.commandKind === 'other').length ===
+    options.actorCommandPolicy.completedCommandCount &&
+    options.gitInvocationEvidence.repair.compliantCount === 0 &&
+    options.actorExecutionEvidence.every(
+      ({ item }) =>
+        item.repairGit.compliantCount === 0 &&
+        item.outputEvidence.facts.every(({ kind }) => kind !== 'repair-git-result'),
+    ) &&
+    hasPassingRepairGitEvidence(options.actorExecutionEvidence, options.gitInvocationEvidence));
 
 /** Creates independently attributable outcome dimensions for one completed trial. */
 export const createSemanticResultDimensions = (options: {
@@ -250,10 +276,26 @@ export const createSemanticResultDimensions = (options: {
     resourceEvidence: options.actorResourceEvidence,
     workspaceChanges: options.workspaceChanges,
   });
+  const ownedUsage = measureOwnedResourceUsage({
+    commandPolicy: options.actorCommandPolicy,
+    exemptValidationByteCount,
+    profileName,
+    resourceEvidence: options.actorResourceEvidence,
+  });
+  const requiresValidationBoundary = options.caseDefinition.expected.some(
+    ({ label }) => label === 'exercise-final-validation-exemption',
+  );
   return {
     semantic:
       options.isSemanticPassing &&
       hasPassingCaseRepairGitEvidence(options) &&
+      hasPassingValidationBoundary(options) &&
+      (!requiresValidationBoundary ||
+        (exemptValidationByteCount !== null &&
+          ownedUsage.aggregateMoldeaOutputByteCount <=
+            MOLDEA_SKILL_RESOURCE_PROFILES.ordinary.maxAggregateMoldeaOutputBytes &&
+          ownedUsage.aggregateMoldeaOutputByteCount + exemptValidationByteCount >
+            MOLDEA_SKILL_RESOURCE_PROFILES.ordinary.maxAggregateMoldeaOutputBytes)) &&
       hasPassingMoldeaActivation(
         options.actorResourceEvidence,
         options.caseDefinition.resourceBudget,
@@ -277,15 +319,7 @@ export const createSemanticResultDimensions = (options: {
         options.caseDefinition.resourceBudget,
         exemptValidationByteCount,
       ) &&
-      hasPassingResourceProfile(
-        measureOwnedResourceUsage({
-          commandPolicy: options.actorCommandPolicy,
-          exemptValidationByteCount,
-          profileName,
-          resourceEvidence: options.actorResourceEvidence,
-        }),
-        profileName,
-      ) &&
+      hasPassingResourceProfile(ownedUsage, profileName) &&
       (options.paidInvocations ?? []).every(
         ({ stage, usage }) =>
           stage !== 'judge' ||

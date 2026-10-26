@@ -335,14 +335,6 @@ test('never touches a host path outside the repository root', async () => {
   const root = await createRepository();
   await writeFile(join(root, '..', 'outside.md'), 'outside\n');
   const observed: string[] = [];
-  const record =
-    <TArguments extends unknown[], TResult>(
-      original: (...parameters: TArguments) => TResult,
-    ): ((...parameters: TArguments) => TResult) =>
-    (...parameters) => {
-      observed.push(String(parameters[0]));
-      return original(...parameters);
-    };
 
   for (const target of [
     join('..', 'outside.md'),
@@ -351,16 +343,16 @@ test('never touches a host path outside the repository root', async () => {
   ]) {
     await rm(join(root, 'AGENTS.md'), { force: true });
     await link(target, join(root, 'AGENTS.md'));
-    for (const name of ['lstat', 'readlink', 'open', 'opendir', 'realpath', 'stat'] as const) {
-      const original = fsPromises[name];
-      vi.spyOn(fsPromises, name).mockImplementation(record(original) as never);
-    }
+    const spies = (['lstat', 'readlink', 'open', 'opendir', 'realpath', 'stat'] as const).map(
+      (name) => vi.spyOn(fsPromises, name),
+    );
     syncBuiltinESMExports();
     try {
       await expect(resolveInstructionWriteTarget(root, 'AGENTS.md')).rejects.toThrow(
         'AGENTS.md links outside the repository',
       );
     } finally {
+      observed.push(...spies.flatMap((spy) => spy.mock.calls.map(([path]) => String(path))));
       vi.restoreAllMocks();
       syncBuiltinESMExports();
     }

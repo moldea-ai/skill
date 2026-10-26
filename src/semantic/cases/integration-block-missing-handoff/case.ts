@@ -1,4 +1,5 @@
 import { createSemanticCaseSetup } from '../../workspace/index.ts';
+import { TRACKED_AGENTS_GIT_PROBE } from '../setup-local-warning-eligibility/index.ts';
 
 import { defineSemanticCase } from '../define.ts';
 
@@ -8,11 +9,10 @@ export const semanticCase = defineSemanticCase({
   scenario: 'An adopted fixture has no managed bridge and host instructions prohibit AGENTS edits.',
   operation: 'check-setup',
   input: {
-    developerDirection:
-      'Check the moldea setup without changing files. AGENTS.md is protected. Report the missing integration warning and show the exact managed block I can add later, using the installed helper print mode. Smoke-test the gate. Do not install tooling, repair AGENTS.md, or accept a warning on my behalf.',
+    developerDirection: `Check the moldea setup without changing files. AGENTS.md is shared, Git-tracked and protected. Report the missing integration warning and show the exact managed block I can add later, using the installed helper print mode. Smoke-test the gate. Do not install tooling, repair AGENTS.md, or accept a warning on my behalf. The host's bounded index probe is: ${TRACKED_AGENTS_GIT_PROBE}`,
     repositoryEvidence: [
       {
-        claim: 'Host guidance protects this instruction file and contains no moldea block.',
+        claim: 'The shared tracked instruction file is protected and contains no moldea block.',
         source: {
           kind: 'workspace-path',
           path: 'AGENTS.md',
@@ -47,7 +47,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'reports-warning-and-both-paths',
       criterion:
-        'The response reports MOLDEA_INTEGRATION_BLOCK_MISSING as an acceptable warning that leaves the project valid, and states both paths in one line: authorized Fix moldea to address the cause, or developer acceptance in moldea.yaml with a developer-supplied reason.',
+        'The response reports MOLDEA_INTEGRATION_BLOCK_MISSING as a warning that leaves the project valid. For this shared tracked subject it states both paths in one line: authorized Fix moldea to address the cause, or developer acceptance in moldea.yaml with a developer-supplied reason. Local/ignored subjects do not inherit that acceptance option. Neither the printed block nor validation proves native host compliance.',
     },
     {
       label: 'hands-off-installed-block',

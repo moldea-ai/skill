@@ -8,12 +8,14 @@ import type { Readable } from 'node:stream';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { hashValue } from 'jg-crypto';
+import { isPathWithin } from 'jg-fs';
 import { z } from 'zod';
 
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../resources/index.ts';
 
 import { readGitInvocationEvidence } from './git-invocations.ts';
-import { readCliInvocations } from './cli-invocations/index.ts';
+import { observeCanonicalDigest, readCliInvocationCapture } from './cli-invocations/index.ts';
+import { createPrivateTrace } from './private-trace.ts';
 
 import type {
   ICodexEvaluationBwrapOptions,
@@ -35,6 +37,7 @@ type IGitCommandPolicyBoundaryModule = {
       trustedReadOnlyWorkspacePaths?: readonly string[];
       realGitExecutable: string;
       invocationLogPath: string;
+      diagnosticSocketPath?: string;
     },
   ) => Promise<string>;
 };
@@ -89,6 +92,7 @@ const EGRESS_PROXY_PATH = join(RUNTIME_DIRECTORY, 'codex-evaluation-proxy.mjs');
 const GIT_COMMAND_POLICY_BOUNDARY_PATH = join(RUNTIME_DIRECTORY, 'git-command-policy-boundary.mjs');
 const CLI_INVOCATION_PRELOAD_PATH = join(RUNTIME_DIRECTORY, 'cli-invocation-preload.mjs');
 const SANDBOX_NODE_OPTIONS = '--import=file:///home/evaluator/bin/cli-invocation-preload.mjs';
+const SANDBOX_SHELL_STARTUP = '/home/evaluator/bin/shell-start.sh';
 const EGRESS_PROXY_PORT = 3128;
 const EGRESS_PROXY_SHUTDOWN_TIMEOUT_MS = 5_000;
 const MAX_HOST_OUTPUT_BYTES = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostOutputBytes;
@@ -583,6 +587,20 @@ export const prepareCodexEvaluationHome = async (sandboxHome: string): Promise<v
     CLI_INVOCATION_PRELOAD_PATH,
     join(sandboxBinDirectory, 'cli-invocation-preload.mjs'),
   );
+  await writeFile(
+    join(sandboxBinDirectory, 'shell-start.sh'),
+    [
+      '# Sourced by sandbox Bash; preserve shell options and command exit status.',
+      'NODE_OPTIONS= /opt/node /home/evaluator/bin/cli-invocation-preload.mjs --observe-shell || exit "$?"',
+      // An EXIT trap prevents Bash replacing itself with its last command and losing parent argv.
+      "trap ':' EXIT",
+      '',
+    ].join('\n'),
+    { mode: 0o600 },
+  );
+  // Bash treats socket-backed command input as a remote shell and reads .bashrc instead of BASH_ENV.
+  for (const filename of ['.bashrc', '.bash_profile'])
+    await writeFile(join(sandboxHome, filename), `. ${SANDBOX_SHELL_STARTUP}\n`, { mode: 0o600 });
   const { prepareGitCommandPolicyBoundary } = await loadGitCommandPolicyBoundary();
   await prepareGitCommandPolicyBoundary(sandboxBinDirectory, {
     realGitExecutable: '/opt/moldea-real-git/git',
@@ -667,6 +685,7 @@ export const identifyCodexEvaluationHostConfiguration = ({
  * Builds the isolated Bubblewrap invocation for one disposable repository.
  * @param options The host command, mounts, runtime paths, and disposable directories.
  * @returns The Bubblewrap argument list.
+ * @throws If the host search executable cannot be resolved.
  */
 export const buildCodexEvaluationBwrapArguments = ({
   command,
@@ -675,6 +694,7 @@ export const buildCodexEvaluationBwrapArguments = ({
   hostExecutable,
   includeWorkspaceBinaryDirectory = false,
   nodeExecutable = NODE_EXECUTABLE_PATH,
+  searchExecutable = resolveExecutablePath('rg'),
   readOnlyMounts = [],
   readOnlyWorkspacePaths = [],
   sandboxHome,
@@ -751,6 +771,9 @@ export const buildCodexEvaluationBwrapArguments = ({
     '--ro-bind',
     nodeExecutable,
     '/opt/node',
+    '--ro-bind',
+    searchExecutable,
+    '/opt/rg',
     '--dir',
     '/home',
     '--dir',
@@ -789,6 +812,9 @@ export const buildCodexEvaluationBwrapArguments = ({
     '/opt/moldea-real-git/git',
     '--ro-bind',
     join(sandboxHome, 'bin/git'),
+    '/home/evaluator/bin/git',
+    '--ro-bind',
+    join(sandboxHome, 'bin/git'),
     '/usr/bin/git',
     ...(existsSync('/bin/git') ? ['--ro-bind', join(sandboxHome, 'bin/git'), '/bin/git'] : []),
     ...(existsSync('/usr/lib/git-core/git')
@@ -812,6 +838,9 @@ export const buildCodexEvaluationBwrapArguments = ({
     '--setenv',
     'NODE_OPTIONS',
     SANDBOX_NODE_OPTIONS,
+    '--setenv',
+    'BASH_ENV',
+    SANDBOX_SHELL_STARTUP,
     '--setenv',
     'TMPDIR',
     '/tmp',
@@ -861,11 +890,13 @@ const runBubblewrapProcess = ({
   prompt,
   signal,
   timeoutMs,
+  capture,
 }: {
   argumentsList: string[];
   prompt: string;
   signal?: AbortSignal | undefined;
   timeoutMs: number;
+  capture?: ((chunk: Buffer) => void) | undefined;
 }): Promise<string> =>
   new Promise<string>((resolvePromise, rejectPromise) => {
     const sandboxProcess = spawn('bwrap', argumentsList, {
@@ -874,7 +905,7 @@ const runBubblewrapProcess = ({
     const stdoutChunks: Buffer[] = [];
     const stderrChunks: Buffer[] = [];
     let outputBytes = 0;
-    let pendingError: CodexEvaluationHostError | null = null;
+    let pendingError: Error | null = null;
     let hasSettled = false;
     let sandboxChildPid: number | null = null;
     let statusOutput = '';
@@ -929,7 +960,16 @@ const runBubblewrapProcess = ({
       chunks.push(chunk);
     };
 
-    sandboxProcess.stdout?.on('data', (chunk: Buffer) => captureChunk(stdoutChunks, chunk));
+    sandboxProcess.stdout?.on('data', (chunk: Buffer) => {
+      try {
+        capture?.(chunk);
+      } catch (error) {
+        pendingError =
+          error instanceof Error ? error : new Error('Private diagnostic capture failed.');
+        killSandbox();
+      }
+      captureChunk(stdoutChunks, chunk);
+    });
     sandboxProcess.stderr?.on('data', (chunk: Buffer) => captureChunk(stderrChunks, chunk));
     sandboxProcess.stdin?.on('error', () => {
       // process close owns the actionable exit status and captured diagnostic output
@@ -1101,6 +1141,8 @@ export const stopCodexEvaluationProxyProcess = async (
  * - If defaultHostTimeoutMs is not a positive integer and no environment override is present
  * - If MOLDEA_EVAL_HOST_TIMEOUT_MS is not a positive integer
  * - If a retained session is requested for a judge or a continuation lacks an exact UUID
+ * - If private diagnostic paths are unsafe or capture cannot be completed and flushed
+ * - If the host search executable cannot be resolved
  */
 export const runCodexEvaluationHost = async ({
   actorSession,
@@ -1108,6 +1150,7 @@ export const runCodexEvaluationHost = async ({
   cwd,
   defaultHostTimeoutMs = CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS,
   includeWorkspaceBinaryDirectory = false,
+  privateTrace,
   prompt,
   readOnlyMounts = [],
   readOnlyWorkspacePaths = [],
@@ -1134,16 +1177,37 @@ export const runCodexEvaluationHost = async ({
   if (!['read-only', 'read-write'].includes(workspaceAccess)) {
     throw new Error(`Unsupported evaluation workspace access: ${workspaceAccess}`);
   }
+  if (privateTrace !== undefined) {
+    const destination = join(privateTrace.repositoryRoot, '.evidence', 'private-semantic');
+    if (
+      [cwd, sandboxHome, ...readOnlyMounts.map(({ source }) => source)].some(
+        (root) => resolve(root) === resolve(destination) || isPathWithin(root, destination),
+      )
+    ) {
+      throw new Error('Private diagnostic files must be outside every sandbox mount.');
+    }
+  }
   const protectedWorkspacePaths = getProtectedWorkspacePaths(
     readOnlyWorkspacePaths,
     includeWorkspaceBinaryDirectory,
   );
+  const writerEntrypoint = '/mnt/.agents/skills/moldea/scripts/managed-agents.mjs';
+  const hasImmutableWriter =
+    workspaceAccess === 'read-only' ||
+    [
+      ...protectedWorkspacePaths.map((path) => `/mnt/${path}`),
+      ...readOnlyMounts.map(({ target }) => target),
+    ].some((root) => {
+      const path = resolve('/', root);
+      return path === writerEntrypoint || isPathWithin(path, writerEntrypoint);
+    });
   await mkdir(join(sandboxHome, 'tmp'), { recursive: true, mode: 0o700 });
   const { prepareGitCommandPolicyBoundary } = await loadGitCommandPolicyBoundary();
   await prepareGitCommandPolicyBoundary(join(sandboxHome, 'bin'), {
     trustedReadOnlyWorkspacePaths: protectedWorkspacePaths,
     realGitExecutable: '/opt/moldea-real-git/git',
     invocationLogPath: '/home/evaluator/git-invocations.jsonl',
+    ...(privateTrace === undefined ? {} : { diagnosticSocketPath: '/home/evaluator/git.sock' }),
   });
   const gitInvocationLogPath = join(sandboxHome, 'git-invocations.jsonl');
   const cliInvocationLogPath = join(sandboxHome, 'cli-invocations.jsonl');
@@ -1157,11 +1221,19 @@ export const runCodexEvaluationHost = async ({
     `shell_environment_policy.set.PATH=${JSON.stringify(getSandboxPath(includeWorkspaceBinaryDirectory))}`,
     '-c',
     `shell_environment_policy.set.NODE_OPTIONS=${JSON.stringify(SANDBOX_NODE_OPTIONS)}`,
+    '-c',
+    `shell_environment_policy.set.BASH_ENV=${JSON.stringify(SANDBOX_SHELL_STARTUP)}`,
     '-',
   ];
   const hostConfiguration = identifyCodexEvaluationHostConfiguration({
     defaultHostTimeoutMs,
   });
+  const trace =
+    privateTrace === undefined
+      ? undefined
+      : await createPrivateTrace(privateTrace, join(sandboxHome, 'git.sock'));
+  let traceOutcome: 'completed' | 'failed' = 'failed';
+  let hasCapturedInvocations = false;
   const proxyProcess = spawn(process.execPath, [EGRESS_PROXY_PATH], {
     env: {
       MOLDEA_EVAL_ALLOWED_HOSTS: hostConfiguration.allowedEgressHosts.join(','),
@@ -1172,6 +1244,19 @@ export const runCodexEvaluationHost = async ({
 
   try {
     await waitForProxyReady(proxyProcess);
+    // host-side snapshots cannot establish writes when extra mounts change the canonical view.
+    const hasCanonicalOverlay = readOnlyMounts.some(({ target }) => {
+      const path = resolve('/', target);
+      return (
+        path === '/' || path === '/mnt' || path === '/mnt/moldea' || path.startsWith('/mnt/moldea/')
+      );
+    });
+    const canonicalInitial =
+      role === 'actor'
+        ? hasCanonicalOverlay
+          ? null
+          : observeCanonicalDigest(join(cwd, 'moldea'))
+        : undefined;
     const output = await runBubblewrapProcess({
       argumentsList: buildCodexEvaluationBwrapArguments({
         command: sandboxCommand,
@@ -1189,11 +1274,28 @@ export const runCodexEvaluationHost = async ({
       prompt,
       signal,
       timeoutMs: hostConfiguration.hostTimeoutMs,
+      capture: trace?.capture,
     });
     try {
       const evidence = await readGitInvocationEvidence(gitInvocationLogPath);
-      const invocations = await readCliInvocations(cliInvocationLogPath);
-      return `${output}\n${JSON.stringify({ type: 'moldea.git-invocations', evidence })}\n${JSON.stringify({ type: 'moldea.cli-invocations', invocations })}`;
+      const capture = await readCliInvocationCapture(cliInvocationLogPath);
+      const invocations = capture.invocations.filter(
+        (invocation) => invocation.entrypoint !== 'managed-agents' || hasImmutableWriter,
+      );
+      const canonicalState =
+        canonicalInitial === undefined
+          ? {}
+          : {
+              canonicalInitial,
+              canonicalFinal: hasCanonicalOverlay
+                ? null
+                : observeCanonicalDigest(join(cwd, 'moldea')),
+            };
+      const captureFrames = `${JSON.stringify({ type: 'moldea.git-invocations', evidence })}\n${JSON.stringify({ type: 'moldea.cli-invocations', observesManagedAgents: true, invocations, commandInstances: capture.commandInstances, ...canonicalState })}`;
+      trace?.capture(Buffer.from(`${captureFrames}\n`));
+      hasCapturedInvocations = true;
+      traceOutcome = 'completed';
+      return `${output}\n${captureFrames}`;
     } catch (error) {
       throw new CodexEvaluationHostError(
         CODEX_EVALUATION_HOST_FAILURE_KINDS.ExecutionFailed,
@@ -1205,8 +1307,45 @@ export const runCodexEvaluationHost = async ({
     try {
       await stopCodexEvaluationProxyProcess(proxyProcess);
     } finally {
-      await rm(gitInvocationLogPath, { force: true });
-      await rm(cliInvocationLogPath, { force: true });
+      try {
+        if (trace !== undefined) {
+          if (!hasCapturedInvocations) {
+            try {
+              const evidence = await readGitInvocationEvidence(gitInvocationLogPath);
+              const capture = await readCliInvocationCapture(cliInvocationLogPath);
+              trace.capture(
+                Buffer.from(
+                  [
+                    JSON.stringify({ type: 'moldea.git-invocations', evidence }),
+                    JSON.stringify({
+                      type: 'moldea.cli-invocations',
+                      observesManagedAgents: true,
+                      invocations: capture.invocations.filter(
+                        (invocation) =>
+                          invocation.entrypoint !== 'managed-agents' || hasImmutableWriter,
+                      ),
+                      commandInstances: capture.commandInstances,
+                    }),
+                    '',
+                  ].join('\n'),
+                ),
+              );
+            } catch {
+              trace.markIncomplete();
+            }
+          }
+          let expectedCount = -1;
+          try {
+            expectedCount = (await readGitInvocationEvidence(gitInvocationLogPath)).invocationCount;
+          } catch {
+            /* finish records the incomplete capture and stops without an operational retry */
+          }
+          await trace.finish(traceOutcome, expectedCount);
+        }
+      } finally {
+        await rm(gitInvocationLogPath, { force: true });
+        await rm(cliInvocationLogPath, { force: true });
+      }
     }
   }
 };

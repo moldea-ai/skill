@@ -13,6 +13,15 @@ export const semanticCase = defineSemanticCase({
       'This repository was initialized with moldea. Repair the damaged managed README block and verify the setup. Preserve all other content.',
     repositoryEvidence: [
       {
+        claim:
+          'README.md has no declared material relationship. For its installed relevance-gate smoke test, a successful negative relationship result is healthy wiring evidence; it does not prove native host compliance.',
+        source: {
+          kind: 'workspace-path',
+          path: 'moldea/moldea.yaml',
+          expectedType: 'file',
+        },
+      },
+      {
         claim: 'The managed README region is damaged.',
         source: { kind: 'workspace-path', path: 'README.md', expectedType: 'file' },
       },
@@ -30,6 +39,11 @@ export const semanticCase = defineSemanticCase({
     profile: 'largeTraversal',
   },
   expected: [
+    {
+      label: 'repair-git-compliance',
+      criterion:
+        'Observed repair Git reads, including preliminary configuration lookups, come only from the exact installed repair helper. Direct actor Git reads violate this procedure even with hardened arguments. Approved installed CLI and managed-writer subprocesses and trusted-host calls supply no positive repair-comparison credit. Conservative no-Git diagnosis may pass without comparison when evidence is unavailable or comparison is unnecessary; failed calls do not establish successful reads.',
+    },
     {
       label: 'restore-only-managed-block',
       criterion:

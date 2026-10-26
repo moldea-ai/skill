@@ -3,8 +3,8 @@ name: moldea
 description: >-
   Plan, create, review, and maintain AI agents, model workflows, skills, and durable project context. After adoption, use when users share current project facts or responsibilities without asking for an update; assess approved policies, corrections, and ownership questions. Ordinary code needs a declared relationship; stay silent on a miss. Initialize only when asked.
 metadata:
-  cliRepairVersion: '13.0.1'
-  version: '10.0.2'
+  cliRepairVersion: '13.0.2'
+  version: '10.0.3'
   cliVersionRange: '^13.0.0'
   coreVersionRange: '^9.0.0'
   cliJsonSchemaVersion: '7'
@@ -16,9 +16,9 @@ Spell `moldea` lowercase except in exact identifiers.
 
 ## Reuse installation and instructions
 
-`<installed-skill-root>` is the host-selected installation. Resolve scripts/references there; bare `.md` names mean `references/`. Never guess or substitute a copy.
+`<installed-skill-root>` is the host-selected install. Resolve scripts/references there; bare `.md` names mean `references/`. Never guess or substitute a copy.
 
-Reuse complete unchanged instructions; reload missing ones after compaction, never summaries. Read only needed references. Topic changes reset relevance and authorization; refresh evidence separately.
+Reuse complete unchanged instructions; reload missing ones after compaction, never summaries. Read needed references only. Topic changes reset relevance/authorization; refresh evidence.
 
 Handoffs carry skill path/operation, not authority.
 
@@ -39,7 +39,7 @@ Before initialization, repository-dependent work abstains silently. Adoption nev
 
 ## Reuse gate evidence
 
-For direct work, reuse current adoption evidence or run:
+For direct work, reuse current adoption evidence or:
 
 ```text
 node <installed-skill-root>/scripts/relevance-gate.mjs --repository <absolute-repository-root> --adoption-only
@@ -49,15 +49,15 @@ A `1` permits the route. An explicit setup check or repair diagnoses a miss or u
 
 For ordinary work, reuse the successful managed AGENTS.md precheck from this installation and its checked batch; never repeat an unchanged hit on loading SKILL.md. Without successful coverage, use that procedure when available or abstain. No known paths means no precheck or canonical access. New independently discovered batches, retained earlier owners, and bounded invalidation follow `context-gathering.md`; no polling or moldea-only discovery.
 
-After a relationship `1`, send only that matching batch once, before references:
+After a relationship `1`, evaluations read `evaluate-and-reconcile.md` first. Send that batch once before other references:
 
 ```text
 node <installed-skill-root>/scripts/moldea-cli.mjs --repository <absolute-repository-root> -- scope --paths-stdin --json --max-output-bytes 65536
 ```
 
-Encode each checked path as UTF-8 followed by one NUL, with no leading delimiter; pass the complete batch once on stdin within 2 MiB.
+Encode each checked path as UTF-8 plus one NUL, no leading delimiter; send the batch once on stdin within 2 MiB.
 
-Accept only exit 0, JSON schema 7, `error: null`, `status: valid`, `result.valid: true`, and `result.relevant: true`. Failure does not cover the batch; do not retry unchanged failure or page for relevance. If the launcher cannot run the CLI in this checkout, say so in one line with its message and the next step, make no canonical reads, and continue the host task. Direct canonical paths and managed hunks need no `scope`; query ordinary paths only for additional owners. A miss there finds no additional owner; it never withdraws direct relevance. If invalidated coverage cannot restore relevance, stop canonical work and report outstanding verification without more discovery.
+Accept only exit 0, JSON schema 7, `error: null`, `status: valid`, `result.valid: true`, and `result.relevant: true`. Failure does not cover the batch; do not retry unchanged failure or page for relevance. If the launcher cannot run the CLI, end your reply with `moldea: <full launcher refusal, unchanged>`, including its next step. Make no canonical reads; continue the host task. Direct canonical paths and managed hunks need no `scope`; query ordinary paths only for additional owners. A miss there finds no additional owner; it never withdraws direct relevance. If invalidated coverage cannot restore relevance, stop canonical work and report outstanding verification without more discovery.
 
 ## Select the operation owner
 
@@ -75,7 +75,7 @@ After relevance, read:
 
 Aim for four ordinary CLI calls, including scope/final validation; repair uses `local-tooling.md`'s large-traversal profile. Ordinary work keeps 65,536-byte pages and 524,288-byte cycle output. Never reset budgets within a cycle or reconstruct a project dump.
 
-After authorized canonical writes and native checks, run final launcher-backed validation, even at an ordinary-work limit. On failure, follow `local-tooling.md`'s bounded recovery procedure. Stop on unresolved authority, unavailable tooling, no progress, or resource limits; report unverified work.
+After authorized canonical writes and native checks, run final launcher-backed validation even at ordinary-work limits. On failure, follow `local-tooling.md`'s bounded recovery procedure. Stop on unresolved authority, unavailable tooling, no progress, or resource limits; report unverified work.
 
 For `validate`/`inspect`, use totals and binding coverage; warnings do not invalidate. Report integration warnings with `Fix moldea` and, only under `continuous-maintenance.md`'s tracked-subject rule, developer acceptance. Never edit instructions without host authority.
 

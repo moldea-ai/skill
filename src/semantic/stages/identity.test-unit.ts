@@ -62,8 +62,9 @@ describe('semantic stage identity', () => {
       { artifactDigest: 'b'.repeat(64) },
       { caseDefinitionDigest: 'b'.repeat(64) },
       { cli: { integrity: 'sha512-other', version: '7.0.1' } },
+      { cli: { integrity: 'sha512-example', version: '7.0.2' } },
       { confirmationIndex: 1 as const },
-      { actorHost: { ...actorHost, version: 'codex-cli 0.154.0' } },
+      { actorHost: { ...actorHost, name: 'other-host' } },
       { actorHost: { ...actorHost, model: 'gpt-5.6-sol' } },
       { actorHost: { ...actorHost, reasoningEffort: 'high' } },
       { evaluationProtocolVersion: 26 },
@@ -90,6 +91,44 @@ describe('semantic stage identity', () => {
     ]) {
       assert.notEqual(createActor(override).sha256, baseline.sha256);
     }
+  });
+
+  test('keeps actor and judge contracts stable across host version observations', () => {
+    const before = structuredClone(actorHost);
+    assert.deepEqual(
+      createActor({ actorHost: { ...actorHost, version: 'new-version' } }),
+      createActor(),
+    );
+    const options = {
+      actorEvidence: { actorResponse: 'Valid.', workspaceChanges: [] },
+      actorIdentitySha256: createActor().sha256,
+      caseDefinitionDigest: digest,
+      evaluationProtocolVersion: 55,
+      judgeCommand: ['codex', 'exec', '-'],
+      judgeHost,
+      judgePrompt: 'Assess this exact evidence.',
+    };
+    const baseline = createSemanticJudgeStageIdentity(options);
+    assert.deepEqual(
+      createSemanticJudgeStageIdentity({
+        ...options,
+        judgeHost: { ...judgeHost, version: 'new-version' },
+      }),
+      baseline,
+    );
+    for (const override of [
+      { model: 'other-model' },
+      { name: 'other-host' },
+      { reasoningEffort: 'high' },
+      { developerInstructionsSha256: 'b'.repeat(64) },
+    ]) {
+      assert.notEqual(
+        createSemanticJudgeStageIdentity({ ...options, judgeHost: { ...judgeHost, ...override } })
+          .sha256,
+        baseline.sha256,
+      );
+    }
+    assert.deepEqual(actorHost, before);
   });
 
   test('binds the complete authored request order', () => {

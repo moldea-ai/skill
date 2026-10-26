@@ -7,6 +7,7 @@ import {
   hasValidCodexEvaluationCommandPolicy,
 } from '../../execution/host/index.ts';
 import { readJsonFile, resolveContainedPath } from '../../filesystem/index.ts';
+import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../resources/index.ts';
 import {
   hasValidSemanticCycles,
   summarizeSemanticCycles,
@@ -44,17 +45,30 @@ const OwnedCommandTotalsSchema = z.strictObject({
   maximumOutputByteCount: z.number().int().nonnegative(),
   outputByteCount: z.number().int().nonnegative(),
 });
+const MoldeaFileChangeSchema = z.strictObject({
+  kind: z.literal('file-change'),
+  moldeaPath: z.enum(['not-touching', 'touching', 'unreadable']),
+});
+const MoldeaOperationSchema = z.discriminatedUnion('kind', [
+  z.strictObject({
+    kind: z.literal('cli'),
+    operation: z.enum(['composition', 'content', 'inspect', 'scope', 'validate']),
+    outputByteCount: z.number().int().nonnegative(),
+  }),
+  z.strictObject({ kind: z.literal('managed-agents') }),
+  MoldeaFileChangeSchema,
+]);
 const MoldeaEventSchema = z.discriminatedUnion('kind', [
   z.strictObject({
     kind: z.literal('command'),
-    operation: z.enum(['composition', 'content', 'inspect', 'scope', 'validate']).nullable(),
+    operations: z
+      .array(MoldeaOperationSchema)
+      .max(2 * MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxCompletedCommandCount)
+      .nullable(),
     outputByteCount: z.number().int().nonnegative(),
     ownership: z.enum(['canonical', 'cli', 'helper']),
   }),
-  z.strictObject({
-    kind: z.literal('file-change'),
-    moldeaPath: z.enum(['not-touching', 'touching', 'unreadable']),
-  }),
+  MoldeaFileChangeSchema,
 ]);
 const CommandPolicySchema = z.strictObject({
   commandOwnership: z.strictObject({
@@ -418,7 +432,7 @@ const CandidateCheckpointSchema = z
     createdAt: z.iso.datetime(),
     judgeHost: HostIdentitySchema.extend({ role: z.literal('judge') }),
     mode: z.enum(['diagnostic', 'official']),
-    schemaVersion: z.literal(3),
+    schemaVersion: z.literal(4),
     selectedCaseIds: z.array(z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u)).min(1),
     updatedAt: z.iso.datetime(),
   })

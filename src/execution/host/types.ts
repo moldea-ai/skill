@@ -69,11 +69,17 @@ export interface ICodexEvaluationOwnedCommandTotals {
   outputByteCount: number;
 }
 
+// observed child operations inside one owned host command, without arguments or paths
+export type ICodexEvaluationMoldeaOperation =
+  | { kind: 'cli'; operation: IMoldeaCliOperation; outputByteCount: number }
+  | { kind: 'managed-agents' }
+  | { kind: 'file-change'; moldeaPath: 'not-touching' | 'touching' | 'unreadable' };
+
 // one content-free moldea event, in the order Codex completed it
 export type ICodexEvaluationMoldeaEvent =
   | {
       kind: 'command';
-      operation: IMoldeaCliOperation | null;
+      operations: ICodexEvaluationMoldeaOperation[] | null;
       outputByteCount: number;
       ownership: 'canonical' | 'cli' | 'helper';
     }
@@ -149,6 +155,14 @@ export interface ICodexEvaluationReadOnlyMount {
 
 export type ICodexEvaluationWorkspaceAccess = 'read-only' | 'read-write';
 
+// trusted runner destinations; these options never enter recorded evidence
+export interface ICodexEvaluationPrivateTraceOptions {
+  repositoryRoot: string;
+  attemptId: string;
+  caseId: string;
+  invocation: string;
+}
+
 export interface ICodexEvaluationHostRunOptions {
   // only authored multi-request actor trials retain a session
   actorSession?: { kind: 'start' } | { kind: 'resume'; sessionId: string };
@@ -156,6 +170,7 @@ export interface ICodexEvaluationHostRunOptions {
   cwd: string;
   defaultHostTimeoutMs?: number;
   includeWorkspaceBinaryDirectory?: boolean;
+  privateTrace?: ICodexEvaluationPrivateTraceOptions;
   prompt: string;
   readOnlyMounts?: readonly ICodexEvaluationReadOnlyMount[];
   readOnlyWorkspacePaths?: readonly string[];
@@ -172,6 +187,7 @@ export interface ICodexEvaluationBwrapOptions {
   hostExecutable: string;
   includeWorkspaceBinaryDirectory?: boolean;
   nodeExecutable?: string;
+  searchExecutable?: string;
   readOnlyMounts?: readonly ICodexEvaluationReadOnlyMount[];
   readOnlyWorkspacePaths?: readonly string[];
   sandboxHome: string;

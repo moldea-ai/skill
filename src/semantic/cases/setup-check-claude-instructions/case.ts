@@ -48,7 +48,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'reports-claude-integration-gap',
       criterion:
-        'The response reports the MOLDEA_INTEGRATION_CLAUDE_IMPORT_MISSING warning for .claude/CLAUDE.md, explains that by default Claude Code will not load AGENTS.md because .claude/CLAUDE.md exists without importing it, and gives the exact line @../AGENTS.md to add to .claude/CLAUDE.md.',
+        "The response identifies the missing AGENTS.md import in /.claude/CLAUDE.md, gives @../AGENTS.md for that file, and reports integration as incomplete under Claude Code defaults. It does not infer native/cloud instruction consumption from local validation. Reciting the diagnostic code or explaining why the nested file governs is not required. For an established shared tracked subject, any acceptance option requires the developer's own reason before it is applied; if tracking cannot be established, give only the fix or handoff.",
     },
     {
       label: 'validates-setup',

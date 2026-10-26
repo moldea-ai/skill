@@ -92,6 +92,8 @@ const publishOnce = async (
 /**
  * Publishes one official bundle through a draft, upload, and publish sequence.
  * Safe retries re-inspect the release and accept only an exact existing asset.
+ * @throws If evidence validation rejects the bundle (including private diagnostics),
+ * publication conflicts, or the bounded publication attempts fail.
  */
 export const publishEvidenceBundle = async (
   options: IPublishEvidenceBundleOptions,

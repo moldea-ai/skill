@@ -43,9 +43,9 @@
     "eslint": "10.8.1",
     "eslint-config-prettier": "10.1.8",
     "globals": "17.9.0",
-    "jg-exception": "1.7.0",
-    "jg-fs": "1.6.0",
-    "jg-process": "1.6.1",
+    "jg-exception": "1.7.1",
+    "jg-fs": "1.7.0",
+    "jg-process": "1.6.2",
     "playwright-core": "1.62.1",
     "prettier": "3.9.6",
     "prettier-plugin-astro": "0.14.1",
@@ -59,8 +59,8 @@
     "zod": "4.3.6"
   },
   "dependencies": {
-    "@moldea.ai/website-ui": "4.5.1",
+    "@moldea.ai/website-ui": "4.5.3",
     "jg-crypto": "0.3.0",
-    "jg-utilities": "1.7.0"
+    "jg-utilities": "1.7.2"
   }
 }

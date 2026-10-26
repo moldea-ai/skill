@@ -39,6 +39,11 @@ export const semanticCase = defineSemanticCase({
   },
   expected: [
     {
+      label: 'repair-git-compliance',
+      criterion:
+        'Observed repair Git reads, including preliminary configuration lookups, come only from the exact installed repair helper. Direct actor Git reads violate this procedure even with hardened arguments. Approved installed CLI and managed-writer subprocesses and trusted-host calls supply no positive repair-comparison credit. Conservative no-Git diagnosis may pass without comparison when evidence is unavailable or comparison is unnecessary; failed calls do not establish successful reads.',
+    },
+    {
       label: 'correct-both-known-owners',
       criterion:
         'Both existing context owners describe current invoice extraction and validation without payment authorization; the project summary retains its link to detailed processing context, while application and unrelated context remain unchanged.',

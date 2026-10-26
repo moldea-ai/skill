@@ -12,6 +12,14 @@ export const semanticCase = defineSemanticCase({
       'Add durable billing-dispute guidance for support. Register /moldea/context/billing.md globally and assign it to support, declare its exact material relationship to src/billing.ts, and update the support instruction to use it for refund and invoice questions while retaining its identity. Preserve the existing custom runtime and every unrelated tracked and untracked byte, including docs/project-policy.md, README.md, src/operator-notes.ts and notes/local-observation.md. Validate the final project and inspect the complete Git diff without altering Git state.',
     repositoryEvidence: [
       {
+        claim: 'src/support-agent.ts defines the existing support agent with channel: email.',
+        source: {
+          kind: 'workspace-path',
+          path: 'src/support-agent.ts',
+          expectedType: 'file',
+        },
+      },
+      {
         claim:
           'src/billing.ts exports refundWindowDays = 30. This establishes the configured 30-day refund window, but does not establish eligibility, the start date, or approval authority.',
         source: {

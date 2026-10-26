@@ -26,17 +26,17 @@ const nodeSpawn = (path: string, arguments_: string[]): string =>
   `/opt/node --input-type=module -e 'import {spawnSync} from "node:child_process";process.exitCode=spawnSync(${JSON.stringify(path)},${JSON.stringify(arguments_)},{stdio:"inherit"}).status??1'`;
 
 test.each([
-  ['git', `git ${safeArguments.join(' ')}`, 1, true],
-  ['/bin/git', `/bin/git ${safeArguments.join(' ')}`, 1, true],
-  ['/usr/lib/git-core/git', `/usr/lib/git-core/git ${safeArguments.join(' ')}`, 1, true],
-  ['/usr/bin/git', `/usr/bin/git ${safeArguments.join(' ')}`, 1, true],
-  ['Node PATH', nodeSpawn('git', safeArguments), 1, true],
-  ['Node absolute', nodeSpawn('/usr/bin/git', safeArguments), 1, true],
+  ['git', `git ${safeArguments.join(' ')}`, 1, false],
+  ['/bin/git', `/bin/git ${safeArguments.join(' ')}`, 1, false],
+  ['/usr/lib/git-core/git', `/usr/lib/git-core/git ${safeArguments.join(' ')}`, 1, false],
+  ['/usr/bin/git', `/usr/bin/git ${safeArguments.join(' ')}`, 1, false],
+  ['Node PATH', nodeSpawn('git', safeArguments), 1, false],
+  ['Node absolute', nodeSpawn('/usr/bin/git', safeArguments), 1, false],
   [
     'execSync',
     `/opt/node --input-type=module -e 'import {execSync} from "node:child_process";execSync("git ${safeArguments.join(' ')}",{stdio:"inherit"})'`,
     1,
-    true,
+    false,
   ],
   ['Node without Git', `/opt/node -e 'process.stdout.write("local work\\n")'`, 0, true],
   ['non-PATH real binary', 'command -v moldea-real-git', 0, true],
@@ -109,8 +109,10 @@ test.each([
       );
       if (evidence === null) throw new Error('Expected completed execution evidence.');
       expect(hasPassingRepairGitEvidence([evidence], capture)).toBe(passing);
-      if (count === 1 && passing) expect(capture.repair.compliantCount).toBe(1);
-      if (_name === 'nested rejected Git') expect(capture.repair.noncompliantCount).toBe(1);
+      if (count === 1) {
+        expect(capture.repair.compliantCount).toBe(0);
+        expect(capture.repair.noncompliantCount).toBe(1);
+      }
     } finally {
       await rm(root, { recursive: true, force: true });
     }

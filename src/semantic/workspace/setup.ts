@@ -6,24 +6,29 @@ import {
   cp,
   lstat,
   mkdir,
+  mkdtemp,
   readFile,
   readdir,
   readlink,
   rename,
+  rm,
   symlink,
   unlink,
   writeFile,
 } from 'node:fs/promises';
 import path, { join, relative } from 'node:path';
+import { tmpdir } from 'node:os';
 
 import { hashValue } from 'jg-crypto';
-import { isPathWithin } from 'jg-fs';
+import { isPathWithin, readBoundedFile } from 'jg-fs';
 import { z } from 'zod';
 
 import { createManagedBlockBytes } from '../../portable/managed-block/index.ts';
 
 import {
   CODEX_EVALUATION_NPM_VERSION,
+  CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX,
+  prepareGitCommandPolicyBoundary,
   prepareCodexEvaluationHome,
 } from '../../execution/host/index.ts';
 import {
@@ -261,17 +266,20 @@ const seedPublishedCli = async (repositoryPath: string): Promise<void> => {
   await linkLocalCliExecutable(repositoryPath, installedCliRoot, PUBLISHED_CLI_MANIFEST);
 };
 
-/** Copies evaluator-owned commands and Node startup capture into the scenario tool mount. */
+/** Prepares scenario tools and an inert mountpoint for the host's final Git wrapper. */
 const prepareSemanticActorToolDirectory = async (
   sandboxHome: string,
   actorToolDirectory: string,
 ): Promise<void> => {
   await mkdir(actorToolDirectory, { recursive: true });
   await Promise.all(
-    ['git', 'npm', 'cli-invocation-preload.mjs'].map((filename) =>
+    ['npm', 'cli-invocation-preload.mjs', 'shell-start.sh'].map((filename) =>
       copyFile(join(sandboxHome, 'bin', filename), join(actorToolDirectory, filename)),
     ),
   );
+  const gitMountpoint = join(actorToolDirectory, 'git');
+  await rm(gitMountpoint, { force: true });
+  await writeFile(gitMountpoint, '', { flag: 'wx', mode: 0o644 });
 };
 
 /**
@@ -494,6 +502,62 @@ const runScenarioGit = (
     throw new Error(`Unable to prepare semantic Git history: ${result.stderr.trim()}`);
   }
   return result.stdout.trim();
+};
+
+/**
+ * Supplies the dirty-tree scenario's actual changes through the existing inert Git boundary.
+ * @returns The authored request plus bounded tracked hunks and the untracked source input.
+ * @throws If the fixture's inert diff or bounded untracked read cannot be established.
+ */
+const describeDirtyTreeEvaluation = async (
+  repositoryPath: string,
+  request: string,
+): Promise<string> => {
+  const root = await mkdtemp(join(tmpdir(), 'moldea-inert-'));
+  try {
+    const wrapper = await prepareGitCommandPolicyBoundary(join(root, 'bin'), {
+      realGitExecutable: '/usr/bin/git',
+      invocationLogPath: join(root, 'git.jsonl'),
+      trustedReadOnlyWorkspacePaths: ['.agents', 'node_modules'],
+    });
+    const result = spawnSync(
+      process.execPath,
+      [
+        wrapper,
+        ...CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX.slice(0, -1),
+        '--no-renames',
+        'HEAD',
+        '--',
+        'src/staged.js',
+        'src/unstaged.js',
+        'src/renamed-before.js',
+        'src/renamed-after.js',
+        'src/deleted.js',
+      ],
+      {
+        cwd: repositoryPath,
+        encoding: 'utf8',
+        timeout: 10000,
+        maxBuffer: MAX_WORKSPACE_EVIDENCE_FILE_BYTES,
+        env: { ...EVALUATION_GIT_COMMIT_ENV, GIT_OPTIONAL_LOCKS: '0' },
+      },
+    );
+    if (result.error) throw result.error;
+    if (result.status !== 0)
+      throw new Error(`Unable to prepare inert evaluation diff: ${result.stderr.trim()}`);
+    let untracked: Buffer;
+    try {
+      untracked = await readBoundedFile(
+        join(repositoryPath, 'src/untracked.js'),
+        MAX_WORKSPACE_EVIDENCE_FILE_BYTES,
+      );
+    } catch (error) {
+      throw new Error('Unable to prepare inert untracked evaluation evidence.', { cause: error });
+    }
+    return `${request}\n\nHost-established inert HEAD-relative diff (tracked changes; the rename is shown as deletion and addition):\n\n\`\`\`diff\n${result.stdout.trimEnd()}\n\`\`\`\n\nHost-established untracked source, /src/untracked.js:\n\n\`\`\`js\n${untracked.toString('utf8').trimEnd()}\n\`\`\``;
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
 };
 
 /** Commits only the named fixture paths without touching evaluator-owned files. */
@@ -2735,6 +2799,7 @@ export const createSemanticCaseSetup = (caseId: string): ISemanticCaseSetup => {
  * @returns A promise resolving to the actor repository and any additional read-only mounts.
  * @throws
  * - If the semantic case is invalid or the repository cannot be initialized
+ * - If the dirty-tree fixture's bounded inert change evidence cannot be prepared
  */
 export const createActorRepository = async (
   root: string,
@@ -2834,7 +2899,9 @@ export const createActorRepository = async (
           caseDefinition,
           runScenarioGit(repositoryPath, ['rev-parse', '--verify', 'repair-checkpoint^{commit}']),
         )
-      : caseDefinition.input.developerDirection,
+      : caseDefinition.id === 'evaluate-dirty-working-tree'
+        ? await describeDirtyTreeEvaluation(repositoryPath, caseDefinition.input.developerDirection)
+        : caseDefinition.input.developerDirection,
     hasWorkspaceBinaryDirectory: existsSync(join(repositoryPath, 'node_modules')),
     readOnlyMounts: setupResult.readOnlyToolMounts ?? [],
     repositoryPath,

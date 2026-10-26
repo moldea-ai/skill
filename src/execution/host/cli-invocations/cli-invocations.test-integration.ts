@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { execFileSync, spawnSync } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
 import { copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -14,9 +15,186 @@ import {
 
 import { buildCodexEvaluationBwrapArguments, prepareCodexEvaluationHome } from '../host.ts';
 import { prepareGitCommandPolicyBoundary } from '../git-command-policy-boundary.ts';
-import { readCliInvocations } from './cli-invocations.ts';
+import { readCliInvocationCapture, readCliInvocations } from './cli-invocations.ts';
 
 const { cliVersion } = readReleaseIdentity(process.cwd());
+
+test('distinct parallel commands retain method provenance without canonical chronology', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'moldea-parallel-proof-'));
+  try {
+    const path = join(root, 'capture.jsonl');
+    const ids = [randomUUID(), randomUUID()];
+    const commands = [
+      [
+        'node',
+        '/mnt/.agents/skills/moldea/scripts/moldea-cli.mjs',
+        '--repository',
+        '/mnt',
+        '--',
+        'validate',
+        '--json',
+        '--max-output-bytes',
+        '65536',
+      ],
+      [
+        'node',
+        '/mnt/.agents/skills/moldea/scripts/managed-agents.mjs',
+        '--repository',
+        '/mnt',
+        '--print',
+      ],
+    ];
+    const callers = commands.map((command) => ['/bin/bash', '-c', command.join(' ')]);
+    const identities = ['101:1', '102:1'];
+    const records = [
+      ...identities.map((identity, index) => ({
+        kind: 'command',
+        identity,
+        arguments: callers[index],
+      })),
+      ...ids.map((id, index) => ({
+        kind: 'start',
+        id,
+        arguments: commands[index]!.slice(2),
+        entrypoint: index === 0 ? 'cli' : 'managed-agents',
+        callers: [callers[index]],
+        callerIdentities: [identities[index]],
+        canonicalBefore: 'a'.repeat(64),
+      })),
+      ...ids.map((id) => ({
+        kind: 'exit',
+        id,
+        exitCode: 0,
+        outputByteCount: 0,
+        stdout: '',
+        canonicalAfter: 'a'.repeat(64),
+      })),
+    ];
+    await writeFile(path, records.map((record) => JSON.stringify(record)).join('\n') + '\n');
+    const captured = await readCliInvocationCapture(path);
+    expect(captured.invocations.map((invocation) => invocation.overlapping)).toStrictEqual([
+      true,
+      true,
+    ]);
+    expect(captured.invocations.map((invocation) => invocation.callers)).toStrictEqual(
+      callers.map((caller) => [caller]),
+    );
+    expect(captured.invocations.map((invocation) => invocation.callerIdentities)).toStrictEqual(
+      identities.map((identity) => [identity]),
+    );
+    expect(
+      captured.invocations.every(
+        (invocation) => invocation.canonicalBefore === null && invocation.canonicalAfter === null,
+      ),
+    ).toBe(true);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test('overlapping launcher intervals retain calls but cannot prove canonical chronology', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'moldea-cli-overlap-'));
+  try {
+    const path = join(root, 'capture.jsonl');
+    const first = randomUUID();
+    const second = randomUUID();
+    const args = ['--repository', '/mnt', '--', 'validate', '--json'];
+    const records = [
+      { kind: 'start', id: first, arguments: args, canonicalBefore: 'a'.repeat(64) },
+      { kind: 'start', id: second, arguments: args, canonicalBefore: 'b'.repeat(64) },
+      {
+        kind: 'exit',
+        id: first,
+        exitCode: 0,
+        outputByteCount: 0,
+        stdout: '',
+        canonicalAfter: 'b'.repeat(64),
+      },
+      {
+        kind: 'exit',
+        id: second,
+        exitCode: 0,
+        outputByteCount: 0,
+        stdout: '',
+        canonicalAfter: 'b'.repeat(64),
+      },
+    ];
+    await writeFile(path, records.map((record) => JSON.stringify(record)).join('\n') + '\n');
+    const captured = await readCliInvocations(path);
+    expect(captured).toHaveLength(2);
+    expect(captured.map((invocation) => invocation.callers)).toStrictEqual([[], []]);
+    expect(
+      captured.every(
+        (invocation) => invocation.canonicalBefore === null && invocation.canonicalAfter === null,
+      ),
+    ).toBe(true);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test('overlapping calls retain method provenance but lose only their canonical chronology', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'moldea-cli-intervals-'));
+  try {
+    const path = join(root, 'capture.jsonl');
+    const ids = Array.from({ length: 5 }, () => randomUUID());
+    const args = ['--repository', '/mnt', '--', 'validate', '--json'];
+    const callers = ids.map((_, index) => ['/bin/bash', '-lc', `launcher-${index}`]);
+    const identities = ids.map((_, index) => `${100 + index}:1`);
+    const starts = ids.map((id, index) => ({
+      kind: 'start',
+      id,
+      arguments: args,
+      callers: [callers[index]],
+      callerIdentities: [identities[index]],
+      canonicalBefore: 'a'.repeat(64),
+    }));
+    const exits = ids.map((id) => ({
+      kind: 'exit',
+      id,
+      exitCode: 0,
+      outputByteCount: 0,
+      stdout: '',
+      canonicalAfter: 'b'.repeat(64),
+    }));
+    const records = [
+      starts[0],
+      exits[0],
+      starts[1],
+      starts[2],
+      exits[1],
+      starts[3],
+      exits[2],
+      exits[3],
+      starts[4],
+      exits[4],
+    ];
+    await writeFile(path, records.map((record) => JSON.stringify(record)).join('\n') + '\n');
+    const captured = await readCliInvocations(path);
+    expect(captured.map((invocation) => invocation.callers)).toStrictEqual(
+      callers.map((caller) => [caller]),
+    );
+    expect(captured.map((invocation) => invocation.callerIdentities)).toStrictEqual(
+      identities.map((identity) => [identity]),
+    );
+    expect(captured.map((invocation) => invocation.canonicalBefore)).toStrictEqual([
+      'a'.repeat(64),
+      null,
+      null,
+      null,
+      'a'.repeat(64),
+    ]);
+    expect(captured.map((invocation) => invocation.canonicalAfter)).toStrictEqual([
+      'b'.repeat(64),
+      null,
+      null,
+      null,
+      'b'.repeat(64),
+    ]);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
 
 test('Node startup records direct and wrapped launchers, early failures and filtered output without model calls', async () => {
   const root = await mkdtemp(join(tmpdir(), 'moldea-cli-capture-'));
@@ -75,7 +253,12 @@ test('Node startup records direct and wrapped launchers, early failures and filt
       const result = spawnSync(
         'bwrap',
         buildCodexEvaluationBwrapArguments({
-          command: ['codex', ...command],
+          // the fake Codex supervisor launches the same /opt/node used by actual actor commands
+          command: [
+            'codex',
+            '-e',
+            `const r=require('node:child_process').spawnSync('/opt/node',${JSON.stringify(command)},{stdio:'inherit'});process.exitCode=r.status??1;`,
+          ],
           cwd: repository,
           sandboxHome: home,
           hostExecutable: process.execPath,
@@ -119,7 +302,7 @@ test('Node startup records direct and wrapped launchers, early failures and filt
             command:
               form === 'direct' || form === 'smaller-page'
                 ? `/opt/node ${invocationArgs.join(' ')}`
-                : 'node -e "wrapped call"',
+                : `/opt/node -e ${JSON.stringify(script)}`,
             aggregated_output: result.stdout,
             exit_code: 0,
             status: 'completed',
@@ -188,15 +371,115 @@ test('Node startup records direct and wrapped launchers, early failures and filt
       exitCode: failed.result.status,
     });
     expect(failed.invocations[0]?.stdout).toBe('');
+    const projectFailedAttempt = (
+      commandArguments: string[],
+      attempt: Awaited<ReturnType<typeof run>>,
+    ) =>
+      parseSemanticEvaluationHostOutput(
+        [
+          {
+            type: 'item.completed',
+            item: {
+              type: 'command_execution',
+              command: `/opt/node ${commandArguments.map((argument) => `'${argument.replaceAll("'", "'\\''")}'`).join(' ')}`,
+              aggregated_output: attempt.result.stdout + attempt.result.stderr,
+              exit_code: attempt.result.status,
+              status: 'failed',
+            },
+          },
+          {
+            type: 'item.completed',
+            item: { type: 'agent_message', text: 'The launcher closure is unavailable.' },
+          },
+          {
+            type: 'moldea.git-invocations',
+            evidence: {
+              invocationCount: 0,
+              hostInvocationCount: 0,
+              repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+            },
+          },
+          {
+            type: 'moldea.cli-invocations',
+            observesManagedAgents: true,
+            invocations: attempt.invocations,
+          },
+        ]
+          .map((event) => JSON.stringify(event))
+          .join('\n'),
+        { cliVersion, jsonSchemaVersion: 7 },
+      );
+    const failedComposition = projectFailedAttempt(
+      [launcher, '--repository', '/mnt', '--', 'composition', '--json'],
+      failed,
+    );
+    const attempts = failedComposition.actorExecutionEvidence.filter(
+      ({ item }) => item.commandKind === 'moldea',
+    );
+    expect(attempts).toHaveLength(1);
+    expect(attempts[0]?.item).toMatchObject({
+      status: 'failed',
+      outputEvidence: { facts: [] },
+    });
+    expect(failedComposition.commandPolicyEvidence.moldeaEvents).toContainEqual({
+      kind: 'command',
+      operations: [
+        {
+          kind: 'cli',
+          operation: 'composition',
+          outputByteCount: failed.invocations[0]!.outputByteCount,
+        },
+      ],
+      ownership: 'cli',
+      outputByteCount: Buffer.byteLength(failed.result.stdout + failed.result.stderr),
+    });
+    const validationArgs = [
+      launcher,
+      '--repository',
+      '/mnt',
+      '--',
+      'validate',
+      '--json',
+      '--max-output-bytes',
+      '65536',
+    ];
+    const failedValidation = await run(validationArgs, false);
+    expect(failedValidation.result.status).not.toBe(0);
+    expect(failedValidation.invocations).toHaveLength(1);
+    const validationEvidence = projectFailedAttempt(validationArgs, failedValidation);
+    expect(
+      validationEvidence.actorExecutionEvidence.filter(({ item }) => item.commandKind === 'moldea'),
+    ).toHaveLength(1);
+    expect(validationEvidence.commandPolicyEvidence.moldeaEvents).toContainEqual({
+      kind: 'command',
+      operations: [
+        {
+          kind: 'cli',
+          operation: 'validate',
+          outputByteCount: failedValidation.invocations[0]!.outputByteCount,
+        },
+      ],
+      ownership: 'cli',
+      outputByteCount: Buffer.byteLength(
+        failedValidation.result.stdout + failedValidation.result.stderr,
+      ),
+    });
+    expect(
+      validationEvidence.commandPolicyEvidence.moldeaEvents.some(
+        (event) =>
+          event.kind === 'command' &&
+          event.operations?.some(
+            (operation) => operation.kind === 'cli' && operation.operation === 'composition',
+          ),
+      ),
+    ).toBe(false);
     for (const method of ['spawnSync', 'execFileSync'] as const) {
       const compositionArgs = [launcher, '--repository', '/mnt', '--', 'composition', '--json'];
-      const wrappedFailure = await run(
-        [
-          '-e',
-          `const cp = require('node:child_process'); try { const result = cp.${method}(process.execPath, ${JSON.stringify(compositionArgs)}, {stdio:'pipe'}); process.exitCode = result.status ?? 0; } catch (error) { process.exitCode = error.status ?? 1; }`,
-        ],
-        false,
-      );
+      const wrapperArgs = [
+        '-e',
+        `const cp = require('node:child_process'); try { const result = cp.${method}(process.execPath, ${JSON.stringify(compositionArgs)}, {stdio:'pipe'}); process.exitCode = result.status ?? 0; } catch (error) { process.exitCode = error.status ?? 1; }`,
+      ];
+      const wrappedFailure = await run(wrapperArgs, false);
       expect(wrappedFailure.result.status).not.toBe(0);
       expect(wrappedFailure.invocations).toHaveLength(1);
       expect(wrappedFailure.invocations[0]).toMatchObject({
@@ -204,6 +487,32 @@ test('Node startup records direct and wrapped launchers, early failures and filt
         stdout: '',
       });
       expect(wrappedFailure.invocations[0]?.exitCode).not.toBe(0);
+      const projected = projectFailedAttempt(wrapperArgs, wrappedFailure);
+      expect(projected.commandPolicyEvidence.moldeaEvents).toContainEqual({
+        kind: 'command',
+        operations: [
+          {
+            kind: 'cli',
+            operation: 'composition',
+            outputByteCount: wrappedFailure.invocations[0]!.outputByteCount,
+          },
+        ],
+        ownership: 'cli',
+        outputByteCount: 0,
+      });
+      expect(
+        projected.actorExecutionEvidence.filter(({ item }) => item.commandKind === 'moldea'),
+      ).toMatchObject([{ item: { status: 'failed', outputEvidence: { facts: [] } } }]);
+      const unmatched = projectFailedAttempt(['-e', 'different wrapper'], wrappedFailure);
+      expect(
+        unmatched.commandPolicyEvidence.moldeaEvents.some(
+          (event) =>
+            event.kind === 'command' &&
+            event.operations?.some(
+              (operation) => operation.kind === 'cli' && operation.operation === 'composition',
+            ),
+        ),
+      ).toBe(false);
     }
     await rm(join(repository, '.agents/skills/moldea/scripts/moldea-cli.mjs'));
     const missingEntry = await run(args);
@@ -226,6 +535,8 @@ test.each([
   'exit-before-start',
   'wrong-bytes',
   'partial-line',
+  'caller-identities',
+  'process-identity',
 ] as const)(
   'CLI capture rejects %s instead of granting empty or duplicate credit',
   async (scenario) => {
@@ -257,7 +568,19 @@ test.each([
                 ? [exit, start]
                 : scenario === 'wrong-bytes'
                   ? [start, { ...exit, outputByteCount: 0 }]
-                  : [start, exit];
+                  : scenario === 'caller-identities'
+                    ? [{ ...start, callers: [], callerIdentities: ['1:1'] }, exit]
+                    : scenario === 'process-identity'
+                      ? [
+                          {
+                            kind: 'command',
+                            identity: 'invalid',
+                            arguments: ['/bin/bash', '-c', 'true'],
+                          },
+                          start,
+                          exit,
+                        ]
+                      : [start, exit];
       const log = join(root, 'capture.jsonl');
       await writeFile(
         log,

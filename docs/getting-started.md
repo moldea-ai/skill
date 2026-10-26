@@ -10,6 +10,8 @@ order: 10
 
 The primary distribution page is [moldea on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea). The portable skill works with [compatible coding agents](/docs/coding-agent-compatibility/), including Codex, Claude Code, Cursor, OpenCode, GitHub Copilot, and Cline.
 
+This checkout contains moldea 10.0.3. Use the immutable release tag below when the installation must be reproducible.
+
 Install the latest version from the repository's `main` branch in your current project:
 
 ```bash
@@ -19,7 +21,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin an immutable release tag:
 
 ```bash
-npx skills add "moldea-ai/skill#v10.0.2"
+npx skills add "moldea-ai/skill#v10.0.3"
 ```
 
 Repository installation is required because the selected skill version must travel with the project. A global installation does not establish adoption and is not a supported path.

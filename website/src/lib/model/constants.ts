@@ -12,6 +12,9 @@ export const EVIDENCE_ROUTE = '/evidence/';
 // project Node.js requirement; docs/getting-started.md states the same range
 export const NODE_VERSION_RANGE = '>=22.17.0';
 
+// project Git requirement; docs/compatibility-and-local-tooling.md states the same range
+export const GIT_VERSION_RANGE = '>=2.32.0';
+
 // visual product-page publication metadata
 export const PRODUCT_PAGE_METADATA = {
   getStarted: {
@@ -19,7 +22,7 @@ export const PRODUCT_PAGE_METADATA = {
       'Install the moldea Skill, initialize your project once, keep working as usual, and ask your coding agent to fix moldea when something seems off.',
     route: '/get-started/',
     searchText:
-      'get started install setup skills add initialize moldea first request keep working fix moldea repair update skill prerequisites node.js package.json coding agent',
+      'get started install setup skills add initialize moldea first request keep working fix moldea repair update skill prerequisites node.js git package.json coding agent',
     title: 'Get started',
   },
   capabilities: {

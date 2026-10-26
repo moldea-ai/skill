@@ -3,6 +3,7 @@ import { expect, test, type Locator } from '@playwright/test';
 import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
 import {
+  GIT_VERSION_RANGE,
   INSTALL_COMMAND,
   NODE_VERSION_RANGE,
   SKILLS_DIRECTORY_URL,
@@ -24,6 +25,21 @@ const expectNewTabLink = async (link: Locator, href: string): Promise<void> => {
   await expect(link.locator('svg[data-external-link-icon]')).toHaveCount(1);
 };
 
+/**
+ * Reads each file row's path and change state from an example tree, in display order.
+ * @param tree The example file tree.
+ * @returns The rows as path and status pairs.
+ */
+const getTreeStatuses = async (tree: Locator): Promise<string[][]> =>
+  tree
+    .locator('[data-project-file-path]')
+    .evaluateAll((rows) =>
+      rows.map((row) => [
+        row.getAttribute('data-project-file-path') ?? '',
+        row.getAttribute('data-file-status') ?? '',
+      ]),
+    );
+
 test('walks through the requirements and four setup steps in order', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto(route);
@@ -33,8 +49,8 @@ test('walks through the requirements and four setup steps in order', async ({ pa
     page.getByRole('heading', { level: 1, name: 'Get started with moldea' }),
   ).toBeVisible();
   await expect(page.getByRole('navigation', { name: 'Breadcrumb' })).toHaveCount(0);
-  await expect(page.getByText('Illustrative conversations.', { exact: false })).toBeVisible();
-  expect(await page.locator('main h2').allTextContents()).toStrictEqual([
+  // role locators skip the headings of closed file dialogs
+  await expect(page.getByRole('main').getByRole('heading', { level: 2 })).toHaveText([
     'Before you start',
     'Add the Skill to your repository.',
     'Initialize the project once.',
@@ -58,8 +74,9 @@ test('walks through the requirements and four setup steps in order', async ({ pa
     'href',
     toPublicPath('/docs/coding-agent-compatibility/'),
   );
-  await expect(requirements.nth(1)).toContainText(`Node.js ${NODE_VERSION_RANGE}`);
+  await expect(requirements.nth(1)).toContainText(NODE_VERSION_RANGE);
   await expect(requirements.nth(2)).toContainText('package.json');
+  await expect(requirements.nth(3)).toContainText(GIT_VERSION_RANGE);
   await expect(requirements.nth(3)).toContainText('not globally');
 
   const install = page.locator('#install');
@@ -77,19 +94,57 @@ test('walks through the requirements and four setup steps in order', async ({ pa
   );
 
   const initialize = page.locator('#initialize');
-  await expect(initialize.locator('[data-conversation]')).toContainText('Initialize moldea');
+  // the four-message example is much taller than its text, so the columns align at the top
+  await expect(initialize).toHaveCSS('align-items', 'flex-start');
+  await expect(page.locator('#keep-working')).toHaveCSS('align-items', 'center');
+  // initialization asks one clarifying question before it saves the foundation
+  await expect(initialize.locator('[data-conversation-message]')).toHaveCount(4);
+  await expect(
+    initialize
+      .locator('[data-conversation-message]')
+      .evaluateAll((messages) =>
+        messages.map((message) => message.getAttribute('data-conversation-message')),
+      ),
+  ).resolves.toStrictEqual(['user', 'assistant', 'user', 'assistant']);
+  await expect(initialize.locator('[data-conversation-message]').nth(0)).toContainText(
+    'Initialize moldea',
+  );
+  await expect(initialize.locator('[data-conversation-message]').nth(1)).toContainText(
+    'What does it do, and who uses it?',
+  );
   await expect(initialize.getByRole('listitem')).toContainText([
-    "One question if the repository doesn't make the project's purpose clear.",
+    "One question if the repository doesn't make the project's purpose or boundaries clear.",
     'One confirmation before it registers agents your project already has.',
     "A block to add to AGENTS.md yourself if it can't edit that file.",
   ]);
-  await expect(initialize.locator('[data-file-preview]')).toHaveCount(2);
-  await expect(initialize.locator('[data-file-preview]').first()).toContainText('version: 1');
+  expect(
+    await getTreeStatuses(
+      initialize.getByRole('list', { name: 'Files initialization adds and updates' }),
+    ),
+  ).toStrictEqual([
+    ['/src/order-lookup.ts', 'Unchanged'],
+    ['/src/refund-policy.ts', 'Unchanged'],
+    ['/src/refund-policy.test-unit.ts', 'Unchanged'],
+    ['/moldea/moldea.yaml', 'Added'],
+    ['/moldea/project.md', 'Added'],
+    ['/AGENTS.md', 'Modified'],
+    ['/package.json', 'Modified'],
+    ['/README.md', 'Modified'],
+  ]);
 
   const keepWorking = page.locator('#keep-working');
-  await expect(
-    keepWorking.getByRole('list', { name: 'Updated files' }).getByRole('listitem'),
-  ).toHaveCount(4);
+  expect(
+    await getTreeStatuses(
+      keepWorking.getByRole('list', { name: 'Files the policy change updates' }),
+    ),
+  ).toStrictEqual([
+    ['/src/order-lookup.ts', 'Unchanged'],
+    ['/src/refund-policy.ts', 'Modified'],
+    ['/src/refund-policy.test-unit.ts', 'Modified'],
+    ['/moldea/context/refund-policy.md', 'Added'],
+    ['/moldea/moldea.yaml', 'Modified'],
+    ['/moldea/project.md', 'Modified'],
+  ]);
   await expect(keepWorking.getByRole('link', { name: 'How it works' })).toHaveAttribute(
     'href',
     toPublicPath('/how-it-works/'),
@@ -141,6 +196,59 @@ test('copies the exact install command', async ({ context, page }) => {
 
   await expect(button).toHaveAttribute('data-code-copy-state', 'copied');
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(INSTALL_COMMAND);
+});
+
+test('opens example files from the trees with the keyboard and returns focus', async ({
+  browser,
+}) => {
+  for (const colorScheme of ['light', 'dark'] as const) {
+    const context = await browser.newContext({
+      colorScheme,
+      reducedMotion: 'reduce',
+      viewport: { height: 900, width: 320 },
+    });
+    try {
+      const page = await context.newPage();
+      await page.goto(route);
+
+      for (const file of [
+        { trigger: 'Open /README.md, modified', title: 'README', content: '<!-- moldea:start -->' },
+        { trigger: 'Open /moldea/moldea.yaml, added', title: 'Manifest', content: 'version: 1' },
+        {
+          trigger: 'Open /src/refund-policy.ts, modified',
+          title: 'Refund rule',
+          content: 'completedDays <= 14',
+        },
+      ]) {
+        const trigger = page.getByRole('button', { name: file.trigger, exact: true });
+        await trigger.focus();
+        await trigger.press('Enter');
+
+        const dialog = page.getByRole('dialog', { name: file.title, exact: true });
+        await expect(dialog).toBeVisible();
+        await expect(dialog).toContainText(file.content);
+        if (file.trigger.endsWith('modified')) {
+          await expect(
+            dialog.getByRole('region', { name: `${file.title} changes`, exact: true }),
+          ).toHaveAttribute('data-code-diff', 'unified');
+        }
+        expect(
+          await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+        ).toBe(true);
+        const accessibilityResults = await new AxeBuilder({ page })
+          .include('dialog[open]')
+          .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
+          .analyze();
+        expect(accessibilityResults.violations, colorScheme).toStrictEqual([]);
+
+        await dialog.press('Escape');
+        await expect(dialog).not.toBeVisible();
+        await expect(trigger).toBeFocused();
+      }
+    } finally {
+      await context.close();
+    }
+  }
 });
 
 for (const width of [320, 1440]) {
@@ -195,6 +303,10 @@ test('keeps every step readable without JavaScript', async ({ browser }) => {
     }
     await expect(page.locator('#install [data-install-command]')).toContainText(INSTALL_COMMAND);
     await expect(page.locator('#fix [data-repair-report]')).toContainText('Needs input');
+    await expect(page.locator('#initialize [data-project-file-path]')).toHaveCount(8);
+    await expect(page.locator('#initialize [data-project-file-path]').last()).toContainText(
+      'README.md',
+    );
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
     ).toBe(true);

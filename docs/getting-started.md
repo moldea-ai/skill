@@ -1,6 +1,6 @@
 ---
-title: Getting started
-navigationTitle: Getting started
+title: Setup reference
+navigationTitle: Setup reference
 description: Install moldea, initialize Git-owned project context, and use relevant knowledge through requests to your coding agent.
 section: start
 order: 10

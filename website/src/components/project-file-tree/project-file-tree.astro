@@ -1,0 +1,111 @@
+---
+import { ChevronDown, FolderOpen } from '@lucide/astro';
+import CodeBlock from '@moldea.ai/website-ui/code-block';
+import CodeDiff from '@moldea.ai/website-ui/code-diff';
+import Dialog from '@moldea.ai/website-ui/dialog';
+import FilePreview from '@moldea.ai/website-ui/file-preview';
+
+import { ArtifactLabel } from '../agent-artifacts/index.ts';
+
+import type { IProjectFileTreeEntry, IProjectFileTreeFile } from './types.ts';
+import { getProjectFileStatus } from './utilities.ts';
+
+// an example repository tree whose files open their diff, or their source when added or untouched
+interface Props {
+  entries: readonly IProjectFileTreeEntry[];
+  files: readonly IProjectFileTreeFile[];
+  idPrefix: string;
+  label: string;
+}
+
+const { entries, files, idPrefix, label } = Astro.props;
+const filesById = new Map(
+  files.map((file) => [file.id, { ...file, status: getProjectFileStatus(file) }]),
+);
+const depthClasses = ['', 'ml-3 border-l border-border pl-2', 'ml-8 border-l border-border pl-2'];
+---
+
+<ul
+  class="min-w-0 font-mono text-xs"
+  aria-label={label}
+  data-project-file-tree
+>
+  {
+    entries.map((entry) => {
+      const file = entry.kind === 'file' ? filesById.get(entry.id) : undefined;
+      return (
+        <li class:list={['min-w-0', depthClasses[entry.depth]]}>
+          {entry.kind === 'directory' ? (
+            <div class="flex h-7 items-center gap-1.5 px-1 text-muted-foreground">
+              <ChevronDown
+                class="size-3"
+                aria-hidden="true"
+              />
+              <FolderOpen
+                class="size-3.5"
+                aria-hidden="true"
+              />
+              <code>{entry.label}</code>
+            </div>
+          ) : (
+            file && (
+              <div
+                class="group/project-file [&_[data-dialog-trigger]]:h-9 [&_[data-dialog-trigger]]:w-full [&_[data-dialog-trigger]]:justify-start [&_[data-dialog-trigger]]:rounded-sm [&_[data-dialog-trigger]]:px-1.5 [&_[data-dialog-trigger]]:py-0 [&_[data-dialog-trigger]]:text-xs sm:[&_[data-dialog-trigger]]:h-7"
+                data-project-file-path={file.path}
+                data-file-status={file.status}
+              >
+                <span class="flex h-9 items-center gap-2 px-1.5 group-has-[[data-enhanced=true]]/project-file:hidden sm:h-7">
+                  <ArtifactLabel
+                    language={file.language}
+                    path={file.path}
+                    status={file.status}
+                  />
+                </span>
+                <Dialog
+                  id={`${idPrefix}-${file.id}`}
+                  title={file.label}
+                  triggerLabel={`${file.label} (${file.status.toLowerCase()})`}
+                  triggerAriaLabel={`Open ${file.path}, ${file.status.toLowerCase()}`}
+                  triggerVariant="ghost"
+                  triggerSize="icon"
+                  closeLabel={`Close ${file.label.toLowerCase()}`}
+                  isOverlayCloseEnabled
+                >
+                  <ArtifactLabel
+                    slot="trigger-icon"
+                    isDecorative
+                    language={file.language}
+                    path={file.path}
+                    status={file.status}
+                  />
+                  <FilePreview path={file.path}>
+                    {file.status === 'Modified' ? (
+                      <CodeDiff
+                        oldValue={file.before!}
+                        newValue={file.source}
+                        language={file.language}
+                        ariaLabel={`${file.label} changes`}
+                        view="unified"
+                        variant="plain"
+                      />
+                    ) : (
+                      <div class="p-4">
+                        <CodeBlock
+                          ariaLabel={`${file.label} source`}
+                          source={file.source}
+                          language={file.language}
+                          copyable={false}
+                          variant="plain"
+                        />
+                      </div>
+                    )}
+                  </FilePreview>
+                </Dialog>
+              </div>
+            )
+          )}
+        </li>
+      );
+    })
+  }
+</ul>

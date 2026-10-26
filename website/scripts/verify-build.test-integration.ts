@@ -187,6 +187,7 @@ describe('verifyProductionBuild', () => {
     for (const reference of [
       { route: '/docs/capabilities/', title: 'Capability reference' },
       { route: '/docs/how-it-works/', title: 'Workflow reference' },
+      { route: '/docs/getting-started/', title: 'Setup reference' },
     ] as const) {
       const document = model.documents.find(({ route }) => route === reference.route);
       const html = readFileSync(getDistPath(reference.route.slice(1), 'index.html'), 'utf8');

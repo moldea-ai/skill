@@ -26,9 +26,9 @@ test('shows one install followed by an ordinary coding-agent request', async ({ 
     'href',
     SKILLS_DIRECTORY_URL,
   );
-  await expect(gettingStarted.getByRole('link', { name: 'Read the setup guide' })).toHaveAttribute(
+  await expect(gettingStarted.getByRole('link', { name: 'See every setup step' })).toHaveAttribute(
     'href',
-    toPublicPath('/docs/getting-started/'),
+    toPublicPath('/get-started/'),
   );
   await expect(steps).toHaveCount(3);
   await expect(

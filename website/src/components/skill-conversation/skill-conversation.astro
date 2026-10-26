@@ -4,7 +4,10 @@ import Conversation from '@moldea.ai/website-ui/conversation';
 import ConversationMessage from '@moldea.ai/website-ui/conversation-message';
 import { withBase } from '@moldea.ai/website-ui/site';
 
-// Skill-specific avatars and request/response slots around the shared conversation.
+/*
+ * Skill-specific avatars and request/response slots around the shared conversation.
+ * Optional `question` and `answer` slots add one clarifying exchange before the response.
+ */
 export interface Props {
   ariaLabel: string;
 }
@@ -20,6 +23,36 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_U
     />
     <div class="text-sm leading-6 font-medium sm:text-base"><slot name="request" /></div>
   </ConversationMessage>
+  {
+    Astro.slots.has('question') && (
+      <ConversationMessage role="assistant">
+        <img
+          slot="avatar"
+          src={skillMarkPath}
+          width="207"
+          height="215"
+          alt=""
+          class="dark:invert"
+        />
+        <div class="text-sm leading-6 font-medium sm:text-base">
+          <slot name="question" />
+        </div>
+      </ConversationMessage>
+    )
+  }
+  {
+    Astro.slots.has('answer') && (
+      <ConversationMessage role="user">
+        <UserRound
+          slot="avatar"
+          class="size-4"
+        />
+        <div class="text-sm leading-6 font-medium sm:text-base">
+          <slot name="answer" />
+        </div>
+      </ConversationMessage>
+    )
+  }
   <ConversationMessage role="assistant">
     <img
       slot="avatar"

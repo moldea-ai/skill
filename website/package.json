@@ -59,7 +59,7 @@
     "zod": "4.3.6"
   },
   "dependencies": {
-    "@moldea.ai/website-ui": "4.5.2",
+    "@moldea.ai/website-ui": "4.5.3",
     "jg-crypto": "0.3.0",
     "jg-utilities": "1.7.2"
   }

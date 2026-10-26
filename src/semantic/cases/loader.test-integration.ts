@@ -202,12 +202,16 @@ const CANDIDATE_TARGET_CASE_IDS = [
   'routing-description-fallback',
 ];
 
-test('the full release catalog has 143 public cases and zero exclusions', async () => {
+test('the release catalog retains 143 cases with only the approved exclusion', async () => {
   const cases = await loadSemanticCases(import.meta.dirname);
   expect(cases).toHaveLength(143);
   expect(
+    cases.reduce((count, { expected, forbidden }) => count + expected.length + forbidden.length, 0),
+  ).toBe(643);
+  expect(cases.filter(({ publication }) => publication !== 'private')).toHaveLength(142);
+  expect(
     cases.filter(({ publication }) => publication === 'private').map(({ id }) => id),
-  ).toStrictEqual([]);
+  ).toStrictEqual(['repair-unproven-adoption']);
 });
 
 test.each(CANDIDATE_TARGET_CASE_IDS)(

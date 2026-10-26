@@ -4,7 +4,7 @@
 
 [Get moldea on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or read the complete documentation at [skill.moldea.ai](https://skill.moldea.ai).
 
-This checkout prepares the unpublished `10.0.3` candidate. The current published release is `10.0.2`. Install the latest published version from `main` inside each repository that will use it:
+This checkout contains `moldea` `10.0.3`. Install the latest published version from `main` inside each repository that will use it:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -13,7 +13,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the immutable release after publication:
 
 ```bash
-npx skills add "moldea-ai/skill#v10.0.2"
+npx skills add "moldea-ai/skill#v10.0.3"
 ```
 
 Both commands install the portable skill named `moldea`. They do not install the CLI globally or require a hosted account. See [Getting started](docs/getting-started.md) for initialization, updates, and removal.
@@ -73,7 +73,7 @@ Evaluation is read-only. Repair checks every owner, its material implementation 
 
 ## Compatibility
 
-The unpublished `10.0.3` candidate supports exactly:
+Release `10.0.3` supports exactly:
 
 - Git `>=2.32.0`
 - Node.js `>=22.17.0`
@@ -166,7 +166,7 @@ The same release-candidate workflow is reusable by the packages trusted build. I
 
 Source and packed package candidates accept stable caret dependency minimums, including patch minimums such as `^2.0.3`. Candidate validation checks every resolved internal runtime package against its declared range; exact internal runtime dependency pins and incompatible versions are rejected.
 
-The root tooling and website consume Website UI `4.5.2` with the exact Astro `7.2.8` peer. Normal dependency resolution selects these versions without an override.
+The root tooling and website consume Website UI `4.5.3` with the exact Astro `7.2.8` peer. Normal dependency resolution selects these versions without an override.
 
 Run the deterministic boundaries:
 
@@ -207,11 +207,11 @@ The skill uses independent semantic versioning. Every release must:
 - preserve identical `moldea/` bytes across official distribution channels
 - use an immutable `v<version>` tag
 
-During prelaunch testing, skill tags require deterministic conformance, synchronized release identity, and installation checks. Semantic evaluation is a separate evidence-backed operation; a passing tag does not establish it. The selected 8.2.3 semantic recording contains 120 cases: 115 passed and five recovered. Its final cleanup reused verified full-recording and reserve trials without new model calls. Two unresolved cases remain private and are disclosed as not yet included. Historical evidence preserves its recorded versions, dates and sources and supplies no current-release assurance. See [Release evidence](docs/release-evidence.md) for the exact workflows.
+Skill tags require deterministic conformance, synchronized release identity, and installation checks. Semantic evaluation is a separate evidence-backed operation; a passing tag does not establish it. Historical evidence preserves its recorded versions, dates and sources and supplies no current-release assurance. See [Release evidence](docs/release-evidence.md) for the exact workflows.
 
-Release 10.0.2 retains the selected 8.2.3 semantic evidence and has no fresh public recording. Its subsequent private diagnostic campaign preserves failures and fixture corrections separately; the fresh/upgraded native-routing prerequisites completed before diagnostics. Earlier changes from 8.2.4 through 10.0.1 also retain their historical qualifications. See [the 10.0.2 qualification](docs/release-evidence.md#skill-1002-evidence-reuse) and the preceding release records. Original candidate identities and diagnostic findings remain in [the 10.0.2 handoff](docs/semantic-evaluation.md#prepared-1002-campaign-handoff).
+Release 10.0.2 retained the 8.2.3 semantic evidence and had no fresh public recording. Its private diagnostic campaign preserves failures and fixture corrections separately; the fresh/upgraded native-routing prerequisites completed before diagnostics. Earlier changes from 8.2.4 through 10.0.1 retain their historical qualifications. See [the 10.0.2 qualification](docs/release-evidence.md#skill-1002-evidence-reuse) and the preceding release records. Original candidate identities and diagnostic findings remain in [the 10.0.2 handoff](docs/semantic-evaluation.md#prepared-1002-campaign-handoff).
 
-The unpublished 10.0.3 candidate retains the earlier private diagnostic and failed 140-case recording as historical evidence, without changing their verdicts. Launch preparation now restores all 143 cases to public selection, captures private bounded diagnostic traces, corrects evaluator correspondence and tool exposure, and clarifies healthy repair, bounded reads and actionable reports. The candidate pins CLI `13.0.2` with Core `9.0.1` and the refreshed JG dependency closure. Protocol 56 introduced ordered runtime operation groups (evidence schema 16, checkpoint schema 4), retained Codex versions as observations and supported lower diagnostic admission limits. Protocol 57 clarifies conservative accounting and expected negative smoke-test evidence without changing criteria or limits. Three fresh 17-case diagnostics passed all 51 initial trials. A later full recording stopped after 54 initial trials when a parallel-call proof defect was confirmed; its 50 passes, four failures and all charges remain retained. Nine corrected-input focused rechecks then passed. The replacement 143-case recording finished with 134 passed, eight recovered and one failed: `repair-unproven-adoption`. Its traced correction now makes the no-direct-Git boundary explicit before adoption gating and during blocked diagnosis. Four grader/case corrections have deterministic coverage; the corrected candidate still needs focused checks and a fresh passing recording. Native routing observations carry forward only for unaffected obligations; the Claude Code routing observation is developer-supplied. The candidate requires a final `moldea:` line reproducing an unavailable launcher's full refusal and next step unchanged. The selected 8.2.3 evidence remains historical; no 10.0.3 release or new evidence publication is established.
+Release 10.0.3 selects 142 historical cases: 134 passed and eight recovered, with none failed or pending. The source recording on `20e28fa7` covered 143 cases and failed `repair-unproven-adoption`, which is **not yet included**: the actor sometimes runs direct `git status` before the repair helper despite explicit instructions; no recorded run changed files or initialized anything. The exclusion-only cleanup ran no models and changed no recorded verdict. The release keeps `b1098a23`'s repair-reference sentence and four grader/case corrections; its single repair recheck failed the same way, so no behavior improvement is claimed. The candidate's deterministic checks passed. CLI `13.0.2`, Core `9.0.1`, the original failed first trials and all confirmations retain their provenance. See [the 10.0.3 evidence-reuse qualification](docs/release-evidence.md#skill-1003-evidence-reuse) for the release-specific acceptance and limits.
 
 ## License
 

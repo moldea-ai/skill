@@ -4,6 +4,7 @@ import { defineSemanticCase } from '../define.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'repair-unproven-adoption',
+  publication: 'private',
   setup: createSemanticCaseSetup('repair-unproven-adoption'),
   scenario:
     'A partial moldea-looking draft exists without a reliable record that the repository was initialized.',

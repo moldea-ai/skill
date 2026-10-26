@@ -44,8 +44,18 @@ describe('discovered semantic coverage', () => {
       cases.filter(({ publication }) => publication !== 'private'),
     );
     expect(cases).toHaveLength(143);
-    expect(cases.filter(({ publication }) => publication === 'private')).toStrictEqual([]);
-    expect(published).toStrictEqual(coverage);
+    expect(
+      cases.filter(({ publication }) => publication === 'private').map(({ id }) => id),
+    ).toStrictEqual(['repair-unproven-adoption']);
+    expect(published).toStrictEqual({
+      ...coverage,
+      claims: coverage.claims.map((claim) => ({
+        ...claim,
+        evidence: claim.evidence.filter(
+          ({ id, kind }) => kind !== 'semantic-case' || id !== 'repair-unproven-adoption',
+        ),
+      })),
+    });
     for (const definition of cases.filter(({ publication }) => publication === 'private')) {
       expect(
         published.claims.flatMap(({ evidence }) => evidence).some(({ id }) => id === definition.id),

@@ -1,11 +1,11 @@
 {
   "formatVersion": 1,
   "semantic": {
-    "assetName": "semantic-sem-20261018051032668-1465f9ee.json.gz",
+    "assetName": "semantic-sem-20261026014206661-66a3ed7e.json.gz",
     "classification": "official",
     "repository": "moldea-ai/skill",
-    "sha256": "baa883450e1087efafbf3c685e311859fb63575dfa839761c20db48de292342d",
-    "tag": "evidence-8.2.3-20261018"
+    "sha256": "fa6062bbad4512a4297d6bba711cbd435ea5c1a7638075fbfd21be2709b49c75",
+    "tag": "evidence-10.0.3-20261026"
   },
   "journeys": {
     "assetName": "journeys-20261013-da9709.json.gz",

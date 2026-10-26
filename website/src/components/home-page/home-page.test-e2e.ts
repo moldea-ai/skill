@@ -513,7 +513,7 @@ test('presents the product story before proof and adoption', async ({ page }) =>
     ['How it works', '/how-it-works/'],
     ['Evidence', '/evidence/'],
     ['Docs', '/docs/'],
-    ['Getting started', '/docs/getting-started/'],
+    ['Get started', '/get-started/'],
     ['llms.txt', '/llms.txt'],
   ] as const) {
     await expect(exploreNavigation.getByRole('link', { name, exact: true })).toHaveAttribute(

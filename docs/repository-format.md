@@ -158,4 +158,4 @@ The repository-local `@moldea.ai/cli` reads the Git working tree and delegates R
 
 The coding agent invokes that deterministic boundary when a workflow needs structural evidence. A valid structure does not automatically prove semantic quality, and semantic review does not replace structural validation. Consult the [official Repository Format specification](https://packages.moldea.ai/repository-format/) when exact property or conformance requirements matter.
 
-For the exact package-level behavior, see the [`@moldea.ai/core` documentation](https://packages.moldea.ai/packages/core/). To establish the format in a project, follow [Getting started](/docs/getting-started/) and say `Initialize moldea` to your coding agent.
+For the exact package-level behavior, see the [`@moldea.ai/core` documentation](https://packages.moldea.ai/packages/core/). To establish the format in a project, follow the [Setup reference](/docs/getting-started/) and say `Initialize moldea` to your coding agent.

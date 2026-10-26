@@ -5,7 +5,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { parseSearchDocuments } from '@moldea.ai/website-ui/search';
 import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
-import { SKILLS_DIRECTORY_URL, SOURCE_REPOSITORY_URL } from '../lib/model/constants.ts';
+import { SOURCE_REPOSITORY_URL } from '../lib/model/constants.ts';
 
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
@@ -170,19 +170,20 @@ for (const colorScheme of ['light', 'dark'] as const) {
   }
 }
 
-test('makes skills.sh the primary distribution path on desktop and mobile', async ({ page }) => {
+test('makes the Get started page the primary action on desktop and mobile', async ({ page }) => {
   await page.goto(toPublicPath('/'));
 
   const faviconLink = page.locator('link[rel="icon"]');
   await expect(faviconLink).toHaveAttribute('href', `${toPublicPath('/favicon.ico')}?v=a8cfe06f`);
   await expect(faviconLink).toHaveAttribute('type', 'image/x-icon');
 
-  const desktopDistributionLink = page
+  const desktopGetStartedLink = page
     .getByRole('banner')
-    .getByRole('link', { name: 'Get the skill', exact: true });
-  await expect(desktopDistributionLink).toBeVisible();
-  await expect(desktopDistributionLink).toHaveAttribute('href', SKILLS_DIRECTORY_URL);
-  await expect(desktopDistributionLink.locator('code')).toHaveCount(0);
+    .getByRole('link', { name: 'Get started', exact: true });
+  await expect(desktopGetStartedLink).toBeVisible();
+  await expect(desktopGetStartedLink).toHaveAttribute('href', toPublicPath('/get-started/'));
+  await expect(desktopGetStartedLink).not.toHaveAttribute('target');
+  await expect(desktopGetStartedLink.locator('code')).toHaveCount(0);
 
   const sourceRepositoryLink = page
     .getByRole('banner')
@@ -202,12 +203,13 @@ test('makes skills.sh the primary distribution path on desktop and mobile', asyn
   await page.reload();
   await page.getByRole('banner').locator('summary').click();
 
-  const mobileDistributionLink = page.getByLabel('Mobile navigation').getByRole('link', {
-    name: 'Get the skill on skills.sh',
+  const mobileGetStartedLink = page.getByLabel('Mobile navigation').getByRole('link', {
+    name: 'Get started',
     exact: true,
   });
-  await expect(mobileDistributionLink).toBeVisible();
-  await expect(mobileDistributionLink).toHaveAttribute('href', SKILLS_DIRECTORY_URL);
+  await expect(mobileGetStartedLink).toBeVisible();
+  await expect(mobileGetStartedLink).toHaveAttribute('href', toPublicPath('/get-started/'));
+  await expect(mobileGetStartedLink).not.toHaveAttribute('target');
 });
 
 test('shows compatible coding agents with source-owned marks and a complete docs path', async ({
@@ -1068,7 +1070,7 @@ test('keeps essential documentation available without JavaScript', async ({ brow
   const page = await context.newPage();
 
   await page.goto(toPublicPath('/docs/getting-started/'));
-  await expect(page.getByRole('heading', { level: 1, name: 'Getting started' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Setup reference' })).toBeVisible();
   await expect(page.getByText(/The primary distribution page is/)).toBeVisible();
 
   await context.close();

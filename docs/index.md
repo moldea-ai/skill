@@ -37,7 +37,8 @@ After adoption, the coding agent uses `moldea` for agent work, established proje
 ## Start here
 
 - [Get moldea on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea): the primary distribution page.
-- [Getting started](/docs/getting-started/): install once and make the first natural request.
+- [Get started](/get-started/): install, initialize, keep working, and fix in four steps.
+- [Setup reference](/docs/getting-started/): install once and make the first natural request.
 - [Coding agent compatibility](/docs/coding-agent-compatibility/): use the same portable skill with Codex, Claude Code, Cursor, OpenCode, GitHub Copilot, Cline, and other compatible hosts.
 - [Capabilities](/capabilities/): see the six product outcomes through visual project examples.
 - [How moldea works](/how-it-works/): follow one change through context, connections, updates, and checks.

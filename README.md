@@ -16,7 +16,7 @@ For a reproducible installation, pin the immutable release after publication:
 npx skills add "moldea-ai/skill#v10.0.3"
 ```
 
-Both commands install the portable skill named `moldea`. They do not install the CLI globally or require a hosted account. See [Getting started](docs/getting-started.md) for initialization, updates, and removal.
+Both commands install the portable skill named `moldea`. They do not install the CLI globally or require a hosted account. See the [Setup reference](docs/getting-started.md) for initialization, updates, and removal.
 
 ## What `moldea` is
 
@@ -55,7 +55,7 @@ Evaluation is read-only. Repair checks every owner, its material implementation 
 
 | Need                                                               | Authority                                                                                     |
 | ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
-| Install, initialize, update, or remove the skill                   | [Getting started](docs/getting-started.md)                                                    |
+| Install, initialize, update, or remove the skill                   | [Setup reference](docs/getting-started.md)                                                    |
 | Understand activation, operations, evidence, and change boundaries | [Workflow reference](docs/how-it-works.md)                                                    |
 | Explore supported outcomes and examples                            | [Capabilities](docs/capabilities.md) and [examples](docs/examples/index.md)                   |
 | Understand canonical project state and its repository layout       | [Project state](docs/project-state.md) and [repository format](docs/repository-format.md)     |

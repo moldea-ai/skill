@@ -3,7 +3,7 @@ import ActionLink from '@moldea.ai/website-ui/action-link';
 import SiteHeaderShell from '@moldea.ai/website-ui/site-header';
 import { isPublicRouteActive, withBase } from '@moldea.ai/website-ui/site';
 
-import { SKILLS_DIRECTORY_URL, SOURCE_REPOSITORY_URL } from '../../lib/model/constants.ts';
+import { SOURCE_REPOSITORY_URL } from '../../lib/model/constants.ts';
 import { THEME_STORAGE_KEY } from '../../lib/site/constants.ts';
 import Logo from '../logo/logo.astro';
 
@@ -20,6 +20,7 @@ const navigationItems = navigation.map(({ activeRoutes, href, label }) => ({
   isActive: activeRoutes.some((route) => isPublicRouteActive(currentPathname, route, basePath)),
   label,
 }));
+const getStartedHref = withBase('/get-started/', basePath);
 const searchHref = withBase('/search/', basePath);
 const isSearchActive = isPublicRouteActive(currentPathname, '/search/', basePath);
 ---
@@ -39,23 +40,19 @@ const isSearchActive = isPublicRouteActive(currentPathname, '/search/', basePath
   <ActionLink
     slot="desktop-actions"
     class="ms-1 font-bold"
-    href={SKILLS_DIRECTORY_URL}
+    href={getStartedHref}
     size="md"
-    target="_blank"
-    rel="noopener noreferrer"
     data-primary-action
   >
-    Get the skill
+    Get started
   </ActionLink>
   <ActionLink
     slot="mobile-actions"
     class="mt-2 w-full font-bold"
-    href={SKILLS_DIRECTORY_URL}
+    href={getStartedHref}
     size="lg"
-    target="_blank"
-    rel="noopener noreferrer"
     data-primary-action
   >
-    Get the skill on skills.sh
+    Get started
   </ActionLink>
 </SiteHeaderShell>

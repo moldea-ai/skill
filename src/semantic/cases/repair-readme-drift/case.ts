@@ -13,6 +13,15 @@ export const semanticCase = defineSemanticCase({
       'This repository was initialized with moldea. Repair the damaged managed README block and verify the setup. Preserve all other content.',
     repositoryEvidence: [
       {
+        claim:
+          'README.md has no declared material relationship. For its installed relevance-gate smoke test, a successful negative relationship result is healthy wiring evidence; it does not prove native host compliance.',
+        source: {
+          kind: 'workspace-path',
+          path: 'moldea/moldea.yaml',
+          expectedType: 'file',
+        },
+      },
+      {
         claim: 'The managed README region is damaged.',
         source: { kind: 'workspace-path', path: 'README.md', expectedType: 'file' },
       },

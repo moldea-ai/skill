@@ -1,3 +1,5 @@
+import { hashValue } from 'jg-crypto';
+
 import type { ISemanticCase } from './types.ts';
 
 const CHECKPOINT_REF = 'repair-checkpoint';
@@ -7,6 +9,12 @@ const CHECKPOINT_CASE_IDS = new Set([
   'repair-continuation-incomplete-checkpoint',
   'repair-continuation-missing-owner-list',
 ]);
+
+// bind the fixed dirty-tree evidence, never arbitrary text appended to its authored request
+const DIRTY_TREE_EVIDENCE_SUFFIX = {
+  characterCount: 1176,
+  sha256: '43ef8335686e031bd4eafc744b152b098fa62d1b260cd9c1e85a1cf8325e82da',
+};
 
 /** Identifies the four fixtures that supply an available prior checkpoint. */
 export const hasRepairCheckpointRequest = (caseDefinition: ISemanticCase): boolean =>
@@ -30,13 +38,21 @@ export const resolveRepairCheckpointRequest = (
   return caseDefinition.input.developerDirection.replaceAll(CHECKPOINT_REF, checkpointCommit);
 };
 
-/** Compares recorded requests while allowing only the fixture-owned checkpoint substitution. */
+/** Compares recorded requests while allowing only exact fixture-owned substitutions. */
 export const hasMatchingSemanticRequest = (
   caseDefinition: ISemanticCase,
   recordedRequest: string,
 ): boolean => {
   const template = caseDefinition.input.developerDirection;
-  if (!hasRepairCheckpointRequest(caseDefinition)) return recordedRequest === template;
+  if (!hasRepairCheckpointRequest(caseDefinition)) {
+    if (recordedRequest === template) return true;
+    return (
+      caseDefinition.id === 'evaluate-dirty-working-tree' &&
+      recordedRequest.startsWith(template) &&
+      recordedRequest.length - template.length === DIRTY_TREE_EVIDENCE_SUFFIX.characterCount &&
+      hashValue(recordedRequest.slice(template.length)) === DIRTY_TREE_EVIDENCE_SUFFIX.sha256
+    );
+  }
   const parts = template.split(CHECKPOINT_REF);
   if (parts.length !== 2) return false;
   const checkpointIndex = parts[0]!.length;

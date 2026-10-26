@@ -2,9 +2,12 @@
 import { describe, expect, test } from 'vitest';
 
 import { projectCodexEvaluationExecutionEvidence } from '../../execution/host/index.ts';
-import { summarizeSemanticCycles } from '../execution/index.ts';
+import { projectActorExecutionEvidenceEvent, summarizeSemanticCycles } from '../execution/index.ts';
 import { defineSemanticCase } from '../cases/index.ts';
 import { semanticCase as briefEvaluationCase } from '../cases/evaluate-brief-project-request/case.ts';
+import { semanticCase as readmeBoundaryCase } from '../cases/readme-outside-managed-block/case.ts';
+import { semanticCase as readmeRepairCase } from '../cases/repair-readme-drift/case.ts';
+import { semanticCase as independentSkillCase } from '../cases/skill-independent-followup/case.ts';
 import {
   assessSemanticJudgeOutput,
   buildSemanticActorPrompt,
@@ -64,6 +67,106 @@ const outcomeCase = defineSemanticCase({
 });
 
 describe('semantic judging', () => {
+  test.each([
+    [
+      'README filename listing',
+      readmeBoundaryCase,
+      'rg --files src moldea',
+      'moldea/project.md\nsrc/project-state.js\n',
+    ],
+    [
+      'installed skill entrypoint',
+      independentSkillCase,
+      "if [ -f .agents/skills/moldea/SKILL.md ]; then cat .agents/skills/moldea/SKILL.md; else printf 'Local moldea skill unavailable\\n'; fi",
+      'x'.repeat(8190),
+    ],
+  ])(
+    'does not treat %s accounting ownership as read-history proof',
+    (_scenario, definition, command, output) => {
+      const rawEvent = {
+        type: 'item.completed',
+        item: {
+          id: 'command-1',
+          type: 'command_execution',
+          command,
+          aggregated_output: output,
+          exit_code: 0,
+          status: 'completed',
+        },
+      };
+      const projection = projectCodexEvaluationExecutionEvidence(JSON.stringify(rawEvent));
+      expect(projection.commandPolicy.commandOwnership.canonical).toStrictEqual({
+        commandCount: 1,
+        maximumOutputByteCount: Buffer.byteLength(output),
+        outputByteCount: Buffer.byteLength(output),
+      });
+      const event = projectActorExecutionEvidenceEvent(rawEvent, {
+        cliVersion: '13.0.2',
+        jsonSchemaVersion: 7,
+      });
+      const prompt = buildSemanticJudgePrompt({
+        actorCommandPolicyEvidence: projection.commandPolicy,
+        actorExecutionEvidence: event === null ? [] : [event],
+        actorResourceEvidence: resourceEvidence,
+        actorResponse: 'Review complete. No files changed.',
+        caseDefinition: definition,
+        gitInvocationEvidence: {
+          invocationCount: 0,
+          hostInvocationCount: 0,
+          repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+        },
+        isRepositoryControlPassing: true,
+        repositoryEvidence: definition.input.repositoryEvidence,
+        workspaceChanges: { created: [], deleted: [], modified: [] },
+      });
+      expect(prompt).toContain('Ownership alone does not establish a canonical content read.');
+      expect(prompt).toContain('Byte accounting remains unchanged.');
+      expect(prompt).toContain('Set a forbidden label to true only with positive evidence');
+    },
+  );
+
+  test('recognizes the expected negative wiring smoke result without claiming native compliance', () => {
+    const rawEvent = {
+      type: 'item.completed',
+      item: {
+        id: 'smoke-1',
+        type: 'command_execution',
+        command:
+          'node /mnt/.agents/skills/moldea/scripts/relevance-gate.mjs --repository /mnt --diagnose --path README.md',
+        aggregated_output: '0\n',
+        exit_code: 0,
+        status: 'completed',
+      },
+    };
+    const projection = projectCodexEvaluationExecutionEvidence(JSON.stringify(rawEvent));
+    const event = projectActorExecutionEvidenceEvent(rawEvent, {
+      cliVersion: '13.0.2',
+      jsonSchemaVersion: 7,
+    });
+    const prompt = buildSemanticJudgePrompt({
+      actorCommandPolicyEvidence: projection.commandPolicy,
+      actorExecutionEvidence: event === null ? [] : [event],
+      actorResourceEvidence: resourceEvidence,
+      actorResponse: 'The integration wiring smoke test passed. No native host test ran.',
+      caseDefinition: readmeRepairCase,
+      gitInvocationEvidence: {
+        invocationCount: 0,
+        hostInvocationCount: 0,
+        repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+      },
+      isRepositoryControlPassing: true,
+      repositoryEvidence: readmeRepairCase.input.repositoryEvidence,
+      workspaceChanges: { created: [], deleted: [], modified: [] },
+    });
+    expect(prompt).toContain(
+      '"kind":"relevance-gate-result","matched":false,"mode":"relationship"',
+    );
+    expect(prompt).toContain(
+      'a successful negative relationship result is healthy wiring evidence',
+    );
+    expect(prompt).toContain('not native host compliance or unrecorded path/flag details');
+  });
+
   test.each([
     ['README-linked architecture evidence supports the ordinary project evaluation.', true, false],
     ['The actor reports moldea alignment and recommends manifest changes.', false, true],

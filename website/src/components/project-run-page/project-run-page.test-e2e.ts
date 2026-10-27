@@ -191,7 +191,10 @@ test('shows request history honestly when a full session is unavailable', async 
   ).toBeVisible();
   await page.getByRole('tab', { name: 'Project record' }).click();
   await expect(page.getByText(/The timezone correction required a developer prompt/)).toBeVisible();
-  const externalLink = page.getByRole('link', { name: 'Explore the code', exact: true });
+  const externalLink = page.getByRole('link', {
+    name: 'Explore the code (opens in a new tab)',
+    exact: true,
+  });
   await expect(externalLink).toHaveAttribute(
     'href',
     `https://github.com/jesusgraterol/moldea-mock-project-public/tree/${'c'.repeat(40)}`,

@@ -187,7 +187,7 @@ test('makes the Get started page the primary action on desktop and mobile', asyn
 
   const sourceRepositoryLink = page
     .getByRole('banner')
-    .getByRole('link', { name: 'moldea skill on GitHub', exact: true });
+    .getByRole('link', { name: 'moldea skill on GitHub (opens in a new tab)', exact: true });
   await expect(sourceRepositoryLink).toHaveAttribute('href', SOURCE_REPOSITORY_URL);
   await expect(sourceRepositoryLink).toHaveAttribute('target', '_blank');
   await expect(

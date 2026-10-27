@@ -54,7 +54,10 @@ const depthClasses = ['', 'ml-3 border-l border-border pl-2', 'ml-8 border-l bor
                 data-project-file-path={file.path}
                 data-file-status={file.status}
               >
-                <span class="flex h-9 items-center gap-2 px-1.5 group-has-[[data-enhanced=true]]/project-file:hidden sm:h-7">
+                <span
+                  class="flex h-9 items-center gap-2 px-1.5 group-has-[[data-enhanced=true]]/project-file:hidden sm:h-7"
+                  data-project-file-fallback
+                >
                   <ArtifactLabel
                     language={file.language}
                     path={file.path}

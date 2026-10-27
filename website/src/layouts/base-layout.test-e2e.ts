@@ -818,7 +818,10 @@ for (const colorScheme of ['light', 'dark'] as const) {
       await expect(hero.locator('p code').filter({ hasText: /^moldea$/u })).toHaveText('moldea');
       await expect(hero.getByRole('heading', { level: 1 }).locator('code')).toHaveCount(0);
 
-      const cloudAction = hero.getByRole('link', { name: 'Explore moldea Cloud', exact: true });
+      const cloudAction = hero.getByRole('link', {
+        name: 'Explore moldea Cloud (opens in a new tab)',
+        exact: true,
+      });
       await expect(cloudAction).toBeVisible();
       await expect(cloudAction.locator('code')).toHaveText('moldea Cloud');
       await cloudAction.focus();

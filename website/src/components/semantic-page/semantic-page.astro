@@ -270,6 +270,12 @@ const semanticReleaseSection =
                   rel="noopener noreferrer"
                 >
                   {semanticReleaseSection.sourceLabel}
+                  <ExternalLink
+                    class="ms-1 inline size-3.5"
+                    aria-hidden="true"
+                    data-external-link-icon
+                  />
+                  <span class="sr-only"> (opens in a new tab)</span>
                 </a>
                 .
               </p>
@@ -306,7 +312,9 @@ const semanticReleaseSection =
                       <ExternalLink
                         class="ml-1 inline size-3"
                         aria-hidden="true"
+                        data-external-link-icon
                       />
+                      <span class="sr-only"> (opens in a new tab)</span>
                     </a>
                   )
                 }
@@ -379,7 +387,9 @@ const semanticReleaseSection =
                 <ExternalLink
                   class="size-4"
                   aria-hidden="true"
+                  data-external-link-icon
                 />
+                <span class="sr-only"> (opens in a new tab)</span>
               </a>
             )
           }

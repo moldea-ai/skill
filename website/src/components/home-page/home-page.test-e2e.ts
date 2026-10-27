@@ -318,7 +318,7 @@ test('leads with project context while retaining the connected-agent example and
 
   const cloudLink = page
     .locator('[data-home-hero]')
-    .getByRole('link', { name: 'Explore moldea Cloud', exact: true });
+    .getByRole('link', { name: 'Explore moldea Cloud (opens in a new tab)', exact: true });
   await expect(cloudLink).toHaveAttribute('href', CLOUD_WEBSITE_URL);
   await expect(cloudLink).toHaveAttribute('target', '_blank');
   await expect(cloudLink).toHaveAttribute('rel', 'noopener noreferrer');

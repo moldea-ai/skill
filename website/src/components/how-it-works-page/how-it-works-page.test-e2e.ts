@@ -305,13 +305,13 @@ test('keeps both visual narratives and their technical links available without J
 
   await page.goto(route);
   await expect(page.locator('[data-workflow-stage]')).toHaveCount(5);
-  await expect(page.locator('[data-booking-path]')).toHaveCount(4);
-  await expect(page.locator('[data-booking-file-fallback]')).toHaveCount(4);
+  await expect(page.locator('[data-project-file-path]')).toHaveCount(4);
+  await expect(page.locator('[data-project-file-fallback]')).toHaveCount(4);
   await expect(
-    page.locator('[data-booking-file-fallback]').getByText('M', { exact: true }),
+    page.locator('[data-project-file-fallback]').getByText('M', { exact: true }),
   ).toHaveCount(2);
   await expect(
-    page.locator('[data-booking-file-fallback]').getByText('A', { exact: true }),
+    page.locator('[data-project-file-fallback]').getByText('A', { exact: true }),
   ).toHaveCount(0);
   await expect(page.locator('[data-verification-row]')).toHaveCount(3);
   await expect(
@@ -403,8 +403,8 @@ test('keeps the file tree compact and the owner previews balanced across viewpor
       await page.setViewportSize({ width, height: 900 });
       await page.goto(route);
       await page.evaluate(() => document.fonts.ready);
-      const tree = page.locator('[data-booking-artifacts]');
-      await expect(tree.locator('[data-booking-path]')).toHaveCount(4);
+      const tree = page.locator('[data-project-file-tree]');
+      await expect(tree.locator('[data-project-file-path]')).toHaveCount(4);
       await expect(tree).toContainText('src/');
       await expect(tree).toContainText('moldea/');
       const treeBounds = await tree.boundingBox();

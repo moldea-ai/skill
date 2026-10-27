@@ -128,7 +128,9 @@ test('keeps the guide readable without JavaScript', async ({ browser }) => {
     const page = await context.newPage();
     await page.goto(route);
     await expect(page.getByRole('table')).toHaveCount(3);
-    await expect(page.getByRole('link', { name: 'Core limits', exact: true })).toHaveAttribute(
+    await expect(
+      page.getByRole('link', { name: 'Core limits (opens in a new tab)', exact: true }),
+    ).toHaveAttribute(
       'href',
       'https://packages.moldea.ai/packages/core/repository-inspection/#resource-limits',
     );

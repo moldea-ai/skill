@@ -120,6 +120,12 @@ const breadcrumbs = [
                   rel="noopener noreferrer"
                 >
                   {semanticReleaseSection.sourceLabel}
+                  <ExternalLink
+                    class="ms-1 inline size-3.5"
+                    aria-hidden="true"
+                    data-external-link-icon
+                  />
+                  <span class="sr-only"> (opens in a new tab)</span>
                 </a>
                 .
               </p>
@@ -222,7 +228,9 @@ const breadcrumbs = [
               <ExternalLink
                 class="size-3.5"
                 aria-hidden="true"
+                data-external-link-icon
               />
+              <span class="sr-only"> (opens in a new tab)</span>
             </a>
             <a
               class="inline-flex items-center gap-1.5 text-link font-semibold"
@@ -234,7 +242,9 @@ const breadcrumbs = [
               <ExternalLink
                 class="size-3.5"
                 aria-hidden="true"
+                data-external-link-icon
               />
+              <span class="sr-only"> (opens in a new tab)</span>
             </a>
           </div>
         </div>

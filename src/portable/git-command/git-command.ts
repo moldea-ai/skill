@@ -2,7 +2,7 @@ import { getErrorCode } from 'jg-exception';
 import { ERRORS as GIT_ERRORS } from 'jg-git-commands';
 import { ERRORS as PROCESS_ERRORS } from 'jg-process';
 
-import { GIT_LFS_FILTER_CONFIGURATIONS, WINDOWS_MAX_GIT_DIRECTORY_LENGTH } from './constants.ts';
+import { GIT_READ_CONFIGURATIONS, WINDOWS_MAX_GIT_DIRECTORY_LENGTH } from './constants.ts';
 import type { IGitCommandOptions, IGitConfigScope } from './types.ts';
 
 // a Git read that can't run from the repository root
@@ -17,7 +17,7 @@ const GIT_READ_ERROR_CODES = new Set<string>([
 /**
  * Builds the runGit options of one bounded helper read from the repository root: its config scope
  * and output bound, the work tree pinned to the root, so a repository's `core.worktree` can't move
- * the attributes Git reads, and the LFS filters emptied.
+ * the attributes Git reads, diff index refresh disabled, and the LFS filters emptied.
  * @param repositoryRoot The canonical absolute repository root.
  * @param configScope The config files the read sees.
  * @param maxOutputBytes The bytes stdout and stderr may hold together.
@@ -39,9 +39,9 @@ export const createGitCommandOptions = (
     maxOutputBytes,
     env: {
       GIT_WORK_TREE: repositoryRoot,
-      GIT_CONFIG_COUNT: String(GIT_LFS_FILTER_CONFIGURATIONS.length),
+      GIT_CONFIG_COUNT: String(GIT_READ_CONFIGURATIONS.length),
       ...Object.fromEntries(
-        GIT_LFS_FILTER_CONFIGURATIONS.flatMap(([key, value], index) => [
+        GIT_READ_CONFIGURATIONS.flatMap(([key, value], index) => [
           [`GIT_CONFIG_KEY_${index}`, key],
           [`GIT_CONFIG_VALUE_${index}`, value],
         ]),

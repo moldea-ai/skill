@@ -12,6 +12,7 @@ import {
   renameSync,
   rmSync,
   symlinkSync,
+  utimesSync,
   writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -125,6 +126,27 @@ const collectEvidence = async (
 afterEach(() => {
   for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true });
 });
+
+test.each(['source', 'bundled'] as const)(
+  'timestamp-only worktree changes preserve Git storage through %s',
+  async (boundary) => {
+    const root = repository();
+    const commit = git(root, 'rev-parse', 'HEAD');
+    // force a stat mismatch without changing content, independently of filesystem clock resolution.
+    utimesSync(join(root, 'source file.js'), new Date(0), new Date(0));
+    const before = snapshot(join(root, '.git'));
+    for (const mode of ['checkpoint', 'continue'] as const) {
+      expect(
+        await collectEvidence(root, boundary, mode, mode === 'continue' ? commit : undefined),
+      ).toMatchObject({
+        status: 'available',
+        commit,
+        uncommittedPaths: [],
+      });
+      expect(snapshot(join(root, '.git'))).toStrictEqual(before);
+    }
+  },
+);
 
 test('bundled helper captures full commit, uncommitted paths and manifest evidence without index writes', async () => {
   const root = repository();

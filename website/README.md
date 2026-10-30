@@ -116,6 +116,8 @@ npm run test
 npm run build:fixture
 ```
 
+All website test categories are full-only in the root [testing policy](../docs/testing.md). Root `npm test` omits this application before preparation; `npm run test:full` includes its units, artifact integrations and both browser suites. Focused website commands remain complete, including accessibility/themes/mobile behavior.
+
 `npm run test:unit` prepares the existing synthetic website model before running the unit suite, so it also works on a clean checkout without selected release evidence.
 
 Prepare the selected release evidence once, then start the local development server from the repository root:

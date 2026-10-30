@@ -107,7 +107,7 @@ test('rejects missing, duplicate, malformed, and disagreeing release versions', 
   );
 });
 
-test('runtime guidance covers every Core runtime label exactly once', () => {
+test('runtime guidance covers every Core runtime label exactly once', { tags: ['full'] }, () => {
   const guidance = readFileSync(
     resolve(import.meta.dirname, '../../moldea/references/runtime-guidance.md'),
     'utf8',

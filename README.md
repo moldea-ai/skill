@@ -127,6 +127,7 @@ Scripted journeys cover six journeys and 21 requests in ordinary ChatGPT and Cla
 | `fixtures/`                               | Deterministic source fixtures and calibration records. Recorded evaluation attempts are not committed.                                                                    |
 | `docs/`                                   | Concise public concepts and durable workflows. API and HTTP endpoint documentation does not belong here.                                                                  |
 | `project-specification`                   | Read-only development reference to the canonical product and skill specifications in `../platform/moldea`.                                                                |
+| `src/test-suite/`                         | Private essential/full selection and inherited-stdio execution; [testing guide](docs/testing.md) owns membership and cadence.                                             |
 | `.github/workflows/conformance.yml`       | Conservative PR selection, root correctness, quality, and portable Linux, Windows and macOS contracts.                                                                    |
 | `.github/workflows/website-checks.yml`    | Shared read-only website quality and artifact verification; browser suites run locally.                                                                                   |
 | `.github/workflows/pages.yml`             | Pages preflight, parallel verification/production build, and gated deployment.                                                                                            |
@@ -168,14 +169,17 @@ Source and packed package candidates accept stable caret dependency minimums, in
 
 The root tooling and website consume Website UI `4.6.1` with the exact Astro `7.2.8` peer. Normal dependency resolution selects these versions without an override.
 
-Run the deterministic boundaries:
+Run the deterministic boundaries. [Testing](docs/testing.md) owns essential/full classification, focused completion and the manual 1–4 week full cadence:
 
 ```bash
-npm run runtime:build
 npm run portable:check
+npm test
+# complete focused categories remain available; prepare evaluator helpers when needed
+npm run runtime:build
 npm run test:unit
 npm run test:integration
-npm test
+# explicit complete deterministic qualification
+npm run test:full
 npm run typecheck
 npm run lint
 npm run format:check
@@ -186,7 +190,7 @@ npm run website:check
 
 Conformance runs root correctness once on development Node, every portable integration file on all three supported Node versions on Linux, the same portable files on Windows and macOS, and the repair Git helper's integration tests on Git 2.32, the minimum supported Git, built from its checksum-pinned source. Windows also checks deep-path cloning and installation. Only PR changes entirely within `website/src/components/`, `website/src/layouts/`, `website/src/pages/`, `website/src/styles/`, or `website/public/` skip heavy conformance; the global path check and full website verification still run. Shared, unknown, mixed, and tag changes receive full conformance. `Conformance result` and `Verify Website` report selected-check failures and unexpected skips; configuring them as required checks is a separate repository setting. PR website verification owns website typechecking; tag conformance retains that check. PRs and Pages share read-only website quality and artifact verification. Recorded-browser and clean-development browser suites run locally before merging. Pages verification and the official production build run independently after shared configuration preflight; deployment requires both to succeed. `typecheck:root` checks root tooling, while `typecheck` still checks all workspaces.
 
-`npm test` includes the website browser suite. Production `website:build`, `release:check`, and Pages deployment require the semantic evidence selection to be populated and prepared. Development website checks exercise both the clean current catalogs without recorded results and isolated synthetic evidence.
+`npm test` now runs essential portable/identity/suite guarantees without evaluator or website preparation. `npm run test:full` includes complete root and website units/integrations plus both browser suites. CI currently retains complete granular root coverage; its browser boundary is unchanged. Production `website:build`, `release:check`, and Pages deployment require the semantic evidence selection to be populated and prepared. Development website checks exercise both the clean current catalogs without recorded results and isolated synthetic evidence.
 
 Specialized workflows have focused operator references:
 

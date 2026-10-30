@@ -606,6 +606,7 @@ const runPage = (root: string, command: string, options: string[], cwd = root) =
 
 test.each(['composition', 'content', 'inspect', 'scope', 'validate'])(
   'preserves the real %s CLI response without capture',
+  { tags: ['full'] },
   (command) => {
     const { root, cliRoot } = createScopeFixture();
     const options =

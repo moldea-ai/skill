@@ -38,6 +38,8 @@ Classify each new or materially changed scenario by its concrete failure consequ
 
 Essential invokes only root units and integrations. It does not build evaluator runtimes or prepare sandbox, website models, fixture builds or browsers. Full prepares `runtime:build` once when root unit/integration stages are selected, then runs root and website units, root and website artifact integrations, and recorded plus clean-development browsers. Website granular commands retain their own synthetic generation/build preparation. Full E2E alone uses the website browser commands without an unrelated evaluator build. Focused evaluator tests still need `npm run runtime:build` when their existing contract requires those helpers.
 
+Sandbox argument-construction unit tests supply explicit executable paths and do not require host-installed evaluator tools. Real sandbox integration tests and evaluation execution retain their actual tool requirements.
+
 Declare expensive browser accessibility matrices as independent page/theme/viewport cases, using Playwright's isolated page fixture. Keep all scans and assertions while giving each case its own existing timeout, rather than accumulating an entire matrix inside one test.
 
 Commands inherit stdio, stop at the first failure, and await bounded owned interruption/cleanup. Startup, nonzero exit, interruption and cleanup failure cannot become success or start a later stage. Cleanup failures report the command/root PID for verification. There is no output buffer/drain or orphan supervisor. The installed Windows helper cannot discover every descendant after its parent exits; helper completion is not exhaustive orphan-cleanup proof.

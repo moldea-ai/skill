@@ -403,6 +403,7 @@ test('sandbox mounts related repositories read-only', () => {
         target: '/related-application',
       },
     ],
+    searchExecutable: '/runtime/search/rg',
     sandboxHome: '/tmp/evaluation-home',
   });
   const mountIndex = argumentsList.findIndex(
@@ -429,6 +430,7 @@ test('sandbox binds the final Git wrapper after every scenario tool overlay', ()
       { source: '/tmp/scenario-tools', target: '/home/evaluator/bin' },
       { source: '/tmp/other-tools', target: '/other-tools' },
     ],
+    searchExecutable: '/runtime/search/rg',
     sandboxHome: '/tmp/evaluation-home',
   });
   const finalOverlayIndex = argumentsList.indexOf('/tmp/other-tools');
@@ -449,6 +451,7 @@ test('sandbox overlays selected workspace paths read-only and rejects unsafe pat
     cwd: '/tmp/evaluation',
     hostExecutable: '/usr/bin/codex',
     readOnlyWorkspacePaths: ['.git', '.agents/skills/moldea'],
+    searchExecutable: '/runtime/search/rg',
     sandboxHome: '/tmp/evaluation-home',
   });
 
@@ -470,6 +473,7 @@ test('sandbox overlays selected workspace paths read-only and rejects unsafe pat
           cwd: '/tmp/evaluation',
           hostExecutable: '/usr/bin/codex',
           readOnlyWorkspacePaths: [path],
+          searchExecutable: '/runtime/search/rg',
           sandboxHome: '/tmp/evaluation-home',
         }),
       /Invalid read-only workspace path/,
@@ -483,6 +487,7 @@ test('sandbox can expose the project-local binary directory and mount the worksp
     cwd: '/tmp/evaluation',
     hostExecutable: '/usr/bin/codex',
     includeWorkspaceBinaryDirectory: true,
+    searchExecutable: '/runtime/search/rg',
     sandboxHome: '/tmp/evaluation-home',
     workspaceAccess: 'read-only',
   });

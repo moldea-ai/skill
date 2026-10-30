@@ -1059,7 +1059,8 @@ var readIndexEntries = async (cwd, { paths, ...options } = {}) => {
 };
 
 // src/portable/git-command/constants.ts
-var GIT_LFS_FILTER_CONFIGURATIONS = [
+var GIT_READ_CONFIGURATIONS = [
+  ["diff.autoRefreshIndex", "false"],
   ["filter.lfs.clean", ""],
   ["filter.lfs.process", ""],
   ["filter.lfs.required", "false"],
@@ -1084,9 +1085,9 @@ var createGitCommandOptions = (repositoryRoot2, configScope, maxOutputBytes) => 
     maxOutputBytes,
     env: {
       GIT_WORK_TREE: repositoryRoot2,
-      GIT_CONFIG_COUNT: String(GIT_LFS_FILTER_CONFIGURATIONS.length),
+      GIT_CONFIG_COUNT: String(GIT_READ_CONFIGURATIONS.length),
       ...Object.fromEntries(
-        GIT_LFS_FILTER_CONFIGURATIONS.flatMap(([key, value], index) => [
+        GIT_READ_CONFIGURATIONS.flatMap(([key, value], index) => [
           [`GIT_CONFIG_KEY_${index}`, key],
           [`GIT_CONFIG_VALUE_${index}`, value]
         ])

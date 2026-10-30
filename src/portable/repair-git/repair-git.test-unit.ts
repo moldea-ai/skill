@@ -134,21 +134,23 @@ test('long Git error messages cannot exceed the bounded response reason', async 
   expect(evidence.reason).toHaveLength(512);
 });
 
-test('every read sees only the repository config, its own work tree and empty LFS filters', async () => {
+test('every read pins the work tree, disables diff index refresh and empties LFS filters', async () => {
   const root = await repository();
   const options = {
     isolateConfig: true,
     env: {
       GIT_WORK_TREE: root,
-      GIT_CONFIG_COUNT: '4',
-      GIT_CONFIG_KEY_0: 'filter.lfs.clean',
-      GIT_CONFIG_VALUE_0: '',
-      GIT_CONFIG_KEY_1: 'filter.lfs.process',
+      GIT_CONFIG_COUNT: '5',
+      GIT_CONFIG_KEY_0: 'diff.autoRefreshIndex',
+      GIT_CONFIG_VALUE_0: 'false',
+      GIT_CONFIG_KEY_1: 'filter.lfs.clean',
       GIT_CONFIG_VALUE_1: '',
-      GIT_CONFIG_KEY_2: 'filter.lfs.required',
-      GIT_CONFIG_VALUE_2: 'false',
-      GIT_CONFIG_KEY_3: 'filter.lfs.smudge',
-      GIT_CONFIG_VALUE_3: '',
+      GIT_CONFIG_KEY_2: 'filter.lfs.process',
+      GIT_CONFIG_VALUE_2: '',
+      GIT_CONFIG_KEY_3: 'filter.lfs.required',
+      GIT_CONFIG_VALUE_3: 'false',
+      GIT_CONFIG_KEY_4: 'filter.lfs.smudge',
+      GIT_CONFIG_VALUE_4: '',
     },
   };
 

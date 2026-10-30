@@ -108,16 +108,20 @@ test.each([
   ['^9.0.1', '9.0.2'],
   ['^9.0.2', '9.0.2'],
   ['>=9.0.1 <10.0.0', '9.1.0'],
-])('resolves declaration %s with installed Core %s', async (coreDeclaration, coreVersion) => {
-  const fixture = createPackageFixture({ coreDeclaration, coreVersion });
+])(
+  'resolves declaration %s with installed Core %s',
+  { tags: ['full'] },
+  async (coreDeclaration, coreVersion) => {
+    const fixture = createPackageFixture({ coreDeclaration, coreVersion });
 
-  const resolved = await resolveRepositoryCli(fixture.repositoryRoot);
+    const resolved = await resolveRepositoryCli(fixture.repositoryRoot);
 
-  assert.equal(resolved.cliVersion, '13.0.1');
-  assert.equal(resolved.cliRoot, fixture.cliRoot);
-  assert.equal(resolved.repositoryRoot, fixture.repositoryRoot);
-  assert.equal(existsSync(fixture.invocationMarker), false);
-});
+    assert.equal(resolved.cliVersion, '13.0.1');
+    assert.equal(resolved.cliRoot, fixture.cliRoot);
+    assert.equal(resolved.repositoryRoot, fixture.repositoryRoot);
+    assert.equal(existsSync(fixture.invocationMarker), false);
+  },
+);
 
 test('accepts a compatible CLI minor and its nearest nested Core package', async () => {
   const fixture = createPackageFixture({

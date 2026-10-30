@@ -47,9 +47,10 @@ const fixture = async () => {
   return { repositoryRoot: root, installedSkillRoot };
 };
 
+// removing the 16,512-file traversal fixture on Windows can exceed Vitest's 10-second default.
 afterEach(async () => {
   for (const root of roots.splice(0)) await rm(root, { recursive: true, force: true });
-});
+}, 30_000);
 
 test('inventory separates the selected installation and leaves other skill ownership unverified', async () => {
   const options = await fixture();

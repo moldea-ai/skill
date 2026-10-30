@@ -116,6 +116,8 @@ npm run test
 npm run build:fixture
 ```
 
+All website test categories are full-only in the root [testing policy](../docs/testing.md). Root `npm test` omits this application before preparation; `npm run test:full` includes its units, artifact integrations and both browser suites. Focused website commands remain complete, including accessibility/themes/mobile behavior.
+
 `npm run test:unit` prepares the existing synthetic website model before running the unit suite, so it also works on a clean checkout without selected release evidence.
 
 Prepare the selected release evidence once, then start the local development server from the repository root:
@@ -129,7 +131,7 @@ The development server shows the selected recorded semantic results. It rereads 
 
 ## PR verification
 
-Every pull request runs the website quality and artifact checks: documentation sources, unit tests, typechecking, lint, formatting, the synthetic fixture build and artifact integration. `.github/workflows/website-checks.yml` provides them as one shared read-only job for PRs and Pages. The recorded-browser and clean-development browser suites run locally before merging, not in CI. The final `Verify Website` job succeeds only when those checks succeed, including website typechecking. Conformance can skip unrelated heavy suites for presentation-only changes, but website verification is never path-filtered. Tag conformance separately retains website typechecking.
+Every pull request runs website quality and artifact validation: documentation sources, typechecking, lint, formatting and the validated synthetic fixture build. Full-only unit and artifact-integration permutations remain in complete local full and focused website checks. `.github/workflows/website-checks.yml` provides them as one shared read-only job for PRs and Pages. The recorded-browser and clean-development browser suites run locally before merging, not in CI. The final `Verify Website` job succeeds only when those checks succeed, including website typechecking. Conformance uses essential for ordinary root-relevant PRs, retains applicable OS/runtime lanes, and can skip root verification for presentation-only changes. Website verification is never path-filtered. Tag conformance separately retains website typechecking.
 
 Artifact checks derive journey pages, provider outcomes, detail routes and source downloads from the selected model. Synthetic confirmation and revision assertions run only when a source has a skill version ending in `-fixture`; official selections receive the same structural checks without synthetic counts.
 

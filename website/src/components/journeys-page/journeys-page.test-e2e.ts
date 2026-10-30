@@ -224,40 +224,36 @@ test('keeps technical sources collapsed and preserves their original identities'
   await expect(sources.getByText('claude fixture model', { exact: true }).first()).toBeVisible();
 });
 
-test('supports dialog accessibility, both themes and 320px without overflow', async ({
-  browser,
-}) => {
-  for (const colorScheme of ['light', 'dark'] as const) {
-    const context = await browser.newContext({ colorScheme, reducedMotion: 'reduce' });
-    try {
-      const page = await context.newPage();
-      for (const width of [320, 1440]) {
-        await page.setViewportSize({ width, height: 1000 });
-        await page.goto(route);
-        expect((await new AxeBuilder({ page }).analyze()).violations).toStrictEqual([]);
-        await page
-          .getByRole('button', { name: 'Open Initialize and validate results', exact: true })
-          .click();
-        const dialog = page.getByRole('dialog', { name: 'Initialize and validate', exact: true });
-        await expect(dialog.locator('[data-journey-request]').first()).toBeVisible();
-        expect((await new AxeBuilder({ page }).analyze()).violations).toStrictEqual([]);
-        expect(
-          await dialog.evaluate(
-            (element) => element.getBoundingClientRect().width <= window.innerWidth,
-          ),
-        ).toBe(true);
-        expect(
-          await page.evaluate(
-            () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
-          ),
-        ).toBe(true);
-        await page.keyboard.press('Escape');
-      }
-    } finally {
-      await context.close();
-    }
+// each matrix case owns its context and timeout instead of accumulating accessibility scans
+for (const colorScheme of ['light', 'dark'] as const) {
+  for (const width of [320, 1440]) {
+    test(`supports dialog accessibility without overflow at ${width}px in ${colorScheme}`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: 1000 });
+      await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' });
+      await page.goto(route);
+      expect((await new AxeBuilder({ page }).analyze()).violations).toStrictEqual([]);
+      await page
+        .getByRole('button', { name: 'Open Initialize and validate results', exact: true })
+        .click();
+      const dialog = page.getByRole('dialog', { name: 'Initialize and validate', exact: true });
+      await expect(dialog.locator('[data-journey-request]').first()).toBeVisible();
+      expect((await new AxeBuilder({ page }).analyze()).violations).toStrictEqual([]);
+      expect(
+        await dialog.evaluate(
+          (element) => element.getBoundingClientRect().width <= window.innerWidth,
+        ),
+      ).toBe(true);
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+        ),
+      ).toBe(true);
+      await page.keyboard.press('Escape');
+    });
   }
-});
+}
 
 test('paginates without preloading transcripts and initializes after client navigation', async ({
   page,

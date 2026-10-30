@@ -12,17 +12,13 @@ import {
   renameSync,
   rmSync,
   symlinkSync,
+  utimesSync,
   writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { afterEach, expect, test } from 'vitest';
-
-import {
-  prepareGitCommandPolicyBoundary,
-  CODEX_EVALUATION_GIT_STATUS_ARGUMENTS,
-} from '../../execution/host/index.ts';
 
 import { collectRepairGitEvidence } from './repair-git.ts';
 import type { IRepairGitEvidence } from './types.ts';
@@ -130,6 +126,27 @@ const collectEvidence = async (
 afterEach(() => {
   for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true });
 });
+
+test.each(['source', 'bundled'] as const)(
+  'timestamp-only worktree changes preserve Git storage through %s',
+  async (boundary) => {
+    const root = repository();
+    const commit = git(root, 'rev-parse', 'HEAD');
+    // force a stat mismatch without changing content, independently of filesystem clock resolution.
+    utimesSync(join(root, 'source file.js'), new Date(0), new Date(0));
+    const before = snapshot(join(root, '.git'));
+    for (const mode of ['checkpoint', 'continue'] as const) {
+      expect(
+        await collectEvidence(root, boundary, mode, mode === 'continue' ? commit : undefined),
+      ).toMatchObject({
+        status: 'available',
+        commit,
+        uncommittedPaths: [],
+      });
+      expect(snapshot(join(root, '.git'))).toStrictEqual(before);
+    }
+  },
+);
 
 test('bundled helper captures full commit, uncommitted paths and manifest evidence without index writes', async () => {
   const root = repository();
@@ -723,7 +740,9 @@ test('refuses revision expressions as a checkpoint', async () => {
 // this evaluator-wrapper fixture uses a POSIX executable shim and /usr/bin/git
 test.skipIf(process.platform === 'win32')(
   'bundled continuation works through the real evaluator Git boundary',
+  { tags: ['full'] },
   async () => {
+    const { prepareGitCommandPolicyBoundary } = await import('../../execution/host/index.ts');
     const root = repository();
     const checkpoint = git(root, 'rev-parse', 'HEAD');
     writeFileSync(join(root, 'source file.js'), 'bravo\n');
@@ -840,7 +859,10 @@ test('framework and punctuation filenames remain literal in checkpoint and revie
 // this evaluator-wrapper fixture uses a POSIX executable shim and /usr/bin/git
 test.skipIf(process.platform === 'win32')(
   'literal pathspec environment cannot hide indexed attributes from the evaluator boundary',
+  { tags: ['full'] },
   async () => {
+    const { prepareGitCommandPolicyBoundary, CODEX_EVALUATION_GIT_STATUS_ARGUMENTS } =
+      await import('../../execution/host/index.ts');
     const root = repository();
     writeFileSync(
       join(root, 'trap.cjs'),
@@ -872,10 +894,26 @@ test.skipIf(process.platform === 'win32')(
   },
 );
 
+const createEvaluatorStatusArguments = async (root: string): Promise<string[]> => {
+  const { prepareGitCommandPolicyBoundary, CODEX_EVALUATION_GIT_STATUS_ARGUMENTS } =
+    await import('../../execution/host/index.ts');
+  const tools = join(root, 'host-tools');
+  return [
+    await prepareGitCommandPolicyBoundary(tools, {
+      realGitExecutable: '/usr/bin/git',
+      invocationLogPath: join(tools, '..', 'git-invocations.jsonl'),
+    }),
+    ...CODEX_EVALUATION_GIT_STATUS_ARGUMENTS,
+    '--untracked-files=all',
+    '--branch',
+  ];
+};
+
 for (const boundary of ['helper', 'wrapper'] as const) {
   // helper behavior runs everywhere; evaluator-wrapper fixtures use POSIX executable paths
   test.skipIf(boundary === 'wrapper' && process.platform === 'win32')(
     `repository core.worktree cannot redirect attribute-checked repair reads through ${boundary}`,
+    { tags: boundary === 'wrapper' ? ['full'] : [] },
     async () => {
       const root = repository();
       const other = repository();
@@ -898,15 +936,7 @@ for (const boundary of ['helper', 'wrapper'] as const) {
               '--',
               'checkpoint',
             ]
-          : [
-              await prepareGitCommandPolicyBoundary(join(root, 'host-tools'), {
-                realGitExecutable: '/usr/bin/git',
-                invocationLogPath: join(join(root, 'host-tools'), '..', 'git-invocations.jsonl'),
-              }),
-              ...CODEX_EVALUATION_GIT_STATUS_ARGUMENTS,
-              '--untracked-files=all',
-              '--branch',
-            ],
+          : await createEvaluatorStatusArguments(root),
         {
           cwd: root,
           encoding: 'utf8',
@@ -923,6 +953,7 @@ for (const boundary of ['helper', 'wrapper'] as const) {
   // helper behavior runs everywhere; evaluator-wrapper fixtures use POSIX executable paths
   test.skipIf(boundary === 'wrapper' && process.platform === 'win32')(
     `stored attribute trees are refused before a clean filter can run through ${boundary}`,
+    { tags: boundary === 'wrapper' ? ['full'] : [] },
     async () => {
       const root = repository();
       writeFileSync(join(root, '.gitattributes'), '*.js filter=trap\n');
@@ -942,15 +973,11 @@ for (const boundary of ['helper', 'wrapper'] as const) {
         const result = await collectRepairGitEvidence({ repositoryRoot: root, mode: 'checkpoint' });
         expect(result).toMatchObject({ status: 'unavailable', reasonCode: 'attribute-safety' });
       } else {
-        const wrapper = await prepareGitCommandPolicyBoundary(join(root, 'host-tools'), {
-          realGitExecutable: '/usr/bin/git',
-          invocationLogPath: join(join(root, 'host-tools'), '..', 'git-invocations.jsonl'),
+        const result = spawnSync(process.execPath, await createEvaluatorStatusArguments(root), {
+          cwd: root,
+          encoding: 'utf8',
+          timeout: 30_000,
         });
-        const result = spawnSync(
-          process.execPath,
-          [wrapper, ...CODEX_EVALUATION_GIT_STATUS_ARGUMENTS, '--untracked-files=all', '--branch'],
-          { cwd: root, encoding: 'utf8', timeout: 30_000 },
-        );
         expect(result.error).toBeUndefined();
         expect(result.status).toBe(2);
       }
@@ -959,23 +986,27 @@ for (const boundary of ['helper', 'wrapper'] as const) {
   );
 }
 
-test('clean medium repositories fit the separate internal index bound', async () => {
-  const root = repository();
-  mkdirSync(join(root, 'many'));
-  for (let index = 0; index < 8192; index += 1)
-    writeFileSync(
-      join(
-        root,
-        'many',
-        `module-${String(index).padStart(5, '0')}-representative-repository-path.js`,
-      ),
-      'export {};\n',
-    );
-  git(root, 'add', '--', 'many');
-  git(root, 'commit', '-m', 'Medium repository fixture');
-  const result = await collectRepairGitEvidence({ repositoryRoot: root, mode: 'checkpoint' });
-  expect(result).toMatchObject({ status: 'available', uncommittedPaths: [] });
-});
+test(
+  'clean medium repositories fit the separate internal index bound',
+  { tags: ['full'] },
+  async () => {
+    const root = repository();
+    mkdirSync(join(root, 'many'));
+    for (let index = 0; index < 8192; index += 1)
+      writeFileSync(
+        join(
+          root,
+          'many',
+          `module-${String(index).padStart(5, '0')}-representative-repository-path.js`,
+        ),
+        'export {};\n',
+      );
+    git(root, 'add', '--', 'many');
+    git(root, 'commit', '-m', 'Medium repository fixture');
+    const result = await collectRepairGitEvidence({ repositoryRoot: root, mode: 'checkpoint' });
+    expect(result).toMatchObject({ status: 'available', uncommittedPaths: [] });
+  },
+);
 
 test('untracked nested repositories yield a literal directory path without failing capture', async () => {
   const root = repository();

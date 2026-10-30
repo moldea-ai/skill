@@ -1,8 +1,9 @@
 /*
- * Git LFS filter settings every helper read runs with, set through GIT_CONFIG_COUNT so they apply
- * whatever a config file says: no LFS program runs, and a required LFS filter can't fail a read.
+ * Fixed helper-read settings override repository config: no diff index refresh or LFS program,
+ * and a required LFS filter can't fail a read.
  */
-export const GIT_LFS_FILTER_CONFIGURATIONS = [
+export const GIT_READ_CONFIGURATIONS = [
+  ['diff.autoRefreshIndex', 'false'],
   ['filter.lfs.clean', ''],
   ['filter.lfs.process', ''],
   ['filter.lfs.required', 'false'],

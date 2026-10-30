@@ -43,33 +43,26 @@ test('opens the third evidence section directly and follows bounded project page
   await expect(page.getByText('Conversation not included')).toBeVisible();
 });
 
-test('keeps project pages readable across sizes and themes without client-side list loading', async ({
-  browser,
-}) => {
-  for (const colorScheme of ['light', 'dark'] as const) {
-    for (const width of [320, 768, 1440]) {
-      const context = await browser.newContext({
-        colorScheme,
-        reducedMotion: 'reduce',
-        viewport: { width, height: 900 },
+// page/theme/viewport combinations must not share one cumulative accessibility-scan timeout
+for (const colorScheme of ['light', 'dark'] as const) {
+  for (const width of [320, 768, 1440]) {
+    for (const target of [
+      '/evidence/project-runs/',
+      '/evidence/project-runs/projects/project-1/',
+    ]) {
+      test(`keeps ${target} readable without client-side list loading at ${width}px in ${colorScheme}`, async ({
+        page,
+      }) => {
+        await page.setViewportSize({ width, height: 900 });
+        await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' });
+        await page.goto(route(target));
+        expect(
+          await page.evaluate(
+            () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+          ),
+        ).toBe(true);
+        expect((await new AxeBuilder({ page }).analyze()).violations).toStrictEqual([]);
       });
-      try {
-        const page = await context.newPage();
-        for (const target of [
-          '/evidence/project-runs/',
-          '/evidence/project-runs/projects/project-1/',
-        ]) {
-          await page.goto(route(target));
-          expect(
-            await page.evaluate(
-              () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
-            ),
-          ).toBe(true);
-          expect((await new AxeBuilder({ page }).analyze()).violations).toStrictEqual([]);
-        }
-      } finally {
-        await context.close();
-      }
     }
   }
-});
+}

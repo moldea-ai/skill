@@ -1000,11 +1000,12 @@ test('keeps code readable without JavaScript and omits inert copy controls', asy
   }
 });
 
-test('keeps code-copy controls usable across supported widths, themes, and reduced motion', async ({
-  page,
-}) => {
-  for (const width of [320, 375, 768, 1440]) {
-    for (const theme of ['light', 'dark'] as const) {
+// each viewport/theme scan needs its own timeout instead of sharing one cumulative deadline
+for (const width of [320, 375, 768, 1440]) {
+  for (const theme of ['light', 'dark'] as const) {
+    test(`keeps code-copy controls usable at ${width}px in ${theme} mode with reduced motion`, async ({
+      page,
+    }) => {
       await page.setViewportSize({ width, height: 900 });
       await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' });
       await page.goto(toPublicPath('/'));
@@ -1041,9 +1042,9 @@ test('keeps code-copy controls usable across supported widths, themes, and reduc
           ({ impact }) => impact === 'critical' || impact === 'serious',
         ),
       ).toStrictEqual([]);
-    }
+    });
   }
-});
+}
 
 test('copies the install command and searches the generated local index', async ({
   context,

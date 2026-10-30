@@ -34,11 +34,49 @@ Repair non-mutation coverage deliberately changes tracked-file timestamps withou
 
 Classify each new or materially changed scenario by its concrete failure consequence. Keep useful secondary coverage full-only and unique consequential guarantees essential even when expensive. Preserve assertions and category/co-location conventions; add no parallel test tree or priority registry. Unclassified cases remain essential until assessed. Do not enable `passWithNoTests` or drop a failure to improve timings.
 
+## Linux evaluator prerequisites
+
+Full root integration tests and real evaluator execution use a Linux Bubblewrap sandbox. They require executable `bwrap` (Bubblewrap), `socat`, and `rg` (ripgrep) files on the test process's `PATH`. `npm ci --ignore-scripts` installs the Node dependencies; neither it nor `runtime:build` installs these OS tools.
+
+On Ubuntu/Debian, install the sandbox tools once:
+
+```bash
+sudo apt-get update
+sudo apt-get install --yes bubblewrap ripgrep socat
+```
+
+Bubblewrap also needs permission to create user namespaces. The [conformance workflow](https://github.com/moldea-ai/skill/blob/main/.github/workflows/conformance.yml) records the Ubuntu/AppArmor preparation used by CI.
+
+### Why ripgrep is required
+
+The evaluated coding agent needs repository search inside the sandbox. The host resolves `rg` from `PATH` and mounts only that executable read-only at `/opt/rg`, keeping its installation directory outside the sandbox. This search support predates the essential/full split. The sandbox builder resolves `rg` for every sandbox, so a missing executable can fail validation, writer, capture and runner tests even when their assertions are unrelated to search.
+
+This is an evaluator development prerequisite. Essential `npm test` does not invoke these sandbox tests. Sandbox argument-construction unit fixtures supply explicit executable paths and do not require host-installed evaluator tools. An essential pass therefore does not establish that the full sandbox prerequisites are available.
+
+### Recognizing a missing-tool failure
+
+Check the same terminal used to launch the tests. Each command must print an executable path:
+
+```bash
+command -v rg
+command -v bwrap
+command -v socat
+```
+
+The executor needs an executable file on `PATH`; a shell alias is insufficient. Editors and coding agents may expose bundled tools through their own `PATH`, while an ordinary terminal cannot find them. A passing run in one process does not establish another process's tool availability.
+
+`Unable to resolve the evaluation host executable: rg` means sandbox preparation stopped before the validation or writer assertions ran. Install the missing `ripgrep` package using the setup above, verify `command -v rg`, and rerun a focused failure before the full suite:
+
+```bash
+npm run test:integration -- src/execution/host/cli-invocations/preload.test-integration.ts --testNamePattern='parallel real validation' --retry=0
+npm run test:full
+```
+
+If the focused evaluator command reports missing `dist/runtime` helpers, run `npm run runtime:build` first. The full aggregate performs that build automatically. Other errors need their own failure message and stack trace; failed-test counts alone do not establish a shared cause. Missing OS tools are resolved through host setup, without changing the portable skill, npm dependency declarations, or release version.
+
 ## Preparation and interruption
 
 Essential invokes only root units and integrations. It does not build evaluator runtimes or prepare sandbox, website models, fixture builds or browsers. Full prepares `runtime:build` once when root unit/integration stages are selected, then runs root and website units, root and website artifact integrations, and recorded plus clean-development browsers. Website granular commands retain their own synthetic generation/build preparation. Full E2E alone uses the website browser commands without an unrelated evaluator build. Focused evaluator tests still need `npm run runtime:build` when their existing contract requires those helpers.
-
-Sandbox argument-construction unit tests supply explicit executable paths and do not require host-installed evaluator tools. Real sandbox integration tests and evaluation execution retain their actual tool requirements.
 
 Declare expensive browser accessibility matrices as independent page/theme/viewport cases, using Playwright's isolated page fixture. Keep all scans and assertions while giving each case its own existing timeout, rather than accumulating an entire matrix inside one test.
 

@@ -159,6 +159,8 @@ Install every workspace dependency from the repository root without lifecycle sc
 npm ci --ignore-scripts
 ```
 
+Full and focused evaluator integration tests also need the [Linux evaluator prerequisites](docs/testing.md#linux-evaluator-prerequisites), including ripgrep (`rg`) on the test process's `PATH`. That guide explains installation, why the sandbox needs it, and how to diagnose a missing-tool failure. Essential `npm test` does not require this sandbox setup.
+
 To prepare an exact published CLI release, run `npm run release:update-cli -- <version>`. The updater verifies the published CLI, installs its locked dependency closure in a temporary directory, regenerates portable scripts from maintained TypeScript, and checks release identity before completing. It restores files it changed if preparation or verification fails, while preserving concurrent edits. Run `npm ci --ignore-scripts` afterward to bring local dependencies in line with the updated lockfile before running conformance checks.
 
 Before publication, `npm run candidate:prepare -- --artifacts <packed-closure-directory> --output <empty-directory-outside-this-repository>` prepares a complete isolated skill through the same updater against the candidate registry. An optional `--release-version <version>` selects the isolated skill version. The release-candidate workflow uses this full distribution for real manager and closed-launcher checks. Candidate registry URLs stay in the disposable output; they must not enter the official release lockfile. These checks establish tooling mechanics, not coding-agent repair effectiveness.

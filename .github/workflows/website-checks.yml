@@ -48,9 +48,6 @@ jobs:
       - name: Check documentation sources
         run: npm run docs:check
 
-      - name: Test website units
-        run: npm --workspace website run test:unit
-
       - name: Typecheck website
         run: npm --workspace website run typecheck
 
@@ -62,6 +59,3 @@ jobs:
 
       - name: Build and validate static website with synthetic evidence
         run: npm --workspace website run build:fixture
-
-      - name: Test static artifact integration
-        run: npm --workspace website run test:integration:artifact

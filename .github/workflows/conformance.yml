@@ -9,6 +9,13 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      test_suite:
+        description: Full checks all root contracts without publishing.
+        type: choice
+        default: essential
+        options: [essential, full]
 
 permissions:
   contents: read
@@ -31,7 +38,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
-      full: ${{ steps.selection.outputs.full }}
+      root_required: ${{ steps.selection.outputs.root_required }}
+      test_suite: ${{ steps.selection.outputs.test_suite }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -50,6 +58,7 @@ jobs:
       - name: Select conformance checks
         id: selection
         env:
+          CI_TEST_SUITE: ${{ inputs.test_suite || 'essential' }}
           CI_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           CI_TESTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: node src/ci/changes.ts
@@ -57,7 +66,9 @@ jobs:
   correctness:
     name: Root correctness
     needs: changes
-    if: needs.changes.outputs.full == 'true'
+    env:
+      MOLDEA_TEST_SUITE: ${{ needs.changes.outputs.test_suite }}
+    if: needs.changes.outputs.root_required == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -74,6 +85,7 @@ jobs:
       - name: Install workspace dependencies without lifecycle scripts
         run: npm ci --ignore-scripts
       - name: Install semantic sandbox dependencies
+        if: needs.changes.outputs.test_suite == 'full'
         run: |
           sudo apt-get update
           sudo apt-get install --yes apparmor-profiles apparmor-utils bubblewrap ripgrep socat
@@ -82,6 +94,7 @@ jobs:
             /etc/apparmor.d/bwrap-userns-restrict
           sudo apparmor_parser -r /etc/apparmor.d/bwrap-userns-restrict
       - name: Build isolated runtime helpers
+        if: needs.changes.outputs.test_suite == 'full'
         run: npm run runtime:build
       - name: Run maintained root correctness tests
         env:
@@ -90,7 +103,9 @@ jobs:
 
   portable:
     needs: changes
-    if: needs.changes.outputs.full == 'true'
+    env:
+      MOLDEA_TEST_SUITE: ${{ needs.changes.outputs.test_suite }}
+    if: needs.changes.outputs.root_required == 'true'
     name: Portable contract / Node.js ${{ matrix.node }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -125,6 +140,7 @@ jobs:
         with:
           node-version: ${{ env.DEVELOPMENT_NODE_VERSION }}
       - name: Install semantic sandbox dependencies
+        if: needs.changes.outputs.test_suite == 'full'
         run: |
           sudo apt-get update
           sudo apt-get install --yes apparmor-profiles apparmor-utils bubblewrap socat
@@ -133,6 +149,7 @@ jobs:
             /etc/apparmor.d/bwrap-userns-restrict
           sudo apparmor_parser -r /etc/apparmor.d/bwrap-userns-restrict
       - name: Build isolated runtime helpers
+        if: needs.changes.outputs.test_suite == 'full'
         run: npm run runtime:build
       - name: Check portable generated artifacts
         run: npm run portable:check
@@ -167,7 +184,9 @@ jobs:
 
   quality:
     needs: changes
-    if: needs.changes.outputs.full == 'true'
+    env:
+      MOLDEA_TEST_SUITE: ${{ needs.changes.outputs.test_suite }}
+    if: needs.changes.outputs.root_required == 'true'
     name: Repository quality
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -185,6 +204,7 @@ jobs:
       - name: Install workspace dependencies without lifecycle scripts
         run: npm ci --ignore-scripts
       - name: Build isolated runtime helpers
+        if: needs.changes.outputs.test_suite == 'full'
         run: npm run runtime:build
       - name: Typecheck maintained code
         run: npm run typecheck:root
@@ -198,7 +218,9 @@ jobs:
 
   windows-portability:
     needs: changes
-    if: needs.changes.outputs.full == 'true'
+    env:
+      MOLDEA_TEST_SUITE: ${{ needs.changes.outputs.test_suite }}
+    if: needs.changes.outputs.root_required == 'true'
     name: Windows 2025 deep-path clone and install
     runs-on: windows-2025
     timeout-minutes: 15
@@ -242,9 +264,11 @@ jobs:
               throw 'Repository path portability failed in the deep clone.'
             }
 
-            npm run runtime:build
-            if ($LASTEXITCODE -ne 0) {
-              throw 'Isolated runtime helpers could not be built in the deep clone.'
+            if ($env:MOLDEA_TEST_SUITE -eq 'full') {
+              npm run runtime:build
+              if ($LASTEXITCODE -ne 0) {
+                throw 'Isolated runtime helpers could not be built in the deep clone.'
+              }
             }
 
             npm run portable:check
@@ -288,7 +312,9 @@ jobs:
 
   macos-portability:
     needs: changes
-    if: needs.changes.outputs.full == 'true'
+    env:
+      MOLDEA_TEST_SUITE: ${{ needs.changes.outputs.test_suite }}
+    if: needs.changes.outputs.root_required == 'true'
     name: macOS portable integration
     runs-on: macos-15
     timeout-minutes: 15
@@ -302,6 +328,7 @@ jobs:
       - name: Install workspace dependencies without lifecycle scripts
         run: npm ci --ignore-scripts
       - name: Build isolated runtime helpers
+        if: needs.changes.outputs.test_suite == 'full'
         run: npm run runtime:build
       - name: Check portable generated artifacts
         run: npm run portable:check
@@ -310,7 +337,7 @@ jobs:
 
   minimum-git:
     needs: changes
-    if: needs.changes.outputs.full == 'true'
+    if: needs.changes.outputs.root_required == 'true'
     name: Portable repair Git / Git 2.32
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -318,6 +345,7 @@ jobs:
     # toolchain; job containers cannot read the env context
     container: node:24.15.0-bullseye
     env:
+      MOLDEA_TEST_SUITE: ${{ needs.changes.outputs.test_suite }}
       MINIMUM_GIT_VERSION: 2.32.7
       MINIMUM_GIT_SHA256: 1ea175f21b766c1cbc05b8391e9aaf6a18b0bbbf7c2382449b635dc66bf1c4d0
     steps:
@@ -344,6 +372,7 @@ jobs:
       - name: Install workspace dependencies without lifecycle scripts
         run: npm ci --ignore-scripts
       - name: Build isolated runtime helpers
+        if: needs.changes.outputs.test_suite == 'full'
         run: npm run runtime:build
       - name: Run repair Git integration tests
         run: npx vitest run --config vitest/test-integration.config.ts src/portable/repair-git
@@ -359,7 +388,8 @@ jobs:
       - name: Require every selected check to succeed
         env:
           CLASSIFICATION: ${{ needs.changes.result }}
-          FULL: ${{ needs.changes.outputs.full }}
+          ROOT_REQUIRED: ${{ needs.changes.outputs.root_required }}
+          TEST_SUITE: ${{ needs.changes.outputs.test_suite }}
           CORRECTNESS: ${{ needs.correctness.result }}
           PORTABLE: ${{ needs.portable.result }}
           QUALITY: ${{ needs.quality.result }}
@@ -368,9 +398,14 @@ jobs:
           MINIMUM_GIT: ${{ needs.minimum-git.result }}
         run: |
           test "$CLASSIFICATION" = success
-          if [ "$FULL" = true ]; then
+          case "$TEST_SUITE" in
+            essential) ;;
+            full) test "$ROOT_REQUIRED" = true ;;
+            *) exit 1 ;;
+          esac
+          if [ "$ROOT_REQUIRED" = true ]; then
             expected=success
-          elif [ "$FULL" = false ]; then
+          elif [ "$ROOT_REQUIRED" = false ]; then
             expected=skipped
           else
             exit 1

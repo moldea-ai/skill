@@ -1,5 +1,5 @@
 // types
-export type { IChangeComparison } from './types.ts';
+export type { IChangeComparison, ICiSelection } from './types.ts';
 
 // changes
-export { requiresFullConformance, classifyChanges } from './changes.ts';
+export { requiresRootVerification, classifyChanges, selectCiChecks } from './changes.ts';

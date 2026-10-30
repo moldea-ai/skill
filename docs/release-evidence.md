@@ -266,7 +266,7 @@ For 10.0.3 only, the maintainer explicitly accepted this historical evidence and
 npm run release:check
 ```
 
-The command first runs portable freshness and explicit full deterministic correctness (`npm run test:full`), including website units, artifact integrations and both browser suites. Ordinary tag conformance continues to use the separate identity-only checker and gains no browser or prepared-evidence prerequisite. See [Testing](/docs/testing/) for selection and focused completion.
+The command first runs portable freshness and explicit full deterministic correctness (`npm run test:full`), including website units, artifact integrations and both browser suites. Ordinary tag conformance forces full priority within its existing root/portable/quality boundary, uses the separate identity-only checker, and gains no website browser or prepared-evidence prerequisite. Routine root-relevant PRs use essential and preserve their existing platform lanes. See [Testing](/docs/testing/) for selection and focused completion.
 
 The check validates release identity and requires the prepared selection to match `evidence/selection.json`, with official passing bundles for semantic evidence and any selected journeys evidence. It is read-only with respect to evidence. It does not rerun an evaluator, reinterpret old results with current tests, fetch a latest asset, or replace the selection. Passing this mechanical check does not turn historical presentation-only evidence into current-release assurance.
 

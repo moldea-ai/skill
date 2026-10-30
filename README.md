@@ -174,23 +174,20 @@ Run the deterministic boundaries. [Testing](docs/testing.md) owns essential/full
 ```bash
 npm run portable:check
 npm test
-# complete focused categories remain available; prepare evaluator helpers when needed
-npm run runtime:build
-npm run test:unit
-npm run test:integration
-# explicit complete deterministic qualification
-npm run test:full
 npm run typecheck
 npm run lint
 npm run format:check
 npm run path:check
 npm run docs:check
-npm run website:check
 ```
 
-Conformance runs root correctness once on development Node, every portable integration file on all three supported Node versions on Linux, the same portable files on Windows and macOS, and the repair Git helper's integration tests on Git 2.32, the minimum supported Git, built from its checksum-pinned source. Windows also checks deep-path cloning and installation. Only PR changes entirely within `website/src/components/`, `website/src/layouts/`, `website/src/pages/`, `website/src/styles/`, or `website/public/` skip heavy conformance; the global path check and full website verification still run. Shared, unknown, mixed, and tag changes receive full conformance. `Conformance result` and `Verify Website` report selected-check failures and unexpected skips; configuring them as required checks is a separate repository setting. PR website verification owns website typechecking; tag conformance retains that check. PRs and Pages share read-only website quality and artifact verification. Recorded-browser and clean-development browser suites run locally before merging. Pages verification and the official production build run independently after shared configuration preflight; deployment requires both to succeed. `typecheck:root` checks root tooling, while `typecheck` still checks all workspaces.
+Use complete focused `test:unit`/`test:integration` commands for affected root behavior, preparing `runtime:build` only when evaluator qualifications need it. `npm run website:check` covers affected website behavior completely. `npm run test:full` is the explicit complete deterministic suite; the testing guide owns its manual cadence.
 
-`npm test` now runs essential portable/identity/suite guarantees without evaluator or website preparation. `npm run test:full` includes complete root and website units/integrations plus both browser suites. CI currently retains complete granular root coverage; its browser boundary is unchanged. Production `website:build`, `release:check`, and Pages deployment require the semantic evidence selection to be populated and prepared. Development website checks exercise both the clean current catalogs without recorded results and isolated synthetic evidence.
+Conformance separates root relevance (`root_required`) from suite priority (`test_suite`). Ordinary root-relevant PRs run essential while retaining every existing Linux Node, Windows deep-clone/install, macOS and minimum-Git lane. Presentation-only PRs retain the established shortcut; empty, shared, mixed, unknown and uncertain comparisons require root verification. Tags force full root/portable qualification. Manual full dispatch also selects root verification without publication. Essential skips evaluator runtime/sandbox setup; the full root correctness job keeps its existing 10-minute budget and granular commands. The minimum supported Git remains checksum-pinned Git 2.32. Windows retains supported-unit discovery and deep-path installation checks.
+
+`Conformance result` and `Verify Website` fail on selected-check failures and unexpected skips. Website PR/Pages verification retains documentation, types, lint, formatting and validated fixture/production artifacts without full-only test permutations. Browser suites stay local. PR website verification owns website typechecking; tag conformance retains that check. Pages verification and production build remain independent after shared preflight, and deployment requires both. Tags keep identity-only release checking without prepared semantic evidence or browsers. `typecheck:root` checks root tooling; `typecheck` checks all workspaces.
+
+`npm test` now runs essential portable/identity/suite guarantees without evaluator or website preparation. `npm run test:full` includes complete root and website units/integrations plus both browser suites. CI selects essential ordinarily and full for tags/explicit full dispatch within its existing root/portable/quality boundary; website browsers remain local. Production `website:build`, `release:check`, and Pages deployment require the semantic evidence selection to be populated and prepared. Development website checks exercise both the clean current catalogs without recorded results and isolated synthetic evidence.
 
 Specialized workflows have focused operator references:
 

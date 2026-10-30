@@ -6,7 +6,7 @@ import { afterEach, expect, test } from 'vitest';
 
 import { executeProcess } from '../process/index.ts';
 
-import { classifyChanges } from './index.ts';
+import { classifyChanges, selectCiChecks } from './index.ts';
 
 const roots: string[] = [];
 afterEach(async () => {
@@ -57,9 +57,10 @@ test('CLI classification uses the candidate SHA when the GitHub merge object is 
       CI_TESTED_SHA: testedSha,
       CI_BASE_SHA: testedSha,
       GITHUB_OUTPUT: output,
+      CI_TEST_SUITE: 'essential',
     },
   });
-  expect(await readFile(output, 'utf8')).toBe('full=true\n');
+  expect(await readFile(output, 'utf8')).toBe('root_required=true\ntest_suite=essential\n');
 });
 
 test.each([
@@ -70,7 +71,7 @@ test.each([
   ['copy-out', true],
   // the copy's unchanged source is no change, so a copy into presentation stays narrow
   ['copy-in', false],
-] as const)('classifies a real %s Git diff conservatively', async (scenario, isFull) => {
+] as const)('classifies a real %s Git diff conservatively', async (scenario, isRootRequired) => {
   const fixture = await createRepository();
   if (scenario === 'presentation' || scenario === 'mixed') {
     await fixture.write('website/src/pages/index.astro', 'page\n');
@@ -94,7 +95,7 @@ test.each([
       baseSha: fixture.baseSha,
       testedSha,
     }),
-  ).toBe(isFull);
+  ).toBe(isRootRequired);
 });
 
 test('compares the event base with the exact tested merge commit', async () => {
@@ -152,6 +153,60 @@ test.each([
   },
   { eventName: 'push', refType: 'tag' },
   { eventName: 'unknown', refType: 'branch' },
-])('selects full checks before accessing Git for uncertain inputs %o', async (inputs) => {
+])('selects root checks before accessing Git for uncertain inputs %o', async (inputs) => {
   expect(await classifyChanges({ repositoryRoot: 'missing-repository', ...inputs })).toBe(true);
 });
+
+test('real presentation-only relevance stays independent from priority and explicit full forces root checks', async () => {
+  const fixture = await createRepository();
+  await fixture.write('website/src/pages/index.astro', 'page\n');
+  const testedSha = await fixture.commit();
+  const comparison = {
+    repositoryRoot: fixture.root,
+    eventName: 'pull_request',
+    refType: 'branch',
+    baseSha: fixture.baseSha,
+    testedSha,
+  };
+  expect(await selectCiChecks(comparison, 'essential')).toStrictEqual({
+    rootRequired: false,
+    testSuite: 'essential',
+  });
+  expect(await selectCiChecks(comparison, 'full')).toStrictEqual({
+    rootRequired: true,
+    testSuite: 'full',
+  });
+  await fixture.write('src/primary.ts', 'primary\n');
+  const mixedSha = await fixture.commit();
+  expect(await selectCiChecks({ ...comparison, testedSha: mixedSha }, 'essential')).toStrictEqual({
+    rootRequired: true,
+    testSuite: 'essential',
+  });
+});
+
+test.each([
+  ['workflow_dispatch', 'branch', 'full', 'full'],
+  ['push', 'tag', 'essential', 'full'],
+] as const)(
+  'CLI %s/%s propagates requested %s as %s without a comparison',
+  async (eventName, refType, requested, expected) => {
+    const root = await mkdtemp(join(tmpdir(), 'moldea-ci-priority-'));
+    roots.push(root);
+    const output = join(root, 'output');
+    await executeProcess({
+      command: process.execPath,
+      args: [join(import.meta.dirname, 'changes.ts')],
+      cwd: resolve(import.meta.dirname, '../..'),
+      environment: {
+        ...process.env,
+        GITHUB_EVENT_NAME: eventName,
+        GITHUB_REF_TYPE: refType,
+        CI_TEST_SUITE: requested,
+        GITHUB_OUTPUT: output,
+      },
+    });
+    expect(await readFile(output, 'utf8')).toBe(
+      'root_required=true\ntest_suite=' + expected + '\n',
+    );
+  },
+);

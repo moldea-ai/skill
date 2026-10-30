@@ -45,9 +45,13 @@ Configuration messages are `MOLDEA_TEST_SUITE must be essential or full when set
 
 ## CI and release boundaries
 
-CI currently retains its complete granular root commands until its suite selection is updated. Shared conformance and website checks keep website browsers local. Complete local full intentionally includes more categories than conformance's root/portable/quality boundary.
+CI emits `root_required` independently of `test_suite`. A complete nonempty presentation-only PR keeps the established shortcut; root-relevant, empty, mixed, unknown or uncertain comparisons require all existing root/portable/quality lanes. Ordinary runs use essential. Tags force full; explicit full dispatch also requires root verification without publication. The selector reuses the root command's closed mode validation, and jobs propagate the selected `MOLDEA_TEST_SUITE` through their existing granular commands.
 
-Standalone `release:check` explicitly runs full correctness before its existing identity/evidence checker. It retains the prepared-evidence requirement. Ordinary tag conformance retains `release:identity:check`; the local split adds no tag evidence preparation, browser setup, local-full attestation or operator approval. Exact candidate artifacts and release/deployment identity gates remain authoritative.
+Root-relevant essential PRs retain the supported Linux Node matrix, Windows deep-path clone/install and supported-unit discovery, macOS portable integration, and minimum-Git qualification. Priority does not remove those lanes. Essential omits evaluator runtime/sandbox preparation; full prepares what the existing root and portable categories need. Root correctness retains its 10-minute budget and explicit unit/integration commands. Conformance result rejects missing/invalid classification, invalid priority, failed/cancelled jobs and unexpected skips; full priority cannot accept a presentation-only skip.
+
+Shared conformance keeps its root/portable/quality boundary and excludes website browsers. Routine website and Pages workflows retain documentation, types, lint, formatting, source/fixture/production-artifact validation, selected-evidence digests, exact-source and deployment gates while omitting full-only unit/artifact test permutations. Complete local full and focused website commands retain those categories and both browser suites.
+
+Standalone `release:check` explicitly runs full correctness before its existing identity/evidence checker and retains its prepared-evidence requirement. Ordinary tags keep `release:identity:check`. No browser/Chromium setup, prepared semantic evidence, local-full attestation, operator approval, release dependency or new main/scheduled workflow is added. Candidate package artifacts and the packages caller's immutable workflow pin remain unchanged.
 
 ## Measurement
 

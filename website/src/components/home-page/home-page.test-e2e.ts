@@ -298,11 +298,16 @@ test('leads with project context while retaining the connected-agent example and
   const primaryInstallLink = page
     .locator('[data-home-hero]')
     .getByRole('link', { name: 'Install the skill', exact: true });
-  await expect(primaryInstallLink).toHaveAttribute('href', '#getting-started-title');
-  await expect(primaryInstallLink.locator('svg.lucide-arrow-down')).toHaveCount(1);
+  await expect(primaryInstallLink).toHaveAttribute('href', toPublicPath('/get-started/'));
+  await expect(primaryInstallLink.locator('svg.lucide-arrow-right')).toHaveCount(1);
   await primaryInstallLink.focus();
   await primaryInstallLink.press('Enter');
-  await expect(page).toHaveURL(/#getting-started-title$/u);
+  await expect(page).toHaveURL(toPublicPath('/get-started/'));
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'Get started with moldea' }),
+  ).toBeVisible();
+  await page.goBack();
+  await expect(page).toHaveURL(toPublicPath('/'));
   await expect(
     page.getByRole('heading', { level: 2, name: 'One install. One ordinary request.' }),
   ).toBeVisible();

@@ -1,6 +1,5 @@
 ---
 import {
-  ArrowDown,
   ArrowRight,
   Check,
   ExternalLink,
@@ -113,12 +112,12 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
         >
           <ActionLink
             class="font-bold shadow-raised"
-            href="#getting-started-title"
+            href={withBase('/get-started/', basePath)}
             size="lg"
             data-primary-action
           >
             Install the skill
-            <ArrowDown
+            <ArrowRight
               class="size-4"
               aria-hidden="true"
             />

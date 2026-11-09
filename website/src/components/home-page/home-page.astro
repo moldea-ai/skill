@@ -1,6 +1,6 @@
 ---
+import { Image } from 'astro:assets';
 import {
-  ArrowDown,
   ArrowRight,
   Check,
   ExternalLink,
@@ -15,8 +15,10 @@ import {
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import HeroBackdrop from '@moldea.ai/website-ui/hero-backdrop';
 import IconTile from '@moldea.ai/website-ui/icon-tile';
+import YouTubeVideoDialog from '@moldea.ai/website-ui/youtube-video-dialog';
 import { withBase } from '@moldea.ai/website-ui/site';
 
+import skillInstallationCover from '../../assets/video-covers/skill-installation.jpg';
 import AgentExample from '../agent-example/agent-example.astro';
 import BehaviorAlignment from '../behavior-alignment/behavior-alignment.astro';
 import CapabilitiesOverview from '../capabilities-overview/capabilities-overview.astro';
@@ -113,28 +115,38 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
         >
           <ActionLink
             class="font-bold shadow-raised"
-            href="#getting-started-title"
+            href={withBase('/get-started/', basePath)}
             size="lg"
             data-primary-action
           >
             Install the skill
-            <ArrowDown
-              class="size-4"
-              aria-hidden="true"
-            />
-          </ActionLink>
-          <ActionLink
-            class={`font-bold ${SITE_GHOST_LINK_CLASS_NAME}`}
-            href={withBase('/how-it-works/', basePath)}
-            size="lg"
-            variant="ghost"
-          >
-            See how it works
             <ArrowRight
               class="size-4"
               aria-hidden="true"
             />
           </ActionLink>
+          <YouTubeVideoDialog
+            id="install-skill-video"
+            title="Install and use the skill"
+            triggerLabel="Watch setup video"
+            videoUrl="https://www.youtube.com/watch?v=dwl_RFm95Tg"
+            triggerVariant="ghost"
+            triggerSize="lg"
+            triggerClass={`font-bold ${SITE_GHOST_LINK_CLASS_NAME}`}
+          >
+            <Image
+              slot="poster"
+              src={skillInstallationCover}
+              alt=""
+              width={1024}
+              height={576}
+              widths={[320, 640, 1024, 2048]}
+              sizes="(min-width: 66rem) 974px, (min-width: 40rem) calc(100vw - 5rem), calc(100vw - 2rem)"
+              loading="lazy"
+              decoding="async"
+              class="h-full w-full object-contain"
+            />
+          </YouTubeVideoDialog>
         </div>
         <p class="mt-5 text-sm leading-7 text-muted-foreground">
           Want to review pull requests with your saved context? <a

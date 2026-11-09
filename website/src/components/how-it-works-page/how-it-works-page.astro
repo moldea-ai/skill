@@ -1,4 +1,5 @@
 ---
+import { Image } from 'astro:assets';
 import {
   ArrowDown,
   ArrowRight,
@@ -19,8 +20,10 @@ import CodeBlock from '@moldea.ai/website-ui/code-block';
 import CodeText from '@moldea.ai/website-ui/code-text';
 import FilePreview from '@moldea.ai/website-ui/file-preview';
 import IconTile from '@moldea.ai/website-ui/icon-tile';
+import YouTubeVideoDialog from '@moldea.ai/website-ui/youtube-video-dialog';
 import { withBase } from '@moldea.ai/website-ui/site';
 
+import contextAlignmentCover from '../../assets/video-covers/context-alignment.jpg';
 import BaseLayout from '../../layouts/base-layout.astro';
 import BookingArtifacts from '../booking-artifacts/booking-artifacts.astro';
 import { BOOKING_EXAMPLE } from '../../lib/booking-example/index.ts';
@@ -181,6 +184,48 @@ const connectionItems = [
       </ol>
     </div>
   </header>
+
+  <section
+    class="border-b border-border bg-background py-8 sm:py-10"
+    aria-labelledby="context-video-title"
+  >
+    <div class="page-shell flex flex-wrap items-center justify-between gap-6">
+      <div class="max-w-2xl">
+        <h2
+          id="context-video-title"
+          class="text-xl font-semibold tracking-tight sm:text-2xl"
+        >
+          Keeping project context and code aligned
+        </h2>
+        <p class="mt-3 leading-7 text-muted-foreground">
+          Watch how <code class="inline-code">moldea</code> keeps project context connected to the code
+          as it changes.
+        </p>
+      </div>
+      <YouTubeVideoDialog
+        id="context-alignment-video"
+        title="Keeping project context and code aligned"
+        triggerLabel="Watch the workflow"
+        videoUrl="https://www.youtube.com/watch?v=PyZiQXWS1ZE"
+        triggerVariant="ghost"
+        triggerSize="lg"
+        triggerClass={`font-bold ${SITE_GHOST_LINK_CLASS_NAME}`}
+      >
+        <Image
+          slot="poster"
+          src={contextAlignmentCover}
+          alt=""
+          width={1024}
+          height={576}
+          widths={[320, 640, 1024, 2048]}
+          sizes="(min-width: 66rem) 974px, (min-width: 40rem) calc(100vw - 5rem), calc(100vw - 2rem)"
+          loading="lazy"
+          decoding="async"
+          class="h-full w-full object-contain"
+        />
+      </YouTubeVideoDialog>
+    </div>
+  </section>
 
   <section
     id="project-context"

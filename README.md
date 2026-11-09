@@ -114,6 +114,8 @@ If `moldea` fails or behaves unexpectedly, email [jesus@moldea.ai](mailto:jesus@
 
 ## Project blueprint
 
+[Task delivery](docs/delivery.md) defines the ordered stops, default, operators and verification.
+
 `moldea` is a portable Agent Skill with deterministic conformance, semantic evaluation, scripted journeys, evidence publication, and documentation tooling. The website renders selected evidence snapshots and independently recorded mock-project runs. It has no evaluator responsibility.
 
 Scripted journeys cover six journeys and 21 requests in ordinary ChatGPT and Claude projects. Either provider can run selected whole journeys from an immutable commit-pinned bundle. Trusted checks run locally; initial failures use the shared two-of-three confirmation quorum with fresh-chat operator observations. Campaign scope and provider coverage remain separate. The optional third evidence section shows requests, changes, replies, checks, and provenance. Procedural adherence, actual instruction consumption, and complete consumer cleanup remain explicitly unverified where the suite does not establish them. The website preserves initial failures, every admitted confirmation, partial coverage and historical provenance. These selected observations do not estimate platform-wide reliability.

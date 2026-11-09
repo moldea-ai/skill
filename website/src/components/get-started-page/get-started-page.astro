@@ -5,6 +5,7 @@ import CodeBlock from '@moldea.ai/website-ui/code-block';
 import IconTile from '@moldea.ai/website-ui/icon-tile';
 import { withBase } from '@moldea.ai/website-ui/site';
 
+import skillInstallationCover from '../../assets/video-covers/skill-installation.jpg';
 import BaseLayout from '../../layouts/base-layout.astro';
 import {
   CLOUD_WEBSITE_URL,
@@ -16,6 +17,7 @@ import {
 } from '../../lib/model/constants.ts';
 import { ProjectFileTree } from '../project-file-tree/index.ts';
 import SkillConversation from '../skill-conversation/skill-conversation.astro';
+import VideoPreview from '../video-preview/video-preview.astro';
 
 import {
   INITIALIZE_EXAMPLE_ENTRIES,
@@ -54,31 +56,44 @@ const bandLinkClass =
   description={pageMetadata.description}
 >
   <div class="page-shell pb-section-gap">
-    <header class="max-w-4xl pt-10 pb-12 sm:pt-16">
-      <p class="eyebrow mb-4">Get started</p>
-      <h1 class="page-title">Get started with moldea</h1>
-      <p class="mt-5 max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-        Install the Skill in your repository, initialize it once, then keep working with your coding
-        agent as usual. When something seems off, ask it to fix <code class="inline-code"
-          >moldea</code
-        >.
-      </p>
-      <nav
-        class="mt-8 flex flex-wrap gap-2"
-        aria-label="Setup steps"
-      >
-        {
-          stepLinks.map(({ href, label }) => (
-            <ActionLink
-              href={href}
-              variant="outline"
-              size="sm"
-            >
-              {label}
-            </ActionLink>
-          ))
-        }
-      </nav>
+    <header class="grid items-center gap-8 pt-10 pb-12 sm:pt-16 lg:grid-cols-2 lg:gap-16">
+      <div class="min-w-0">
+        <p class="eyebrow mb-4">Get started</p>
+        <h1 class="page-title">Get started with moldea</h1>
+        <p class="mt-5 max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
+          Install the Skill in your repository, initialize it once, then keep working with your
+          coding agent as usual. When something seems off, ask it to fix <code class="inline-code"
+            >moldea</code
+          >.
+        </p>
+        <nav
+          class="mt-8 flex flex-wrap gap-2"
+          aria-label="Setup steps"
+        >
+          {
+            stepLinks.map(({ href, label }) => (
+              <ActionLink
+                href={href}
+                variant="outline"
+                size="sm"
+              >
+                {label}
+              </ActionLink>
+            ))
+          }
+        </nav>
+      </div>
+      <figure class="min-w-0">
+        <figcaption class="mb-3 text-sm font-semibold">Watch installation and first use</figcaption>
+        <VideoPreview
+          id="get-started-installation-video"
+          videoUrl="https://www.youtube.com/watch?v=dwl_RFm95Tg"
+          title="Install and use the skill"
+          triggerLabel="Watch setup video"
+          cover={skillInstallationCover}
+          loading="eager"
+        />
+      </figure>
     </header>
 
     <section

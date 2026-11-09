@@ -298,23 +298,25 @@ test('leads with project context while retaining the connected-agent example and
   const primaryInstallLink = page
     .locator('[data-home-hero]')
     .getByRole('link', { name: 'Install the skill', exact: true });
-  await expect(primaryInstallLink).toHaveAttribute('href', '#getting-started-title');
-  await expect(primaryInstallLink.locator('svg.lucide-arrow-down')).toHaveCount(1);
+  await expect(primaryInstallLink).toHaveAttribute('href', toPublicPath('/get-started/'));
+  await expect(primaryInstallLink.locator('svg.lucide-arrow-right')).toHaveCount(1);
   await primaryInstallLink.focus();
   await primaryInstallLink.press('Enter');
-  await expect(page).toHaveURL(/#getting-started-title$/u);
+  await expect(page).toHaveURL(toPublicPath('/get-started/'));
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'Get started with moldea' }),
+  ).toBeVisible();
+  await page.goBack();
+  await expect(page).toHaveURL(toPublicPath('/'));
   await expect(
     page.getByRole('heading', { level: 2, name: 'One install. One ordinary request.' }),
   ).toBeVisible();
 
-  const workflowLink = page
+  const setupVideo = page
     .locator('[data-home-hero]')
-    .getByRole('link', { name: 'See how it works', exact: true });
-  await expect(workflowLink).toHaveAttribute('href', toPublicPath('/how-it-works/'));
-  await expect(workflowLink.locator('svg.lucide-arrow-right')).toHaveAttribute(
-    'aria-hidden',
-    'true',
-  );
+    .getByRole('button', { name: 'Watch setup video', exact: true });
+  await expect(setupVideo).toHaveAttribute('aria-haspopup', 'dialog');
+  await expect(setupVideo.locator('svg')).toHaveAttribute('aria-hidden', 'true');
 
   const cloudLink = page
     .locator('[data-home-hero]')
@@ -342,6 +344,9 @@ test('leads with project context while retaining the connected-agent example and
     ).toStrictEqual(preview.newValue.trimEnd().split('\n'));
   }
 
+  const workflowLink = page
+    .getByRole('navigation', { name: 'Primary navigation' })
+    .getByRole('link', { name: 'How it works', exact: true });
   await workflowLink.focus();
   await workflowLink.press('Enter');
   await expect(page).toHaveURL(toPublicPath('/how-it-works/'));
@@ -577,7 +582,7 @@ test('keeps selection visible on primary surfaces in light and dark themes', asy
     const page = await context.newPage();
     await page.goto(toPublicPath('/'));
     const selections = await page
-      .locator('main .bg-primary')
+      .locator('main .dark-surface-selection.bg-primary')
       .filter({ hasText: /\S/u })
       .evaluateAll((surfaces) => {
         const canvas = document.createElement('canvas');
@@ -761,4 +766,277 @@ test('balances decisions and platform journeys above full-width project runs', a
     await expect(name).toBeVisible();
     expect(await name.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
   }
+});
+
+test.describe('video walkthrough', () => {
+  const walkthrough = {
+    route: '/',
+    title: 'Install and use the skill',
+    triggerLabel: 'Watch setup video',
+    videoId: 'dwl_RFm95Tg',
+    coverName: 'skill-installation',
+  } as const;
+
+  test.beforeEach(async ({ page }) => {
+    // only YouTube is substituted; the real shared dialog and player lifecycle remain active
+    await page.route('https://www.youtube-nocookie.com/embed/**', async (route) => {
+      await route.fulfill({
+        contentType: 'text/html',
+        body: '<!doctype html><html lang="en"><head><title>Video player</title></head><body><main>Video player</main></body></html>',
+      });
+    });
+  });
+
+  for (const width of [320, 1440]) {
+    test.describe(`video at ${width}px`, () => {
+      test.use({ hasTouch: width === 320, isMobile: width === 320 });
+      for (const colorScheme of ['light', 'dark'] as const) {
+        test(`opens ${walkthrough.triggerLabel} at ${width}px in ${colorScheme} and releases its player`, async ({
+          page,
+        }) => {
+          const playerRequests: string[] = [];
+          const pageErrors: string[] = [];
+          page.on('request', (request) => {
+            if (request.url().startsWith('https://www.youtube-nocookie.com/embed/'))
+              playerRequests.push(request.url());
+          });
+          page.on('pageerror', (error) => pageErrors.push(error.message));
+          await page.setViewportSize({ width, height: 740 });
+          await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' });
+          await page.goto(toPublicPath(walkthrough.route));
+
+          const trigger = page.getByRole('button', {
+            name: walkthrough.triggerLabel,
+            exact: true,
+          });
+          const dialog = page.getByRole('dialog', { name: walkthrough.title, exact: true });
+          const player = page.getByTitle(walkthrough.title, { exact: true });
+          await expect(trigger).toBeVisible();
+          await expect(player).toHaveCount(0);
+          expect(playerRequests).toStrictEqual([]);
+          await trigger.focus();
+          await expect(trigger).toBeFocused();
+          const focusStyle = await trigger.evaluate((element) => {
+            const style = getComputedStyle(element);
+            return { outline: Number.parseFloat(style.outlineWidth), shadow: style.boxShadow };
+          });
+          expect(focusStyle.outline > 0 || focusStyle.shadow !== 'none').toBe(true);
+          await trigger.press('Enter');
+          await expect(dialog).toBeVisible();
+          const close = dialog.getByRole('button', { name: 'Close dialog', exact: true });
+          await expect(close).toBeFocused();
+          const play = dialog.getByRole('button', {
+            name: `Play ${walkthrough.title}`,
+            exact: true,
+          });
+          const poster = play.locator('img');
+          await expect(play).toBeVisible();
+          await expect(poster).toHaveAttribute('alt', '');
+          await expect(poster).toHaveAttribute('width', '1024');
+          await expect(poster).toHaveAttribute('height', '576');
+          await expect(poster).toHaveAttribute('src', new RegExp(walkthrough.coverName, 'u'));
+          await expect(poster).toHaveAttribute('srcset', /320w.*640w.*1024w.*2048w/u);
+          await expect(poster).toHaveCSS('object-fit', 'contain');
+          await expect
+            .poll(() =>
+              poster.evaluate(
+                (image: HTMLImageElement) => image.complete && image.naturalWidth > 0,
+              ),
+            )
+            .toBe(true);
+          await expect(player).toHaveCount(0);
+          expect(playerRequests).toStrictEqual([]);
+          await play.focus();
+          await play.press('Enter');
+          await expect(dialog).toBeFocused();
+          await expect(play).toBeHidden();
+          await expect(player).toHaveAttribute(
+            'src',
+            `https://www.youtube-nocookie.com/embed/${walkthrough.videoId}?autoplay=1`,
+          );
+          await expect(player).toHaveAttribute('allowfullscreen', '');
+          await expect(player).toHaveAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+          await expect.poll(() => playerRequests.length).toBe(1);
+          const videoBounds = await player.boundingBox();
+          expect(videoBounds).not.toBeNull();
+          expect(videoBounds!.width).toBeGreaterThan(0);
+          expect(videoBounds!.height).toBeGreaterThanOrEqual(200);
+          expect(
+            Math.abs(videoBounds!.height - Math.max(200, (videoBounds!.width * 9) / 16)),
+          ).toBeLessThanOrEqual(2);
+          expect(videoBounds!.x).toBeGreaterThanOrEqual(0);
+          expect(videoBounds!.x + videoBounds!.width).toBeLessThanOrEqual(width);
+          expect(
+            await page.evaluate(
+              () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+            ),
+          ).toBe(true);
+          await expect(page.getByRole('link', { name: /Watch on YouTube/u })).toHaveCount(0);
+          const accessibility = await new AxeBuilder({ page })
+            .include('dialog[open]')
+            .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
+            .analyze();
+          expect(accessibility.violations).toStrictEqual([]);
+
+          await page.keyboard.press('Escape');
+          await expect(dialog).toBeHidden();
+          await expect(player).toHaveCount(0);
+          await expect(trigger).toBeFocused();
+          await trigger.press('Enter');
+          await expect(play).toBeVisible();
+          await expect(player).toHaveCount(0);
+          expect(playerRequests).toHaveLength(1);
+          await play.click();
+          await expect(player).toBeVisible();
+          await expect(dialog).toBeFocused();
+          await expect.poll(() => playerRequests.length).toBe(2);
+          await close.click();
+          await expect(dialog).toBeHidden();
+          await expect(player).toHaveCount(0);
+          await expect(trigger).toBeFocused();
+          expect(pageErrors).toStrictEqual([]);
+        });
+      }
+    });
+  }
+
+  test('releases the player on client navigation and enhances both walkthroughs after returning', async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await page.goto(toPublicPath('/'));
+    const setup = page.getByRole('button', { name: 'Watch setup video', exact: true });
+    await setup.click();
+    const dialog = page.getByRole('dialog', { name: 'Install and use the skill', exact: true });
+    await dialog
+      .getByRole('button', { name: 'Play Install and use the skill', exact: true })
+      .click();
+    await expect(dialog.getByTitle('Install and use the skill', { exact: true })).toBeVisible();
+    const oldPlayer = await dialog
+      .getByTitle('Install and use the skill', { exact: true })
+      .elementHandle();
+    expect(oldPlayer).not.toBeNull();
+    // trigger real client navigation programmatically while the modal makes background links inert
+    await page
+      .getByRole('navigation', { name: 'Primary navigation', includeHidden: true })
+      .getByRole('link', { name: 'How it works', exact: true, includeHidden: true })
+      .evaluate((link: HTMLAnchorElement) => link.click());
+    await expect(page).toHaveURL(toPublicPath('/how-it-works/'));
+    expect(await oldPlayer.evaluate((element) => element.isConnected)).toBe(false);
+    await expect(page.locator('iframe')).toHaveCount(0);
+    const contextVideo = page.getByRole('button', { name: 'Watch the workflow', exact: true });
+    await contextVideo.click();
+    const contextDialog = page.getByRole('dialog', {
+      name: 'Keeping project context and code aligned',
+      exact: true,
+    });
+    await contextDialog
+      .getByRole('button', { name: 'Play Keeping project context and code aligned', exact: true })
+      .click();
+    await expect(
+      contextDialog.getByTitle('Keeping project context and code aligned'),
+    ).toBeVisible();
+    await contextDialog.getByRole('button', { name: 'Close dialog', exact: true }).click();
+    await expect(contextDialog).toBeHidden();
+    await expect(page.locator('iframe')).toHaveCount(0);
+    await page.goBack();
+    await setup.click();
+    await expect(dialog.getByTitle('Install and use the skill', { exact: true })).toHaveCount(0);
+    await dialog
+      .getByRole('button', { name: 'Play Install and use the skill', exact: true })
+      .click();
+    await expect(dialog.getByTitle('Install and use the skill', { exact: true })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+    await expect(page.locator('iframe')).toHaveCount(0);
+  });
+
+  test('dismisses a video on its desktop backdrop', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto(toPublicPath('/'));
+    const trigger = page.getByRole('button', { name: 'Watch setup video', exact: true });
+    await trigger.click();
+    await page.getByRole('button', { name: 'Play Install and use the skill', exact: true }).click();
+    await expect(page.getByTitle('Install and use the skill', { exact: true })).toBeVisible();
+    await page.mouse.click(1, 1);
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(page.locator('iframe')).toHaveCount(0);
+    await expect(trigger).toBeFocused();
+  });
+
+  test('restores the cover after closing before Play without contacting YouTube', async ({
+    page,
+  }) => {
+    const playerRequests: string[] = [];
+    page.on('request', (request) => {
+      if (request.url().startsWith('https://www.youtube-nocookie.com/embed/'))
+        playerRequests.push(request.url());
+    });
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await page.goto(toPublicPath(walkthrough.route));
+    const trigger = page.getByRole('button', { name: walkthrough.triggerLabel, exact: true });
+    const dialog = page.getByRole('dialog', { name: walkthrough.title, exact: true });
+    const play = dialog.getByRole('button', { name: `Play ${walkthrough.title}`, exact: true });
+    await trigger.click();
+    await expect(play).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+    await expect(trigger).toBeFocused();
+    await trigger.click();
+    await expect(play).toBeVisible();
+    await expect
+      .poll(() =>
+        play
+          .locator('img')
+          .evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0),
+      )
+      .toBe(true);
+    await expect(page.locator('iframe')).toHaveCount(0);
+    expect(playerRequests).toStrictEqual([]);
+    await dialog.getByRole('button', { name: 'Close dialog', exact: true }).click();
+    await expect(dialog).toBeHidden();
+    await expect(trigger).toBeFocused();
+  });
+
+  test.describe('without JavaScript', () => {
+    test.use({ javaScriptEnabled: false });
+
+    test(`keeps ${walkthrough.triggerLabel} available on YouTube`, async ({ page }) => {
+      await page.goto(toPublicPath(walkthrough.route));
+      const fallback = page.getByRole('link', {
+        name: `${walkthrough.title}: Watch on YouTube (opens in a new tab)`,
+        exact: true,
+      });
+      await expect(fallback).toBeVisible();
+      await expect(fallback).toHaveAttribute(
+        'href',
+        `https://www.youtube.com/watch?v=${walkthrough.videoId}`,
+      );
+      await expect(fallback).toHaveAttribute('target', '_blank');
+      await expect(page.locator('iframe')).toHaveCount(0);
+    });
+  });
+
+  test('keeps the video link available without native dialog support', async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(HTMLDialogElement.prototype, 'showModal', {
+        configurable: true,
+        value: undefined,
+      });
+    });
+    await page.goto(toPublicPath(walkthrough.route));
+    const fallback = page.getByRole('link', {
+      name: `${walkthrough.title}: Watch on YouTube (opens in a new tab)`,
+      exact: true,
+    });
+    await expect(fallback).toBeVisible();
+    await expect(fallback).toHaveAttribute(
+      'href',
+      `https://www.youtube.com/watch?v=${walkthrough.videoId}`,
+    );
+    await expect(
+      page.getByRole('button', { name: walkthrough.triggerLabel, exact: true }),
+    ).toHaveCount(0);
+    await expect(page.locator('iframe')).toHaveCount(0);
+  });
 });

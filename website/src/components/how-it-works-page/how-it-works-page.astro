@@ -21,8 +21,10 @@ import FilePreview from '@moldea.ai/website-ui/file-preview';
 import IconTile from '@moldea.ai/website-ui/icon-tile';
 import { withBase } from '@moldea.ai/website-ui/site';
 
+import contextAlignmentCover from '../../assets/video-covers/context-alignment.jpg';
 import BaseLayout from '../../layouts/base-layout.astro';
 import BookingArtifacts from '../booking-artifacts/booking-artifacts.astro';
+import VideoPreview from '../video-preview/video-preview.astro';
 import { BOOKING_EXAMPLE } from '../../lib/booking-example/index.ts';
 import { PRODUCT_PAGE_METADATA } from '../../lib/model/constants.ts';
 import { SITE_GHOST_LINK_CLASS_NAME } from '../../lib/site/index.ts';
@@ -181,6 +183,35 @@ const connectionItems = [
       </ol>
     </div>
   </header>
+
+  <section
+    id="context-video"
+    class="scroll-mt-24 border-b border-border bg-background py-12 sm:py-16"
+    aria-labelledby="context-video-title"
+  >
+    <div class="page-shell grid items-center gap-8 lg:grid-cols-2 lg:gap-16">
+      <div class="min-w-0">
+        <p class="eyebrow mb-4">Watch the walkthrough</p>
+        <h2
+          id="context-video-title"
+          class="section-title"
+        >
+          Keeping project context and code aligned
+        </h2>
+        <p class="mt-5 text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
+          Watch how <code class="inline-code">moldea</code> keeps project context connected to the code
+          as it changes.
+        </p>
+      </div>
+      <VideoPreview
+        id="context-alignment-video"
+        title="Keeping project context and code aligned"
+        triggerLabel="Watch the workflow"
+        videoUrl="https://www.youtube.com/watch?v=PyZiQXWS1ZE"
+        cover={contextAlignmentCover}
+      />
+    </div>
+  </section>
 
   <section
     id="project-context"

@@ -45,7 +45,7 @@ sudo apt-get update
 sudo apt-get install --yes bubblewrap ripgrep socat
 ```
 
-Bubblewrap also needs permission to create user namespaces. The [conformance workflow](https://github.com/moldea-ai/skill/blob/main/.github/workflows/conformance.yml) records the Ubuntu/AppArmor preparation used by CI.
+Bubblewrap also needs permission to create user namespaces. The [conformance workflow](https://github.com/moldea-ai/skill/blob/main/.github/workflows/conformance.yml) pins sandbox jobs to Ubuntu 24.04 and loads the `bwrap-userns-restrict` extra profile from `apparmor-profiles` in Noble updates. Other CI jobs retain their existing runner selections.
 
 ### Why ripgrep is required
 

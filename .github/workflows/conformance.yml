@@ -69,7 +69,8 @@ jobs:
     env:
       MOLDEA_TEST_SUITE: ${{ needs.changes.outputs.test_suite }}
     if: needs.changes.outputs.root_required == 'true'
-    runs-on: ubuntu-latest
+    # the full sandbox setup uses the Noble AppArmor extra profile
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
@@ -107,7 +108,8 @@ jobs:
       MOLDEA_TEST_SUITE: ${{ needs.changes.outputs.test_suite }}
     if: needs.changes.outputs.root_required == 'true'
     name: Portable contract / Node.js ${{ matrix.node }}
-    runs-on: ubuntu-latest
+    # the full sandbox setup uses the Noble AppArmor extra profile
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     strategy:
       fail-fast: false

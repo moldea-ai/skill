@@ -56,12 +56,12 @@ test('essential configuration excludes full files before import and keeps empty 
   expect(config.test?.passWithNoTests).toBe(false);
 });
 
-test('standalone release qualification keeps full correctness and identity-only tag checks separate', () => {
+test('standalone release qualification uses essential correctness and retains evidence checking', () => {
   const manifest = JSON.parse(
     readFileSync(new URL('../../package.json', import.meta.url), 'utf8'),
   ) as { scripts: Record<string, string> };
   expect(manifest.scripts['release:check']).toBe(
-    'npm run portable:check && npm run test:full && node src/release/check.ts',
+    'npm run portable:check && npm test && node src/release/check.ts',
   );
   expect(manifest.scripts['release:identity:check']).toBe(
     'node src/release/check.ts --identity-only',

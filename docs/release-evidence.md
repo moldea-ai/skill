@@ -268,6 +268,8 @@ For 10.0.4 only, the maintainer's instruction, “we pin the evidence to the cur
 
 The patch tolerates LF/CRLF differences, an optional final line break, empty lines immediately inside managed markers, and trailing spaces or tabs on marker lines. Equivalent documents remain byte-identical; instruction text, internal whitespace and malformed-marker checks remain exact. CLI `13.0.3` requires Core `^9.1.1` so installed validation receives the same correction. Deterministic regression and release checks provide the new verification.
 
+The distributed artifact also first includes [commit f4b52143](https://github.com/moldea-ai/skill/commit/f4b521432b0df3a2702f74dff252c75885c23538), which was on `main` before the formatting work and disables automatic Git index refresh during repair-helper and managed AGENTS.md writer reads (`diff.autoRefreshIndex=false`); this change receives no fresh semantic evaluation under the release-specific evidence-reuse decision above.
+
 The current `damaged-setup-validation` and `repair-readme-drift` fixtures now change the managed README statement from keeping project knowledge in Git to keeping it outside Git, preserving canonical marker formatting. Their directly dependent descriptions and criteria follow that instruction drift. Deterministic calibration checks adoption, read-only preservation, actual repair and idempotence. This current-case correction changes no selected historical record and provides no new model assurance.
 
 Release qualification also corrects the website's action-count expectation and coding-agent screenshot baselines for its existing video layout, and fixes a Bubblewrap startup cancellation race in development tooling. These corrections change no distributed instructions, model settings, resource profiles or selected historical evidence.
@@ -278,7 +280,7 @@ Release qualification also corrects the website's action-count expectation and c
 npm run release:check
 ```
 
-The command first runs portable freshness and explicit full deterministic correctness (`npm run test:full`), including website units, artifact integrations and both browser suites. Ordinary tag conformance forces full priority within its existing root/portable/quality boundary, uses the separate identity-only checker, and gains no website browser or prepared-evidence prerequisite. Routine root-relevant PRs use essential and preserve their existing platform lanes. See [Testing](/docs/testing/) for selection and focused completion.
+The command first runs portable freshness and essential deterministic correctness (`npm test`), without website tests or evaluator sandbox preparation. Ordinary tag conformance also uses essential within its existing root/portable/quality boundary, retains every supported runtime/platform lane, and uses the separate identity-only checker without a prepared-evidence prerequisite. Full qualification remains an explicit or focused operation for changed tooling. Website acceptance and Pages deployment are independent of skill publication. See [Testing](/docs/testing/) for selection and focused completion.
 
 The check validates release identity and requires the prepared selection to match `evidence/selection.json`, with official passing bundles for semantic evidence and any selected journeys evidence. It is read-only with respect to evidence. It does not rerun an evaluator, reinterpret old results with current tests, fetch a latest asset, or replace the selection. Passing this mechanical check does not turn historical presentation-only evidence into current-release assurance.
 
@@ -289,7 +291,7 @@ npm run evidence:pack -- --scope semantic --run <attempt-id>
 npm run evidence:publish -- --bundle .evidence/bundles/<semantic-bundle>.json.gz --tag evidence-<semantic-name>
 npm run release:evidence:pin -- --scope semantic --release evidence-<semantic-name> --asset <semantic-asset>.json.gz
 npm run evidence:prepare
-npm run website:check
-npm run website:build
 npm run release:check
 ```
+
+Verify website presentation independently with `npm run website:check` and `npm run website:build` when needed; these commands do not gate skill publication.

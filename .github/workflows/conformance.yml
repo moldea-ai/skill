@@ -210,9 +210,6 @@ jobs:
         run: npm run runtime:build
       - name: Typecheck maintained code
         run: npm run typecheck:root
-      - name: Typecheck website on tags
-        if: github.ref_type == 'tag'
-        run: npm --workspace website run typecheck
       - name: Lint root code
         run: npm run lint
       - name: Check root formatting

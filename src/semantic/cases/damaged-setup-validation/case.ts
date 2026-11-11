@@ -6,7 +6,7 @@ export const semanticCase = defineSemanticCase({
   id: 'damaged-setup-validation',
   setup: createSemanticCaseSetup('damaged-setup-validation'),
   scenario:
-    'A previously adopted project retains its canonical files, but the managed README block has lost its required blank line.',
+    'A previously adopted project retains its canonical files, but the managed README block incorrectly says project knowledge is kept outside Git.',
   operation: 'validate-damaged-setup',
   input: {
     developerDirection:
@@ -25,7 +25,7 @@ export const semanticCase = defineSemanticCase({
         source: { kind: 'workspace-path', path: 'moldea/project.md', expectedType: 'file' },
       },
       {
-        claim: 'The managed README region has formatting drift.',
+        claim: 'The managed README region has instruction-statement drift.',
         source: { kind: 'workspace-path', path: 'README.md', expectedType: 'file' },
       },
     ],
@@ -40,7 +40,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'diagnose-drift-read-only',
       criterion:
-        'The actor validates the canonical foundation despite README formatting drift, leaves all files unchanged, accurately reports the integration warnings returned by validate (including none), and smoke-tests the gate. A completed gate miss is healthy wiring. Structural validation must not be presented as semantic completeness; no unrelated live-behavior disclaimer is required for a setup without agents or runtimes.',
+        'The actor validates the canonical foundation despite README instruction-statement drift, leaves all files unchanged, accurately reports the integration warnings returned by validate (including none), and smoke-tests the gate. A completed gate miss is healthy wiring. Structural validation must not be presented as semantic completeness; no unrelated live-behavior disclaimer is required for a setup without agents or runtimes.',
     },
   ],
   forbidden: [

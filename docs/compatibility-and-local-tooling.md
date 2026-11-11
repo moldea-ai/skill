@@ -8,7 +8,7 @@ order: 180
 
 # Compatibility and local tooling
 
-The unpublished `10.0.3` candidate retains the published `10.0.2` compatibility contract:
+Release `10.0.4` retains the `10.0.3` compatibility contract:
 
 - Git `>=2.32.0`
 - Node.js `>=22.17.0`
@@ -19,7 +19,9 @@ The unpublished `10.0.3` candidate retains the published `10.0.2` compatibility 
 
 The CLI is a repository-root-local development dependency. Its declaration and installed stable version must satisfy `^13.0.0`; compatible CLI 13 patches and minors do not require a skill release. Installed Core must satisfy both the CLI's declared Core range and `moldea`'s supported `^9.0.0` range. Other CLI majors, prereleases, malformed declarations, incompatible installed versions, and incompatible Core versions fail closed. The skill never selects a global CLI, runs a transient download, or searches unrelated workspaces for a provider.
 
-The candidate repair target is CLI `13.0.2`. Its locked closure currently resolves Core `9.0.1`, Repository/Repository FS `4.0.1`, Git helpers `0.4.0`, Process `1.6.2`, Exception `1.7.1` and Utilities `1.7.2`. These dependency updates preserve the supported ranges and JSON schema; earlier model observations do not verify this closure.
+The repair target is CLI `13.0.3`. Its locked closure resolves Core `9.1.1`, Repository/Repository FS `4.0.1`, Git helpers `0.4.0`, Process `1.6.2`, Exception `1.7.1` and Utilities `1.7.2`. These dependency updates preserve the supported ranges and JSON schema; earlier model observations do not verify this closure.
+
+Updating the skill does not update a project's CLI. Explicit repair or a package-manager update to CLI `13.0.3` installs the Core formatting correction and clears cosmetic managed-block warnings. Supported CLI releases `13.0.0` through `13.0.2` can still report those warnings.
 
 ## Tooling ownership
 

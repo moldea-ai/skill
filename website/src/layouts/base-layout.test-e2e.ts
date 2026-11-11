@@ -319,7 +319,7 @@ test('uses the shared primary action interaction states across public surfaces',
   browser,
 }) => {
   const routesWithExpectedActionCounts = [
-    ['/', 7],
+    ['/', 8],
     ['/404.html', 3],
     ['/search/', 3],
     ['/docs/getting-started/', 3],

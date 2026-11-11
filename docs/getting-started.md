@@ -10,7 +10,7 @@ order: 10
 
 The primary distribution page is [moldea on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea). The portable skill works with [compatible coding agents](/docs/coding-agent-compatibility/), including Codex, Claude Code, Cursor, OpenCode, GitHub Copilot, and Cline.
 
-This checkout contains moldea 10.0.3. Use the immutable release tag below when the installation must be reproducible.
+This checkout contains moldea 10.0.4. Use the immutable release tag below when the installation must be reproducible.
 
 Install the latest version from the repository's `main` branch in your current project:
 
@@ -21,7 +21,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin an immutable release tag:
 
 ```bash
-npx skills add "moldea-ai/skill#v10.0.3"
+npx skills add "moldea-ai/skill#v10.0.4"
 ```
 
 Repository installation is required because the selected skill version must travel with the project. A global installation does not establish adoption and is not a supported path.
@@ -109,6 +109,8 @@ You do not need to create `/moldea` directories by hand, invoke the local CLI di
 ## Update or remove the skill
 
 An unpinned installation follows `main`; rerun the first installation command to refresh it. A pinned installation never moves automatically; rerun the pinned form with the desired immutable release tag. Updating refreshes portable instructions and references. It does not initialize a project, modify `/moldea/**`, install the CLI globally, or alter canonical state.
+
+Updating the skill does not update the project's CLI. Explicit repair updates it to the skill's target, CLI `13.0.3`, which includes the managed-block formatting correction. You can also update that development dependency through the project's package manager.
 
 Existing repositories also need a bridge that matches the new installation:
 

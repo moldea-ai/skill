@@ -14,7 +14,7 @@ import {
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { test } from 'vitest';
+import { expect, test } from 'vitest';
 import { z } from 'zod';
 
 import { semanticCase as healthyRepairCase } from '../../semantic/cases/repair-healthy-project/case.ts';
@@ -966,6 +966,75 @@ test('shared host closes its relay after successful and failed executions', asyn
         /Evaluation host failed with exit code 7: host failure/.test(error.message),
     );
   } finally {
+    if (originalPath === undefined) delete process.env['PATH'];
+    else process.env['PATH'] = originalPath;
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
+test('startup cancellation stops descendants before Bubblewrap reports the sandbox PID', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-host-startup-'));
+  const originalPath = process.env['PATH'];
+  const controller = new AbortController();
+  let execution: Promise<unknown> | undefined;
+  let hasFinished = false;
+  const startedPath = join(evaluationRoot, 'started');
+  try {
+    const executableDirectory = join(evaluationRoot, 'bin');
+    const repositoryPath = join(evaluationRoot, 'repository');
+    const sandboxHome = join(evaluationRoot, 'home');
+    mkdirSync(executableDirectory);
+    mkdirSync(repositoryPath);
+    mkdirSync(join(sandboxHome, 'bin'), { recursive: true });
+    writeFileSync(join(executableDirectory, 'codex'), '#!/bin/sh\nexit 0\n');
+    writeFileSync(join(executableDirectory, 'codex-code-mode-host'), '#!/bin/sh\nexit 0\n');
+    const childScript =
+      `const { existsSync, watch, writeFileSync } = require('node:fs');\n` +
+      `const root = ${JSON.stringify(evaluationRoot)};\n` +
+      `watch(root, () => {\n` +
+      `  if (!existsSync(root + '/probe')) return;\n` +
+      `  writeFileSync(root + '/survived', 'alive');\n` +
+      `  process.exit(0);\n` +
+      `});\n` +
+      `writeFileSync(root + '/started', String(process.pid));\n`;
+    writeFileSync(
+      join(executableDirectory, 'bwrap'),
+      `#!${process.execPath}\n` +
+        `require('node:child_process').spawn(process.execPath, ['--eval', ${JSON.stringify(childScript)}], { stdio: ['ignore', 'inherit', 'inherit'] });\n`,
+    );
+    for (const name of ['codex', 'codex-code-mode-host', 'bwrap'])
+      chmodSync(join(executableDirectory, name), 0o755);
+    await prepareEmptyCodexEvaluationHome(sandboxHome, evaluationRoot);
+    process.env['PATH'] = `${executableDirectory}:${originalPath ?? ''}`;
+    execution = runCodexEvaluationHost({
+      command: HOST_COMMAND,
+      cwd: repositoryPath,
+      prompt: 'test startup cancellation',
+      role: 'actor',
+      sandboxHome,
+      signal: controller.signal,
+    })
+      .catch((error: unknown) => error)
+      .finally(() => {
+        hasFinished = true;
+      });
+    await expect.poll(() => existsSync(startedPath), { timeout: 5_000 }).toBe(true);
+    controller.abort();
+    writeFileSync(join(evaluationRoot, 'probe'), 'ready');
+    const error = await execution;
+    assert.ok(error instanceof CodexEvaluationHostError);
+    assert.equal(error.kind, CODEX_EVALUATION_HOST_FAILURE_KINDS.Aborted);
+    assert.equal(existsSync(join(evaluationRoot, 'survived')), false);
+  } finally {
+    controller.abort();
+    if (!hasFinished && existsSync(startedPath)) {
+      try {
+        process.kill(Number(readFileSync(startedPath, 'utf8')), 'SIGKILL');
+      } catch {
+        // the owned startup fixture may already have exited
+      }
+    }
+    await execution;
     if (originalPath === undefined) delete process.env['PATH'];
     else process.env['PATH'] = originalPath;
     rmSync(evaluationRoot, { force: true, recursive: true });

@@ -662,8 +662,6 @@ const getAllowedEgressHosts = (): string[] => {
  * @throws
  * - If defaultHostTimeoutMs is not a positive integer and no environment override is present
  * - If MOLDEA_EVAL_HOST_TIMEOUT_MS is not a positive integer
- * - If the proxy or host process cannot start
- * - If execution is aborted, times out, exceeds the output limit, or exits unsuccessfully
  */
 export const identifyCodexEvaluationHostConfiguration = ({
   defaultHostTimeoutMs = CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS,
@@ -899,7 +897,17 @@ const runBubblewrapProcess = ({
   capture?: ((chunk: Buffer) => void) | undefined;
 }): Promise<string> =>
   new Promise<string>((resolvePromise, rejectPromise) => {
+    if (signal?.aborted === true) {
+      rejectPromise(
+        new CodexEvaluationHostError(
+          CODEX_EVALUATION_HOST_FAILURE_KINDS.Aborted,
+          'Evaluation host execution was aborted.',
+        ),
+      );
+      return;
+    }
     const sandboxProcess = spawn('bwrap', argumentsList, {
+      detached: true,
       stdio: ['pipe', 'pipe', 'pipe', 'pipe'],
     });
     const stdoutChunks: Buffer[] = [];
@@ -918,7 +926,13 @@ const runBubblewrapProcess = ({
           // the child may already have exited between status and cancellation
         }
       }
-      sandboxProcess.kill('SIGKILL');
+      if (sandboxProcess.pid === undefined) return;
+      try {
+        // the owned group includes the startup namespace before its PID has been reported
+        process.kill(-sandboxProcess.pid, 'SIGKILL');
+      } catch {
+        sandboxProcess.kill('SIGKILL');
+      }
     };
 
     const timeout = setTimeout(() => {
@@ -1027,11 +1041,7 @@ const runBubblewrapProcess = ({
       });
     });
 
-    if (signal?.aborted === true) {
-      abortProcess();
-    } else {
-      signal?.addEventListener('abort', abortProcess, { once: true });
-    }
+    signal?.addEventListener('abort', abortProcess, { once: true });
 
     sandboxProcess.stdin?.end(prompt, 'utf8');
   });
@@ -1143,6 +1153,8 @@ export const stopCodexEvaluationProxyProcess = async (
  * - If a retained session is requested for a judge or a continuation lacks an exact UUID
  * - If private diagnostic paths are unsafe or capture cannot be completed and flushed
  * - If the host search executable cannot be resolved
+ * - If the proxy or host process cannot start
+ * - If execution is aborted, times out, exceeds the output limit, or exits unsuccessfully
  */
 export const runCodexEvaluationHost = async ({
   actorSession,

@@ -824,13 +824,19 @@ test.each(['bound-context-maintenance', 'unbound-context-discovery'])(
 );
 
 test('damaged managed README does not block adoption while retaining prior canonical files', async () => {
-  const { repositoryPath } = await materializeCase('damaged-setup-validation');
+  const { repositoryPath } = await materializeCase('damaged-setup-validation', true);
+  const before = await snapshotSemanticWorkspace(repositoryPath);
   assert.equal(gateResult(repositoryPath, [], true), '1\n');
   const readme = readFileSync(join(repositoryPath, 'README.md'), 'utf8');
-  assert.match(readme, /<!-- moldea:start -->\nThis project uses/u);
+  assert.match(readme, /<!-- moldea:start -->\n\nThis project uses/u);
+  assert.match(readme, /to keep project knowledge outside Git/u);
+  assert.match(readme, /relationships\.\n<!-- moldea:end -->/u);
   assert.equal(readme.includes(readFileSync(MANAGED_BLOCK_PATH, 'utf8')), false);
   assert.equal(existsSync(join(repositoryPath, 'moldea', 'moldea.yaml')), true);
   assert.equal(existsSync(join(repositoryPath, 'moldea', 'project.md')), true);
+  const validation = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as { status: string };
+  assert.equal(validation.status, 'valid');
+  assert.deepEqual(await snapshotSemanticWorkspace(repositoryPath), before);
 });
 
 test('a changed managed README hunk can restore the exact adopted block for read-only validation', async () => {
@@ -951,7 +957,12 @@ test('actor repository creation accepts a case setup callback and applies post-b
   });
   assert.equal(baseline.status, 0, baseline.stderr);
   assert.match(baseline.stdout, /<!-- moldea:start -->\n\n/u);
-  assert.notEqual(readFileSync(join(repositoryPath, 'README.md'), 'utf8'), baseline.stdout);
+  assert.match(baseline.stdout, /to keep project knowledge in Git/u);
+  const readme = readFileSync(join(repositoryPath, 'README.md'), 'utf8');
+  assert.match(readme, /<!-- moldea:start -->\n\n/u);
+  assert.match(readme, /to keep project knowledge outside Git/u);
+  assert.match(readme, /relationships\.\n<!-- moldea:end -->/u);
+  assert.notEqual(readme, baseline.stdout);
   assert.equal(gateResult(repositoryPath, [], true), '1\n');
 });
 
@@ -1049,7 +1060,11 @@ test('selected context injection does not become fixture authority', async () =>
 test('managed README drift is repairable through the shipped writer without outside changes', async () => {
   const { repositoryPath } = await materializeCase('repair-readme-drift', true);
   const before = readFileSync(join(repositoryPath, 'README.md'), 'utf8');
+  const workspaceBefore = await snapshotSemanticWorkspace(repositoryPath);
   const projectBefore = readFileSync(join(repositoryPath, 'moldea', 'project.md'), 'utf8');
+  assert.match(before, /<!-- moldea:start -->\n\n/u);
+  assert.match(before, /to keep project knowledge outside Git/u);
+  assert.match(before, /relationships\.\n<!-- moldea:end -->/u);
   assert.equal(gateResult(repositoryPath, [], true), '1\n');
   const writer = spawnSync(
     process.execPath,
@@ -1071,9 +1086,21 @@ test('managed README drift is repairable through the shipped writer without outs
     before.slice(before.indexOf('<!-- moldea:end -->') + '<!-- moldea:end -->'.length),
   );
   assert.equal(readFileSync(join(repositoryPath, 'moldea', 'project.md'), 'utf8'), projectBefore);
+  const workspaceAfter = await snapshotSemanticWorkspace(repositoryPath);
+  const expected = new Map(workspaceBefore);
+  expected.set('README.md', workspaceAfter.get('README.md')!);
+  assert.deepEqual(workspaceAfter, expected);
   assert.equal(gateResult(repositoryPath, [], true), '1\n');
   const validation = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as { status: string };
   assert.equal(validation.status, 'valid');
+  const repeated = spawnSync(
+    process.execPath,
+    [MANAGED_WRITER_PATH, '--repository', repositoryPath],
+    { encoding: 'utf8' },
+  );
+  assert.equal(repeated.status, 0, repeated.stderr);
+  assert.equal(repeated.stdout, 'unchanged\n');
+  assert.deepEqual(await snapshotSemanticWorkspace(repositoryPath), workspaceAfter);
 });
 
 test('duplicate managed markers are rejected by the shipped writer without mutation', async () => {

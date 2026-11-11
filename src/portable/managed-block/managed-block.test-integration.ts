@@ -40,6 +40,29 @@ vi.mock('jg-fs', async (importOriginal) => {
 const BLOCK = '<!-- moldea:start -->\nInstructions\n<!-- moldea:end -->\n';
 
 test.each(['README.md', 'AGENTS.md'] as const)(
+  'leaves equivalent %s bytes and modification time unchanged',
+  async (fileName) => {
+    const root = await mkdtemp(join(tmpdir(), 'moldea-format-writer-'));
+    try {
+      const block = '<!-- moldea:start -->\n\nInstructions\n<!-- moldea:end -->\n';
+      const target = join(root, fileName);
+      const bytes = Buffer.from(
+        '\uFEFF# Host\n\n<!-- moldea:start --> \t\r\n\n\nInstructions\n\n<!-- moldea:end -->\t',
+      );
+      await writeFile(target, bytes);
+      const before = await stat(target);
+      expect(await updateManagedFile(root, block, fileName)).toBe('unchanged');
+      expect(await readFile(target)).toStrictEqual(bytes);
+      const after = await stat(target);
+      expect(after.mtimeMs).toBe(before.mtimeMs);
+      expect(after.ino).toBe(before.ino);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  },
+);
+
+test.each(['README.md', 'AGENTS.md'] as const)(
   'preserves CRLF from a real Git checkout when updating %s',
   async (fileName) => {
     const root = await mkdtemp(join(tmpdir(), 'moldea-checkout-eol-'));

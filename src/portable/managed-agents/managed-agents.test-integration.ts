@@ -116,6 +116,28 @@ test('fresh rendered integration validates against the installed template withou
   });
 });
 
+test('ignored integration with cosmetic differences validates and its bundled writer leaves it untouched', async () => {
+  await withInstallation(async (root, run) => {
+    const validate = await prepareValidation(root);
+    await writeFile(join(root, '.gitignore'), '/node_modules/\n/AGENTS.md\n');
+    const printed = run(['--print']);
+    expect(printed.status).toBe(0);
+    const content =
+      '\uFEFF# Host instructions\n\n' +
+      printed.stdout
+        .replaceAll('\n', '\r\n')
+        .replace('<!-- moldea:start -->\r\n', '<!-- moldea:start --> \t\r\n\n')
+        .replace('\r\n<!-- moldea:end -->\r\n', '\n\r\n<!-- moldea:end -->\t');
+    const target = join(root, 'AGENTS.md');
+    await writeFile(target, content);
+    const before = await lstat(target);
+    expect(run().stdout).toBe('unchanged\n');
+    expect(await readFile(target, 'utf8')).toBe(content);
+    expect((await lstat(target)).mtimeMs).toBe(before.mtimeMs);
+    expect(validate()).toMatchObject({ result: { warningCount: 0 } });
+  });
+});
+
 test('upgraded templates preserve the old bridge until an exact idempotent refresh', async () => {
   await withInstallation(async (root, run) => {
     const validate = await prepareValidation(root);

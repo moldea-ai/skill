@@ -2549,7 +2549,7 @@ const applyScenarioWorkingTree = async (
       await writeScenarioFile(
         repositoryPath,
         'README.md',
-        readme.replace('<!-- moldea:start -->\n\n', '<!-- moldea:start -->\n'),
+        readme.replace('to keep project knowledge in Git', 'to keep project knowledge outside Git'),
       );
       return;
     }
@@ -2558,7 +2558,7 @@ const applyScenarioWorkingTree = async (
       await writeScenarioFile(
         repositoryPath,
         'README.md',
-        readme.replace('<!-- moldea:start -->\n\n', '<!-- moldea:start -->\n'),
+        readme.replace('to keep project knowledge in Git', 'to keep project knowledge outside Git'),
       );
       return;
     }

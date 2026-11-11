@@ -8,7 +8,7 @@ order: 180
 
 # Compatibility and local tooling
 
-Release `10.0.4` retains the `10.0.3` compatibility contract:
+Release `10.0.5` retains the `10.0.3` compatibility contract:
 
 - Git `>=2.32.0`
 - Node.js `>=22.17.0`

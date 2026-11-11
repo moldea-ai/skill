@@ -50,7 +50,7 @@ Do not validate a partial foundation. Write `/moldea/moldea.yaml` and `/moldea/p
 
 ## Complete existing-project onboarding
 
-Use the `largeTraversal` profile in `local-tooling.md` for initialization, including its existing command, token, and output limits; do not raise or reset them. This selects larger traversal limits, not the repair workflow or its authority.
+Use the `largeTraversal` profile in `local-tooling.md` for initialization, including its existing command and output limits; do not raise or reset them. This selects larger traversal limits, not the repair workflow or its authority.
 
 After writing the foundation and integration, invoke `node <installed-skill-root>/scripts/initialization-inspection.mjs --repository <absolute-repository-root>` once for a bounded metadata inventory. The helper identifies its own distribution as installed, never project-owned. Other Skill paths are ownership-unverified candidates: establish their authoritative source from project evidence before listing them as project-owned. Canonical agent directories are not proof of registration or the absence of inline workflows. Retain the packet; do not repeat unchanged inventory traversal. A `partial` result does not prove absence or complete inspection; an error establishes no inspection evidence. Follow known project indexes or bounded targeted tools and report any remaining discovery limit honestly.
 

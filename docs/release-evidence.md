@@ -274,6 +274,16 @@ The current `damaged-setup-validation` and `repair-readme-drift` fixtures now ch
 
 Release qualification also corrects the website's action-count expectation and coding-agent screenshot baselines for its existing video layout, and fixes a Bubblewrap startup cancellation race in development tooling. These corrections change no distributed instructions, model settings, resource profiles or selected historical evidence.
 
+## Skill 10.0.5 evidence reuse
+
+Skill 10.0.5 retains the same semantic and scripted-journey selections in `evidence/selection.json`: `semantic-sem-20261026014206661-66a3ed7e.json.gz` under `evidence-10.0.3-20261026`, with compressed SHA-256 `fa6062bbad4512a4297d6bba711cbd435ea5c1a7638075fbfd21be2709b49c75`, and `journeys-20261013-da9709.json.gz` under `evidence-journeys-20261013-da9709`, with compressed SHA-256 `96de16e7646e54a17958040125b1b8da225298e28fc4f54e7865c0ede3d9f8d5`. Original versions, dates, observations, verdicts and provenance remain unchanged. No semantic evaluation, provider journey or regrading is run.
+
+The maintainer approved this reuse for 10.0.5 only, with the changes below disclosed as unevaluated. As with 10.0.4, the retained selection does not meet the launch plan's zero-failed-case, zero-exclusion and no-confirmed-evaluator-defect gates; this release-specific decision accepts it as disclosed. The 10.0.3 and 10.0.4 decisions above remain unchanged. This decision authorizes no further exclusion, model call or future-release exception and supplies no exact current-artifact model assurance.
+
+The release changes how explicit repair reports and continues a large repair. Each round ends with a status block (progress, the repair's changed files, the owners rechecked first and why the round ended), the existing five report sections, numbered next steps and a resume point with the full commit. The developer continues in the same conversation, and committing between rounds is optional: it spares later rounds from rechecking the repair's files. Repair posts one progress line per completed owner. The `largeTraversal` instructions for repair and initialization omit a model-token limit, because the coding agent cannot measure its own token use; `src/resources/profiles.ts` keeps the evaluation token measurement unchanged. The selected historical cases were recorded under 10.0.3 instructions, so none of these changes has model evidence.
+
+The release sentence in `moldea/references/local-tooling.md` names 10.0.5, matching `metadata.version`; Skill 10.0.4 shipped it naming 10.0.3. Deterministic release checks provide the verification for this release.
+
 ## Check a release
 
 ```bash

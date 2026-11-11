@@ -4,7 +4,7 @@
 
 [Get moldea on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or read the complete documentation at [skill.moldea.ai](https://skill.moldea.ai).
 
-This checkout contains `moldea` `10.0.4`. Install the latest published version from `main` inside each repository that will use it:
+This checkout contains `moldea` `10.0.5`. Install the latest published version from `main` inside each repository that will use it:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -13,7 +13,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the immutable release after publication:
 
 ```bash
-npx skills add "moldea-ai/skill#v10.0.4"
+npx skills add "moldea-ai/skill#v10.0.5"
 ```
 
 Both commands install the portable skill named `moldea`. They do not install the CLI globally or require a hosted account. See the [Setup reference](docs/getting-started.md) for initialization, updates, and removal.
@@ -51,7 +51,7 @@ After initialization, ask naturally to plan, build, review, or maintain AI agent
 | Repair           | `Fix moldea.`                                                    |
 | Validate         | `Validate moldea.`                                               |
 
-Evaluation is read-only. Repair checks every owner, its material implementation relationships, and each agent's instruction connection. It corrects established errors and updates local CLI tooling that is missing, broken, older than the exact target recorded by the installed skill, or without a supported root declaration. A large repair continues by owner from a reported checkpoint; an incomplete pass is never called healthy. Repair preserves host restrictions, healthy newer compatible tooling, and unresolved policy. Validation checks declared files and explicit TypeScript or JavaScript ESM exports. Coverage names what was checked and does not prove runtime wiring. Warnings do not invalidate a project: ask to fix them or explicitly accept a supported warning with your own reason. The coding agent never chooses acceptance on your behalf.
+Evaluation is read-only. Repair checks every owner, its material implementation relationships, and each agent's instruction connection. It corrects established errors and updates local CLI tooling that is missing, broken, older than the exact target recorded by the installed skill, or without a supported root declaration. A large repair runs in rounds within the same conversation. Each round shows its progress, the files it changed and what remains, then offers numbered next steps; reply to continue. An incomplete pass is never called healthy. Repair preserves host restrictions, healthy newer compatible tooling, and unresolved policy. Validation checks declared files and explicit TypeScript or JavaScript ESM exports. Coverage names what was checked and does not prove runtime wiring. Warnings do not invalidate a project: ask to fix them or explicitly accept a supported warning with your own reason. The coding agent never chooses acceptance on your behalf.
 
 ## Documentation
 
@@ -75,7 +75,7 @@ Evaluation is read-only. Repair checks every owner, its material implementation 
 
 ## Compatibility
 
-Release `10.0.4` supports exactly:
+Release `10.0.5` supports exactly:
 
 - Git `>=2.32.0`
 - Node.js `>=22.17.0`
@@ -220,6 +220,8 @@ Release 10.0.2 retained the 8.2.3 semantic evidence and had no fresh public reco
 Release 10.0.3 selects 142 historical cases: 134 passed and eight recovered, with none failed or pending. The source recording on `20e28fa7` covered 143 cases and failed `repair-unproven-adoption`, which is **not yet included**: the actor sometimes runs direct `git status` before the repair helper despite explicit instructions; no recorded run changed files or initialized anything. The exclusion-only cleanup ran no models and changed no recorded verdict. The release keeps `b1098a23`'s repair-reference sentence and four grader/case corrections; its single repair recheck failed the same way, so no behavior improvement is claimed. The candidate's deterministic checks passed. CLI `13.0.2`, Core `9.0.1`, the original failed first trials and all confirmations retain their provenance. See [the 10.0.3 evidence-reuse qualification](docs/release-evidence.md#skill-1003-evidence-reuse) for the release-specific acceptance and limits.
 
 Release 10.0.4 fixes cosmetic managed-block warnings and preserves equivalent AGENTS.md and README bytes. It also disables automatic Git index refresh for reads in the repair helper and managed AGENTS.md writer (`diff.autoRefreshIndex=false`). It targets CLI 13.0.3 and Core 9.1.1, retaining the exact 10.0.3 historical evidence selection by maintainer decision. No semantic evaluation or provider journey is run for this patch; see [the 10.0.4 evidence reuse](docs/release-evidence.md#skill-1004-evidence-reuse).
+
+Release 10.0.5 guides large repairs through rounds in the same conversation: each round reports its progress, the files it changed and what remains, then offers numbered next steps, and committing between rounds is optional. Repair and initialization instructions omit the model-token limit that the coding agent cannot measure. The local-tooling reference's release sentence matches the skill version again. The exact 10.0.3 historical evidence selection is retained by maintainer decision, and no semantic evaluation or provider journey is run; see [the 10.0.5 evidence reuse](docs/release-evidence.md#skill-1005-evidence-reuse).
 
 ## License
 

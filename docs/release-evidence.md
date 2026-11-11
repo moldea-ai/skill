@@ -280,7 +280,7 @@ Release qualification also corrects the website's action-count expectation and c
 npm run release:check
 ```
 
-The command first runs portable freshness and explicit full deterministic correctness (`npm run test:full`), including website units, artifact integrations and both browser suites. Ordinary tag conformance forces full priority within its existing root/portable/quality boundary, uses the separate identity-only checker, and gains no website browser or prepared-evidence prerequisite. Routine root-relevant PRs use essential and preserve their existing platform lanes. See [Testing](/docs/testing/) for selection and focused completion.
+The command first runs portable freshness and essential deterministic correctness (`npm test`), without website tests or evaluator sandbox preparation. Ordinary tag conformance also uses essential within its existing root/portable/quality boundary, retains every supported runtime/platform lane, and uses the separate identity-only checker without a prepared-evidence prerequisite. Full qualification remains an explicit or focused operation for changed tooling. Website acceptance and Pages deployment are independent of skill publication. See [Testing](/docs/testing/) for selection and focused completion.
 
 The check validates release identity and requires the prepared selection to match `evidence/selection.json`, with official passing bundles for semantic evidence and any selected journeys evidence. It is read-only with respect to evidence. It does not rerun an evaluator, reinterpret old results with current tests, fetch a latest asset, or replace the selection. Passing this mechanical check does not turn historical presentation-only evidence into current-release assurance.
 
@@ -291,7 +291,7 @@ npm run evidence:pack -- --scope semantic --run <attempt-id>
 npm run evidence:publish -- --bundle .evidence/bundles/<semantic-bundle>.json.gz --tag evidence-<semantic-name>
 npm run release:evidence:pin -- --scope semantic --release evidence-<semantic-name> --asset <semantic-asset>.json.gz
 npm run evidence:prepare
-npm run website:check
-npm run website:build
 npm run release:check
 ```
+
+Verify website presentation independently with `npm run website:check` and `npm run website:build` when needed; these commands do not gate skill publication.

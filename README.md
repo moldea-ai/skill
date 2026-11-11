@@ -133,7 +133,7 @@ Scripted journeys cover six journeys and 21 requests in ordinary ChatGPT and Cla
 | `project-specification`                   | Read-only development reference to the canonical product and skill specifications in `../platform/moldea`.                                                                |
 | `src/test-suite/`                         | Private essential/full selection and inherited-stdio execution; [testing guide](docs/testing.md) owns membership and cadence.                                             |
 | `.github/workflows/conformance.yml`       | Conservative PR selection, root correctness, quality, and portable Linux, Windows and macOS contracts.                                                                    |
-| `.github/workflows/website-checks.yml`    | Shared read-only website quality and artifact verification; browser suites run locally.                                                                                   |
+| `.github/workflows/website-checks.yml`    | Pages-only website quality and artifact verification; browser suites run locally.                                                                                         |
 | `.github/workflows/pages.yml`             | Pages preflight, parallel verification/production build, and gated deployment.                                                                                            |
 | `.github/workflows/release-candidate.yml` | Exact package-candidate validation without publication.                                                                                                                   |
 
@@ -175,25 +175,24 @@ Source and packed package candidates accept stable caret dependency minimums, in
 
 The root tooling and website consume Website UI `4.8.0` with the exact Astro `7.2.8` peer. Normal dependency resolution selects these versions without an override.
 
-Run the deterministic boundaries. [Testing](docs/testing.md) owns essential/full classification, focused completion and the manual 1–4 week full cadence:
+Run the skill's deterministic boundaries. [Testing](docs/testing.md) owns essential/full classification, focused completion and the manual 1–4 week full cadence:
 
 ```bash
 npm run portable:check
 npm test
-npm run typecheck
+npm run typecheck:root
 npm run lint
 npm run format:check
 npm run path:check
-npm run docs:check
 ```
 
-Use complete focused `test:unit`/`test:integration` commands for affected root behavior, preparing `runtime:build` only when evaluator qualifications need it. `npm run website:check` covers affected website behavior completely. `npm run test:full` is the explicit complete deterministic suite; the testing guide owns its manual cadence.
+Use complete focused `test:unit`/`test:integration` commands for affected root behavior, preparing `runtime:build` only when evaluator qualifications need it. Run `npm run docs:check` for documentation changes. `npm run website:check` covers affected website behavior completely. `npm run test:full` is the explicit complete deterministic suite; the testing guide owns its manual cadence. Website verification remains independent of skill publication.
 
-Conformance separates root relevance (`root_required`) from suite priority (`test_suite`). Ordinary root-relevant PRs run essential while retaining every existing Linux Node, Windows deep-clone/install, macOS and minimum-Git lane. Presentation-only PRs retain the established shortcut; empty, shared, mixed, unknown and uncertain comparisons require root verification. Tags force full root/portable qualification. Manual full dispatch also selects root verification without publication. Essential skips evaluator runtime/sandbox setup; the full root correctness job keeps its existing 10-minute budget and granular commands. The minimum supported Git remains checksum-pinned Git 2.32. Windows retains supported-unit discovery and deep-path installation checks.
+Conformance separates root relevance (`root_required`) from suite priority (`test_suite`). Root-relevant PRs and tags run essential while retaining every existing Linux Node, Windows deep-clone/install, macOS and minimum-Git lane. Presentation-only PRs retain the established shortcut; empty, shared, mixed, unknown and uncertain comparisons require root verification. Full qualification requires an explicit manual dispatch and selects root verification without publication. Essential skips evaluator runtime/sandbox setup; the full root correctness job keeps its existing 10-minute budget and granular commands. The minimum supported Git remains checksum-pinned Git 2.32. Windows retains supported-unit discovery and deep-path installation checks.
 
-`Conformance result` and `Verify Website` fail on selected-check failures and unexpected skips. Website PR/Pages verification retains documentation, types, lint, formatting and validated fixture/production artifacts without full-only test permutations. Browser suites stay local. PR website verification owns website typechecking; tag conformance retains that check. Pages verification and production build remain independent after shared preflight, and deployment requires both. Tags keep identity-only release checking without prepared semantic evidence or browsers. `typecheck:root` checks root tooling; `typecheck` checks all workspaces.
+`Conformance result` fails on selected-check failures and unexpected skips. Website checks run only within the independent Pages deployment, retaining documentation, types, lint, formatting and validated fixture/production artifacts without full-only test permutations. Browser suites stay local. Website checks and typechecking do not gate PR conformance or skill tags. Pages verification and production build remain independent after shared preflight, and website deployment requires both. Tags keep identity-only release checking without prepared semantic evidence or browsers. `typecheck:root` checks root tooling; `typecheck` checks all workspaces.
 
-`npm test` now runs essential portable/identity/suite guarantees without evaluator or website preparation. `npm run test:full` includes complete root and website units/integrations plus both browser suites. CI selects essential ordinarily and full for tags/explicit full dispatch within its existing root/portable/quality boundary; website browsers remain local. Production `website:build`, `release:check`, and Pages deployment require the semantic evidence selection to be populated and prepared. Development website checks exercise both the clean current catalogs without recorded results and isolated synthetic evidence.
+`npm test` runs essential portable/identity/suite guarantees without evaluator or website preparation. `npm run test:full` includes complete root and website units/integrations plus both browser suites. CI selects essential for ordinary PRs and tags, and full only for explicit full dispatch within its existing root/portable/quality boundary. `release:check` runs portable freshness, essential correctness and release identity/evidence verification without website or evaluator qualification. It retains its prepared-evidence requirement, as do production `website:build` and Pages deployment. Development website checks exercise both the clean current catalogs without recorded results and isolated synthetic evidence.
 
 Specialized workflows have focused operator references:
 

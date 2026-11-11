@@ -67,7 +67,7 @@
     "portable:generate": "node src/portable/generate.ts",
     "resource:calibrate": "node src/resources/calibrate.ts --record --samples 3",
     "resource:check": "node src/resources/calibrate.ts --check",
-    "release:check": "npm run portable:check && npm run test:full && node src/release/check.ts",
+    "release:check": "npm run portable:check && npm test && node src/release/check.ts",
     "release:evidence:pin": "node src/command-line/evidence.ts pin",
     "release:identity:check": "node src/release/check.ts --identity-only",
     "release:update-cli": "node src/release/update-cli.ts",

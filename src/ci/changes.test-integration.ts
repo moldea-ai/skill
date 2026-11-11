@@ -186,7 +186,7 @@ test('real presentation-only relevance stays independent from priority and expli
 
 test.each([
   ['workflow_dispatch', 'branch', 'full', 'full'],
-  ['push', 'tag', 'essential', 'full'],
+  ['push', 'tag', 'essential', 'essential'],
 ] as const)(
   'CLI %s/%s propagates requested %s as %s without a comparison',
   async (eventName, refType, requested, expected) => {

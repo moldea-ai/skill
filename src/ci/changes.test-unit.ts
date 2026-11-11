@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { spawnSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 import { expect, test } from 'vitest';
@@ -84,10 +84,9 @@ test('conformance selects all maintained lanes together and retains tag identity
   expect(
     portableSteps.find(({ name }) => name === 'Install and compare the tagged release source')?.if,
   ).toBe("github.ref_type == 'tag'");
-  expect(
-    conformance.jobs['quality']?.steps?.find(({ name }) => name === 'Typecheck website on tags')
-      ?.if,
-  ).toBe("github.ref_type == 'tag'");
+  expect(conformance.jobs['quality']?.steps?.some(({ run }) => run?.includes('website'))).toBe(
+    false,
+  );
 });
 
 test('Windows and macOS run every portable integration file', () => {
@@ -353,9 +352,10 @@ test('Pages requires selected evidence and successful verification plus build be
 
 test.each([
   [undefined, 'branch', 'essential'],
+  [undefined, 'tag', 'essential'],
   ['essential', 'branch', 'essential'],
   ['full', 'branch', 'full'],
-  ['essential', 'tag', 'full'],
+  ['essential', 'tag', 'essential'],
   ['full', 'tag', 'full'],
 ] as const)(
   'selectCiChecks(%s, %s) -> %s without Git for explicit dispatch/tags',
@@ -431,8 +431,10 @@ test('routine essential preserves every existing OS/runtime lane and selective f
   expect(runs).not.toMatch(/test:full|test:e2e|release:check|evidence:prepare|playwright install/u);
 });
 
-test('website CI retains validators and exact source without full-only permutations', () => {
+test('website checks belong to Pages without a separate PR workflow', () => {
+  expect(existsSync(new URL('../../.github/workflows/website.yml', import.meta.url))).toBe(false);
   const website = readWorkflow('website-checks');
+  expect(Object.keys(website.on ?? {})).toStrictEqual(['workflow_call']);
   const steps = website.jobs['checks']?.steps ?? [];
   expect(steps.find(({ name }) => name === 'Checkout exact caller commit')?.with?.ref).toBe(
     '${{ github.sha }}',

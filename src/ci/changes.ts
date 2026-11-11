@@ -48,7 +48,7 @@ export const classifyChanges = async (comparison: IChangeComparison): Promise<bo
 };
 
 /**
- * Selects correctness priority independently of relevance, forcing full for tags.
+ * Selects the requested correctness priority independently of change relevance.
  * @returns The root relevance and validated essential/full priority.
  * @throws
  * - Expected essential or full and optionally unit, integration, or e2e.
@@ -58,8 +58,7 @@ export const selectCiChecks = async (
   comparison: IChangeComparison,
   requestedSuite?: string,
 ): Promise<ICiSelection> => {
-  const requested = parseTestSuiteArguments([requestedSuite ?? 'essential']).suite;
-  const testSuite = comparison.refType === 'tag' ? 'full' : requested;
+  const testSuite = parseTestSuiteArguments([requestedSuite ?? 'essential']).suite;
   return {
     rootRequired: testSuite === 'full' || (await classifyChanges(comparison)),
     testSuite,

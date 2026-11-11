@@ -97,6 +97,8 @@ Shared conformance keeps its root/portable/quality boundary and excludes website
 
 Standalone `release:check` explicitly runs full correctness before its existing identity/evidence checker and retains its prepared-evidence requirement. Ordinary tags keep `release:identity:check`. No browser/Chromium setup, prepared semantic evidence, local-full attestation, operator approval, release dependency or new main/scheduled workflow is added. Candidate package artifacts and the packages caller's immutable workflow pin remain unchanged.
 
+The Git-dependent journey pack integration compares the committed `HEAD` skill with the materialized `moldea/` files. Full and release qualification therefore require matching committed and materialized skill bytes.
+
 ## Measurement
 
 Record exact source, host/tool versions, commands, preparation and elapsed time, counts, skips, retries/failures and cache conditions. Run the approved essential/full pair on the same source and host with equivalent cold repository caches, preserving developer caches.

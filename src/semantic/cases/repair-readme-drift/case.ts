@@ -47,7 +47,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'restore-only-managed-block',
       criterion:
-        'The only README change restores the missing blank line immediately after the managed start marker, and existing canonical files remain unchanged.',
+        'The only README change restores the canonical statement that project knowledge is kept in Git instead of outside Git, and existing canonical files remain unchanged.',
     },
     {
       label: 'verify-repaired-adoption',

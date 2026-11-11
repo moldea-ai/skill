@@ -2,7 +2,12 @@ import { lstat } from 'node:fs/promises';
 import { basename, isAbsolute, join, resolve } from 'node:path';
 import { getErrorCode } from 'jg-exception';
 import { ERRORS as FS_ERRORS, readBoundedFile, writeFileAtomicIfUnchanged } from 'jg-fs';
-import { ERRORS as UTILITY_ERRORS, findMarkedRegion, upsertMarkedRegion } from 'jg-utilities';
+import {
+  ERRORS as UTILITY_ERRORS,
+  findMarkedRegion,
+  upsertMarkedRegion,
+  type IMarkedRegion,
+} from 'jg-utilities';
 
 import type { IManagedFileName, IManagedWriteTargetResolver } from './types.ts';
 
@@ -11,6 +16,40 @@ const MAX_MANAGED_BLOCK_BYTES = 4 * 1024;
 const START_MARKER = '<!-- moldea:start -->';
 const END_MARKER = '<!-- moldea:end -->';
 const MARKERS = { start: START_MARKER, end: END_MARKER };
+
+/** Finds one unambiguous managed region, retaining original offsets and marker line endings. */
+const findManagedBlockRegion = (text: string): IMarkedRegion | null => {
+  const region = findMarkedRegion(
+    text.replace(/(<!-- moldea:(?:start|end) -->)[ \t]+(?=\r?$)/gmu, '$1'),
+    MARKERS,
+  );
+  if (region === null) return null;
+  // validation used normalized marker lines; slice and replace only original document bytes
+  const start = text.indexOf(START_MARKER);
+  const closingLineBreak = text.indexOf('\n', text.indexOf(END_MARKER));
+  return {
+    start,
+    end: closingLineBreak === -1 ? text.length : closingLineBreak + 1,
+    lineEnding: region.lineEnding,
+  };
+};
+
+/** Removes only managed-envelope formatting differences, preserving all instruction content. */
+const normalizeManagedBlock = (text: string): string => {
+  const normalized = text
+    .replaceAll('\r\n', '\n')
+    .replace(/(<!-- moldea:(?:start|end) -->)[ \t]+(?=\n|$)/gu, '$1');
+  if (
+    !normalized.startsWith(`${START_MARKER}\n`) ||
+    !(normalized.endsWith(END_MARKER) || normalized.endsWith(`${END_MARKER}\n`))
+  )
+    return normalized;
+  let start = START_MARKER.length;
+  let end = normalized.lastIndexOf(END_MARKER);
+  while (start < end && normalized[start] === '\n') start++;
+  while (end > start && normalized[end - 1] === '\n') end--;
+  return `${START_MARKER}\n${normalized.slice(start, end)}\n${END_MARKER}`;
+};
 
 /** Decodes strict UTF-8, keeping a byte order mark so encoding the text gives the same bytes. */
 const decodeUtf8 = (bytes: Uint8Array, description: string): string => {
@@ -104,7 +143,7 @@ export const assertManagedBlock: (
 };
 
 /**
- * Returns whether document bytes contain exactly the canonical logical region.
+ * Returns whether the managed region's instructions match the canonical block.
  * @param {Buffer} documentBytes The bounded document bytes.
  * @param {string} block The canonical block text.
  * @returns {boolean} Whether the canonical region is present.
@@ -121,11 +160,11 @@ export const hasManagedBlock = (
       fileName === 'README.md',
     );
     const text = decodeDocument(documentBytes, fileName);
-    const region = findMarkedRegion(text, MARKERS);
+    const region = findManagedBlockRegion(text);
 
     return (
       region !== null &&
-      text.slice(region.start, region.end) === block.replaceAll('\n', region.lineEnding)
+      normalizeManagedBlock(text.slice(region.start, region.end)) === normalizeManagedBlock(block)
     );
   } catch {
     return false;
@@ -149,8 +188,21 @@ export const createManagedBlockBytes = (
     fileName === 'README.md',
   );
   const text = decodeDocument(documentBytes, fileName);
+  const region = withDocumentMarkers(fileName, () => {
+    findMarkedRegion(block, MARKERS);
+    return findManagedBlockRegion(text);
+  });
+  if (
+    region !== null &&
+    normalizeManagedBlock(text.slice(region.start, region.end)) === normalizeManagedBlock(block)
+  )
+    return documentBytes;
   const updatedBytes = Buffer.from(
-    withDocumentMarkers(fileName, () => upsertMarkedRegion(text, block, MARKERS)),
+    region === null
+      ? upsertMarkedRegion(text, block, MARKERS)
+      : text.slice(0, region.start) +
+          block.replaceAll('\n', region.lineEnding) +
+          text.slice(region.end),
     'utf8',
   );
 

@@ -260,6 +260,18 @@ Publication also updates Website UI to `4.5.3` for unsupported-code-fence fallba
 
 For 10.0.3 only, the maintainer explicitly accepted this historical evidence and replaces the launch plan's zero-failed-case, zero-exclusion and no-confirmed-evaluator-defect gates with this disclosed selection. This does not authorize another exclusion, relaxed criterion or limit, model call, or future release exception. The website presents the source observations with their original identities and dates as historical selection, not exact current-artifact assurance.
 
+## Skill 10.0.4 evidence reuse
+
+Skill 10.0.4 retains the exact semantic and scripted-journey selections from Skill 10.0.3 in `evidence/selection.json`. The semantic selection remains `semantic-sem-20261026014206661-66a3ed7e.json.gz` under `evidence-10.0.3-20261026`, with compressed SHA-256 `fa6062bbad4512a4297d6bba711cbd435ea5c1a7638075fbfd21be2709b49c75`. The journeys selection remains `journeys-20261013-da9709.json.gz` under `evidence-journeys-20261013-da9709`, with compressed SHA-256 `96de16e7646e54a17958040125b1b8da225298e28fc4f54e7865c0ede3d9f8d5`. Original versions, dates, observations, verdicts and provenance remain unchanged. No semantic evaluation, provider journey or regrading is run.
+
+For 10.0.4 only, the maintainer's instruction, “we pin the evidence to the current version”, separately accepts this disclosed selection and replaces the launch plan's zero-failed-case, zero-exclusion and no-confirmed-evaluator-defect gates. This is a new release-specific decision; the 10.0.3-only exception above remains unchanged. The selection retains 142 final cases: 134 passed, eight recovered and zero failed final cases. Its 160 retained trials include ten failed trials. `repair-unproven-adoption` remains the sole exclusion, and the recorded evaluator defects and limitations described above remain disclosed. No trial, criterion, resource limit, exclusion or verdict is changed. This decision authorizes no further exclusion, model call or future-release exception and supplies no exact current-artifact model assurance.
+
+The patch tolerates LF/CRLF differences, an optional final line break, empty lines immediately inside managed markers, and trailing spaces or tabs on marker lines. Equivalent documents remain byte-identical; instruction text, internal whitespace and malformed-marker checks remain exact. CLI `13.0.3` requires Core `^9.1.1` so installed validation receives the same correction. Deterministic regression and release checks provide the new verification.
+
+The current `damaged-setup-validation` and `repair-readme-drift` fixtures now change the managed README statement from keeping project knowledge in Git to keeping it outside Git, preserving canonical marker formatting. Their directly dependent descriptions and criteria follow that instruction drift. Deterministic calibration checks adoption, read-only preservation, actual repair and idempotence. This current-case correction changes no selected historical record and provides no new model assurance.
+
+Release qualification also corrects the website's action-count expectation and coding-agent screenshot baselines for its existing video layout, and fixes a Bubblewrap startup cancellation race in development tooling. These corrections change no distributed instructions, model settings, resource profiles or selected historical evidence.
+
 ## Check a release
 
 ```bash

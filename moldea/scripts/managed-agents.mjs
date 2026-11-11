@@ -3203,6 +3203,34 @@ var MAX_MANAGED_BLOCK_BYTES = 4 * 1024;
 var START_MARKER = "<!-- moldea:start -->";
 var END_MARKER = "<!-- moldea:end -->";
 var MARKERS = { start: START_MARKER, end: END_MARKER };
+var findManagedBlockRegion = (text) => {
+  const region = findMarkedRegion(
+    text.replace(/(<!-- moldea:(?:start|end) -->)[ \t]+(?=\r?$)/gmu, "$1"),
+    MARKERS
+  );
+  if (region === null) return null;
+  const start = text.indexOf(START_MARKER);
+  const closingLineBreak = text.indexOf("\n", text.indexOf(END_MARKER));
+  return {
+    start,
+    end: closingLineBreak === -1 ? text.length : closingLineBreak + 1,
+    lineEnding: region.lineEnding
+  };
+};
+var normalizeManagedBlock = (text) => {
+  const normalized = text.replaceAll("\r\n", "\n").replace(/(<!-- moldea:(?:start|end) -->)[ \t]+(?=\n|$)/gu, "$1");
+  if (!normalized.startsWith(`${START_MARKER}
+`) || !(normalized.endsWith(END_MARKER) || normalized.endsWith(`${END_MARKER}
+`)))
+    return normalized;
+  let start = START_MARKER.length;
+  let end = normalized.lastIndexOf(END_MARKER);
+  while (start < end && normalized[start] === "\n") start++;
+  while (end > start && normalized[end - 1] === "\n") end--;
+  return `${START_MARKER}
+${normalized.slice(start, end)}
+${END_MARKER}`;
+};
 var decodeUtf8 = (bytes, description) => {
   try {
     return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes);
@@ -3261,8 +3289,14 @@ var createManagedBlockBytes = (documentBytes, block, fileName = "README.md") => 
     fileName === "README.md"
   );
   const text = decodeDocument(documentBytes, fileName);
+  const region = withDocumentMarkers(fileName, () => {
+    findMarkedRegion(block, MARKERS);
+    return findManagedBlockRegion(text);
+  });
+  if (region !== null && normalizeManagedBlock(text.slice(region.start, region.end)) === normalizeManagedBlock(block))
+    return documentBytes;
   const updatedBytes = Buffer.from(
-    withDocumentMarkers(fileName, () => upsertMarkedRegion(text, block, MARKERS)),
+    region === null ? upsertMarkedRegion(text, block, MARKERS) : text.slice(0, region.start) + block.replaceAll("\n", region.lineEnding) + text.slice(region.end),
     "utf8"
   );
   if (updatedBytes.length > MAX_DOCUMENT_BYTES) {

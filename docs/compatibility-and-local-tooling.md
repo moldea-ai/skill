@@ -8,20 +8,20 @@ order: 180
 
 # Compatibility and local tooling
 
-Release `10.0.5` retains the `10.0.3` compatibility contract:
+Release `10.1.0` supports:
 
 - Git `>=2.32.0`
 - Node.js `>=22.17.0`
-- stable `@moldea.ai/core` releases satisfying `^9.0.0`
-- stable `@moldea.ai/cli` releases satisfying `^13.0.0`
+- stable `@moldea.ai/core` releases satisfying `^9.2.0`
+- stable `@moldea.ai/cli` releases satisfying `^13.0.4`
 - repository format version 1
 - CLI JSON schema 7
 
-The CLI is a repository-root-local development dependency. Its declaration and installed stable version must satisfy `^13.0.0`; compatible CLI 13 patches and minors do not require a skill release. Installed Core must satisfy both the CLI's declared Core range and `moldea`'s supported `^9.0.0` range. Other CLI majors, prereleases, malformed declarations, incompatible installed versions, and incompatible Core versions fail closed. The skill never selects a global CLI, runs a transient download, or searches unrelated workspaces for a provider.
+The CLI is a repository-root-local development dependency. Its declaration and installed stable version must satisfy `^13.0.4`; compatible CLI 13 patches and minors do not require a skill release. Installed Core must satisfy both the CLI's declared Core range and `moldea`'s supported `^9.2.0` range. Other CLI majors, prereleases, malformed declarations, incompatible installed versions, and incompatible Core versions fail closed. The skill never selects a global CLI, runs a transient download, or searches unrelated workspaces for a provider.
 
-The repair target is CLI `13.0.3`. Its locked closure resolves Core `9.1.1`, Repository/Repository FS `4.0.1`, Git helpers `0.4.0`, Process `1.6.2`, Exception `1.7.1` and Utilities `1.7.2`. These dependency updates preserve the supported ranges and JSON schema; earlier model observations do not verify this closure.
+The repair target is CLI `13.0.4`. Its locked closure resolves Core `9.2.0`, Repository/Repository FS `4.0.1`, Git helpers `0.4.0`, Process `1.6.2`, Exception `1.7.1` and Utilities `1.7.2`. These supported minimums require the YAML diagnostic-location capability and preserve JSON schema 7; earlier model observations do not verify this closure.
 
-Updating the skill does not update a project's CLI. Explicit repair or a package-manager update to CLI `13.0.3` installs the Core formatting correction and clears cosmetic managed-block warnings. Supported CLI releases `13.0.0` through `13.0.2` can still report those warnings.
+Updating the skill does not update a project's CLI. Explicit repair or a package-manager update to CLI `13.0.4` installs Core 9.2.0 and its YAML diagnostic locations.
 
 ## Tooling ownership
 

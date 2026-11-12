@@ -336,6 +336,7 @@ test('updateCliRelease preserves the supported Core range when the CLI minimum r
   const temporaryRoot = createTemporaryReleaseRoot();
   const initialIdentity = readReleaseIdentity(REPOSITORY_ROOT);
   const coreMajor = Number(initialIdentity.coreVersion.split('.')[0]);
+  const nextCoreVersion = `${coreMajor}.${Number(initialIdentity.coreVersion.split('.')[1]) + 1}.0`;
   const semanticCliManifestPath = join(temporaryRoot, RELEASE_PATHS.semanticCliManifest);
   const semanticCliManifest = JSON.parse(readFileSync(semanticCliManifestPath, 'utf8')) as {
     dependencies: Record<string, string>;
@@ -352,8 +353,8 @@ test('updateCliRelease preserves the supported Core range when the CLI minimum r
   assert.ok(lockedCli?.dependencies && lockedCore);
   semanticCliManifest.dependencies['@moldea.ai/core'] = initialIdentity.coreVersionRange;
   lockedCli.dependencies['@moldea.ai/core'] = initialIdentity.coreVersionRange;
-  lockedCore.version = `${coreMajor}.1.0`;
-  lockedCore.integrity = `sha512-${coreMajor}.1.0`;
+  lockedCore.version = nextCoreVersion;
+  lockedCore.integrity = `sha512-${nextCoreVersion}`;
   writeFileSync(semanticCliManifestPath, `${JSON.stringify(semanticCliManifest, null, 2)}\n`);
   writeFileSync(packageLockPath, `${JSON.stringify(packageLock, null, 2)}\n`);
 
@@ -362,7 +363,7 @@ test('updateCliRelease preserves the supported Core range when the CLI minimum r
     const currentIdentity = readReleaseIdentity(temporaryRoot);
     const cliDependencies = {
       ...currentIdentity.cliDependencies,
-      '@moldea.ai/core': `^${coreMajor}.1.0`,
+      '@moldea.ai/core': `^${nextCoreVersion}`,
     };
 
     const identity = await updateCliRelease({
@@ -377,7 +378,7 @@ test('updateCliRelease preserves the supported Core range when the CLI minimum r
       installDependencies: installSyntheticDependencies,
     });
 
-    assert.equal(identity.cliCoreVersionRange, `^${coreMajor}.1.0`);
+    assert.equal(identity.cliCoreVersionRange, `^${nextCoreVersion}`);
     assert.equal(identity.coreVersionRange, currentIdentity.coreVersionRange);
     assert.deepEqual(inspectReleaseIdentity(temporaryRoot), []);
     assert.ok(

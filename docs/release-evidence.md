@@ -284,6 +284,12 @@ The release changes how explicit repair reports and continues a large repair. Ea
 
 The release sentence in `moldea/references/local-tooling.md` names 10.0.5, matching `metadata.version`; Skill 10.0.4 shipped it naming 10.0.3. Deterministic release checks provide the verification for this release.
 
+## Skill 10.1.0 evidence reuse
+
+Skill 10.1.0 retains the exact semantic and scripted-journey selections from Skill 10.0.3 in `evidence/selection.json`. The approved structural-finding plan selects this historical evidence for 10.1.0 and accepts its disclosed scope, failed trials, exclusion and evaluator limitations. The [10.0.3 qualification](#skill-1003-evidence-reuse) remains authoritative for those observations. Original versions, dates, verdicts, artifact identities and provenance remain unchanged. No semantic evaluation, provider journey, regrading or new exclusion is performed; this selection supplies no exact current-artifact model assurance.
+
+The release targets CLI `13.0.4` and Core `9.2.0`, raising the supported minimums to `^13.0.4` and `^9.2.0`. Core supplies authored YAML locations for pointer-addressed manifest and decision diagnostics, including cross-file findings and unmatched acceptances. Locked tooling, generated portable scripts, current conformance fixtures, release identity and installation checks provide the new deterministic verification.
+
 ## Check a release
 
 ```bash

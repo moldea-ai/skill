@@ -35,7 +35,7 @@ The skill helps a coding agent:
 - keep affected canonical knowledge aligned with implementation work
 - evaluate, reconcile, repair, and structurally validate established state
 
-After initialization, ask naturally to plan, build, review, or maintain AI agents, including model instructions and responsibilities in one-shot calls and workflows. Established project facts, approved policies, clear corrections, and project-context questions also receive bounded assessment without naming `moldea` or a file. Ordinary implementation requirements still use declared relationships, even when their effects will persist. When ordinary work expands to newly discovered paths, the coding agent checks those paths once at an existing scope checkpoint and preserves earlier matched owners. Only explicit initialization creates a new setup.
+After initialization, ask naturally to plan, build, review, or maintain runtime agents, including model instructions and responsibilities in one-shot calls and workflows. Established project facts, approved policies, clear corrections, and project-context questions also receive bounded assessment without naming `moldea` or a file. Ordinary implementation requirements still use declared relationships, even when their effects will persist. When ordinary work expands to newly discovered paths, the coding agent checks those paths once at an existing scope checkpoint and preserves earlier matched owners. Only explicit initialization creates a new setup.
 
 ### Common requests
 

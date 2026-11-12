@@ -4,7 +4,7 @@
 
 [Get moldea on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or read the complete documentation at [skill.moldea.ai](https://skill.moldea.ai).
 
-This checkout contains `moldea` `10.0.5`. Install the latest published version from `main` inside each repository that will use it:
+This checkout contains `moldea` `10.1.0`. Install the latest published version from `main` inside each repository that will use it:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -13,12 +13,12 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the immutable release after publication:
 
 ```bash
-npx skills add "moldea-ai/skill#v10.0.5"
+npx skills add "moldea-ai/skill#v10.1.0"
 ```
 
 Both commands install the portable skill named `moldea`. They do not install the CLI globally or require a hosted account. See the [Setup reference](docs/getting-started.md) for initialization, updates, and removal.
 
-Updating the skill does not update a project's CLI. To receive the managed-block formatting correction, request explicit moldea repair or update the project's CLI development dependency to `13.0.3` through its package manager.
+Updating the skill does not update a project's CLI. Request explicit moldea repair or update the project's CLI development dependency to `13.0.4` through its package manager to receive YAML diagnostic locations.
 
 ## What `moldea` is
 
@@ -75,12 +75,12 @@ Evaluation is read-only. Repair checks every owner, its material implementation 
 
 ## Compatibility
 
-Release `10.0.5` supports exactly:
+Release `10.1.0` supports exactly:
 
 - Git `>=2.32.0`
 - Node.js `>=22.17.0`
-- stable `@moldea.ai/core` releases satisfying `^9.0.0`
-- stable `@moldea.ai/cli` releases satisfying `^13.0.0`
+- stable `@moldea.ai/core` releases satisfying `^9.2.0`
+- stable `@moldea.ai/cli` releases satisfying `^13.0.4`
 - repository format version 1
 - CLI JSON schema 7
 
@@ -222,6 +222,8 @@ Release 10.0.3 selects 142 historical cases: 134 passed and eight recovered, wit
 Release 10.0.4 fixes cosmetic managed-block warnings and preserves equivalent AGENTS.md and README bytes. It also disables automatic Git index refresh for reads in the repair helper and managed AGENTS.md writer (`diff.autoRefreshIndex=false`). It targets CLI 13.0.3 and Core 9.1.1, retaining the exact 10.0.3 historical evidence selection by maintainer decision. No semantic evaluation or provider journey is run for this patch; see [the 10.0.4 evidence reuse](docs/release-evidence.md#skill-1004-evidence-reuse).
 
 Release 10.0.5 guides large repairs through rounds in the same conversation: each round reports its progress, the files it changed and what remains, then offers numbered next steps, and committing between rounds is optional. Repair and initialization instructions omit the model-token limit that the coding agent cannot measure. The local-tooling reference's release sentence matches the skill version again. The exact 10.0.3 historical evidence selection is retained by maintainer decision, and no semantic evaluation or provider journey is run; see [the 10.0.5 evidence reuse](docs/release-evidence.md#skill-1005-evidence-reuse).
+
+Release 10.1.0 targets CLI 13.0.4 and Core 9.2.0, with supported minimums `^13.0.4` and `^9.2.0`. Core supplies authored YAML locations for pointer-addressed structural diagnostics, including cross-file findings and unmatched acceptances. The selected 10.0.3 historical evidence remains unchanged by maintainer decision; no semantic evaluation or provider journey is run. See [the 10.1.0 evidence reuse](docs/release-evidence.md#skill-1010-evidence-reuse).
 
 ## License
 

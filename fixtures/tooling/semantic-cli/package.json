@@ -5,7 +5,7 @@
     "jg-process": "1.6.2",
     "jg-exception": "1.7.1",
     "jg-utilities": "1.7.2",
-    "@moldea.ai/core": "^9.1.1",
+    "@moldea.ai/core": "^9.2.0",
     "jg-git-commands": "0.4.0",
     "@moldea.ai/repository": "^4.0.0",
     "@moldea.ai/repository-fs": "^4.0.0"
@@ -13,7 +13,7 @@
   "moldeaRelease": {
     "cliJsonSchemaVersion": 7
   },
-  "version": "13.0.3",
+  "version": "13.0.4",
   "name": "@moldea.ai/cli",
   "private": true,
   "bin": {

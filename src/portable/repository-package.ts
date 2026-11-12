@@ -17,8 +17,8 @@ export interface IResolvedRepositoryCli {
 }
 
 // package identities accepted by this portable skill release
-export const EXPECTED_CLI_RANGE = '^13.0.0';
-export const SUPPORTED_CORE_RANGE = '^9.0.0';
+export const EXPECTED_CLI_RANGE = '^13.0.4';
+export const SUPPORTED_CORE_RANGE = '^9.2.0';
 
 const MAXIMUM_PACKAGE_MANIFEST_BYTES = 65_536;
 const utf8Decoder = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true });

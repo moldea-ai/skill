@@ -11,6 +11,48 @@ const recordedPath = withBase(
   process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH,
 );
 
+for (const width of [320, 375, 1440]) {
+  for (const colorScheme of ['light', 'dark'] as const) {
+    test(`keeps the initial project view stable while scripts load at ${width}px in ${colorScheme}`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' });
+      let releaseScripts!: () => void;
+      const scriptsReady = new Promise<void>((resolve) => {
+        releaseScripts = resolve;
+      });
+      await page.route('**/*', async (route) => {
+        if (route.request().resourceType() === 'script') await scriptsReady;
+        await route.continue();
+      });
+      try {
+        await page.goto(recordedPath, { waitUntil: 'commit' });
+        await expect(page.getByRole('navigation', { name: 'Project views' })).toHaveCSS(
+          'display',
+          'flex',
+        );
+        await expect(page.locator('[data-tabbed-panel]')).toHaveCount(2);
+        await expect(page.locator('[data-tabbed-panel]:visible')).toHaveCount(1);
+        await expect(page.getByRole('region', { name: 'Conversation', exact: true })).toBeVisible();
+      } finally {
+        releaseScripts();
+        await page.waitForLoadState('load');
+        await page.unrouteAll({ behavior: 'wait' });
+      }
+      await expect(page.getByRole('tabpanel', { name: 'Conversation', exact: true })).toBeVisible();
+      const record = page.getByRole('tab', { name: 'Project record', exact: true });
+      await record.click();
+      await expect(
+        page.getByRole('tabpanel', { name: 'Project record', exact: true }),
+      ).toBeVisible();
+      await record.press('Home');
+      await expect(page.getByRole('tab', { name: 'Conversation', exact: true })).toBeFocused();
+      await expect(page.getByRole('tabpanel', { name: 'Conversation', exact: true })).toBeVisible();
+    });
+  }
+}
+
 test('shows attempted patch targets without presenting a failed tool result as success', async ({
   page,
 }) => {

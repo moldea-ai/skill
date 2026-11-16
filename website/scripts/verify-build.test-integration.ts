@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { describe, expect, test } from 'vitest';
+import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import { createCanonicalUrl, DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
@@ -26,11 +26,34 @@ import {
 } from '../src/lib/site/constants.ts';
 import { verifyProductionBuild } from './verify-build.ts';
 
+// alter one HTML input for refusal checks while keeping real artifact reads and verifier wiring
+vi.mock('node:fs', { spy: true });
+const realFs = await vi.importActual<{ readFileSync: typeof readFileSync }>('node:fs');
+
 const getDistPath = (...pathSegments: string[]): string => {
   return join(getRepositoryRoot(), 'website/dist', ...pathSegments);
 };
 
 const getTitle = (html: string): string => /<title>([^<]+)<\/title>/u.exec(html)?.[1] ?? '';
+
+describe('same-tab video fallback guards', () => {
+  afterEach(() => vi.mocked(readFileSync).mockImplementation(realFs.readFileSync).mockClear());
+
+  test.each([
+    ['data-youtube-dialog-fallback', 'data-unmarked-fallback'],
+    ['https://www.youtube.com/watch?v=', 'https://example.com/watch?v='],
+  ])('rejects a video fallback with altered %s', (original, replacement) => {
+    const path = getDistPath('index.html');
+    const homepage = realFs.readFileSync(path, 'utf8');
+    expect(homepage).toContain(original);
+    vi.mocked(readFileSync).mockImplementation((file, options) =>
+      file === path && options === 'utf8'
+        ? homepage.replaceAll(original, replacement)
+        : realFs.readFileSync(file, options),
+    );
+    expect(() => verifyProductionBuild()).toThrow('external link without safe new-tab behavior');
+  });
+});
 
 // structured breadcrumb fields emitted by the repository-owned layout
 interface IStructuredBreadcrumbItem {
@@ -439,8 +462,13 @@ test('publishes bounded journey overviews, conversation previews, and every sour
       getDistPath(`evidence/journeys/${page === 1 ? '' : `page/${page}/`}index.html`),
       'utf8',
     );
+    const journeysOnPage = getJourneysPage(model, page);
+    expect([...html.matchAll(/<div\b[^>]*\sdata-journey-launcher(?:\s|=|>)/gu)]).toHaveLength(
+      journeysOnPage.length,
+    );
+    // each bounded row has matching native-link and dialog-trigger presentations
     expect([...html.matchAll(/data-journey-outcome=/gu)]).toHaveLength(
-      getJourneysPage(model, page).length * Object.keys(JOURNEY_PLATFORM_LABELS).length,
+      journeysOnPage.length * Object.keys(JOURNEY_PLATFORM_LABELS).length * 2,
     );
     const summary = /<p\b[^>]*data-journey-catalog-counts[^>]*>([\s\S]*?)<\/p>/u.exec(html)?.[1];
     expect(summary?.trim()).toBe(

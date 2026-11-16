@@ -47,20 +47,21 @@ const runLabel = (label: string) =>
     </div>
     {
       runs.length > 1 && (
-        <div class="flex items-center gap-2">
+        <div
+          class="flex items-center gap-2"
+          data-run-controls
+        >
           <label
             for={`${id}-run`}
             class="text-xs font-medium"
-            data-run-select-label
-            hidden
           >
             Show
           </label>
           <select
             id={`${id}-run`}
-            class="min-h-10 max-w-full rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            class="min-h-10 max-w-full rounded-md border border-border bg-background px-3 text-base focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring pointer-fine:text-sm"
             data-journey-run-select
-            hidden
+            disabled
           >
             {runs.map((run) => (
               <option value={run.trialId}>{runLabel(run.label)}</option>
@@ -71,9 +72,10 @@ const runLabel = (label: string) =>
     }
   </div>
   {
-    runs.map((run) => (
+    runs.map((run, index) => (
       <section
         data-journey-run={run.trialId}
+        data-journey-initial-run={index === 0 ? '' : undefined}
         aria-label={runLabel(run.label)}
         class="min-w-0"
       >
@@ -112,3 +114,24 @@ const runLabel = (label: string) =>
     ))
   }
 </div>
+
+<style>
+  [data-run-controls] {
+    display: none;
+  }
+
+  @media (scripting: enabled) {
+    [data-run-controls] {
+      display: flex;
+    }
+
+    [data-journey-trials]:not([data-runs-ready='true']) [data-run-controls] {
+      visibility: hidden;
+    }
+
+    [data-journey-trials]:not([data-runs-ready='true'])
+      > [data-journey-run]:not([data-journey-initial-run]) {
+      display: none;
+    }
+  }
+</style>

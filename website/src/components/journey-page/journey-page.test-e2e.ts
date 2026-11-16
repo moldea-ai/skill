@@ -6,6 +6,45 @@ const toPublicPath = (route: string) =>
   withBase(route, process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH);
 const route = toPublicPath('/evidence/journeys/initialize/');
 
+test('keeps the first recorded run and select space stable at first paint', async ({ page }) => {
+  let releaseScripts!: () => void;
+  const scriptsReady = new Promise<void>((resolve) => {
+    releaseScripts = resolve;
+  });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.route('**/_astro/*.js', async (request) => {
+    await scriptsReady;
+    await request.continue();
+  });
+  try {
+    await page.goto(toPublicPath('/evidence/journeys/recovered/'), { waitUntil: 'commit' });
+    const provider = page.locator('[data-journey-provider="claude"]');
+    await expect
+      .poll(() =>
+        page.evaluate(() =>
+          [...document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]')].every(
+            (link) => link.sheet !== null,
+          ),
+        ),
+      )
+      .toBe(true);
+    await expect(provider.locator('[data-journey-run]:visible')).toHaveCount(1);
+    await expect(provider.locator('[data-journey-run]').first()).toBeVisible();
+    await page.evaluate(() => document.fonts.ready);
+    const before = await provider.locator('[data-journey-trials]').boundingBox();
+    releaseScripts();
+    await page.waitForLoadState('load');
+    await expect(provider.getByLabel('Show', { exact: true })).toBeEnabled();
+    const after = await provider.locator('[data-journey-trials]').boundingBox();
+    expect(after!.height).toBeCloseTo(before!.height, 0);
+    await provider.getByLabel('Show', { exact: true }).selectOption({ label: 'Repeat 1' });
+    await expect(provider.locator('[data-journey-run]:visible')).toHaveCount(1);
+    await expect(provider.locator('[data-journey-run]').nth(1)).toBeVisible();
+  } finally {
+    releaseScripts();
+  }
+});
+
 test('shows exact requests and replies with file changes and separate local checks', async ({
   page,
 }) => {

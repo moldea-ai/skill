@@ -10,10 +10,10 @@ export const initializeJourneyViewers = (document: Document, signal: AbortSignal
       const update = () => {
         for (const run of runs) run.hidden = run.dataset['journeyRun'] !== select.value;
       };
-      select.hidden = false;
-      group.querySelector<HTMLElement>('[data-run-select-label]')!.hidden = false;
       select.addEventListener('change', update, { signal });
       update();
+      select.disabled = false;
+      group.dataset['runsReady'] = 'true';
     }
   };
   const selectAvailableProvider = (viewer: HTMLElement) => {
@@ -91,6 +91,14 @@ export const initializeJourneyViewers = (document: Document, signal: AbortSignal
         viewer.removeAttribute('aria-busy');
       },
       { signal },
+    );
+    launcher.dataset['journeyReady'] = 'true';
+    signal.addEventListener(
+      'abort',
+      () => {
+        delete launcher.dataset['journeyReady'];
+      },
+      { once: true },
     );
   }
 };

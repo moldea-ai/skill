@@ -6,6 +6,98 @@ const toPublicPath = (route: string) =>
   withBase(route, process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH);
 const route = toPublicPath('/evidence/journeys/');
 
+for (const marker of ['[data-journey-launcher]', '[data-dialog-open]']) {
+  for (const failScript of [false, true]) {
+    test(`keeps journey first paint stable while ${marker} ${failScript ? 'fails' : 'loads'}`, async ({
+      page,
+    }) => {
+      let releaseScript!: () => void;
+      const scriptReady = new Promise<void>((resolve) => {
+        releaseScript = resolve;
+      });
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      let journeyScript = '';
+      await page.route('**/__journey-controller.js', async (request) => {
+        if (marker === '[data-journey-launcher]') {
+          await scriptReady;
+          if (failScript) {
+            await request.abort();
+            return;
+          }
+        }
+        await request.fulfill({ contentType: 'text/javascript', body: journeyScript });
+      });
+      await page.route('**/evidence/journeys/', async (request) => {
+        const response = await request.fetch();
+        // Astro inlines this small module; serve its real emitted body separately to control arrival.
+        const body = (await response.text())
+          .replace(
+            /<script\b[^>]*type="module"[^>]*>([\s\S]*?)<\/script>/gu,
+            (tag, source: string) => {
+              if (!source.includes('[data-journey-launcher]')) return tag;
+              journeyScript = source;
+              return '<script type="module" src="/__journey-controller.js"></script>';
+            },
+          )
+          .replaceAll('type="module"', 'type="module" async');
+        await request.fulfill({ response, body });
+      });
+      await page.route('**/_astro/*.js', async (request) => {
+        const response = await request.fetch();
+        const body = await response.text();
+        if (body.includes(marker)) {
+          await scriptReady;
+          if (failScript) {
+            await request.abort();
+            return;
+          }
+        }
+        await request.fulfill({ response, body });
+      });
+      try {
+        await page.goto(route, { waitUntil: 'commit' });
+        const name = 'Open Initialize and validate results';
+        const link = page.getByRole('link', { name, exact: true });
+        const launcher = page.locator('[data-journey-launcher]').filter({ has: link });
+        if (marker === '[data-journey-launcher]')
+          await expect(launcher.locator('[data-dialog-root]')).toHaveAttribute(
+            'data-enhanced',
+            'true',
+          );
+        else await expect(launcher).toHaveAttribute('data-journey-ready', 'true');
+        await expect(link).toBeVisible();
+        await expect(link).toHaveAttribute('href', toPublicPath('/evidence/journeys/initialize/'));
+        await expect(link).toContainText('2 requests');
+        await expect(link).toHaveCSS('display', 'inline-flex');
+        await page.evaluate(() => document.fonts.ready);
+        const before = await link.boundingBox();
+        releaseScript();
+        await page.waitForLoadState('load');
+        if (failScript) {
+          await expect(link).toBeVisible();
+          await link.click();
+          await expect(page).toHaveURL(
+            new RegExp(`${toPublicPath('/evidence/journeys/initialize/')}$`, 'u'),
+          );
+          return;
+        }
+        const trigger = page.getByRole('button', { name, exact: true });
+        await expect(trigger).toBeVisible();
+        const after = await trigger.boundingBox();
+        expect(after!.width).toBeCloseTo(before!.width, 0);
+        expect(after!.height).toBeCloseTo(before!.height, 0);
+        await trigger.click();
+        const dialog = page.getByRole('dialog', { name: 'Initialize and validate', exact: true });
+        await expect(
+          dialog.getByText('Initialize moldea.', { exact: true }).filter({ visible: true }),
+        ).toBeVisible();
+      } finally {
+        releaseScript();
+      }
+    });
+  }
+}
+
 test('distinguishes current catalog requests from provider coverage and earlier-only rows', async ({
   page,
 }) => {
@@ -290,7 +382,7 @@ test('keeps direct journey links usable without JavaScript', async ({ browser })
     const page = await context.newPage();
     await page.goto(route);
     await page
-      .getByRole('link', { name: 'Initialize and validate Open conversation', exact: true })
+      .getByRole('link', { name: 'Open Initialize and validate results', exact: true })
       .click();
     await expect(page).toHaveURL(toPublicPath('/evidence/journeys/initialize/'));
     await expect(page.locator('[data-journey-request]').first()).toHaveText('Initialize moldea.');

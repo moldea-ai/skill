@@ -332,7 +332,9 @@ test('uses the shared primary action interaction states across public surfaces',
     for (const [route, expectedActionCount] of routesWithExpectedActionCounts) {
       await page.goto(toPublicPath(route));
 
-      const primaryActions = page.locator('.action-control.action-primary');
+      const primaryActions = page.locator(
+        '.action-control.action-primary:not([data-youtube-dialog-fallback])',
+      );
       await expect(primaryActions).toHaveCount(expectedActionCount);
     }
 

@@ -871,7 +871,9 @@ test.describe('video walkthrough', () => {
               () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
             ),
           ).toBe(true);
-          await expect(page.getByRole('link', { name: /Watch on YouTube/u })).toHaveCount(0);
+          await expect(
+            page.getByRole('link', { name: walkthrough.triggerLabel, exact: true }),
+          ).toHaveCount(0);
           const accessibility = await new AxeBuilder({ page })
             .include('dialog[open]')
             .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
@@ -1004,7 +1006,7 @@ test.describe('video walkthrough', () => {
     test(`keeps ${walkthrough.triggerLabel} available on YouTube`, async ({ page }) => {
       await page.goto(toPublicPath(walkthrough.route));
       const fallback = page.getByRole('link', {
-        name: `${walkthrough.title}: Watch on YouTube (opens in a new tab)`,
+        name: walkthrough.triggerLabel,
         exact: true,
       });
       await expect(fallback).toBeVisible();
@@ -1012,7 +1014,7 @@ test.describe('video walkthrough', () => {
         'href',
         `https://www.youtube.com/watch?v=${walkthrough.videoId}`,
       );
-      await expect(fallback).toHaveAttribute('target', '_blank');
+      expect(await fallback.getAttribute('target')).toBeNull();
       await expect(page.locator('iframe')).toHaveCount(0);
     });
   });
@@ -1026,7 +1028,7 @@ test.describe('video walkthrough', () => {
     });
     await page.goto(toPublicPath(walkthrough.route));
     const fallback = page.getByRole('link', {
-      name: `${walkthrough.title}: Watch on YouTube (opens in a new tab)`,
+      name: walkthrough.triggerLabel,
       exact: true,
     });
     await expect(fallback).toBeVisible();

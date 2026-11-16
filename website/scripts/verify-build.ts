@@ -102,6 +102,12 @@ const verifyHtmlLinks = (
 
     const rel = /\srel="([^"]+)"/.exec(attributes)?.[1]?.split(/\s+/) ?? [];
     if (!/\starget=/.test(attributes) && RUNTIME_GUIDANCE_URLS.has(href)) continue;
+    if (
+      /\sdata-youtube-dialog-fallback(?:\s|=|$)/u.test(attributes) &&
+      !/\starget=/u.test(attributes) &&
+      /^https:\/\/www\.youtube\.com\/watch\?v=[\w-]{11}$/u.test(url.href)
+    )
+      continue;
 
     if (
       !/\starget="_blank"/.test(attributes) ||

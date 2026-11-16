@@ -6,8 +6,16 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 import { createCanonicalUrl, DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
 import { createDocumentationBreadcrumbs } from '../src/lib/documentation-navigation/index.ts';
-import { getRepositoryRoot, loadWebsiteModel } from '../src/lib/generation/generation.ts';
-import { PRODUCT_PAGE_METADATA, SKILLS_DIRECTORY_URL } from '../src/lib/model/constants.ts';
+import {
+  createWebsiteModel,
+  getRepositoryRoot,
+  loadWebsiteModel,
+} from '../src/lib/generation/generation.ts';
+import {
+  INSTALL_COMMAND,
+  PRODUCT_PAGE_METADATA,
+  SKILLS_DIRECTORY_URL,
+} from '../src/lib/model/constants.ts';
 import { RETIRED_PAGE_REDIRECTS } from '../src/lib/redirects/index.ts';
 import { PROJECT_RUN_PAGE_SIZE } from '../src/lib/project-runs/index.ts';
 import { getSemanticReleaseEvidenceSummary } from '../src/lib/release-evidence/index.ts';
@@ -29,6 +37,20 @@ import { verifyProductionBuild } from './verify-build.ts';
 // alter one HTML input for refusal checks while keeping real artifact reads and verifier wiring
 vi.mock('node:fs', { spy: true });
 const realFs = await vi.importActual<{ readFileSync: typeof readFileSync }>('node:fs');
+
+describe('website generation inputs', () => {
+  afterEach(() => vi.mocked(readFileSync).mockImplementation(realFs.readFileSync).mockClear());
+
+  test('generation does not require installation prose in the root README', () => {
+    const readme = join(getRepositoryRoot(), 'README.md');
+    vi.mocked(readFileSync).mockImplementation((file, options) =>
+      file === readme && options === 'utf8'
+        ? '# Example\n\nA brief project overview.\n'
+        : realFs.readFileSync(file, options),
+    );
+    expect(() => createWebsiteModel()).not.toThrow();
+  });
+});
 
 const getDistPath = (...pathSegments: string[]): string => {
   return join(getRepositoryRoot(), 'website/dist', ...pathSegments);
@@ -122,7 +144,11 @@ describe('verifyProductionBuild', () => {
 
     expect(llmsText).toContain('# moldea Agent Skill');
     expect(llmsText).toContain(SKILLS_DIRECTORY_URL);
+    expect(llmsText).toContain(INSTALL_COMMAND);
     expect(llmsText).toContain(gettingStartedUrl);
+    const setup = readFileSync(getDistPath('get-started', 'index.html'), 'utf8');
+    expect(setup).toContain(SKILLS_DIRECTORY_URL);
+    expect(setup.replaceAll(/<[^>]*>/gu, '')).toContain(INSTALL_COMMAND);
   });
 
   test('publishes the visual product pages through every discovery surface', () => {

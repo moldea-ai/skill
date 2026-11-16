@@ -481,18 +481,11 @@ export const createWebsiteModel = (
         };
   const { releaseEvidence, scriptedJourneys } = releaseEvidenceState;
   const semanticEvaluation = releaseEvidenceState.semantic;
-  const readme = readFileSync(join(repositoryRoot, 'README.md'), 'utf8');
   const customDomain = readFileSync(join(repositoryRoot, 'CNAME'), 'utf8').trim();
   const productionHostname = new URL(DEFAULT_SITE_URL).hostname;
 
   if (customDomain !== productionHostname) {
     throw new Error(`CNAME must declare ${productionHostname}.`);
-  }
-
-  for (const requiredText of [SKILLS_DIRECTORY_URL, INSTALL_COMMAND, 'https://skill.moldea.ai']) {
-    if (!readme.includes(requiredText)) {
-      throw new Error(`README.md must include ${requiredText}.`);
-    }
   }
 
   return {

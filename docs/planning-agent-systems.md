@@ -32,7 +32,7 @@ Each cohesive responsibility is assigned to one or more explicit owners:
 - deterministic data or transformation logic
 - an existing or proposed service or runtime-native tool
 - a reusable Agent Skill for on-demand coding-agent knowledge or workflow
-- an AI agent
+- a runtime agent
 - human control
 
 Fixed calculations, eligibility rules, filtering, persistence, delivery mechanics, and predictable sequencing stay deterministic unless repository evidence proves a real need for model reasoning.

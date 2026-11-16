@@ -14,6 +14,7 @@ interface Props {
 }
 const { model, journey } = Astro.props;
 const url = withBase(journey.route, import.meta.env.BASE_URL);
+const rowContent = await Astro.slots.render('default');
 ---
 
 <div
@@ -35,7 +36,7 @@ const url = withBase(journey.route, import.meta.env.BASE_URL);
     <span
       slot="trigger"
       class="block w-full"
-      ><slot /></span
+      ><Fragment set:html={rowContent} /></span
     >
     <JourneyViewer
       {model}
@@ -62,19 +63,39 @@ const url = withBase(journey.route, import.meta.env.BASE_URL);
       </ActionLink>
     </div>
   </Dialog>
-  <a
+  <ActionLink
     href={url}
-    class="block py-6 link-feedback"
+    variant="ghost"
+    size="lg"
+    class="h-auto w-full justify-start rounded-none px-0 py-6 text-left whitespace-normal hover:bg-secondary/40"
+    aria-label={`Open ${journey.title} results`}
     data-journey-fallback
   >
-    {journey.title}{' '}<span class="ml-2 text-xs text-muted-foreground">Open conversation</span>
-  </a>
+    <span class="block w-full"><Fragment set:html={rowContent} /></span>
+  </ActionLink>
 </div>
 
 <style>
-  /* Keep native links when enhancement is unavailable, without duplicate active controls. */
-  [data-journey-launcher]:has(> [data-dialog-root] > [data-dialog-trigger]:not([hidden]))
-    > [data-journey-fallback] {
+  :global(
+    [data-journey-launcher]:not([data-journey-ready='true'])
+      > [data-dialog-root]
+      > [data-dialog-trigger]
+  ),
+  :global(
+    [data-journey-launcher]:has(> [data-journey-fallback]:focus-within)
+      > [data-dialog-root]
+      > [data-dialog-trigger]
+  ) {
+    display: none;
+  }
+
+  /* Keep a focused native link until focus moves, even if enhancement finishes meanwhile. */
+  :global(
+    [data-journey-launcher][data-journey-ready='true']:has(
+        > [data-dialog-root][data-enhanced='true']
+      )
+      > [data-journey-fallback]:not(:focus-within)
+  ) {
     display: none;
   }
 </style>

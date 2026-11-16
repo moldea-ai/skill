@@ -35,7 +35,7 @@ The skill helps a coding agent:
 - keep affected canonical knowledge aligned with implementation work
 - evaluate, reconcile, repair, and structurally validate established state
 
-After initialization, ask naturally to plan, build, review, or maintain AI agents, including model instructions and responsibilities in one-shot calls and workflows. Established project facts, approved policies, clear corrections, and project-context questions also receive bounded assessment without naming `moldea` or a file. Ordinary implementation requirements still use declared relationships, even when their effects will persist. When ordinary work expands to newly discovered paths, the coding agent checks those paths once at an existing scope checkpoint and preserves earlier matched owners. Only explicit initialization creates a new setup.
+After initialization, ask naturally to plan, build, review, or maintain runtime agents, including model instructions and responsibilities in one-shot calls and workflows. Established project facts, approved policies, clear corrections, and project-context questions also receive bounded assessment without naming `moldea` or a file. Ordinary implementation requirements still use declared relationships, even when their effects will persist. When ordinary work expands to newly discovered paths, the coding agent checks those paths once at an existing scope checkpoint and preserves earlier matched owners. Only explicit initialization creates a new setup.
 
 ### Common requests
 
@@ -173,7 +173,7 @@ The same release-candidate workflow is reusable by the packages trusted build. I
 
 Source and packed package candidates accept stable caret dependency minimums, including patch minimums such as `^2.0.3`. Candidate validation checks every resolved internal runtime package against its declared range; exact internal runtime dependency pins and incompatible versions are rejected.
 
-The root tooling and website consume Website UI `5.0.0` with the exact Astro `7.2.8` peer. Normal dependency resolution selects these versions without an override.
+The root tooling and website consume Website UI `5.0.1` with the exact Astro `7.2.8` peer. Normal dependency resolution selects these versions without an override.
 
 Run the skill's deterministic boundaries. [Testing](docs/testing.md) owns essential/full classification, focused completion and the manual 1–4 week full cadence:
 

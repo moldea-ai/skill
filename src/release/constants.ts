@@ -6,7 +6,6 @@ export const SEMANTIC_EVALUATION_PROTOCOL_VERSION = 57;
 
 // portable release files that carry the supported CLI major range
 export const CLI_VERSION_RANGE_TEXT_PATHS = [
-  'README.md',
   'docs/compatibility-and-local-tooling.md',
   'moldea/SKILL.md',
   'moldea/references/local-tooling.md',
@@ -15,7 +14,6 @@ export const CLI_VERSION_RANGE_TEXT_PATHS = [
 
 // portable release files that carry the minimum supported Core range
 export const CORE_VERSION_RANGE_TEXT_PATHS = [
-  'README.md',
   'docs/compatibility-and-local-tooling.md',
   'moldea/SKILL.md',
   'moldea/references/local-tooling.md',
@@ -24,7 +22,6 @@ export const CORE_VERSION_RANGE_TEXT_PATHS = [
 
 // release files that carry the exact CLI JSON schema version
 export const CLI_JSON_SCHEMA_VERSION_TEXT_PATHS = [
-  'README.md',
   'docs/compatibility-and-local-tooling.md',
   'moldea/SKILL.md',
   'moldea/references/local-tooling.md',

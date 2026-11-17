@@ -6,13 +6,7 @@ import semver from 'semver';
 import { isScalar, parseDocument } from 'yaml';
 import { z } from 'zod';
 
-import {
-  CLI_JSON_SCHEMA_VERSION_TEXT_PATHS,
-  CLI_PACKAGE_NAME,
-  CLI_VERSION_RANGE_TEXT_PATHS,
-  CORE_VERSION_RANGE_TEXT_PATHS,
-  RELEASE_PATHS,
-} from './constants.ts';
+import { CLI_PACKAGE_NAME, RELEASE_PATHS } from './constants.ts';
 import type { IReleaseIdentity, IReleasePackageLock, IReleasePackageManifest } from './types.ts';
 import { parseCompatibleStableRange, parseStableVersion } from './versions.ts';
 
@@ -243,24 +237,12 @@ export const inspectReleaseIdentity = (repositoryRoot: string): string[] => {
     issues.push('The repository package resolver does not match the compatible CLI/Core closure.');
   }
 
-  for (const relativePath of CLI_VERSION_RANGE_TEXT_PATHS) {
-    if (!readText(repositoryRoot, relativePath).includes(identity.cliVersionRange)) {
-      issues.push(`${relativePath} does not name CLI range ${identity.cliVersionRange}.`);
-    }
-  }
-  for (const relativePath of CORE_VERSION_RANGE_TEXT_PATHS) {
-    if (!readText(repositoryRoot, relativePath).includes(identity.coreVersionRange)) {
-      issues.push(`${relativePath} does not name Core range ${identity.coreVersionRange}.`);
-    }
-  }
-  for (const relativePath of CLI_JSON_SCHEMA_VERSION_TEXT_PATHS) {
-    if (
-      !readText(repositoryRoot, relativePath).includes(`schema ${identity.cliJsonSchemaVersion}`)
-    ) {
-      issues.push(
-        `${relativePath} does not name CLI JSON schema ${identity.cliJsonSchemaVersion}.`,
-      );
-    }
+  if (
+    !readText(repositoryRoot, 'src/portable/response-page/types.ts').includes(
+      `schemaVersion: z.literal(${identity.cliJsonSchemaVersion})`,
+    )
+  ) {
+    issues.push('The response-page schema does not match the current CLI JSON schema version.');
   }
 
   const publicReleaseText = [

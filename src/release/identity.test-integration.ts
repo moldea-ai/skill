@@ -35,6 +35,20 @@ test('release identity inspection detects a stale maintained copy', () => {
       cpSync(sourcePath, destinationPath);
     }
 
+    writeFileSync(join(temporaryRoot, RELEASE_PATHS.readme), '# Project\n\nPublic overview.\n');
+    assert.deepEqual(inspectReleaseIdentity(temporaryRoot), []);
+
+    const responseTypesPath = join(temporaryRoot, 'src/portable/response-page/types.ts');
+    const responseTypesSource = readFileSync(responseTypesPath, 'utf8');
+    writeFileSync(
+      responseTypesPath,
+      responseTypesSource.replace(`z.literal(${cliJsonSchemaVersion})`, 'z.literal(999)'),
+    );
+    assert.deepEqual(inspectReleaseIdentity(temporaryRoot), [
+      'The response-page schema does not match the current CLI JSON schema version.',
+    ]);
+    writeFileSync(responseTypesPath, responseTypesSource);
+
     const skillPath = join(temporaryRoot, RELEASE_PATHS.skill);
     const skillSource = readFileSync(skillPath, 'utf8');
     writeFileSync(
@@ -114,7 +128,6 @@ test('release identity inspection detects a stale maintained copy', () => {
     writeFileSync(sourcePath, sourceContent.replace(cliVersionRange, '^999.0.0'));
     assert.deepEqual(inspectReleaseIdentity(temporaryRoot), [
       'The repository package source does not match the compatible CLI/Core closure.',
-      `${RELEASE_PATHS.sourceRepositoryPackage} does not name CLI range ${cliVersionRange}.`,
     ]);
     writeFileSync(sourcePath, sourceContent);
 
@@ -178,9 +191,7 @@ test('release identity inspection detects a stale maintained copy', () => {
       'utf8',
     );
 
-    assert.deepEqual(inspectReleaseIdentity(temporaryRoot), [
-      `docs/compatibility-and-local-tooling.md does not name CLI range ${cliVersionRange}.`,
-    ]);
+    assert.deepEqual(inspectReleaseIdentity(temporaryRoot), []);
 
     writeFileSync(
       compatibilityPath,

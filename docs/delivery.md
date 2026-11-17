@@ -20,15 +20,15 @@ Stops run in this order; reaching a later stop includes earlier stops.
 
 ## development
 
-Follow [testing](../testing/) and the [development workflow](https://github.com/moldea-ai/skill#development). Commit and push the reviewed task, merge into `development`, and confirm the remote branch contains its HEAD.
+Follow [testing](../testing/) and the [development workflow](../compatibility-and-local-tooling/#repository-development). Commit and push the reviewed task, merge into `development`, and confirm the remote branch contains its HEAD.
 
 ## main
 
-Merge the reviewed development work into `main`, push, and verify the checks and website deployment described in the [project blueprint](https://github.com/moldea-ai/skill#project-blueprint). Verify the live artifact when the website is affected.
+Merge the reviewed development work into `main`, push, and verify the checks and website deployment described in the [website guide](https://github.com/moldea-ai/skill/blob/main/website/README.md). Verify the live artifact when the website is affected.
 
 ## release
 
-After `main`, follow the [release contract](https://github.com/moldea-ai/skill#releases) and [release evidence procedure](../release-evidence/). Publish the immutable version tag only after its required conformance, identity and installation checks. Verify the tag and official distribution bytes. Historical semantic evidence retains its recorded scope; deterministic publication does not claim a new semantic evaluation.
+After `main`, follow the [release contract](../release-evidence/#repository-release-preparation) and [release evidence procedure](../release-evidence/). Publish the immutable version tag only after its required conformance, identity and installation checks. Verify the tag and official distribution bytes. Historical semantic evidence retains its recorded scope; deterministic publication does not claim a new semantic evaluation.
 
 ## Verification and cleanup
 

@@ -381,10 +381,9 @@ test('updateCliRelease preserves the supported Core range when the CLI minimum r
     assert.equal(identity.cliCoreVersionRange, `^${nextCoreVersion}`);
     assert.equal(identity.coreVersionRange, currentIdentity.coreVersionRange);
     assert.deepEqual(inspectReleaseIdentity(temporaryRoot), []);
-    assert.ok(
-      readFileSync(join(temporaryRoot, RELEASE_PATHS.readme), 'utf8').includes(
-        `stable \`@moldea.ai/core\` releases satisfying \`${currentIdentity.coreVersionRange}\``,
-      ),
+    assert.equal(
+      readFileSync(join(temporaryRoot, RELEASE_PATHS.readme), 'utf8'),
+      readFileSync(join(REPOSITORY_ROOT, RELEASE_PATHS.readme), 'utf8'),
     );
     assert.ok(
       readFileSync(join(temporaryRoot, RELEASE_PATHS.skillLocalTooling), 'utf8').includes(

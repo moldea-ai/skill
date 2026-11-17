@@ -298,7 +298,7 @@ npm run release:check
 
 The command first runs portable freshness and essential deterministic correctness (`npm test`), without website tests or evaluator sandbox preparation. Ordinary tag conformance also uses essential within its existing root/portable/quality boundary, retains every supported runtime/platform lane, and uses the separate identity-only checker without a prepared-evidence prerequisite. Full qualification remains an explicit or focused operation for changed tooling. Website acceptance and Pages deployment are independent of skill publication. See [Testing](/docs/testing/) for selection and focused completion.
 
-The check validates release identity and requires the prepared selection to match `evidence/selection.json`, with official passing bundles for semantic evidence and any selected journeys evidence. It is read-only with respect to evidence. It does not rerun an evaluator, reinterpret old results with current tests, fetch a latest asset, or replace the selection. Passing this mechanical check does not turn historical presentation-only evidence into current-release assurance.
+The check validates release identity and requires the prepared selection to match `evidence/selection.json`, with official passing bundles for semantic evidence and any selected journeys evidence. Package and lockfile metadata own the versions and ranges; identity checks compare the portable YAML metadata, resolver implementation, response schema and evaluator fixture with those sources. The README owns the public overview, installation and navigation; CLI updates preserve it. It is read-only with respect to evidence. It does not rerun an evaluator, reinterpret old results with current tests, fetch a latest asset, or replace the selection. Passing this mechanical check does not turn historical presentation-only evidence into current-release assurance.
 
 After a fresh semantic record exists, the operator handoff is:
 
@@ -311,3 +311,23 @@ npm run release:check
 ```
 
 Verify website presentation independently with `npm run website:check` and `npm run website:build` when needed; these commands do not gate skill publication.
+
+## Repository release preparation
+
+To prepare an exact published CLI release, run `npm run release:update-cli -- <version>`. The updater verifies the published CLI, installs its locked dependency closure in a temporary directory, regenerates portable scripts from maintained TypeScript, and checks release identity before completing. It restores files it changed if preparation or verification fails, while preserving concurrent edits. Run `npm ci --ignore-scripts` afterward to bring local dependencies in line with the updated lockfile before running conformance checks.
+
+Before publication, `npm run candidate:prepare -- --artifacts <packed-closure-directory> --output <empty-directory-outside-this-repository>` prepares a complete isolated skill through the same updater against the candidate registry. An optional `--release-version <version>` selects the isolated skill version. The release-candidate workflow uses this full distribution for real manager and closed-launcher checks. Candidate registry URLs stay in the disposable output; they must not enter the official release lockfile. These checks establish tooling mechanics, not coding-agent repair effectiveness.
+
+The same release-candidate workflow is reusable by the packages trusted build. Its caller pins the skill workflow and tooling to the same immutable commit and supplies that run's public-package artifact and exact packages commit. It also passes its reviewed registry snapshot, so manager installs resolve third-party dependencies only from versions published before that instant; an empty snapshot resolves live. `src/packages/trusted-candidate.ts` verifies the recorded source identity, complete checksum manifest and package graph before copying the CLI closure. The full verified public set, including Website UI, prepares the isolated skill; the manager matrix then consumes the unchanged CLI closure tarballs. A manual dispatch packs the CLI closure and Website UI from the selected packages ref and splits them the same way. The workflow requires only read access and cannot publish packages.
+
+Source and packed package candidates accept stable caret dependency minimums, including patch minimums such as `^2.0.3`. Candidate validation checks every resolved internal runtime package against its declared range; exact internal runtime dependency pins and incompatible versions are rejected.
+
+The skill uses independent semantic versioning. Every release must:
+
+- record its exact version in `moldea/SKILL.md`
+- declare the compatible CLI major; evidence-backed production releases also bind the exact evaluated CLI closure plus CLI JSON schema in release evidence
+- pass current conformance; evidence-backed production releases also select verified fresh or explicitly pinned semantic evidence
+- preserve identical `moldea/` bytes across official distribution channels
+- use an immutable `v<version>` tag
+
+Skill tags require deterministic conformance, synchronized release identity, and installation checks. Semantic evaluation is a separate evidence-backed operation; a passing tag does not establish it. Historical evidence preserves its recorded versions, dates and sources and supplies no current-release assurance. See [Release evidence](/docs/release-evidence/) for the exact workflows.

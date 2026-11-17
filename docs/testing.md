@@ -22,6 +22,19 @@ Root commands force `essential` or `full` for their children. Unset granular com
 
 Complete ordinary work with essential plus complete focused coverage of changed behavior and affected consumers. Shared changes broaden the affected consumers. Focused frontend verification still covers meaningful accessibility, keyboard/focus, mobile down to 320px, light/dark and motion behavior. Run full explicitly with a coding agent every 1–4 weeks. No recurring full automation is added. Model/provider evaluations and campaigns remain separate.
 
+### Development checks
+
+```bash
+npm run portable:check
+npm test
+npm run typecheck:root
+npm run lint
+npm run format:check
+npm run path:check
+```
+
+Use complete focused `test:unit`/`test:integration` commands for affected root behavior, preparing `runtime:build` only when evaluator qualifications need it. Run `npm run docs:check` for documentation changes. `npm run website:check` covers affected website behavior completely. `npm run test:full` is the explicit complete deterministic suite; the testing guide owns its manual cadence. Website verification remains independent of skill publication.
+
 ## Classification
 
 Essential protects portable relevance/refusal, path containment, local launcher/tooling identity, bounded responses and cursors, safe response directories, managed-write preservation/refusal, initialization inspection, and repair Git safety/non-mutation. Generated portable freshness, release identity, path integrity and consequential suite/CI controls also remain essential.

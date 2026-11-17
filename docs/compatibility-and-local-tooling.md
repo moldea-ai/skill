@@ -135,3 +135,50 @@ Attribute inspection conservatively refuses any attribute file containing `filte
 Directory symlinks and Windows junctions are supported during attribute inspection when each resolved target remains within the repository. Absolute targets may use the supplied repository-root spelling or its verified physical root; other aliases are not followed to establish containment. Resolution is iterative and bounded, with operation-local directory observations and deduplicated attribute reads; path bookkeeping is bounded as well as file contents. A missing ordinary directory may establish absence, but a dangling or cyclic link cannot. Attribute files must remain bounded regular files, and an unavailable indexed attribute still causes refusal. Explicit written-file review continues to reject linked parents. No link, index, or ignore-rule changes are needed for a supported overlay. The tree must remain trusted against hostile concurrent replacement.
 
 Failed Git reads, including reads during attribute inspection, return `git-read` with a reason that classifies the failure, such as Git refusing the repository's ownership, without Git's own output, capped at 512 characters. Attribute-safety limitations remain distinct. The helper ignores the system and global Git configuration and attributes on every supported platform, including Windows.
+
+## Repository development
+
+`moldea` is a portable Agent Skill with deterministic conformance, semantic evaluation, scripted journeys, evidence publication, and documentation tooling. The website renders selected evidence snapshots and independently recorded mock-project runs. It has no evaluator responsibility.
+
+### Source ownership
+
+| Area                                      | Responsibility                                                                                                                                                            |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `moldea/`                                 | Complete distributed Agent Skill: entrypoint, focused references, host metadata, managed document assets, and bounded generated scripts.                                  |
+| `src/`                                    | Maintained TypeScript for portable generation, isolated execution, semantic evaluation, scripted journeys, evidence assets, release checks, and shared developer tooling. |
+| `evidence/selection.json`                 | Exact maintainer selections for semantic evidence and optional scripted journeys.                                                                                         |
+| `website/`                                | Static documentation and evidence presentation, including independently selected mock-project runs, sanitized session replays, and source links.                          |
+| `fixtures/`                               | Deterministic source fixtures and calibration records. Recorded evaluation attempts are not committed.                                                                    |
+| `docs/`                                   | Concise public concepts and durable workflows. API and HTTP endpoint documentation does not belong here.                                                                  |
+| `project-specification`                   | Read-only development reference to the canonical product and skill specifications in `../platform/moldea`.                                                                |
+| `src/test-suite/`                         | Private essential/full selection and inherited-stdio execution; [testing guide](/docs/testing/) owns membership and cadence.                                              |
+| `.github/workflows/conformance.yml`       | Conservative PR selection, root correctness, quality, and portable Linux, Windows and macOS contracts.                                                                    |
+| `.github/workflows/website-checks.yml`    | Pages-only website quality and artifact verification; browser suites run locally.                                                                                         |
+| `.github/workflows/pages.yml`             | Pages preflight, parallel verification/production build, and gated deployment.                                                                                            |
+| `.github/workflows/release-candidate.yml` | Exact package-candidate validation without publication.                                                                                                                   |
+
+The distributed artifact is exactly `moldea/`; development-only tooling is not installed with the skill. Portable builds use fixed compiler settings in checkouts and temporary release directories. Run `npm run matcher:generate` after changing the relevance gate's locked inputs and `npm run matcher:check` to verify the committed artifact.
+
+### Product specifications
+
+The sibling `platform` repository owns the canonical `moldea` product and skill specifications. The root `project-specification` symlink targets `../platform/moldea`. Before work that requires those specifications, read the [project foundation](https://github.com/moldea-ai/platform/blob/main/moldea/project.md), then only the relevant focused context. Start with the [Agent Skill specification](https://github.com/moldea-ai/platform/blob/main/moldea/context/agent-skill.md) for skill behavior and follow its references as needed.
+
+Specifications define intended product requirements and design constraints. This repository owns the skill implementation, public documentation, compatibility declarations, and release evidence. The `packages` repository owns the [public Repository Format](https://github.com/moldea-ai/packages/blob/main/specifications/repository-format.md), package implementations, tests, and releases. Specifications alone do not establish shipped behavior or availability. Report conflicts or version drift and establish the affected authority before changing a contract; do not silently regress supported behavior to match an older specification.
+
+This reference is read-only by workflow, not filesystem permissions. Never create, modify, move, or delete files through `project-specification/`. Changes to its authority require separate authorization in the owning platform checkout. A working native symlink and adjacent platform checkout are required to use the reference. If required specifications are missing, inaccessible, or the checkout contains a link-text file instead of a symlink, report the problem and stop the specification-dependent work. Do not copy specifications here or change host settings as a fallback.
+
+The reference is for repository development only. Builds, tests, CI, and installed skill behavior remain independent of the sibling checkout. The link and its target are outside the distributed `moldea/` artifact and must not be bundled or published as skill content.
+
+### Local setup
+
+Repository development requires Node.js `^24.15.0` and npm `>=10.9.0`. The distributed `moldea/` artifact keeps its documented Node.js `>=22.17.0` runtime contract.
+
+Install every workspace dependency from the repository root without lifecycle scripts:
+
+```bash
+npm ci --ignore-scripts
+```
+
+The root tooling and website consume Website UI `5.0.1` with the exact Astro `7.2.8` peer. Normal dependency resolution selects these versions without an override.
+
+Use the [testing guide](/docs/testing/) for focused and aggregate verification and [release evidence](/docs/release-evidence/#repository-release-preparation) for version and candidate preparation.

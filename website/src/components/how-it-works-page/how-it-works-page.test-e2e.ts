@@ -481,9 +481,9 @@ test('keeps the complete workflow readable at 320px in both themes', async ({ br
 test.describe('video walkthrough', () => {
   const walkthrough = {
     route: '/how-it-works/',
-    title: 'Keeping project context and code aligned',
+    title: 'Keep project knowledge in Git with moldea',
     triggerLabel: 'Watch the workflow',
-    videoId: 'PyZiQXWS1ZE',
+    videoId: 'j2M65xhlQoc',
     coverName: 'context-alignment',
   } as const;
 

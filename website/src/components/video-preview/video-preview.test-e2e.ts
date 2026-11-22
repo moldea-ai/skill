@@ -18,7 +18,7 @@ const previews = [
     title: 'Install and use the skill',
     triggerLabel: 'Watch setup video',
     cover: 'skill-installation',
-    videoId: 'dwl_RFm95Tg',
+    videoId: 'E_tNXGIyv-0',
   },
   {
     route: '/how-it-works/#context-video',

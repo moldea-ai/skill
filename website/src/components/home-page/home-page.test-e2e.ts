@@ -773,7 +773,7 @@ test.describe('video walkthrough', () => {
     route: '/',
     title: 'Install and use the skill',
     triggerLabel: 'Watch setup video',
-    videoId: 'dwl_RFm95Tg',
+    videoId: 'E_tNXGIyv-0',
     coverName: 'skill-installation',
   } as const;
 

@@ -773,7 +773,7 @@ test.describe('video walkthrough', () => {
     route: '/',
     title: 'Install and use the skill',
     triggerLabel: 'Watch setup video',
-    videoId: 'dwl_RFm95Tg',
+    videoId: 'E_tNXGIyv-0',
     coverName: 'skill-installation',
   } as const;
 
@@ -929,14 +929,14 @@ test.describe('video walkthrough', () => {
     const contextVideo = page.getByRole('button', { name: 'Watch the workflow', exact: true });
     await contextVideo.click();
     const contextDialog = page.getByRole('dialog', {
-      name: 'Keeping project context and code aligned',
+      name: 'Keep project knowledge in Git with moldea',
       exact: true,
     });
     await contextDialog
-      .getByRole('button', { name: 'Play Keeping project context and code aligned', exact: true })
+      .getByRole('button', { name: 'Play Keep project knowledge in Git with moldea', exact: true })
       .click();
     await expect(
-      contextDialog.getByTitle('Keeping project context and code aligned'),
+      contextDialog.getByTitle('Keep project knowledge in Git with moldea'),
     ).toBeVisible();
     await contextDialog.getByRole('button', { name: 'Close dialog', exact: true }).click();
     await expect(contextDialog).toBeHidden();

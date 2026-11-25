@@ -25,7 +25,7 @@ export const semanticCase = defineSemanticCase({
   setup: prepareMaterialityRepair,
   scenario:
     'Refund policy and settings are material; navigation and tooling do not govern this owner.',
-  operation: 'repair',
+  operation: 'fix',
   input: {
     developerDirection:
       'Fix moldea. Audit the existing refund context and its material implementation relationships. Preserve the established approval and configured-threshold policy and all application files.',
@@ -61,7 +61,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'verify-minimal-repair',
       criterion:
-        'Only the necessary manifest relationships change; owner prose, application, package files and unrelated state stay unchanged. Runner-owned evidence records successful launcher-backed validation and the report separates structural validity from semantic coverage.',
+        'Only the necessary manifest relationships change; owner prose, application, package files and unrelated state stay unchanged. Runner-owned evidence records successful bundled CLI validation and the report separates structural validity from semantic coverage.',
     },
   ],
   forbidden: [

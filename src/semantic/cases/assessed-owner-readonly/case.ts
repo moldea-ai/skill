@@ -7,7 +7,7 @@ export const semanticCase = defineSemanticCase({
   setup: createSemanticCaseSetup('assessed-owner-readonly'),
   scenario:
     'A direct read-only assessment compares accurate refund context and its relationships with the named caller and approval policy.',
-  operation: 'evaluate-context-relationships',
+  operation: 'check-context-relationships',
   input: {
     developerDirection:
       'Review moldea/context/refunds.md and its implementation relationships against src/refund-request.js and src/refund-policy.js. Assess whether the context and routing reflect the current refund behavior. Do not change any files.',

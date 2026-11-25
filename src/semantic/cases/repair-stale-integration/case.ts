@@ -7,12 +7,12 @@ export const semanticCase = defineSemanticCase({
   setup: createStaleIntegrationSetup(false),
   scenario:
     'A frozen 10.0.1 managed bridge is stale beside the immutable 10.0.2 installation, behind a contained AGENTS.md link with unrelated BOM/CRLF instructions.',
-  operation: 'repair-setup-integration',
+  operation: 'fix-setup-integration',
   input: {
     developerDirection:
-      'Repair moldea, including the stale managed AGENTS.md integration. Preserve its link to config/agent-notes.md, every byte outside the managed region and unrelated files.',
+      'Fix moldea, including the stale managed AGENTS.md integration. Preserve its link to config/agent-notes.md, every byte outside the managed region and unrelated files.',
     followUpDeveloperRequests: [
-      'Repair moldea again. Preserve the healthy integration and existing AGENTS.md link; make no unnecessary changes.',
+      'Fix moldea again. Preserve the healthy integration and existing AGENTS.md link; make no unnecessary changes.',
     ],
     repositoryEvidence: [
       {
@@ -63,7 +63,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'validate-and-repeat-noop',
       criterion:
-        'Both cycles have successful launcher-backed validation with zero errors, warnings and accepted warnings. The second cycle reports the unchanged healthy integration and has no workspace changes. Recorded envelopes and final state do not establish the relative timing of writes and validation; native traces cover that ordering.',
+        'Both cycles have successful bundled CLI validation with zero errors, warnings and accepted warnings. The second cycle reports the unchanged healthy integration and has no workspace changes. Recorded envelopes and final state do not establish the relative timing of writes and validation; native traces cover that ordering.',
     },
   ],
   forbidden: [

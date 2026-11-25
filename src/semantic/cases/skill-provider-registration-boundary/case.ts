@@ -10,7 +10,7 @@ export const semanticCase = defineSemanticCase({
   operation: 'maintain-agent-skill-capability',
   input: {
     developerDirection:
-      'Use moldea to complete this repository task. Teach the refund agent when to use provider knowledge search without fabricating a local skill implementation.',
+      'Use moldea Agents. Teach the refund agent when to use provider knowledge search without fabricating a local skill implementation.',
     repositoryEvidence: [
       {
         claim: 'Provider configuration enables hosted knowledge search.',
@@ -34,7 +34,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'describe-supported-runtime-skill-without-manifest-entry',
       criterion:
-        'The refund agent instruction or runtime guidance describes when to use provider-hosted knowledge search while leaving the version 1 manifest without a fabricated local skill relationship.',
+        'The refund agent instruction describes when to use provider-hosted knowledge search while leaving the version 1 manifest without a fabricated local skill relationship.',
     },
     {
       label: 'keep-agent-use-conditions-concise',

@@ -11,7 +11,6 @@ on:
       - 'CNAME'
       - 'docs/**'
       - 'evidence/**'
-      - 'fixtures/conformance-cases.json'
       - 'moldea/**'
       - 'package-lock.json'
       - 'package.json'

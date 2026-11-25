@@ -10,7 +10,7 @@ export const semanticCase = defineSemanticCase({
   operation: 'large-context-bounded-evaluation',
   input: {
     developerDirection:
-      'Use moldea to evaluate the large canonical context inventory for structural validity and report only material diagnostics. Do not modify files.',
+      'Check moldea for structural validity of the large canonical context inventory and report only material diagnostics. Do not modify files.',
     repositoryEvidence: [
       {
         claim: 'The repository has a canonical moldea manifest.',
@@ -40,7 +40,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'bounded-large-context-validation',
       criterion:
-        'Runner-owned evidence records successful launcher-backed structural validation. The actor accurately reports material structural diagnostics and leaves files unchanged.',
+        'Runner-owned evidence records successful bundled CLI structural validation. The actor accurately reports material structural diagnostics and leaves files unchanged.',
     },
   ],
   forbidden: [

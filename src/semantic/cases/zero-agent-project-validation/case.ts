@@ -39,7 +39,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'validate-intentional-zero-agent-project',
       criterion:
-        'Runner-owned evidence records successful launcher-backed inspection and validation. The actor reports zero agents without treating their absence as a structural defect and leaves files unchanged. An explicit semantic-coverage disclaimer is unnecessary unless the actor claims semantic correctness.',
+        'Runner-owned evidence records successful bundled CLI inspection and validation. The actor reports zero agents without treating their absence as a structural defect and leaves files unchanged. An explicit semantic-coverage disclaimer is unnecessary unless the actor claims semantic correctness.',
     },
   ],
   forbidden: [

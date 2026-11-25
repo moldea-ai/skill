@@ -73,7 +73,7 @@ test('correct description wiring remains structurally valid while its authority 
   }
 });
 
-test.each(['routing-description-contradiction', 'routing-description-fallback'])(
+test.each(['routing-description-contradiction', 'routing-description-consumers'])(
   '%s reads canonical content on the host and through the production Git wrapper',
   async (id) => {
     const root = await mkdtemp(join(tmpdir(), 'moldea-content-'));

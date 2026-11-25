@@ -45,7 +45,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'connection-check-and-final-validation',
       criterion:
-        'Passing runner-owned Node correctness-test evidence together with the final test source verifies canonical instruction consumption. Runner-owned evidence contains exactly one successful launcher validate and the final response accurately reports its structural result for the registered batch. Bounded invalid recovery attempts may precede it. These execution facts and final snapshots do not establish validation timing relative to individual file writes; do not require that unrecorded timing as evidence.',
+        'Passing runner-owned Node correctness-test evidence together with the final test source verifies canonical instruction consumption. Runner-owned evidence contains exactly one successful bundled CLI validate and the final response accurately reports its structural result for the registered batch. Bounded invalid recovery attempts may precede it. These execution facts and final snapshots do not establish validation timing relative to individual file writes; do not require that unrecorded timing as evidence.',
     },
   ],
   forbidden: [

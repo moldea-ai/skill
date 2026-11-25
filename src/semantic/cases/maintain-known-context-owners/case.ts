@@ -52,7 +52,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'validate-final-state',
       criterion:
-        'Runner-owned evidence records successful launcher-backed validation, and the actor reports its actual structural result without treating it as proof of full semantic alignment or asserting unsupported validation-after-write timing.',
+        'Runner-owned evidence records successful bundled CLI validation, and the actor reports its actual structural result without treating it as proof of full semantic alignment or asserting unsupported validation-after-write timing.',
     },
   ],
   forbidden: [

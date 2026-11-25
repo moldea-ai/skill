@@ -50,6 +50,7 @@ const MAX_WORKSPACE_EVIDENCE_FILE_BYTES = 32_768;
 const OPERATIONS_HANDBOOK_MINIMUM_BYTES = 200_000;
 const INITIALIZATION_CONTEXT_CASE_IDS = new Set([
   'initialize-grounded-relationships',
+  'initialize-guided-yes',
   'initialize-insufficient-context',
   'initialize-partial-context',
   'initialize-sufficient-context',
@@ -442,7 +443,7 @@ const copyMigratedCaseFiles = async (
   }
 };
 
-/** Seeds one custom runtime whose description consumers have case-specific semantic roles. */
+/** Seeds one agent whose description consumers have case-specific semantic roles. */
 const seedRoutingDescriptionAgent = async (
   repositoryPath: string,
   caseId: string,
@@ -454,7 +455,7 @@ const seedRoutingDescriptionAgent = async (
       agentDescription?: string;
       guidance: string;
       implementation: string[];
-      testExpectation: { path: string; property: string; summaryPath?: string } | null;
+      descriptionTestPath: string | null;
     }
   > = {
     'routing-description-dynamic-wiring': {
@@ -465,70 +466,36 @@ const seedRoutingDescriptionAgent = async (
         '  description: readCanonicalDescription(runtimeConfiguration.routingDescriptionPath),',
         '});',
       ],
-      testExpectation: null,
+      descriptionTestPath: null,
     },
-    'routing-description-fallback': {
+    'routing-description-consumers': {
       agentDescription:
         'Classifies support requests for triage without making authorization decisions.\n',
       guidance:
-        'The runtime description property is routing-facing. It uses the canonical agent description.',
+        'The router uses description for target selection. The directory displays both the shared description and the display-only summary.',
       implementation: [
         'export const createTriageAgent = () => ({',
         `  description: readCanonicalDescription('${agentDescriptionPath}'),`,
+        "  summary: 'Support triage queue',",
+        '});',
+        '',
+        'export const describeRouteTarget = (agent) => agent.description;',
+        'export const renderDirectoryEntry = (agent) => ({',
+        '  title: agent.summary,',
+        '  details: agent.description,',
         '});',
       ],
-      testExpectation: { property: 'description', path: agentDescriptionPath },
-    },
-    'routing-description-property-name': {
-      guidance:
-        'The runtime property named description is supplied to the router model for target selection and is routing-facing.',
-      implementation: [
-        'export const createTriageAgent = () => ({',
-        `  description: readCanonicalDescription('${agentDescriptionPath}'),`,
-        '});',
-      ],
-      testExpectation: {
-        property: 'description',
-        path: agentDescriptionPath,
-      },
+      descriptionTestPath: agentDescriptionPath,
     },
     'routing-description-reconciliation': {
       guidance:
         'The runtime description property is supplied to the router model for target selection and is routing-facing.',
       implementation: [
         'export const createTriageAgent = () => ({',
-        `  description: readCanonicalDescription('${agentDescriptionPath}'),`,
+        `  description: readCanonicalDescription('/moldea/agents/triage-agent/instruction.md'),`,
         '});',
       ],
-      testExpectation: { property: 'description', path: agentDescriptionPath },
-    },
-    'routing-description-separate-properties': {
-      guidance:
-        'The summary property is general-only metadata. The routingHint property is supplied to the router model for target selection and is routing-facing.',
-      implementation: [
-        'export const createTriageAgent = () => ({',
-        `  routingHint: readCanonicalDescription('${agentDescriptionPath}'),`,
-        `  summary: readCanonicalDescription('${agentDescriptionPath}'),`,
-        '});',
-      ],
-      testExpectation: {
-        property: 'routingHint',
-        path: agentDescriptionPath,
-        summaryPath: agentDescriptionPath,
-      },
-    },
-    'routing-description-shared-property': {
-      guidance:
-        'The runtime description property serves both general display and router target selection, so it is routing-facing.',
-      implementation: [
-        'export const createTriageAgent = () => ({',
-        `  description: readCanonicalDescription('${agentDescriptionPath}'),`,
-        '});',
-      ],
-      testExpectation: {
-        property: 'description',
-        path: agentDescriptionPath,
-      },
+      descriptionTestPath: '/moldea/agents/triage-agent/instruction.md',
     },
   };
   const runtimeContract = runtimeContracts[caseId];
@@ -545,7 +512,7 @@ const seedRoutingDescriptionAgent = async (
     runtimeContract.agentDescription ??
       'Provides detailed support triage and classification behavior.\n',
   );
-  if (runtimeContract.testExpectation === null) {
+  if (runtimeContract.descriptionTestPath === null) {
     const manifestPath = join(repositoryPath, 'moldea/moldea.yaml');
     const manifest = await readFile(manifestPath, 'utf8');
     await writeScenarioFile(
@@ -578,14 +545,7 @@ const seedRoutingDescriptionAgent = async (
     ].join('\n'),
   );
 
-  if (runtimeContract.testExpectation) {
-    const { path, property, summaryPath } = runtimeContract.testExpectation;
-    const summaryAssertion = summaryPath
-      ? [
-          `const expectedSummary = readCanonicalDescription('${summaryPath}');`,
-          '  assert.equal(runtimeAgent.summary, expectedSummary);',
-        ]
-      : [];
+  if (runtimeContract.descriptionTestPath !== null) {
     await writeScenarioFile(
       repositoryPath,
       'src/triage-agent.test-integration.mjs',
@@ -601,9 +561,8 @@ const seedRoutingDescriptionAgent = async (
         '',
         "test('maps canonical descriptions into runtime metadata', () => {",
         '  const runtimeAgent = createTriageAgent();',
-        `  const expectedDescription = readCanonicalDescription('${path}');`,
-        `  assert.equal(runtimeAgent.${property}, expectedDescription);`,
-        ...summaryAssertion,
+        `  const expectedDescription = readCanonicalDescription('${runtimeContract.descriptionTestPath}');`,
+        '  assert.equal(runtimeAgent.description, expectedDescription);',
         '});',
         '',
       ].join('\n'),
@@ -752,6 +711,11 @@ const seedInitializationContext = async (
   repositoryPath: string,
   caseDefinition: ISemanticCaseIdentity,
 ): Promise<void> => {
+  if (caseDefinition.id === 'initialize-guided-yes') {
+    await seedBillingAreas(repositoryPath);
+    return;
+  }
+
   if (caseDefinition.id === 'initialize-insufficient-context') {
     await writeScenarioFile(repositoryPath, 'README.md', '# Evaluation repository\n');
     await writeScenarioFile(repositoryPath, 'src/index.js', 'export const project = {};\n');
@@ -820,6 +784,25 @@ const seedInitializationContext = async (
   }
 
   throw new Error(`Unsupported initialization-context case ${caseDefinition.id}.`);
+};
+
+/** Seeds two independently governed areas for guided context cases. */
+const seedBillingAreas = async (repositoryPath: string): Promise<void> => {
+  await writeScenarioFile(
+    repositoryPath,
+    'README.md',
+    '# Accounts service\n\nThe service helps accounting staff validate invoices and assess refund eligibility.\n\n## Code map\n\n- Billing: src/billing.js\n- Refunds: src/refunds.js\n',
+  );
+  await writeScenarioFile(
+    repositoryPath,
+    'src/billing.js',
+    'export const canSubmitInvoice = ({ received, cents }) => received && Number.isSafeInteger(cents) && cents > 0;\n',
+  );
+  await writeScenarioFile(
+    repositoryPath,
+    'src/refunds.js',
+    'export const isRefundEligible = ({ days, orderDelivered }) => orderDelivered && days <= 14;\n',
+  );
 };
 
 /** Seeds established, duplicate, or conflicting context for maintenance scenarios. */
@@ -1151,6 +1134,59 @@ const seedScenarioRepository = async (
   }
 
   switch (caseDefinition.id) {
+    case 'maintain-guided-billing':
+      await seedBillingAreas(repositoryPath);
+      await writeScenarioFile(repositoryPath, 'moldea/moldea.yaml', 'version: 1\n');
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/project.md',
+        '# Accounts service\n\nThe service helps accounting staff validate invoices and assess refund eligibility.\n',
+      );
+      break;
+    case 'plan-context-routed-refund':
+    case 'plan-context-unrouted-refund':
+      await seedBillingAreas(repositoryPath);
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/moldea.yaml',
+        'version: 1\ncontext:\n  /moldea/context/billing.md:\n    affectedBy:\n      - /src/billing.js\n',
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/project.md',
+        '# Accounts service\n\nThe service helps accounting staff validate invoices and assess refund eligibility.\n' +
+          (caseDefinition.id === 'plan-context-routed-refund'
+            ? '\n## Context routing\n\nFor refunds or invoice changes, read [Billing](context/billing.md).\n'
+            : ''),
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/context/billing.md',
+        '# Billing and refunds\n\nA refund plan must preserve human approval for refunds greater than 50,000 cents. Approval applies even when the order is otherwise eligible.\n',
+      );
+      break;
+    case 'validate-python-binding':
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/moldea.yaml',
+        'version: 1\nagents:\n  invoice-review:\n    bindings:\n      runtimeAgent:\n        path: /src/invoice_review.py\n        symbol: review\n',
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/agents/invoice-review/description.md',
+        'Reviews an invoice for accounting staff.\n',
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/agents/invoice-review/instruction.md',
+        'You are the `invoice-review` agent. Report the supplied invoice fields for accounting staff.\n',
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'src/invoice_review.py',
+        'def review(invoice):\n    return invoice\n',
+      );
+      break;
     case 'accept-warning-with-reason':
       await writeScenarioFile(
         repositoryPath,
@@ -1545,23 +1581,6 @@ const seedScenarioRepository = async (
         '# Read-only related application evidence\n\nThe related application remains a separate repository and change boundary.\n',
       );
       break;
-    case 'unresolved-related-file-changed':
-      await writeScenarioFile(
-        repositoryPath,
-        'moldea/moldea.yaml',
-        'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n  /moldea/context/provider-support.md:\n    affectedBy:\n      - /src/pending-capability.js\n',
-      );
-      await writeScenarioFile(
-        repositoryPath,
-        'moldea/context/provider-support.md',
-        '# Provider support\n\nProvider support and integration coverage are incomplete.\n',
-      );
-      await writeScenarioFile(
-        repositoryPath,
-        'src/pending-capability.js',
-        'export const providerSupport = false;\n',
-      );
-      break;
     case 'canonical-instruction-changed':
       await seedRefundAgent(
         repositoryPath,
@@ -1722,13 +1741,6 @@ const seedScenarioRepository = async (
       );
       break;
     }
-    case 'skill-evaluate-read-only':
-      await writeScenarioFile(
-        repositoryPath,
-        'skills/incident-review/SKILL.md',
-        '---\nname: incident-review\ndescription: Helps with things.\n---\n\n# Incident review\n\nRead `references/incident-policy.md` before reviewing an incident.\n',
-      );
-      break;
     case 'skill-evaluate-script-authority':
       await writeScenarioFile(
         repositoryPath,
@@ -1753,19 +1765,9 @@ const seedScenarioRepository = async (
       );
       break;
     case 'routing-description-dynamic-wiring':
-    case 'routing-description-fallback':
-    case 'routing-description-property-name':
+    case 'routing-description-consumers':
     case 'routing-description-reconciliation':
-    case 'routing-description-separate-properties':
-    case 'routing-description-shared-property':
       await seedRoutingDescriptionAgent(repositoryPath, caseDefinition.id);
-      break;
-    case 'dedicated-repository-runtime-selection':
-      await seedRefundAgent(
-        repositoryPath,
-        'Use the configured runtime to assess refund requests.',
-        { withMirrors: false },
-      );
       break;
     case 'read-only-git-helper-suppression':
       await writeScenarioFile(
@@ -2201,12 +2203,7 @@ export const createSemanticCaseSetup = (caseId: string): ISemanticCaseSetup => {
     const caseIdentity = { id: caseId };
     await seedScenarioRepository(repositoryPath, caseIdentity);
     const readOnlyToolMounts = await prepareSemanticEvaluationHome(sandboxHome, actorToolDirectory);
-    if (
-      [
-        'dedicated-repository-runtime-selection',
-        'dedicated-repository-single-side-change',
-      ].includes(caseId)
-    ) {
+    if (caseId === 'dedicated-repository-single-side-change') {
       readOnlyToolMounts.push({
         source: await createRelatedApplicationRepository(path.dirname(repositoryPath)),
         target: '/related-application',

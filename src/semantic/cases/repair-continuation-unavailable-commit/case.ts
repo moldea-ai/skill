@@ -6,7 +6,7 @@ export const semanticCase = defineSemanticCase({
   id: 'repair-continuation-unavailable-commit',
   setup: createSemanticCaseSetup('repair-continuation-unavailable-commit'),
   scenario: 'A repair continuation has complete checkpoint lists but no usable checkpoint commit.',
-  operation: 'repair',
+  operation: 'fix',
   input: {
     developerDirection:
       'Continue Fix moldea from this report: the foundation and 2 of 3 focused owners were checked; continue from /moldea/context/next.md. Checkpoint commit: unavailable. Paths uncommitted at the checkpoint: none. Uncommitted manifest owner entries: none. Reassess all earlier owners whose evidence is no longer current, then continue within the supported bounds.',
@@ -51,7 +51,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'truthful-verification',
       criterion:
-        'Without an unresolved authority conflict, runner-owned evidence records successful final launcher-backed validation and the response reports it accurately. If the actor instead stops for the fixture’s unresolved Owner B baseline-versus-drifted authority conflict, it states both claims, asks which governs, and reports final validation and remaining owners as pending rather than continuing the audit. In either path, the response distinguishes structural evidence from actual owner coverage and makes no whole-project health claim while any assessment remains incomplete.',
+        'Without an unresolved authority conflict, runner-owned evidence records successful final bundled CLI validation and the response reports it accurately. If the actor instead stops for the fixture’s unresolved Owner B baseline-versus-drifted authority conflict, it states both claims, asks which governs, and reports final validation and remaining owners as pending rather than continuing the audit. In either path, the response distinguishes structural evidence from actual owner coverage and makes no whole-project health claim while any assessment remains incomplete.',
     },
   ],
   forbidden: [

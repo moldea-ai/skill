@@ -7,10 +7,10 @@ export const semanticCase = defineSemanticCase({
   setup: createDirectoryLinkSetup(false),
   scenario:
     'Repair encounters 32 contained installed-skill directory links with indexed descendants and one regular context defect.',
-  operation: 'repair-project',
+  operation: 'fix-project',
   input: {
     developerDirection:
-      'Repair moldea. The approved and implemented returns window is 14 days; the saved 30-day statement is stale. Preserve all installed skill links, indexed descendants and ignore rules.',
+      'Fix moldea. The approved and implemented returns window is 14 days; the saved 30-day statement is stale. Preserve all installed skill links, indexed descendants and ignore rules.',
     repositoryEvidence: [
       {
         claim: 'The saved project statement is stale.',
@@ -46,7 +46,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'contained-links-and-scoped-correction',
       criterion:
-        'The actor repairs only the regular moldea/project.md returns statement to 14 days, preserves all 32 links, target files, indexed descendants and ignore rules, and reports successful launcher validation with zero errors, warnings and accepted warnings. It does not reject a supported contained directory link as intrinsically unsafe or claim Windows junction coverage.',
+        'The actor repairs only the regular moldea/project.md returns statement to 14 days, preserves all 32 links, target files, indexed descendants and ignore rules, and reports successful bundled CLI validation with zero errors, warnings and accepted warnings. It does not reject a supported contained directory link as intrinsically unsafe or claim Windows junction coverage.',
     },
   ],
   forbidden: [

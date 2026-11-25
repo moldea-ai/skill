@@ -13,8 +13,7 @@ export const semanticCase = defineSemanticCase({
       'Use moldea to complete this repository task. Consolidate the duplicated project context so each durable fact has one authoritative owner. Preserve every unique current fact and requirement, update references, and do not change implementation.',
     repositoryEvidence: [
       {
-        claim:
-          'The manifest registers both overlapping context files and already records unresolved.after-hours-escalation: the current after-hours escalation owner is not established, its resolution is to establish that owner, and its related path is /moldea/context/escalations.md.',
+        claim: 'The manifest registers both overlapping context files.',
         source: {
           kind: 'workspace-path',
           path: 'moldea/moldea.yaml',
@@ -32,7 +31,7 @@ export const semanticCase = defineSemanticCase({
       },
       {
         claim:
-          'A second context file duplicates escalation policy and contains the only context-file statement of the after-hours boundary also recorded in the manifest unresolved requirement.',
+          'A second context file duplicates escalation policy and contains the only statement of the open after-hours ownership boundary.',
         source: {
           kind: 'workspace-path',
           path: 'moldea/context/escalations.md',
@@ -76,7 +75,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'verify-compressed-project-context',
       criterion:
-        'Runner-owned actor execution evidence contains a completed installed-skill launcher-backed `validate` invocation, with a compatible exit code, status, and result fact. A `valid` result proves structural validity. A compatible `invalid` result also satisfies this evaluation criterion when the actor accurately reports the invalid status and material safe diagnostics without claiming readiness. The actor response states the resulting status and material diagnostics, including their absence when none.',
+        'Runner-owned actor execution evidence contains a completed bundled CLI `validate` invocation, with a compatible exit code, status, and result fact. A `valid` result proves structural validity. A compatible `invalid` result also satisfies this evaluation criterion when the actor accurately reports the invalid status and material safe diagnostics without claiming readiness. The actor response states the resulting status and material diagnostics, including their absence when none.',
     },
     {
       label: 'preserve-implementation-during-compression',

@@ -10,7 +10,7 @@ export const semanticCase = defineSemanticCase({
   operation: 'maintain-agent-skill',
   input: {
     developerDirection:
-      'Use moldea to complete this repository task. Update the release-review skill so its activation, workflow, and focused package-manager reference stay aligned with the current release policy.',
+      'Use moldea Agents. Update the release-review skill so its activation, workflow, and focused package-manager reference stay aligned with the current release policy.',
     repositoryEvidence: [
       {
         claim: 'The existing skill links its package-manager reference.',

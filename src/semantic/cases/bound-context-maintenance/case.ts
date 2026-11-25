@@ -37,7 +37,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'report-canonical-validation',
       criterion:
-        'Runner-owned evidence records completed successful launcher-backed validation and the actor reports that result accurately without claiming validation-after-write timing the harness cannot prove.',
+        'Runner-owned evidence records completed successful bundled CLI validation and the actor reports that result accurately without claiming validation-after-write timing the harness cannot prove.',
     },
   ],
   forbidden: [

@@ -47,7 +47,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'complete-policy-and-display-changes',
       criterion:
-        'The policy requires approval only above 500 units; the caller preserves its public response shape. The four display/navigation modules implement the requested outputs. Refund context changes to the 500-unit policy. Meaningful native tests cover 500/501 and the changed display outputs, and runner evidence records passing tests and successful launcher-backed validation.',
+        'The policy requires approval only above 500 units; the caller preserves its public response shape. The four display/navigation modules implement the requested outputs. Refund context changes to the 500-unit policy. Meaningful native tests cover 500/501 and the changed display outputs, and runner evidence records passing tests and successful bundled CLI validation.',
     },
     {
       label: 'add-only-governing-policy-relationship',

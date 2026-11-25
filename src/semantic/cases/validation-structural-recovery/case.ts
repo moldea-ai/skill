@@ -36,7 +36,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'standalone-validation-only',
       criterion:
-        'The actor uses the installed launcher for validation, without repair checkpoint, Git traversal or whole-project repair. Runner-owned evidence records an initial invalid validation and a later valid validation, each bounded to 65536 bytes.',
+        'The actor uses the bundled CLI for validation, without repair checkpoint, Git traversal or whole-project repair. Runner-owned evidence records an initial invalid validation and a later valid validation, each bounded to 65536 bytes.',
     },
     {
       label: 'one-grounded-structural-correction',

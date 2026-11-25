@@ -7,7 +7,7 @@ export const semanticCase = defineSemanticCase({
   setup: createSemanticCaseSetup('repair-continuation-partial-coverage'),
   scenario:
     'A healthy inventory contains 64 independent focused owners requiring truthful bounded coverage.',
-  operation: 'repair',
+  operation: 'fix',
   input: {
     developerDirection:
       'Fix moldea across this repository\u2019s complete owner inventory. Check owners and material relationships within the supported pass limits, preserve healthy state, and report the actual coverage and any continuation point.',

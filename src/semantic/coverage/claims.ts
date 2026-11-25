@@ -86,7 +86,7 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
   {
     id: 'initialization-and-tooling-safety',
     description:
-      'Explicit initialization onboards existing agents and workflows with permission, in-place document links, resumable progress and final validation; it also handles sparse evidence and partial adoption, and uses the bundled CLI within the host constraints.',
+      'Explicit initialization grounds adoption first, then guides evidence-backed rounds, approves existing-agent registration within the round, and verifies the covered scope.',
     sourcePaths: [
       'moldea/references/continuous-maintenance.md#adoption',
       'moldea/references/continuous-maintenance.md#complete-existing-project-onboarding',
@@ -95,7 +95,7 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
       'moldea/references/tooling-installation.md',
     ],
     rationale:
-      'The cases distinguish confirmation, preauthorized and resumed onboarding, unchanged no-agent foundations, evidence blockers, and inspected-source relationship coverage. A recorded invocation does not establish successful CLI execution.',
+      'Cases distinguish confirmation from preauthorized registration, no-write foundation stops, partial approval and continuation, exact relationship coverage, and per-round progress and final verification. Adopted projects can learn a single named area.',
     fixedEvidence: [],
   },
   {
@@ -129,16 +129,16 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
   {
     id: 'project-evaluation-and-reconciliation',
     description:
-      'Explicit project evaluation and reconciliation handle dirty, clean, ambiguous, and dedicated-repository states without losing boundaries.',
+      'Check and Fix handle dirty, clean, ambiguous, and dedicated-repository states while respecting scope and write authority.',
     sourcePaths: ['moldea/references/evaluate-and-reconcile.md'],
     rationale:
-      'The cases retain state-sensitive evaluation, clarification, one-sided writes, and read-only related-repository controls.',
+      'Cases retain state-sensitive checks, scoped clarification and correction, one-sided writes, and read-only related-repository controls.',
     fixedEvidence: [],
   },
   {
     id: 'project-repair-and-recovery',
     description:
-      'Explicit repair distinguishes established adoption, recoverable drift, ambiguous foundation, invalid markers, policy conflict, and healthy no-op state.',
+      'Explicit Fix distinguishes established adoption, recoverable drift, ambiguous foundation, invalid markers, authority conflict, and a healthy no-op.',
     sourcePaths: [
       'moldea/references/project-repair.md#diagnose-blocked-adoption-without-writes',
       'moldea/references/project-repair.md#establish-recovery-authority',
@@ -161,22 +161,22 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
   {
     id: 'runtime-selection',
     description:
-      'Runtime labels follow the defining SDK while repository evidence establishes connections and explicit coverage states only completed file/export checks.',
+      'Evidenced implementation and instruction connections are assessed separately from file and export checks, with unsupported symbols reported as not checked.',
     sourcePaths: [
-      'moldea/references/agent-design.md#select-the-runtime-honestly',
-      'moldea/references/runtime-guidance.md#check-one-connection',
+      'moldea/references/agent-design.md#register-real-relationships',
+      'moldea/references/agent-design.md#verify-agent-readiness',
     ],
     rationale:
-      'A guidance label or passed export check never proves runtime consumption. Related-repository evidence retains read-only boundaries without fabricated cross-repository bindings or custom fallback.',
+      'An observed file or export check does not prove runtime consumption. The cases preserve tested connections and report the limits of unsupported symbol verification.',
     fixedEvidence: [],
   },
   {
     id: 'routing-description-ownership',
     description:
-      'Routing-facing metadata selects handoff or agent descriptions from proven consumer semantics rather than property names or unsupported inference.',
+      'Routing-facing metadata consumes description.md as its sole canonical source. Inspect the actual consumer and compare the description with the instruction.',
     sourcePaths: ['moldea/references/agent-design.md#keep-model-facing-assets-distinct'],
     rationale:
-      'Dynamic, separate, shared, stale and agent-description fallback mappings retain focused semantic coverage. A separate contradiction case checks conflicting authorization despite correct source selection.',
+      'One case distinguishes shared routing and display metadata from display-only metadata. Dynamic wiring, stale sources, and conflicting authority each have separate coverage.',
     fixedEvidence: [],
   },
 ] as const satisfies readonly ISemanticCoverageClaimSource[];

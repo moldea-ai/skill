@@ -7,10 +7,10 @@ export const semanticCase = defineSemanticCase({
   setup: createSemanticCaseSetup('reconcile-identified-authority'),
   scenario:
     'Code permits manager approval, the agent requires an administrator, and the task identifies an accepted decision that settles the conflict.',
-  operation: 'reconcile',
+  operation: 'fix',
   input: {
     developerDirection:
-      'Reconcile `refund-agent` against `/src/refund-policy.js`. The accepted governing decision for refund approval is `docs/decisions/refund-approval.md`.',
+      'Fix moldea for `refund-agent` against `/src/refund-policy.js`. The accepted governing decision for refund approval is `docs/decisions/refund-approval.md`.',
     repositoryEvidence: [
       {
         claim: 'The developer identifies the decision record as governing this dispute.',
@@ -53,7 +53,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'correct-and-verify-coherent-scope',
       criterion:
-        'The final canonical refund instruction and its declared mirrors agree with the manager-approval decision, the matching implementation remains unchanged, and runner-owned evidence records successful launcher-backed validation without an unsupported write-order claim.',
+        'The final canonical refund instruction and its declared mirrors agree with the manager-approval decision, the matching implementation remains unchanged, and runner-owned evidence records successful bundled CLI validation without an unsupported write-order claim.',
     },
   ],
   forbidden: [

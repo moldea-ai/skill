@@ -8,8 +8,7 @@ export const semanticCase = defineSemanticCase({
   scenario: 'Evaluate has no explicit scope, HEAD exists, and the working tree is clean.',
   operation: 'evaluate',
   input: {
-    developerDirection:
-      'Use moldea to complete this repository task. Evaluate the current project.',
+    developerDirection: 'Check moldea for the current project changes.',
     repositoryEvidence: [
       {
         claim: 'HEAD exists.',

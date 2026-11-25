@@ -6,7 +6,7 @@ export const semanticCase = defineSemanticCase({
   id: 'plan-uninitialized-zero-agent',
   setup: createSemanticCaseSetup('plan-uninitialized-zero-agent'),
   scenario:
-    'A repository with no moldea state or local CLI needs an architecture plan for exact nightly tax calculations governed entirely by fixed published rules.',
+    'A repository without moldea adoption needs an architecture plan for exact nightly tax calculations governed by fixed published rules.',
   operation: 'plan-agent-system',
   input: {
     developerDirection:

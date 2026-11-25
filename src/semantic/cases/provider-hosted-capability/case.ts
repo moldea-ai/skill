@@ -34,7 +34,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'describe-supported-runtime-behavior-without-manifest-entry',
       criterion:
-        'Reliable evidence supports provider-hosted model behavior, and the agent instruction or runtime guidance describes it without fabricating a repository-local manifest capability.',
+        'Reliable evidence supports provider-hosted model behavior, and the agent instruction describes it without fabricating a repository-local manifest capability.',
     },
   ],
   forbidden: [

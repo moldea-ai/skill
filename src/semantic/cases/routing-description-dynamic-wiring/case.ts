@@ -6,11 +6,10 @@ export const semanticCase = defineSemanticCase({
   id: 'routing-description-dynamic-wiring',
   setup: createSemanticCaseSetup('routing-description-dynamic-wiring'),
   scenario:
-    'An adopted custom-runtime agent has both canonical descriptions, but the routing registration value is assembled through unsupported dynamic configuration that repository evidence cannot resolve to either source.',
-  operation: 'evaluate-routing-description',
+    'An adopted agent has a canonical description, but the routing registration value is assembled through unsupported dynamic configuration that repository evidence cannot resolve to either source.',
+  operation: 'check-routing-description',
   input: {
-    developerDirection:
-      'Use moldea to complete this repository task. Evaluate whether the runtime routing description is aligned.',
+    developerDirection: 'Check moldea for the runtime routing description. Stay read-only.',
     repositoryEvidence: [
       {
         claim: 'The routing document defines routing-facing semantics.',

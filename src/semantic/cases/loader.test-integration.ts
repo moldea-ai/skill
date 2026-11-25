@@ -198,16 +198,16 @@ const CANDIDATE_TARGET_CASE_IDS = [
   'model-workflow-routing',
   'repair-continuation-manifest-change',
   'routing-description-contradiction',
-  'routing-description-fallback',
+  'routing-description-consumers',
 ];
 
-test('the release catalog retains 130 cases with only the approved exclusion', async () => {
+test('the release catalog retains 149 cases with only the approved exclusion', async () => {
   const cases = await loadSemanticCases(import.meta.dirname);
-  expect(cases).toHaveLength(130);
+  expect(cases).toHaveLength(149);
   expect(
     cases.reduce((count, { expected, forbidden }) => count + expected.length + forbidden.length, 0),
-  ).toBe(598);
-  expect(cases.filter(({ publication }) => publication !== 'private')).toHaveLength(129);
+  ).toBe(637);
+  expect(cases.filter(({ publication }) => publication !== 'private')).toHaveLength(148);
   expect(
     cases.filter(({ publication }) => publication === 'private').map(({ id }) => id),
   ).toStrictEqual(['repair-unproven-adoption']);

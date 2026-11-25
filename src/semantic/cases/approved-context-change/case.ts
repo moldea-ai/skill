@@ -41,7 +41,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'validate-final-policy',
       criterion:
-        'The final project owner contains the approved policy, runner-owned evidence records successful launcher-backed validation, and the report identifies the actual validation outcome without asserting runtime compliance or unsupported validation timing.',
+        'The final project owner contains the approved policy, runner-owned evidence records successful bundled CLI validation, and the report identifies the actual validation outcome without asserting runtime compliance or unsupported validation timing.',
     },
   ],
   forbidden: [

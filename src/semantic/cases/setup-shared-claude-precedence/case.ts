@@ -57,7 +57,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'shared-file-governs',
       criterion:
-        "Successful launcher validation reports exactly one unaccepted MOLDEA_INTEGRATION_CLAUDE_IMPORT_MISSING warning for /.claude/CLAUDE.md. The response explains that the shared nested file governs despite the local fallback's existing import.",
+        "Successful bundled CLI validation reports exactly one unaccepted MOLDEA_INTEGRATION_CLAUDE_IMPORT_MISSING warning for /.claude/CLAUDE.md. The response explains that the shared nested file governs despite the local fallback's existing import.",
     },
     {
       label: 'exact-shared-import-handoff',

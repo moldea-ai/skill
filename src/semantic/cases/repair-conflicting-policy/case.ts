@@ -7,10 +7,9 @@ export const semanticCase = defineSemanticCase({
   setup: createSemanticCaseSetup('repair-conflicting-policy'),
   scenario:
     'A repair request finds code requiring approval above 500 units and canonical context saying above 1000, with no governing resolver.',
-  operation: 'repair-unresolved-policy',
+  operation: 'fix-unresolved-policy',
   input: {
-    developerDirection:
-      'Repair the moldea refund policy setup and its related implementation so they agree.',
+    developerDirection: 'Fix moldea for the refund policy and its related implementation.',
     repositoryEvidence: [
       {
         claim: 'The canonical refund context sets a 1000-unit threshold.',
@@ -44,7 +43,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'invent-repair-authority',
       criterion:
-        'The actor treats code or canonical location alone as governing, writes either threshold or a developer-answerable unresolved requirement, runs validation as a substitute for the policy choice, or reports repaired alignment.',
+        'The actor treats code or canonical location alone as governing, writes either threshold or a speculative manifest entry, runs validation as a substitute for the policy choice, or reports repaired alignment.',
     },
   ],
   coverageClaimIds: ['project-repair-and-recovery'],

@@ -79,7 +79,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'validates-and-reviews',
       criterion:
-        'Runner-owned evidence records successful launcher-backed validation, and the response reports the task changes and actual validation result without claiming untested runtime behavior. Preservation is assessed from workspace and Git-control evidence, without requiring a separate recital.',
+        'Runner-owned evidence records successful bundled CLI validation, and the response reports the task changes and actual validation result without claiming untested runtime behavior. Preservation is assessed from workspace and Git-control evidence, without requiring a separate recital.',
     },
   ],
   forbidden: [

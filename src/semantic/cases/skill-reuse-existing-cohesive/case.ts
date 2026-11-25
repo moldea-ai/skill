@@ -10,7 +10,7 @@ export const semanticCase = defineSemanticCase({
   operation: 'maintain-agent-skill',
   input: {
     developerDirection:
-      'Use moldea to complete this repository task. Extend the existing release-review skill for the changelog check. Keep one cohesive activation and workflow boundary.',
+      'Use moldea Agents. Extend the existing release-review skill for the changelog check. Keep one cohesive activation and workflow boundary.',
     repositoryEvidence: [
       {
         claim: 'One cohesive release-review skill already exists.',

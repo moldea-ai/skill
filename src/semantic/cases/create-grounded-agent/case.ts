@@ -9,7 +9,7 @@ export const semanticCase = defineSemanticCase({
   operation: 'create-agent',
   input: {
     developerDirection:
-      'Complete order-triage using createOrderTriageAgent in src/order-triage-agent.ts. It classifies orders for human review and cannot approve refunds. Preserve that source and moldea/project.md. Use the existing custom runtime, maintain canonical behavior and its real implementation binding, document the runtime-owned canonical instruction loader, and verify the result. Do not invent tools, providers, or authority.',
+      'Complete order-triage using createOrderTriageAgent in src/order-triage-agent.ts. It classifies orders for human review and cannot approve refunds. Preserve that source and moldea/project.md. Preserve the existing implementation and instruction-loading contract, register the proven binding, and verify the result. Do not invent tools, providers, or authority.',
     repositoryEvidence: [
       {
         claim:
@@ -48,14 +48,14 @@ export const semanticCase = defineSemanticCase({
         'The order-triage manifest entry binds /src/order-triage-agent.ts at createOrderTriageAgent without duplicating that bound file as an exact affectedBy entry for the same agent.',
     },
     {
-      label: 'defines-runtime-guidance',
+      label: 'explains-instruction-loading',
       criterion:
-        'The manifest references focused runtime guidance explaining that the runtime-owned loader supplies the canonical instruction path and content to the existing factory, without inventing provider behavior.',
+        'The report explains the actual instruction-loading path that supplies the existing factory. It records a loader relationship only when backed by an actual exposed implementation and invents no provider behavior.',
     },
     {
       label: 'preserves-contract',
       criterion:
-        'The original factory and project context remain byte-for-byte unchanged. Runner-owned evidence records successful final launcher-backed validation; the report distinguishes it from untested runtime consumption.',
+        'The original factory and project context remain byte-for-byte unchanged. Runner-owned evidence records successful final bundled CLI validation; the report distinguishes it from untested runtime consumption.',
     },
   ],
   forbidden: [

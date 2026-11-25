@@ -10,7 +10,7 @@ export const semanticCase = defineSemanticCase({
   operation: 'moldea-evaluate-read-only',
   input: {
     developerDirection:
-      'Use moldea to evaluate whether the current project state is structurally valid. Preserve every repository control surface and do not modify files.',
+      'Check moldea for structural validity of the current project state. Preserve every repository control surface and do not modify files.',
     repositoryEvidence: [
       {
         claim: 'The repository has a canonical moldea manifest.',
@@ -40,7 +40,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'report-structural-evaluation',
       criterion:
-        'Runner-owned evidence records a completed successful launcher-backed validation. The actor reports structural validity, does not infer semantic or runtime correctness from it, and explicitly reports that the read-only evaluation changed no files.',
+        'Runner-owned evidence records a completed successful bundled CLI validation. The actor reports structural validity, does not infer semantic or runtime correctness from it, and explicitly reports that the read-only evaluation changed no files.',
     },
   ],
   forbidden: [

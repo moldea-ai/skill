@@ -7,10 +7,10 @@ export const semanticCase = defineSemanticCase({
   setup: createSemanticCaseSetup('repair-marker-ambiguity'),
   scenario:
     'A previously adopted README now has two conflicting managed regions separated by outside guidance, which the bundled writer cannot safely normalize.',
-  operation: 'repair-ambiguous-markers',
+  operation: 'fix-ambiguous-markers',
   input: {
     developerDirection:
-      'This repository was initialized with moldea. Repair its duplicated managed README markers and verify the setup.',
+      'This repository was initialized with moldea. Fix moldea for its duplicated managed README markers and verify the setup.',
     repositoryEvidence: [
       {
         claim: 'README contains two conflicting managed regions and outside guidance between them.',

@@ -7,10 +7,10 @@ export const semanticCase = defineSemanticCase({
   setup: createSemanticCaseSetup('repair-known-context-drift'),
   scenario:
     'An explicit repair request supplies the current invoice boundary that contradicts two existing context owners.',
-  operation: 'repair-known-context',
+  operation: 'fix-known-context',
   input: {
     developerDirection:
-      'Repair moldea project guidance: this service now extracts and validates invoice data for accounting systems and never authorizes payments. The application already implements that behavior. Keep the application unchanged.',
+      'Fix moldea project guidance: this service now extracts and validates invoice data for accounting systems and never authorizes payments. The application already implements that behavior. Keep the application unchanged.',
     repositoryEvidence: [
       {
         claim: 'The project summary has the stale payment claim.',
@@ -51,7 +51,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'report-real-repair-verification',
       criterion:
-        'Runner-owned evidence records successful launcher-backed validation, and the actor reports that result without claiming live runtime behavior or unsupported write order.',
+        'Runner-owned evidence records successful bundled CLI validation, and the actor reports that result without claiming live runtime behavior or unsupported write order.',
     },
   ],
   forbidden: [

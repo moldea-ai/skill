@@ -7,7 +7,7 @@ export const semanticCase = defineSemanticCase({
   setup: createSemanticCaseSetup('repair-continuation-after-change'),
   scenario:
     'A previous repair checkpoint has four checked context owners; later source changes and a merge require selective reassessment.',
-  operation: 'repair',
+  operation: 'fix',
   input: {
     developerDirection:
       'Continue Fix moldea from this previous report: the project foundation and 4 of 5 focused context owners were checked at commit `repair-checkpoint`; continue from `/moldea/context/next.md`. Paths uncommitted at that checkpoint: `src/owner-b.js`. Uncommitted manifest owner entries: none. The current source behavior is intended; update conflicting context to reflect it. Reassess only earlier owners affected since that checkpoint, then finish the inventory and report the source commit of any carried-forward assessment.',

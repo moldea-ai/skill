@@ -12,6 +12,12 @@ Semantic evaluation tests whether a coding agent applies the portable skill corr
 
 ## Cases and coverage
 
+### Skill 11 case review
+
+The case review in `src/semantic/audit.md` records the decisions for every baseline case and the approved catalogue digest. The frozen cases cover guided Initialize and single-area Maintain, path-free and purpose-routed planning, Check/Fix, and file checks for a Python binding.
+
+For a guided conversation, authored requests arrive in one retained actor session. Grade proposed answers and the progress display from the response for each turn. Use per-turn workspace deltas to verify that only confirmed policy, relationships, routing, or decisions were saved, and observed validation to verify completion or authorized recovery. The fixture catalogue and preflight check definitions and prompts without model execution. The release campaign exercises the approved cases against the candidate skill.
+
 The 10.0.3 release selects **142 historical cases: 134 passed and eight recovered, with none failed or pending**. Its source recording on `20e28fa7` covered 143 cases and failed `repair-unproven-adoption`. That case is **not yet included**: the actor sometimes runs direct `git status` before the repair helper despite explicit instructions; no recorded run changed files or initialized anything. It remains private with unchanged criteria, fixture and limits, and is the only current exclusion. The exclusion-only cleanup uses no model calls or regrading. Four recovered cases retain their original erroneous first-try grades and passing confirmations. See [the 10.0.3 evidence-reuse qualification](../release-evidence/#skill-1003-evidence-reuse) for the source identity, failed wording recheck, grader corrections and release-specific acceptance.
 
 The following definitions were prepared for 10.0.2; subsequent private diagnostic results are recorded below and do not replace public release evidence. Deterministic fixture checks establish their starting facts; fake-host tests establish request isolation, exact-session continuation and per-cycle workspace deltas. Neither establishes model adherence. Successful installation and resumption remain separately authorized native-host observations; the automated recovery controls preserve the sandbox installation prohibition.

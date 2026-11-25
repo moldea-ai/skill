@@ -38,7 +38,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'maintain-new-owner',
       criterion:
-        'The actor updates the selected refund context to the 500-unit threshold, preserves unrelated state, and accurately reports a successful recorded launcher-backed validation without asserting unsupported write order.',
+        'The actor updates the selected refund context to the 500-unit threshold, preserves unrelated state, and accurately reports a successful recorded bundled CLI validation without asserting unsupported write order.',
     },
   ],
   forbidden: [

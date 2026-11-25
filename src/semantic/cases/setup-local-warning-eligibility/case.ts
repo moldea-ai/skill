@@ -48,7 +48,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'report-local-warning-subjects',
       criterion:
-        'A successful launcher validation reports a valid project with MOLDEA_INTEGRATION_BLOCK_MISSING for /AGENTS.md and MOLDEA_INTEGRATION_CLAUDE_IMPORT_MISSING for /CLAUDE.local.md. The response names both local subjects accurately.',
+        'A successful bundled CLI validation reports a valid project with MOLDEA_INTEGRATION_BLOCK_MISSING for /AGENTS.md and MOLDEA_INTEGRATION_CLAUDE_IMPORT_MISSING for /CLAUDE.local.md. The response names both local subjects accurately.',
     },
     {
       label: 'local-fix-or-handoff-only',

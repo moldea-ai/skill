@@ -1176,6 +1176,25 @@ test('the package-free checkout matches its scheduler relationship with the ship
   assert.equal(result.result.relevant, true);
 });
 
+test('the Python case validates the file while reporting its named export as unchecked', async () => {
+  const { repositoryPath } = await materializeCase('validate-python-binding', true);
+  const validation = JSON.parse(cliOutput(repositoryPath, ['validate'])) as {
+    status: string;
+    result: {
+      errorCount: number;
+      page: { records: Array<{ path?: string; fileCheck?: string; exportCheck?: string }> };
+    };
+  };
+  assert.equal(validation.status, 'valid');
+  assert.equal(validation.result.errorCount, 0);
+  const coverage = validation.result.page.records.find(
+    ({ path }) => path === '/src/invoice_review.py',
+  );
+  assert.ok(coverage);
+  assert.equal(coverage.fileCheck, 'passed');
+  assert.equal(coverage.exportCheck, 'not-checked');
+});
+
 test.each([
   ['repair-connection-drift', '/src/support-agent.js'],
   ['maintain-bound-connection', '/src/support/loaders/instruction-loader.js'],

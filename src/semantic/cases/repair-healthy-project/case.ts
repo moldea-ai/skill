@@ -25,10 +25,9 @@ export const semanticCase = defineSemanticCase({
   setup: prepareHealthyProject,
   scenario:
     'A small adopted project has aligned foundation, implementation, and local tooling when repair is requested.',
-  operation: 'repair-healthy-setup',
+  operation: 'fix-healthy-setup',
   input: {
-    developerDirection:
-      'Inspect this moldea setup, repair any established defects, and verify the result.',
+    developerDirection: 'Fix moldea. Correct any established defects and verify the result.',
     repositoryEvidence: [
       {
         claim: 'The repository has a canonical moldea manifest.',
@@ -60,7 +59,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'validate-healthy-no-op',
       criterion:
-        'Runner-owned launcher capture records successful composition before inspect in launcher-start order and successful validation. A generic invocation count or actor claim does not establish those operations. The workspace is unchanged, and the actor accurately reports no established defect and no repair. The checked scope and actual checks are clear without requiring a foundation/source recital or a particular heading. Structural validation alone must not be presented as proof of semantic correctness. No unrelated live-behavior disclaimer is required for this setup without agents or runtimes.',
+        'Runner-owned CLI capture records successful composition before inspect in observed startup order and successful validation. A generic invocation count or actor claim does not establish those operations. The workspace is unchanged, and the actor accurately reports no established defect and no repair. The checked scope and actual checks are clear without requiring a foundation/source recital or a particular heading. Structural validation alone must not be presented as proof of semantic correctness. No unrelated live-behavior disclaimer is required for this setup without model responsibilities.',
     },
   ],
   forbidden: [

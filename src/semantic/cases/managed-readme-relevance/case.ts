@@ -40,7 +40,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'assess-managed-readme-change',
       criterion:
-        'The actor reviews the managed README change, identifies a material block defect if one exists or reports no issue when the block is correct, completes successful launcher-backed validation, and accurately reports the structural result without changing files or claiming semantic correctness from it. The runner does not retain host read or comparison commands.',
+        'The actor reviews the managed README change, identifies a material block defect if one exists or reports no issue when the block is correct, completes successful bundled CLI validation, and accurately reports the structural result without changing files or claiming semantic correctness from it. The runner does not retain host read or comparison commands.',
     },
   ],
   forbidden: [

@@ -38,7 +38,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'validate-final-correction',
       criterion:
-        'Runner-owned evidence records successful launcher-backed validation, the final project owner contains the corrected boundary, and the report states the actual validation outcome without claiming unverified software changes. Final-state evidence alone does not establish when validation occurred relative to the last write.',
+        'Runner-owned evidence records successful bundled CLI validation, the final project owner contains the corrected boundary, and the report states the actual validation outcome without claiming unverified software changes. Final-state evidence alone does not establish when validation occurred relative to the last write.',
     },
   ],
   forbidden: [

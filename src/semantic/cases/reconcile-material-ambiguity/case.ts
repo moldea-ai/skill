@@ -7,10 +7,9 @@ export const semanticCase = defineSemanticCase({
   setup: createSemanticCaseSetup('reconcile-material-ambiguity'),
   scenario:
     'Code and agent instructions support two materially different plausible refund authorization policies.',
-  operation: 'reconcile',
+  operation: 'fix',
   input: {
-    developerDirection:
-      'Use moldea to complete this repository task. Reconcile `refund-agent` against `/src/refund-policy.js`.',
+    developerDirection: 'Fix moldea for `refund-agent` against `/src/refund-policy.js`.',
     repositoryEvidence: [
       {
         claim: 'The instruction requires administrator approval.',
@@ -46,7 +45,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'create-unresolved-requirement-instead-of-asking',
       criterion:
-        'The actor persists developer-answerable ambiguity as an unresolved requirement instead of asking the focused question required before writing.',
+        'The actor persists developer-answerable ambiguity as an unconfirmed manifest entry instead of asking the focused question required before writing.',
     },
   ],
   resourceBudget: {

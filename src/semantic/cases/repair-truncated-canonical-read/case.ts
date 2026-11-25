@@ -7,7 +7,7 @@ export const semanticCase = defineSemanticCase({
   setup: createSemanticCaseSetup('repair-truncated-canonical-read'),
   scenario:
     'An explicit repair must assess a context owner of about 200 KB whose final section states a retention period that contradicts its small bound source.',
-  operation: 'repair-large-context-owner',
+  operation: 'fix-large-context-owner',
   input: {
     developerDirection: 'Fix moldea.',
     repositoryEvidence: [

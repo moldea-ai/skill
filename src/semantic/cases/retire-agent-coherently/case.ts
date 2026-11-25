@@ -62,7 +62,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'validates-retirement',
       criterion:
-        'Runner-owned evidence records successful final launcher-backed validation, and the report grounds the obsolete declarations and assets in the removed implementation and its exclusive dependencies. The supplied developer direction establishes retirement authority; reciting that direction is not required.',
+        'Runner-owned evidence records successful final bundled CLI validation, and the report grounds the obsolete declarations and assets in the removed implementation and its exclusive dependencies. The supplied developer direction establishes retirement authority; reciting that direction is not required.',
     },
   ],
   forbidden: [

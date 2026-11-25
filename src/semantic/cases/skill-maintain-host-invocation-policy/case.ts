@@ -10,7 +10,7 @@ export const semanticCase = defineSemanticCase({
   operation: 'maintain-agent-skill',
   input: {
     developerDirection:
-      'Use moldea to complete this repository task. Update the portable description and default prompt for the Agent Skill under skills/deployment-review. Preserve every unrelated supported host field and do not change invocation policy.',
+      'Use moldea Agents. Update the portable description and default prompt for the Agent Skill under skills/deployment-review. Preserve every unrelated supported host field and do not change invocation policy.',
     repositoryEvidence: [
       {
         claim: 'The authoritative deployment skill exists.',

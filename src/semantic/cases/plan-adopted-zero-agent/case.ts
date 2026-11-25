@@ -6,7 +6,7 @@ export const semanticCase = defineSemanticCase({
   id: 'plan-adopted-zero-agent',
   setup: prepareZeroAgentPlanning,
   scenario:
-    'An adopted project with healthy local tooling needs a plan for nightly exact integer tax calculations under fixed rules and scheduling requirements.',
+    'An adopted project needs a plan for exact nightly integer tax calculations under fixed rules and scheduling requirements.',
   operation: 'plan-agent-system',
   input: {
     developerDirection:

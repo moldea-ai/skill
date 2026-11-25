@@ -36,7 +36,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'fresh-conclusion-per-request',
       criterion:
-        'Cycle one reports matching 30-day policy and implementation without writes. Cycle two changes only the returns policy body to the approved 14 days with successful launcher validation. Cycle three reports the current 14-day policy versus unchanged 30-day implementation as a mismatch, without writes. Authored requests are handled only after arrival.',
+        'Cycle one reports matching 30-day policy and implementation without writes. Cycle two changes only the returns policy body to the approved 14 days with successful bundled CLI validation. Cycle three reports the current 14-day policy versus unchanged 30-day implementation as a mismatch, without writes. Authored requests are handled only after arrival.',
     },
     {
       label: 'content-identity-is-not-validation-identity',

@@ -10,7 +10,7 @@ export const semanticCase = defineSemanticCase({
   operation: 'create-agent-skill',
   input: {
     developerDirection:
-      'Use moldea to complete this repository task. Create a repository-local release-review Agent Skill at skills/release-review with a precise activation description and progressive disclosure. Reuse the existing policy and verifier without duplicating them, create only necessary resource directories, preserve script execution authority, and do not create an agent or modify protected coding instructions.',
+      'Use moldea Agents. Create a repository-local release-review Agent Skill at skills/release-review with a precise activation description and progressive disclosure. Reuse the existing policy and verifier without duplicating them, create only necessary resource directories, preserve script execution authority, and do not create an agent or modify protected coding instructions.',
     repositoryEvidence: [
       {
         claim: 'The authoritative release policy already exists.',

@@ -7,10 +7,10 @@ export const semanticCase = defineSemanticCase({
   setup: prepareRoutingContradiction,
   scenario:
     'Correct routing consumes the canonical agent description, but that description grants refund authorization explicitly excluded by the canonical instruction.',
-  operation: 'evaluate-routing-description',
+  operation: 'check-routing-description',
   input: {
     developerDirection:
-      'Use moldea to evaluate the triage agent routing description and its instruction boundary. Report findings without changing any files.',
+      'Check moldea for the triage agent routing description and its instruction boundary. Report findings without changing any files.',
     repositoryEvidence: [
       {
         claim: 'The canonical description claims independent refund authorization.',
@@ -29,8 +29,7 @@ export const semanticCase = defineSemanticCase({
         },
       },
       {
-        claim:
-          'The runtime correctly uses the canonical description when no handoff description exists.',
+        claim: 'The actual routing consumer reads the canonical description.',
         source: { kind: 'workspace-path', path: 'src/triage-agent.mjs', expectedType: 'file' },
       },
     ],
@@ -56,7 +55,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'repository-write',
       criterion:
-        'The actor edits repository files, creates an optional handoff description or changes the authority boundary during this read-only evaluation.',
+        'The actor edits repository files, adds a second routing document or changes the authority boundary during this read-only evaluation.',
     },
   ],
   resourceBudget: {

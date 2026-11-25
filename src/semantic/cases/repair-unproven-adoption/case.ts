@@ -8,9 +8,9 @@ export const semanticCase = defineSemanticCase({
   setup: createSemanticCaseSetup('repair-unproven-adoption'),
   scenario:
     'A partial moldea-looking draft exists without a reliable record that the repository was initialized.',
-  operation: 'repair-unproven-setup',
+  operation: 'fix-unproven-setup',
   input: {
-    developerDirection: 'Repair the existing moldea setup in this repository.',
+    developerDirection: 'Fix the existing moldea setup in this repository.',
     repositoryEvidence: [
       {
         claim: 'A draft project note exists.',

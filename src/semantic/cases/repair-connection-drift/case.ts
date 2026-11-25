@@ -7,10 +7,10 @@ export const semanticCase = defineSemanticCase({
   setup: createSemanticCaseSetup('repair-connection-drift'),
   scenario:
     'A declared support agent passes structural validation but loads the wrong instruction file.',
-  operation: 'repair-connection',
+  operation: 'fix-connection',
   input: {
     developerDirection:
-      'Fix moldea in this repository. Inspect every owner and check the support-agent connection. Repair established drift and run the existing project test.',
+      'Fix moldea in this repository. Inspect every owner and check the support-agent connection. Correct established drift and run the existing project test.',
     repositoryEvidence: [
       {
         claim: 'The support agent is declared.',
@@ -63,7 +63,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'repair-runtime-consumption',
       criterion:
-        'The report names every owner and the connection under Checked, workspace evidence corrects src/support-agent.js to read the canonical instruction.md, runner-owned evidence contains a passing integration-test summary, and successful launcher-backed validation establishes final structural validity. The report identifies the connection test as passed. Actual owner retrieval, assessment and exact test selection require native verification, not this semantic label; aggregate test evidence does not identify a test path.',
+        'The report names every owner and the connection under Checked, workspace evidence corrects src/support-agent.js to read the canonical instruction.md, runner-owned evidence contains a passing integration-test summary, and successful bundled CLI validation establishes final structural validity. The report identifies the connection test as passed. Actual owner retrieval, assessment and exact test selection require native verification, not this semantic label; aggregate test evidence does not identify a test path.',
     },
     {
       label: 'separate-assurances',
@@ -75,7 +75,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'validate-only-no-op',
       criterion:
-        'The actor treats passing validate as complete repair, leaves the wrong instruction path, renames the canonical asset or changes the runtime ID.',
+        'The actor treats passing validate as complete repair, leaves the wrong instruction path, renames the canonical asset or changes the evidenced runtime-agent binding.',
     },
     {
       label: 'unsupported-connection-claim',

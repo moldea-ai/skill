@@ -10,6 +10,7 @@ export const semanticCase = defineSemanticCase({
   operation: 'initialize',
   input: {
     developerDirection: 'Initialize moldea for this invoice-intake service.',
+    followUpDeveloperRequests: ['yes', 'Stop here.'],
     repositoryEvidence: [
       {
         claim:
@@ -37,19 +38,19 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'record-exact-grounded-relationship',
       criterion:
-        'The initialized foundation describes the evidenced invoice-intake purpose and records an exact affectedBy relationship to /src/invoice.js for the governing project fact.',
+        'The initialized foundation describes the evidenced invoice-intake purpose and records, after the confirmed round, an exact affectedBy relationship to /src/invoice.js for the governing project fact.',
     },
     {
       label: 'validate-complete-foundation',
       criterion:
-        'The actor preserves unrelated README content and creates no agent. Runner-owned evidence records completed launcher-backed validation, and the actor reports its result accurately.',
+        'The actor preserves unrelated README content and creates no agent. Runner-owned evidence records completed bundled CLI validation, and the actor reports its result accurately.',
     },
   ],
   forbidden: [
     {
       label: 'speculative-relationship-backfill',
       criterion:
-        'The actor adds catch-all source globs, unrelated bindings, or placeholder agents not established by the inspected project evidence.',
+        'The actor writes a proposed relationship before confirmation or adds a catch-all glob, unrelated binding, or placeholder agent without inspected evidence.',
     },
   ],
   coverageClaimIds: ['initialization-and-tooling-safety', 'context-maintenance-and-compression'],

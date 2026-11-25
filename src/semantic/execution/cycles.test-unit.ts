@@ -48,7 +48,7 @@ const createCycle = (
       item: {
         type: 'command_execution',
         command:
-          '/opt/node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt -- content --path moldea/project.md --json --max-output-bytes 65536',
+          '/opt/node /mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs content --repository /mnt --path moldea/project.md --json --max-output-bytes 65536',
         aggregated_output: 'x'.repeat(outputByteCount),
         exit_code: 0,
         status: 'completed',

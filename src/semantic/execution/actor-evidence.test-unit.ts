@@ -27,11 +27,10 @@ const OPTIONS = {
   cliVersion: '9.0.0',
   jsonSchemaVersion: 5,
 } satisfies ISemanticActorExecutionEvidenceOptions;
-const LAUNCHER_PREFIX =
-  'node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt --';
+const CLI_ENTRY = 'node /mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs';
 
-const createLauncherCommand = (operation: string, ...arguments_: string[]): string =>
-  [LAUNCHER_PREFIX, operation, ...arguments_].join(' ');
+const createCliCommand = (operation: string, ...arguments_: string[]): string =>
+  [CLI_ENTRY, operation, '--repository', '/mnt', ...arguments_].join(' ');
 
 const GATE_COMMAND = 'node /mnt/.agents/skills/moldea/scripts/relevance-gate.mjs --repository /mnt';
 const MANAGED_README_COMMAND =
@@ -81,7 +80,7 @@ test.each(['/mnt', '/mnt/', '/mnt/.', '.', './', '../mnt', '/mnt/child/..'])(
     const stdout = createEnvelope('validate', {});
     const evidence = projectCliInvocationEvidence(
       {
-        arguments: ['--repository', repository, '--', 'validate', '--json'],
+        arguments: ['validate', '--repository', repository, '--json'],
         stdout,
         exitCode: 0,
         outputByteCount: Buffer.byteLength(stdout),
@@ -208,12 +207,12 @@ const createNodeTestOutput = ({
     'ℹ duration_ms 12.5',
   ].join('\n');
 
-test('projects launcher-backed content-free inspect metadata and exact output bytes', () => {
+test('projects bundled CLI content-free inspect metadata and exact output bytes', () => {
   const output = createEnvelope('inspect', {
     page: { cursor: null, records: [{ kind: 'context', asset: { path: '/moldea/project.md' } }] },
   });
   const evidence = projectActorExecutionEvidenceEvent(
-    createEvent(createLauncherCommand('inspect', '--json', '--max-output-bytes', '65536'), output),
+    createEvent(createCliCommand('inspect', '--json', '--max-output-bytes', '65536'), output),
     OPTIONS,
   );
   assert.equal(hasValidActorExecutionEvidence([evidence], OPTIONS), true);
@@ -236,10 +235,10 @@ test('projects launcher-backed content-free inspect metadata and exact output by
   assert.equal(evidence.item.outputEvidence.byteCount, Buffer.byteLength(output));
 });
 
-test('recognizes relationship scope and content only through bounded launcher commands', () => {
+test('recognizes relationship scope and content only through bounded CLI commands', () => {
   const scope = projectActorExecutionEvidenceEvent(
     createEvent(
-      `printf '/src/example.ts\\0' | ${createLauncherCommand(
+      `printf '/src/example.ts\\0' | ${createCliCommand(
         'scope',
         '--paths-stdin',
         '--json',
@@ -255,7 +254,7 @@ test('recognizes relationship scope and content only through bounded launcher co
   );
   const content = projectActorExecutionEvidenceEvent(
     createEvent(
-      createLauncherCommand(
+      createCliCommand(
         'content',
         '--path',
         '/moldea/project.md',
@@ -283,7 +282,7 @@ test('recognizes relationship scope and content only through bounded launcher co
 test('projects failed content commands without requiring a canonical body', () => {
   const evidence = projectActorExecutionEvidenceEvent(
     createEvent(
-      createLauncherCommand(
+      createCliCommand(
         'content',
         '--path',
         '/moldea/missing.md',
@@ -329,7 +328,7 @@ test('rejects unsafe CLI error classifications without retaining error bodies', 
     },
   });
   const evidence = projectActorExecutionEvidenceEvent(
-    createEvent(createLauncherCommand('content', '--json'), unsafeOutput, {
+    createEvent(createCliCommand('content', '--json'), unsafeOutput, {
       exitCode: 2,
       status: 'failed',
     }),
@@ -431,8 +430,8 @@ test('classifies activation and upper resource containment independently', () =>
   assert.equal(hasPassingMoldeaResourceBudget(excessiveCommandEvidence, directBudget), false);
 });
 
-test('scenario containment counts only launcher calls, minus an exempt final validation', () => {
-  // the relevance gate and moldea/ reads are not launcher calls, so abstention captures nothing
+test('scenario containment counts only CLI calls, minus an exempt final validation', () => {
+  // the relevance gate and moldea/ reads are not CLI calls, so abstention captures nothing
   const abstainBudget: IMoldeaResourceBudget = {
     activation: 'abstain',
     minimumMoldeaCommands: 0,
@@ -471,7 +470,7 @@ test('rejects inspect output that contains canonical document bodies', () => {
   assert.throws(() =>
     projectActorExecutionEvidenceEvent(
       createEvent(
-        createLauncherCommand('inspect', '--json', '--max-output-bytes', '65536'),
+        createCliCommand('inspect', '--json', '--max-output-bytes', '65536'),
         createEnvelope('inspect', {
           page: { cursor: null, records: [{ asset: { content: 'leak' } }] },
         }),
@@ -481,19 +480,16 @@ test('rejects inspect output that contains canonical document bodies', () => {
   );
 });
 
-test('recognizes validate and fixed-boundary composition launcher operations', () => {
+test('recognizes validate and fixed-boundary composition CLI operations', () => {
   const validate = projectActorExecutionEvidenceEvent(
     createEvent(
-      createLauncherCommand('validate', '--json', '--max-output-bytes', '65536'),
+      createCliCommand('validate', '--json', '--max-output-bytes', '65536'),
       createEnvelope('validate', { valid: true }),
     ),
     OPTIONS,
   );
   const composition = projectActorExecutionEvidenceEvent(
-    createEvent(
-      createLauncherCommand('composition', '--json'),
-      createEnvelope('composition', { packages: [] }),
-    ),
+    createEvent(`${CLI_ENTRY} composition --json`, createEnvelope('composition', { packages: [] })),
     OPTIONS,
   );
 
@@ -521,7 +517,7 @@ test('projects standalone validation continuation pages independently', () => {
     });
   const firstPage = projectActorExecutionEvidenceEvent(
     createEvent(
-      createLauncherCommand('validate', '--json', '--max-output-bytes', '65536'),
+      createCliCommand('validate', '--json', '--max-output-bytes', '65536'),
       createInvalidValidationEnvelope('opaque.snapshot.cursor'),
       { exitCode: 1, status: 'failed' },
     ),
@@ -529,7 +525,7 @@ test('projects standalone validation continuation pages independently', () => {
   );
   const finalPage = projectActorExecutionEvidenceEvent(
     createEvent(
-      createLauncherCommand(
+      createCliCommand(
         'validate',
         '--json',
         '--max-output-bytes',
@@ -583,13 +579,9 @@ test('uses complete command totals for warning-only and mixed diagnostic results
         status,
       });
       const evidence = projectActorExecutionEvidenceEvent(
-        createEvent(
-          createLauncherCommand(command, '--json', '--max-output-bytes', '65536'),
-          output,
-          {
-            exitCode,
-          },
-        ),
+        createEvent(createCliCommand(command, '--json', '--max-output-bytes', '65536'), output, {
+          exitCode,
+        }),
         OPTIONS,
       );
       assert.deepEqual(evidence.item.outputEvidence.facts[0], {
@@ -644,13 +636,9 @@ test.each(['validate', 'inspect'] as const)(
         status: errorCount === 0 ? 'valid' : 'invalid',
       });
       const evidence = projectActorExecutionEvidenceEvent(
-        createEvent(
-          createLauncherCommand(command, '--json', '--max-output-bytes', '65536'),
-          output,
-          {
-            exitCode: errorCount === 0 ? 0 : 1,
-          },
-        ),
+        createEvent(createCliCommand(command, '--json', '--max-output-bytes', '65536'), output, {
+          exitCode: errorCount === 0 ? 0 : 1,
+        }),
         options,
       );
       assert.equal(evidence.item.outputEvidence.disposition, 'projected');
@@ -694,10 +682,7 @@ test.each(['validate', 'inspect'] as const)(
         status: 'valid',
       });
       const evidence = projectActorExecutionEvidenceEvent(
-        createEvent(
-          createLauncherCommand(command, '--json', '--max-output-bytes', '65536'),
-          output,
-        ),
+        createEvent(createCliCommand(command, '--json', '--max-output-bytes', '65536'), output),
         options,
       );
       assert.equal(evidence.item.outputEvidence.disposition, 'unrecognized');
@@ -718,7 +703,7 @@ test('records no accepted-warning total for schema 7 commands without diagnostic
     });
     const evidence = projectActorExecutionEvidenceEvent(
       createEvent(
-        createLauncherCommand(
+        createCliCommand(
           command,
           '--json',
           '--max-output-bytes',
@@ -775,10 +760,7 @@ test('does not derive validation conclusions from missing or contradictory total
         status: 'valid',
       });
       const evidence = projectActorExecutionEvidenceEvent(
-        createEvent(
-          createLauncherCommand(command, '--json', '--max-output-bytes', '65536'),
-          output,
-        ),
+        createEvent(createCliCommand(command, '--json', '--max-output-bytes', '65536'), output),
         OPTIONS,
       );
       assert.equal(evidence.item.outputEvidence.disposition, 'unrecognized');
@@ -787,10 +769,10 @@ test('does not derive validation conclusions from missing or contradictory total
   }
 });
 
-test('counts a valid launcher with malformed output as an unrecognized moldea operation', () => {
+test('counts an invocation with malformed output as an unrecognized moldea operation', () => {
   const evidence = projectActorExecutionEvidenceEvent(
     createEvent(
-      createLauncherCommand('validate', '--json', '--max-output-bytes', '65536'),
+      createCliCommand('validate', '--json', '--max-output-bytes', '65536'),
       '{not-json}',
     ),
     OPTIONS,
@@ -1036,14 +1018,14 @@ test('preserves a source-recorded too-large classification after the operating p
   );
 });
 
-test('rejects obsolete and malformed launcher command forms', () => {
+test('rejects obsolete and malformed CLI command forms', () => {
   for (const command of [
     './node_modules/.bin/moldea validate --json --max-output-bytes 65536',
     'node /mnt/node_modules/@moldea.ai/cli/dist/moldea.js validate --json --max-output-bytes 65536',
     'node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt validate --json --max-output-bytes 65536',
-    createLauncherCommand('validate', '--', '--json', '--max-output-bytes', '65536'),
-    'node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs validate --repository /mnt -- --json --max-output-bytes 65536',
-    createLauncherCommand(
+    createCliCommand('validate', '--', '--json', '--max-output-bytes', '65536'),
+    'node /mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs validate --repository /mnt -- --json --max-output-bytes 65536',
+    createCliCommand(
       'scope',
       '--paths-stdin',
       '--path',
@@ -1052,7 +1034,7 @@ test('rejects obsolete and malformed launcher command forms', () => {
       '--max-output-bytes',
       '65536',
     ),
-    createLauncherCommand(
+    createCliCommand(
       'content',
       '--path',
       '/moldea/../secret.md',
@@ -1060,15 +1042,15 @@ test('rejects obsolete and malformed launcher command forms', () => {
       '--max-output-bytes',
       '65536',
     ),
-    createLauncherCommand('inspect', '--json'),
-    createLauncherCommand('inspect', '--json', '--max-output-bytes', '65535'),
-    createLauncherCommand('composition', '--json', '--max-output-bytes', '65536'),
-    `${createLauncherCommand(
+    createCliCommand('inspect', '--json'),
+    createCliCommand('inspect', '--json', '--max-output-bytes', '65535'),
+    `${CLI_ENTRY} composition --json --max-output-bytes 65536`,
+    `${createCliCommand(
       'validate',
       '--json',
       '--max-output-bytes',
       '65536',
-    )} && ${createLauncherCommand('inspect', '--json', '--max-output-bytes', '65536')}`,
+    )} && ${createCliCommand('inspect', '--json', '--max-output-bytes', '65536')}`,
   ]) {
     const evidence = projectActorExecutionEvidenceEvent(
       createEvent(command, createEnvelope('validate', { valid: true })),

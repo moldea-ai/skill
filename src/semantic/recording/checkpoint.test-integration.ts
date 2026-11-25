@@ -276,7 +276,7 @@ test('round trips projected Git and print evidence and rejects malformed command
       item: {
         type: 'command_execution',
         command:
-          '/custom/node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt -- inspect --json --max-output-bytes 65536',
+          '/custom/node /mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs inspect --repository /mnt --json --max-output-bytes 65536',
         aggregated_output: '',
         exit_code: 1,
         status: 'failed',

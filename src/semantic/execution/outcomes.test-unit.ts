@@ -43,7 +43,7 @@ const caseDefinition = defineSemanticCase({
 });
 
 const commandPolicy = projectCodexEvaluationExecutionEvidence('').commandPolicy;
-const LAUNCHER = 'node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt --';
+const CLI_ENTRY = 'node /mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs';
 
 /** Projects valid command-policy evidence for completed commands with the given output sizes. */
 const projectCommandPolicy = (commands: ReadonlyArray<readonly [string, number]>) =>
@@ -110,7 +110,7 @@ test.each([
 });
 
 test.each([
-  [`${LAUNCHER} validate --json --max-output-bytes 65536`, '', 0, true],
+  [`${CLI_ENTRY} validate --repository /mnt --json --max-output-bytes 65536`, '', 0, true],
   ['node /mnt/tools/check.js', '', 0, true],
   ['git config --null --get attr.tree', '', 0, false],
   [
@@ -358,7 +358,7 @@ describe('semantic result dimensions', () => {
         },
         actorCommandPolicy: projectCommandPolicy(
           splitOutput(8, outputBytes, peakBytes).map((bytes) => [
-            `${LAUNCHER} content --path moldea/project.md --json --max-output-bytes 65536`,
+            `${CLI_ENTRY} content --repository /mnt --path moldea/project.md --json --max-output-bytes 65536`,
             bytes,
           ]),
         ),
@@ -763,7 +763,7 @@ test.each([
   'relationship activation requires actual successful scope relevance: %s',
   (outcome, expected) => {
     const command =
-      'node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt -- scope --path src/a.js --json --max-output-bytes 65536';
+      'node /mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs scope --repository /mnt --path src/a.js --json --max-output-bytes 65536';
     const output =
       outcome === 'no-envelope'
         ? ''
@@ -817,7 +817,7 @@ test.each([
 );
 
 const SKILL_SCRIPTS = '/mnt/.agents/skills/moldea/scripts';
-const VALIDATE = `${LAUNCHER} validate --json --max-output-bytes 65536`;
+const VALIDATE = `${CLI_ENTRY} validate --repository /mnt --json --max-output-bytes 65536`;
 const NO_GIT_EVIDENCE = {
   invocationCount: 0,
   hostInvocationCount: 0,
@@ -838,7 +838,7 @@ const MOLDEA_CHANGE = {
 
 type IStreamEntry = readonly ['command', string, number] | readonly ['file-change', unknown];
 
-/** Supplies synthetic observed parent argv for ordered launcher calls and completed patches. */
+/** Supplies synthetic observed parent argv for ordered CLI calls and completed patches. */
 const projectStream = (entries: readonly IStreamEntry[]) => {
   const invocations: ICliInvocation[] = [];
   const events = entries.map((entry, index) => {
@@ -850,14 +850,14 @@ const projectStream = (entries: readonly IStreamEntry[]) => {
     let command = entry[1];
     if (identifyMoldeaCliLauncherOperation(command) !== null) {
       const args = command.split(' ').slice(2);
-      const script = `/* observed launcher ${index} */`;
+      const script = `/* observed CLI ${index} */`;
       invocations.push({
         arguments: args,
         exitCode: 0,
         stdout: '',
         outputByteCount: entry[2],
         callers: [
-          ['/opt/node', '/mnt/.agents/skills/moldea/scripts/moldea-cli.mjs', ...args],
+          ['/opt/node', '/mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs', ...args],
           ['/opt/node', '-e', script],
         ],
       });
@@ -881,7 +881,7 @@ const projectStream = (entries: readonly IStreamEntry[]) => {
   ).commandPolicy;
 };
 
-/** Builds the launcher captures for the given operations and launcher output sizes. */
+/** Builds the CLI captures for the given operations and CLI output sizes. */
 const createLauncherCaptures = (calls: ReadonlyArray<readonly ['scope' | 'validate', number]>) => ({
   actorExecutionEvidence: calls.map(([, byteCount]) => ({
     eventType: 'item.completed' as const,
@@ -1081,7 +1081,7 @@ describe('ordinary final-validation exception', () => {
       ];
       const entries: IStreamEntry[] = sizes.map((size) => [
         'command',
-        `${LAUNCHER} scope --path src/a.js --json --max-output-bytes 65536`,
+        `${CLI_ENTRY} scope --repository /mnt --path src/a.js --json --max-output-bytes 65536`,
         size,
       ]);
       if (hasPatch) entries.push(PATCH_MOLDEA);
@@ -1124,7 +1124,11 @@ describe('ordinary final-validation exception', () => {
     expect(
       identify(
         [
-          ['command', `${LAUNCHER} scope --paths-stdin --json --max-output-bytes 65536`, 900],
+          [
+            'command',
+            `${CLI_ENTRY} scope --repository /mnt --paths-stdin --json --max-output-bytes 65536`,
+            900,
+          ],
           ['command', 'cat moldea/project.md', 1_000],
           PATCH_MOLDEA,
           ['command', 'node --test src/a.test-unit.js', 100],
@@ -1277,7 +1281,7 @@ describe('ordinary final-validation exception', () => {
     };
     const scope = [
       'command',
-      `${LAUNCHER} scope --paths-stdin --json --max-output-bytes 65536`,
+      `${CLI_ENTRY} scope --repository /mnt --paths-stdin --json --max-output-bytes 65536`,
       1_000,
     ] as const;
     const reads = splitOutput(3, 515_000, 200_000).map(

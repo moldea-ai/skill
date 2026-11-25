@@ -12,19 +12,12 @@ import { readReleaseIdentity } from '../../release/index.ts';
 
 import { parseSemanticEvaluationHostOutput } from './host-output.ts';
 
-test('real launcher composition agrees with sandbox Node recognition and resource projection', () => {
+test('real bundled CLI composition agrees with sandbox Node recognition and resource projection', () => {
   const repositoryRoot = resolve(import.meta.dirname, '../../..');
   const { cliVersion, cliJsonSchemaVersion } = readReleaseIdentity(repositoryRoot);
   const composition = spawnSync(
     process.execPath,
-    [
-      join(repositoryRoot, 'moldea/scripts/moldea-cli.mjs'),
-      '--repository',
-      repositoryRoot,
-      '--',
-      'composition',
-      '--json',
-    ],
+    [join(repositoryRoot, 'moldea/scripts/moldea-cli/moldea.mjs'), 'composition', '--json'],
     { encoding: 'utf8', timeout: 15_000 },
   );
   expect(composition.error).toBeUndefined();
@@ -34,14 +27,11 @@ test('real launcher composition agrees with sandbox Node recognition and resourc
       type: 'moldea.cli-invocations',
       invocations: [
         {
-          arguments: ['--repository', '/mnt', '--', 'composition', '--json'],
+          arguments: ['composition', '--json'],
           callers: [
             [
               '/opt/node',
-              '/mnt/.agents/skills/moldea/scripts/moldea-cli.mjs',
-              '--repository',
-              '/mnt/.',
-              '--',
+              '/mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs',
               'composition',
               '--json',
             ],
@@ -57,7 +47,7 @@ test('real launcher composition agrees with sandbox Node recognition and resourc
       item: {
         type: 'command_execution',
         command:
-          '/opt/node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt/. -- composition --json',
+          '/opt/node /mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs composition --json',
         aggregated_output: composition.stdout,
         exit_code: composition.status,
         status: 'completed',

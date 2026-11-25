@@ -65,7 +65,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'preserves-source',
       criterion:
-        'Both surviving implementation files, canonical support assets, and custom runtime guidance remain unchanged; only the necessary manifest relationships and unresolved record change.',
+        'Both surviving implementation files, and canonical support assets remain unchanged; only the necessary manifest relationships and unresolved record change.',
     },
     {
       label: 'validates-repair',
@@ -82,7 +82,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'unrelated-rewrite',
       criterion:
-        'The actor changes implementation, accurate instructions, or runtime guidance to force a preferred code pattern.',
+        'The actor changes implementation or accurate instructions to force a preferred code pattern.',
     },
   ],
   coverageClaimIds: ['agent-and-skill-design', 'project-repair-and-recovery'],

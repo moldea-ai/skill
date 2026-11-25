@@ -14,7 +14,7 @@ if (version === undefined || process.argv.length !== 3) {
       version,
     });
     process.stdout.write(
-      `Updated skill ${identity.releaseVersion} to ${identity.packageManifest.devDependencies['@moldea.ai/cli']}\n`,
+      `Updated skill ${identity.releaseVersion} to CLI ${identity.cliVersion}.\n`,
     );
   } catch (error) {
     process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);

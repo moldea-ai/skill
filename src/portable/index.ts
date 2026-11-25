@@ -33,17 +33,6 @@ export { readRepositoryFile, resolveRepositoryFile } from './repository-files.ts
 // repository-logical task paths
 export { normalizeScopePath } from './scope-path-input.ts';
 
-// repository package
-export type { IResolvedRepositoryCli } from './repository-package.ts';
-export {
-  EXPECTED_CLI_RANGE,
-  isCompatibleStableVersion,
-  isSupportedCliDeclaration,
-  parseStableVersion,
-  resolveRepositoryCli,
-  SUPPORTED_CORE_RANGE,
-} from './repository-package.ts';
-
 // bounded repair Git evidence
 export type { IRepairGitEvidence, IRepairGitMode, IRepairGitOptions } from './repair-git/index.ts';
 export { collectRepairGitEvidence } from './repair-git/index.ts';

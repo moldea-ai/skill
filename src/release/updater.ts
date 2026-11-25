@@ -1,821 +1,177 @@
-import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { basename, dirname, join } from 'node:path';
-import { hasErrorCode } from 'jg-exception';
-import { ERRORS as FS_ERRORS, writeFileAtomic, writeFileAtomicIfUnchanged } from 'jg-fs';
-import { resolvePackageManagerCommand, runProcess } from 'jg-process';
-import { z } from 'zod';
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+} from 'node:fs';
+import path from 'node:path';
 
+import { extractMessage } from 'jg-exception';
+import { writeFileAtomicIfUnchanged } from 'jg-fs';
+import { resolvePackageManagerCommand, runProcess } from 'jg-process';
+
+import { EXCLUDED_DIRECTORY_NAMES } from '../filesystem/index.ts';
 import { generatePortableArtifacts, PORTABLE_ARTIFACT_PATHS } from '../portable/index.ts';
 import { MAX_PROCESS_OUTPUT_BYTES } from '../process/index.ts';
 
-import {
-  CLI_JSON_SCHEMA_VERSION_TEXT_PATHS,
-  CLI_PACKAGE_NAME,
-  CLI_VERSION_RANGE_TEXT_PATHS,
-  CORE_VERSION_RANGE_TEXT_PATHS,
-  RELEASE_PATHS,
-} from './constants.ts';
+import { CLI_PACKAGE_NAME, RELEASE_PATHS } from './constants.ts';
 import { assertReleaseIdentity } from './identity.ts';
-import type { IReleaseIdentity, IReleasePackageManifest } from './types.ts';
-import {
-  createCompatibleMajorRange,
-  parseCompatibleStableRange,
-  parseStableVersion,
-} from './versions.ts';
+import { verifyPortableCli } from './portable-cli.ts';
+import type { IReleaseIdentity } from './types.ts';
+import { parseStableVersion } from './versions.ts';
 
-// npm settings for every release call: no audit, funding or update notices
-const NPM_ENVIRONMENT = {
-  npm_config_audit: 'false',
-  npm_config_fund: 'false',
-  npm_config_update_notifier: 'false',
-};
-const StringRecordSchema = z.record(z.string(), z.string());
-const PublishedRegistryManifestSchema = z.object({
-  dependencies: StringRecordSchema,
-  version: z.string(),
-});
-const PublishedCliManifestSchema = PublishedRegistryManifestSchema.extend({
-  jsonSchemaVersion: z.number().int().positive(),
-});
-const RootPackageManifestSchema = z
-  .object({
-    devDependencies: StringRecordSchema.default({}),
-    moldeaRelease: z.object({
-      cliJsonSchemaVersion: z.number().int().positive(),
-      cliVersionRange: z.string(),
-      coreVersionRange: z.string(),
-    }),
-    version: z.string(),
-  })
-  .passthrough();
-const SemanticCliManifestSchema = z
-  .object({
-    dependencies: StringRecordSchema,
-    moldeaRelease: z.object({ cliJsonSchemaVersion: z.number().int().positive() }),
-    version: z.string(),
-  })
-  .passthrough();
-const PackageManagerCaseSchema = z.object({
-  input: z.object({
-    cli: z.object({ declaration: z.string(), installedVersion: z.string() }),
-  }),
-  scenario: z.string(),
-});
-const CliEnvelopeCaseSchema = z
-  .object({
-    id: z.string(),
-    input: z.object({
-      declaredCliVersion: z.string().optional(),
-      installedCliVersion: z.string().optional(),
-      output: z
-        .object({ cliVersion: z.string(), schemaVersion: z.number().int() })
-        .passthrough()
-        .optional(),
-    }),
-    scenario: z.string().optional(),
-  })
-  .passthrough();
-const ConformanceFixtureSchema = z
-  .object({
-    packageManagerCases: z.array(PackageManagerCaseSchema).optional(),
-    cliEnvelopeCases: z.array(CliEnvelopeCaseSchema),
-  })
-  .passthrough();
-const CliCompositionEnvelopeSchema = z.object({
-  cliVersion: z.string(),
-  command: z.literal('composition'),
-  schemaVersion: z.number().int().positive(),
-  status: z.literal('valid'),
-});
+const RELEASE_UPDATE_FILES = [
+  RELEASE_PATHS.packageManifest,
+  RELEASE_PATHS.packageLock,
+  ...PORTABLE_ARTIFACT_PATHS,
+];
 
-type IPublishedRegistryManifest = z.infer<typeof PublishedRegistryManifestSchema>;
-type IPublishedCliManifest = z.infer<typeof PublishedCliManifestSchema>;
-type IUpdatedRootManifests = { packageLock: string; packageManifest: string };
-type IReleaseFiles = ReadonlyMap<string, string>;
-
-// range anchors in release-managed text
-const CLI_RANGE_MARKERS = [
-  '@moldea.ai/cli',
-  'cliVersionRange',
-  'EXPECTED_CLI_RANGE',
-  'CLI ',
-] as const;
-const CORE_RANGE_MARKERS = [
-  '@moldea.ai/core',
-  'coreVersionRange',
-  'SUPPORTED_CORE_RANGE',
-  'Core ',
-] as const;
-
-const parseJson = (source: string, label: string): unknown => {
-  try {
-    return JSON.parse(source) as unknown;
-  } catch (error) {
-    throw new Error(`${label} is not valid JSON.`, { cause: error });
-  }
-};
-
-const requireFile = (files: IReleaseFiles, relativePath: string): string => {
-  const content = files.get(relativePath);
-  if (content === undefined) throw new Error(`Missing release identity source ${relativePath}.`);
-  return content;
-};
-
-const createDifferentStableVersion = (version: string): string => {
-  const [major] = version.split('.').map(Number);
-  return `${(major ?? 0) + 1}.0.0`;
-};
-
-/** Preserves a raised CLI minimum within one major and resets it for a new CLI major. */
-const resolveNextCliVersionRange = ({
-  previousRange,
-  version,
-}: {
-  previousRange: string;
-  version: string;
-}): string =>
-  parseCompatibleStableRange(previousRange).slice(1).split('.')[0] === version.split('.')[0]
-    ? previousRange
-    : createCompatibleMajorRange(version);
-
-/** Preserves a safe Core minimum within one major and resets it for a new CLI Core major. */
-const resolveNextCoreVersionRange = ({
-  nextCliCoreRange,
-  previousCliCoreRange,
-  previousRange,
-}: {
-  nextCliCoreRange: string;
-  previousCliCoreRange: string;
-  previousRange: string;
-}): string =>
-  nextCliCoreRange.split('.')[0] === previousCliCoreRange.split('.')[0]
-    ? parseCompatibleStableRange(previousRange)
-    : nextCliCoreRange;
-
-/** Replaces the first range belonging to a named contract on each line. */
-const replaceRangeReferences = ({
-  content,
-  markers,
-  nextRange,
-  previousRange,
-}: {
-  content: string;
-  markers: readonly string[];
-  nextRange: string;
-  previousRange: string;
-}): string => {
-  return content
-    .split('\n')
-    .map((line) => {
-      const marker = markers.find((candidate) => line.includes(candidate));
-      if (marker === undefined) return line;
-      const rangeIndex = line.indexOf('^', line.indexOf(marker) + marker.length);
-      if (rangeIndex < 0 || !line.startsWith(previousRange, rangeIndex)) return line;
-      return `${line.slice(0, rangeIndex)}${nextRange}${line.slice(rangeIndex + previousRange.length)}`;
-    })
-    .join('\n');
-};
-
-/** Replaces portable CLI range and major references without touching Core ranges. */
-const replaceCliRangeReferences = ({
-  content,
-  nextCliRange,
-  previousCliRange,
-}: {
-  content: string;
-  nextCliRange: string;
-  previousCliRange: string;
-}): string => {
-  const previousCliMajor = previousCliRange.slice(1).split('.')[0];
-  const nextCliMajor = nextCliRange.slice(1).split('.')[0];
-  return replaceRangeReferences({
-    content,
-    markers: CLI_RANGE_MARKERS,
-    nextRange: nextCliRange,
-    previousRange: previousCliRange,
-  })
-    .replaceAll(`CLI ${previousCliMajor}`, `CLI ${nextCliMajor}`)
-    .replaceAll(`stable ${previousCliMajor}.x`, `stable ${nextCliMajor}.x`);
-};
-
-const updateConformanceCases = ({
-  nextCliRange,
-  content,
-  previousCliRange,
-  previousCliJsonSchemaVersion,
-  previousCliVersion,
-  publishedManifest,
-}: {
-  content: string;
-  nextCliRange: string;
-  previousCliJsonSchemaVersion: number;
-  previousCliRange: string;
-  previousCliVersion: string;
-  publishedManifest: IPublishedCliManifest;
-}): string => {
-  const fixture = ConformanceFixtureSchema.parse(parseJson(content, 'Conformance fixture'));
-  const nextCliVersion = publishedManifest.version;
-  const nextCliJsonSchemaVersion = publishedManifest.jsonSchemaVersion;
-  const replaceScenarioVersion = (scenario: string): string =>
-    scenario.replaceAll(previousCliVersion, nextCliVersion);
-
-  for (const packageManagerCase of fixture.packageManagerCases ?? []) {
-    packageManagerCase.scenario = replaceScenarioVersion(packageManagerCase.scenario);
-    const cli = packageManagerCase.input?.cli;
-    if (cli?.declaration === previousCliVersion) cli.declaration = nextCliVersion;
-    if (cli?.declaration === previousCliRange) cli.declaration = nextCliRange;
-    if (cli?.installedVersion === previousCliVersion) cli.installedVersion = nextCliVersion;
-  }
-
-  for (const envelopeCase of fixture.cliEnvelopeCases ?? []) {
-    if (envelopeCase.scenario !== undefined) {
-      envelopeCase.scenario = replaceScenarioVersion(envelopeCase.scenario);
-    }
-    const input = envelopeCase.input;
-    if (input?.declaredCliVersion === previousCliVersion) {
-      input.declaredCliVersion = nextCliVersion;
-    }
-    if (input?.installedCliVersion === previousCliVersion) {
-      input.installedCliVersion = nextCliVersion;
-    }
-    if (input?.output && typeof input.output === 'object') {
-      if (input.output.cliVersion === previousCliVersion) {
-        input.output.cliVersion = nextCliVersion;
-      }
-      if (input.output.schemaVersion === previousCliJsonSchemaVersion) {
-        input.output.schemaVersion = nextCliJsonSchemaVersion;
-      }
-    }
-  }
-
-  const schemaMismatch = fixture.cliEnvelopeCases.find(({ id }) => id === 'schema-mismatch');
-  if (!schemaMismatch?.input?.output) {
-    throw new Error('The conformance fixture is missing schema-mismatch.');
-  }
-  const incompatibleSchemaVersion = nextCliJsonSchemaVersion === 1 ? 2 : 1;
-  schemaMismatch.input.output.schemaVersion = incompatibleSchemaVersion;
-  schemaMismatch.scenario = `Inspect returns an otherwise plausible envelope using unsupported machine schema version ${incompatibleSchemaVersion}.`;
-
-  const versionMismatch = fixture.cliEnvelopeCases.find(({ id }) => id === 'version-mismatch');
-  if (!versionMismatch?.input?.output) {
-    throw new Error('The conformance fixture is missing version-mismatch.');
-  }
-  const incompatibleCliVersion = createDifferentStableVersion(nextCliVersion);
-  versionMismatch.input.output.cliVersion = incompatibleCliVersion;
-  versionMismatch.scenario = `The machine envelope reports unsupported CLI ${incompatibleCliVersion} while the declared and installed root package is ${nextCliVersion}.`;
-
-  return `${JSON.stringify(fixture, null, 2)}\n`;
-};
-
-const parseCliJsonSchemaVersion = (stdout: string, requestedVersion: string): number => {
-  const envelope = CliCompositionEnvelopeSchema.parse(
-    parseJson(stdout, `${CLI_PACKAGE_NAME}@${requestedVersion} composition output`),
-  );
-
-  if (
-    envelope?.cliVersion !== requestedVersion ||
-    envelope?.command !== 'composition' ||
-    envelope?.status !== 'valid' ||
-    envelope.status !== 'valid'
-  ) {
-    throw new Error(
-      `${CLI_PACKAGE_NAME}@${requestedVersion} returned an invalid composition envelope.`,
-    );
-  }
-
-  return envelope.schemaVersion;
-};
-
-const parsePublishedManifest = (
-  stdout: string,
-  requestedVersion: string,
-): IPublishedRegistryManifest => {
-  const manifest = PublishedRegistryManifestSchema.parse(
-    parseJson(stdout, `${CLI_PACKAGE_NAME}@${requestedVersion} registry response`),
-  );
-  if (manifest.version !== requestedVersion) {
-    throw new Error(
-      `The npm registry returned ${String(manifest.version)}, expected ${requestedVersion}.`,
-    );
-  }
-  return manifest;
-};
-
-/**
- * Runs npm without a shell, on Windows through its JavaScript entry, and returns its stdout.
- * @param args The npm arguments.
- * @param cwd The directory npm runs in.
- * @param failure The message that leads the error when npm exits with a code other than 0.
- * @returns A promise that resolves to npm's stdout.
- * @throws
- * - PACKAGE_MANAGER_NOT_FOUND: The package manager's executable couldn't be found.
- * - PROCESS_START_FAILED: Unable to start the command
- * - PROCESS_OUTPUT_TOO_LARGE: The process wrote more output than allowed
- * - PROCESS_TREE_SURVIVED: The process tree is still running after it was force-stopped
- * - The failure message, with npm's output, when npm fails.
- */
-const runNpm = async (args: string[], cwd: string, failure: string): Promise<string> => {
-  const env = { ...process.env, ...NPM_ENVIRONMENT };
-  const result = await runProcess({
-    ...resolvePackageManagerCommand(args, { packageManager: 'npm', env, cwd }),
-    cwd,
-    env,
-    maxOutputBytes: MAX_PROCESS_OUTPUT_BYTES,
-  });
-  if (result.exitCode !== 0) {
-    throw new Error([failure, result.stdout, result.stderr].filter(Boolean).join('\n'));
-  }
-  return result.stdout;
-};
-
-/** Resolves one exact stable CLI manifest from the public npm registry. */
-export const resolvePublishedCliManifest = async (
-  version: string,
-): Promise<IPublishedCliManifest> => {
-  parseStableVersion(version);
-  const publishedManifest = parsePublishedManifest(
-    await runNpm(
-      [
-        'view',
-        `${CLI_PACKAGE_NAME}@${version}`,
-        'version',
-        'dependencies',
-        'dist.integrity',
-        'dist.shasum',
-        '--json',
-      ],
-      process.cwd(),
-      `Unable to resolve ${CLI_PACKAGE_NAME}@${version}.`,
-    ),
-    version,
-  );
-  const temporaryRoot = mkdtempSync(join(tmpdir(), 'moldea-release-cli-probe-'));
-
-  try {
-    const composition = await runNpm(
-      [
-        'exec',
-        '--yes',
-        `--package=${CLI_PACKAGE_NAME}@${version}`,
-        '--',
-        'moldea',
-        'composition',
-        '--json',
-        '--no-color',
-      ],
-      temporaryRoot,
-      `Unable to probe ${CLI_PACKAGE_NAME}@${version} composition output.`,
-    );
-
-    return PublishedCliManifestSchema.parse({
-      ...publishedManifest,
-      jsonSchemaVersion: parseCliJsonSchemaVersion(composition, version),
+/** Copies the exact npm workspace and portable generator inputs into a disposable checkout. */
+const stageUpdate = (repositoryRoot: string, stagingRoot: string): void => {
+  for (const relativePath of [
+    RELEASE_PATHS.packageManifest,
+    RELEASE_PATHS.packageLock,
+    RELEASE_PATHS.skill,
+    'website/package.json',
+    'moldea/assets/managed-readme-block.md',
+    'moldea/assets/managed-agents-block.md',
+    'src/portable',
+  ]) {
+    const destination = path.join(stagingRoot, relativePath);
+    mkdirSync(path.dirname(destination), { recursive: true });
+    cpSync(path.join(repositoryRoot, relativePath), destination, {
+      recursive: true,
+      filter: (sourcePath) => !EXCLUDED_DIRECTORY_NAMES.has(path.basename(sourcePath)),
     });
-  } finally {
-    rmSync(temporaryRoot, { force: true, recursive: true });
   }
 };
 
-const createUpdatedRootManifests = async ({
-  packageLock,
-  packageManifest,
-  repositoryRoot,
-  version,
-}: {
-  packageLock: string;
-  packageManifest: IReleasePackageManifest;
-  repositoryRoot: string;
-  version: string;
-}): Promise<IUpdatedRootManifests> => {
-  const temporaryRoot = mkdtempSync(join(tmpdir(), 'moldea-release-cli-'));
-
-  try {
-    await writeFileAtomic(
-      join(temporaryRoot, RELEASE_PATHS.packageManifest),
-      `${JSON.stringify(packageManifest, null, 2)}\n`,
-    );
-    await writeFileAtomic(join(temporaryRoot, RELEASE_PATHS.packageLock), packageLock);
-    for (const relativePath of ['website/package.json']) {
-      const destination = join(temporaryRoot, relativePath);
-      mkdirSync(dirname(destination), { recursive: true });
-      cpSync(join(repositoryRoot, relativePath), destination);
-    }
-    await runNpm(
+/** Installs the exact requested CLI using the repository's npm workspace and lockfile. */
+const installCli = async (cwd: string, version: string): Promise<void> => {
+  const env = {
+    ...process.env,
+    npm_config_audit: 'false',
+    npm_config_fund: 'false',
+    npm_config_update_notifier: 'false',
+    npm_config_fetch_timeout: '30000',
+  };
+  const result = await runProcess({
+    ...resolvePackageManagerCommand(
       [
         'install',
-        '--package-lock-only',
         '--ignore-scripts',
         '--save-dev',
         '--save-exact',
         `${CLI_PACKAGE_NAME}@${version}`,
       ],
-      temporaryRoot,
-      'Unable to create the updated package lock.',
-    );
-
-    return {
-      packageLock: readFileSync(join(temporaryRoot, RELEASE_PATHS.packageLock), 'utf8'),
-      packageManifest: readFileSync(join(temporaryRoot, RELEASE_PATHS.packageManifest), 'utf8'),
-    };
-  } finally {
-    rmSync(temporaryRoot, { force: true, recursive: true });
-  }
-};
-
-/** Creates the complete in-memory file update for one exact CLI release. */
-export const createCliReleaseUpdate = ({
-  currentFiles,
-  previousCliVersion,
-  publishedManifest,
-  updatedRootManifests,
-}: {
-  currentFiles: IReleaseFiles;
-  previousCliVersion: string;
-  publishedManifest: IPublishedCliManifest;
-  updatedRootManifests: IUpdatedRootManifests;
-}): Map<string, string> => {
-  const version = parseStableVersion(publishedManifest.version);
-  if (!Number.isInteger(publishedManifest.jsonSchemaVersion)) {
-    throw new Error('The published CLI manifest is missing its JSON schema version.');
-  }
-  const updatedFiles = new Map(currentFiles);
-  const currentPackageManifest = RootPackageManifestSchema.parse(
-    parseJson(
-      requireFile(currentFiles, RELEASE_PATHS.packageManifest),
-      RELEASE_PATHS.packageManifest,
+      { packageManager: 'npm', env, cwd },
     ),
-  );
-  const semanticCliManifest = SemanticCliManifestSchema.parse(
-    parseJson(
-      requireFile(currentFiles, RELEASE_PATHS.semanticCliManifest),
-      RELEASE_PATHS.semanticCliManifest,
-    ),
-  );
-  const previousCliRange = parseCompatibleStableRange(
-    currentPackageManifest.moldeaRelease?.cliVersionRange,
-  );
-  const nextCliRange = resolveNextCliVersionRange({ previousRange: previousCliRange, version });
-  const previousCoreRange = parseCompatibleStableRange(
-    semanticCliManifest.dependencies?.['@moldea.ai/core'],
-  );
-  const nextCoreRange = parseCompatibleStableRange(
-    publishedManifest.dependencies?.['@moldea.ai/core'],
-  );
-  const previousSupportedCoreRange = parseCompatibleStableRange(
-    currentPackageManifest.moldeaRelease?.coreVersionRange,
-  );
-  const nextSupportedCoreRange = resolveNextCoreVersionRange({
-    nextCliCoreRange: nextCoreRange,
-    previousCliCoreRange: previousCoreRange,
-    previousRange: previousSupportedCoreRange,
+    cwd,
+    env,
+    maxOutputBytes: MAX_PROCESS_OUTPUT_BYTES,
+    timeoutSeconds: 180,
   });
-
-  for (const relativePath of CLI_VERSION_RANGE_TEXT_PATHS) {
-    const currentContent = requireFile(currentFiles, relativePath);
-    updatedFiles.set(
-      relativePath,
-      replaceCliRangeReferences({
-        content: currentContent,
-        nextCliRange,
-        previousCliRange,
-      }),
+  if (result.exitCode !== 0) {
+    throw new Error(
+      [`Unable to install ${CLI_PACKAGE_NAME}@${version}.`, result.stdout, result.stderr]
+        .filter(Boolean)
+        .join('\n'),
     );
-  }
-  for (const relativePath of CORE_VERSION_RANGE_TEXT_PATHS) {
-    const currentContent = requireFile(updatedFiles, relativePath);
-    updatedFiles.set(
-      relativePath,
-      replaceRangeReferences({
-        content: currentContent,
-        markers: CORE_RANGE_MARKERS,
-        nextRange: nextSupportedCoreRange,
-        previousRange: previousSupportedCoreRange,
-      }),
-    );
-  }
-  const previousCliJsonSchemaVersion = currentPackageManifest.moldeaRelease?.cliJsonSchemaVersion;
-  for (const relativePath of CLI_JSON_SCHEMA_VERSION_TEXT_PATHS) {
-    let currentContent = requireFile(updatedFiles, relativePath);
-    if (relativePath === RELEASE_PATHS.skill) {
-      const previousRepairVersion = `cliRepairVersion: '${previousCliVersion}'`;
-      if (currentContent.split(previousRepairVersion).length !== 2) {
-        throw new Error('The skill CLI repair metadata must be one quoted exact current version.');
-      }
-      currentContent = currentContent.replace(
-        previousRepairVersion,
-        `cliRepairVersion: '${version}'`,
-      );
-      const previousMetadata = `cliJsonSchemaVersion: '${previousCliJsonSchemaVersion}'`;
-      if (currentContent.split(previousMetadata).length !== 2) {
-        throw new Error('The skill JSON schema metadata must be one quoted string value.');
-      }
-      currentContent = currentContent.replace(
-        previousMetadata,
-        `cliJsonSchemaVersion: '${publishedManifest.jsonSchemaVersion}'`,
-      );
-    }
-    updatedFiles.set(
-      relativePath,
-      currentContent
-        .replaceAll(
-          `schemaVersion: z.literal(${previousCliJsonSchemaVersion})`,
-          `schemaVersion: z.literal(${publishedManifest.jsonSchemaVersion})`,
-        )
-        .replaceAll(
-          `cliJsonSchemaVersion: ${previousCliJsonSchemaVersion}`,
-          `cliJsonSchemaVersion: ${publishedManifest.jsonSchemaVersion}`,
-        )
-        .replaceAll(
-          `CLI JSON schema \`${previousCliJsonSchemaVersion}\``,
-          `CLI JSON schema \`${publishedManifest.jsonSchemaVersion}\``,
-        )
-        .replaceAll(
-          `CLI JSON schema: \`${previousCliJsonSchemaVersion}\``,
-          `CLI JSON schema: \`${publishedManifest.jsonSchemaVersion}\``,
-        )
-        .replaceAll(
-          `schemaVersion\` is integer \`${previousCliJsonSchemaVersion}\``,
-          `schemaVersion\` is integer \`${publishedManifest.jsonSchemaVersion}\``,
-        )
-        .replaceAll(
-          `schema \`${previousCliJsonSchemaVersion}\``,
-          `schema \`${publishedManifest.jsonSchemaVersion}\``,
-        )
-        .replaceAll(
-          `schema ${previousCliJsonSchemaVersion}`,
-          `schema ${publishedManifest.jsonSchemaVersion}`,
-        )
-        .replaceAll(
-          `version \`${previousCliJsonSchemaVersion}\` envelope`,
-          `version \`${publishedManifest.jsonSchemaVersion}\` envelope`,
-        ),
-    );
-  }
-
-  const conformanceCases = requireFile(currentFiles, RELEASE_PATHS.conformanceCases);
-  updatedFiles.set(
-    RELEASE_PATHS.conformanceCases,
-    updateConformanceCases({
-      content: conformanceCases,
-      nextCliRange,
-      previousCliRange,
-      previousCliJsonSchemaVersion,
-      previousCliVersion,
-      publishedManifest,
-    }),
-  );
-
-  updatedFiles.set(RELEASE_PATHS.packageManifest, updatedRootManifests.packageManifest);
-  updatedFiles.set(RELEASE_PATHS.packageLock, updatedRootManifests.packageLock);
-  updatedFiles.set(
-    RELEASE_PATHS.semanticCliManifest,
-    `${JSON.stringify(
-      {
-        ...semanticCliManifest,
-        version,
-        moldeaRelease: {
-          ...semanticCliManifest.moldeaRelease,
-          cliJsonSchemaVersion: publishedManifest.jsonSchemaVersion,
-        },
-        dependencies: publishedManifest.dependencies,
-      },
-      null,
-      2,
-    )}\n`,
-  );
-
-  return updatedFiles;
-};
-
-/** Installs the updated lock in an isolated generation root. */
-const installReleaseDependencies = async (temporaryRoot: string): Promise<void> => {
-  await runNpm(
-    ['ci', '--ignore-scripts', '--no-audit', '--no-fund'],
-    temporaryRoot,
-    'Unable to install the updated release closure.',
-  );
-};
-
-/** Copies generator inputs without reading excluded historical directories. */
-const stagePortableSource = (repositoryRoot: string, temporaryRoot: string): void => {
-  for (const relativePath of ['src/portable']) {
-    cpSync(join(repositoryRoot, relativePath), join(temporaryRoot, relativePath), {
-      recursive: true,
-      filter: (sourcePath) =>
-        !['_archive', '_archives', '_backup', '_backups'].includes(basename(sourcePath)),
-    });
-  }
-  for (const relativePath of [
-    'moldea/assets/managed-readme-block.md',
-    'moldea/assets/managed-agents-block.md',
-    'website/package.json',
-  ]) {
-    const destination = join(temporaryRoot, relativePath);
-    mkdirSync(dirname(destination), { recursive: true });
-    cpSync(join(repositoryRoot, relativePath), destination);
   }
 };
 
-/** Updates authoritative CLI identity and regenerates the portable artifacts. */
+/** Installs, verifies, and vendors one exact release without modifying the live npm tree. */
 export const updateCliRelease = async ({
   repositoryRoot,
   version,
-  resolveManifest = resolvePublishedCliManifest,
-  updateRootManifests = createUpdatedRootManifests,
-  generateArtifacts = generatePortableArtifacts,
-  installDependencies = installReleaseDependencies,
 }: {
-  generateArtifacts?: typeof generatePortableArtifacts;
-  installDependencies?: (temporaryRoot: string) => void | Promise<void>;
   repositoryRoot: string;
-  resolveManifest?: (version: string) => IPublishedCliManifest | Promise<IPublishedCliManifest>;
-  updateRootManifests?: (options: {
-    packageLock: string;
-    packageManifest: IReleasePackageManifest;
-    repositoryRoot: string;
-    version: string;
-  }) => IUpdatedRootManifests | Promise<IUpdatedRootManifests>;
   version: string;
 }): Promise<IReleaseIdentity> => {
   parseStableVersion(version);
-  const publishedManifest = await resolveManifest(version);
-  const managedPaths = [
-    ...new Set([
-      ...CLI_VERSION_RANGE_TEXT_PATHS,
-      ...CLI_JSON_SCHEMA_VERSION_TEXT_PATHS,
-      RELEASE_PATHS.conformanceCases,
-      RELEASE_PATHS.packageManifest,
-      RELEASE_PATHS.packageLock,
-      RELEASE_PATHS.semanticCliManifest,
-      ...PORTABLE_ARTIFACT_PATHS,
-    ]),
-  ];
-  const currentFiles = new Map(
-    managedPaths.map((relativePath) => [
+  const inputs = new Map(
+    RELEASE_UPDATE_FILES.map((relativePath) => [
       relativePath,
-      readFileSync(join(repositoryRoot, relativePath), 'utf8'),
+      readFileSync(path.join(repositoryRoot, relativePath)),
     ]),
   );
-  const packageManifest = RootPackageManifestSchema.parse(
-    parseJson(
-      requireFile(currentFiles, RELEASE_PATHS.packageManifest),
-      RELEASE_PATHS.packageManifest,
-    ),
-  );
-  const previousCliVersion = parseStableVersion(
-    packageManifest.devDependencies?.[CLI_PACKAGE_NAME],
-  );
-  const semanticCliManifest = SemanticCliManifestSchema.parse(
-    parseJson(
-      requireFile(currentFiles, RELEASE_PATHS.semanticCliManifest),
-      RELEASE_PATHS.semanticCliManifest,
-    ),
-  );
-  const previousCliCoreRange = parseCompatibleStableRange(
-    semanticCliManifest.dependencies?.['@moldea.ai/core'],
-  );
-  const nextCliCoreRange = parseCompatibleStableRange(
-    publishedManifest.dependencies?.['@moldea.ai/core'],
-  );
-  const nextCoreVersionRange = resolveNextCoreVersionRange({
-    nextCliCoreRange,
-    previousCliCoreRange,
-    previousRange: packageManifest.moldeaRelease?.coreVersionRange,
-  });
-  const nextPackageManifest = {
-    ...packageManifest,
-    moldeaRelease: {
-      ...packageManifest.moldeaRelease,
-      cliJsonSchemaVersion: publishedManifest.jsonSchemaVersion,
-      cliVersionRange: resolveNextCliVersionRange({
-        previousRange: packageManifest.moldeaRelease.cliVersionRange,
-        version,
-      }),
-      coreVersionRange: nextCoreVersionRange,
-    },
-    devDependencies: {
-      ...packageManifest.devDependencies,
-      [CLI_PACKAGE_NAME]: version,
-    },
-  };
-  const updatedRootManifests = await updateRootManifests({
-    packageLock: requireFile(currentFiles, RELEASE_PATHS.packageLock),
-    packageManifest: RootPackageManifestSchema.parse(nextPackageManifest),
-    repositoryRoot,
-    version,
-  });
-  const updatedFiles = createCliReleaseUpdate({
-    currentFiles,
-    previousCliVersion,
-    publishedManifest,
-    updatedRootManifests,
-  });
-
-  for (const [relativePath, originalContent] of currentFiles) {
-    const currentContent = readFileSync(join(repositoryRoot, relativePath), 'utf8');
-    if (currentContent !== originalContent) {
-      throw new Error(`${relativePath} changed while the CLI update was being prepared.`);
-    }
-  }
-
-  const fileModes = new Map<string, number>(
-    managedPaths.map((relativePath) => [
-      relativePath,
-      statSync(join(repositoryRoot, relativePath)).mode & 0o777,
-    ]),
-  );
-  const artifactPaths = new Set<string>(PORTABLE_ARTIFACT_PATHS);
-  const writtenFiles = new Map<string, string>();
-  const temporaryRoot = mkdtempSync(join(tmpdir(), 'moldea-release-portable-'));
-  const writeOwnedFile = async (
-    relativePath: string,
-    expected: string,
-    content: string,
-  ): Promise<void> => {
-    const filePath = join(repositoryRoot, relativePath);
-    const changedError = new Error(
-      `${relativePath} changed while the CLI update was being applied.`,
-    );
-    if (
-      readFileSync(filePath, 'utf8') !== expected ||
-      (statSync(filePath).mode & 0o777) !== fileModes.get(relativePath)
-    ) {
-      throw changedError;
-    }
-    if (content === expected) return;
-    try {
-      await writeFileAtomicIfUnchanged(filePath, content, Buffer.from(expected, 'utf8'));
-    } catch (error) {
-      if (hasErrorCode(error, FS_ERRORS.FILE_CHANGED)) throw changedError;
-      throw error;
-    }
-    writtenFiles.set(relativePath, content);
-  };
+  const liveCli = path.join(repositoryRoot, RELEASE_PATHS.portableCli);
+  const originalCli = existsSync(liveCli) ? verifyPortableCli(liveCli) : null;
+  // keep the candidate on the destination filesystem so the finished directory can be renamed
+  const stagingRoot = mkdtempSync(path.join(repositoryRoot, '.release-cli-'));
+  const stagedCli = path.join(stagingRoot, RELEASE_PATHS.portableCli);
+  const displacedCli = path.join(stagingRoot, 'saved-cli');
+  const written = new Map<string, Buffer>();
+  let keepStagingRoot = false;
 
   try {
-    stagePortableSource(repositoryRoot, temporaryRoot);
-    for (const relativePath of [
-      RELEASE_PATHS.packageManifest,
-      RELEASE_PATHS.packageLock,
-      RELEASE_PATHS.sourceRepositoryPackage,
-      'src/portable/response-page/types.ts',
-    ]) {
-      await writeFileAtomic(
-        join(temporaryRoot, relativePath),
-        requireFile(updatedFiles, relativePath),
-      );
+    stageUpdate(repositoryRoot, stagingRoot);
+    await installCli(stagingRoot, version);
+    const installedCli = path.join(stagingRoot, RELEASE_PATHS.installedPortableCli);
+    verifyPortableCli(installedCli);
+    mkdirSync(path.dirname(stagedCli), { recursive: true });
+    cpSync(installedCli, stagedCli, { recursive: true, errorOnExist: true, force: false });
+    await generatePortableArtifacts({ rootDirectory: stagingRoot });
+    const identity = assertReleaseIdentity(stagingRoot);
+    if (identity.cliVersion !== version) throw new Error('npm installed a different CLI version.');
+
+    for (const [relativePath, expected] of inputs) {
+      const destination = path.join(repositoryRoot, relativePath);
+      const content = readFileSync(path.join(stagingRoot, relativePath));
+      if (!readFileSync(destination).equals(expected)) {
+        throw new Error(`${relativePath} changed during the CLI update.`);
+      }
+      if (content.equals(expected)) continue;
+      await writeFileAtomicIfUnchanged(destination, content, expected);
+      written.set(relativePath, content);
     }
-    await installDependencies(temporaryRoot);
-    const generation = await generateArtifacts({ rootDirectory: temporaryRoot });
-    if (
-      generation.artifacts.length !== PORTABLE_ARTIFACT_PATHS.length ||
-      generation.artifacts.some((relativePath) => !artifactPaths.has(relativePath))
-    ) {
-      throw new Error('Portable generation returned an unexpected artifact set.');
+
+    if ((existsSync(liveCli) ? verifyPortableCli(liveCli) : null) !== originalCli) {
+      throw new Error('The shipped CLI directory changed during the update.');
     }
-    for (const [relativePath, content] of updatedFiles) {
-      if (!artifactPaths.has(relativePath)) {
-        await writeOwnedFile(relativePath, requireFile(currentFiles, relativePath), content);
+    if (identity.checksums !== originalCli) {
+      if (originalCli !== null) renameSync(liveCli, displacedCli);
+      try {
+        renameSync(stagedCli, liveCli);
+      } catch (error) {
+        if (originalCli !== null) {
+          try {
+            renameSync(displacedCli, liveCli);
+          } catch (restoreError) {
+            keepStagingRoot = true;
+            throw new Error(
+              `Unable to restore the shipped CLI after ${extractMessage(error)}. Its files are at ${displacedCli}.`,
+              { cause: restoreError },
+            );
+          }
+        }
+        throw error;
       }
     }
-    for (const relativePath of generation.artifacts) {
-      await writeOwnedFile(
-        relativePath,
-        requireFile(currentFiles, relativePath),
-        readFileSync(join(temporaryRoot, relativePath), 'utf8'),
-      );
-    }
-    return assertReleaseIdentity(repositoryRoot);
+    return identity;
   } catch (error) {
     const conflicts: string[] = [];
-    for (const [relativePath, writtenContent] of [...writtenFiles].reverse()) {
-      const filePath = join(repositoryRoot, relativePath);
+    for (const [relativePath, content] of [...written].reverse()) {
       try {
-        if (
-          readFileSync(filePath, 'utf8') !== writtenContent ||
-          (statSync(filePath).mode & 0o777) !== fileModes.get(relativePath)
-        ) {
-          conflicts.push(relativePath);
-          continue;
-        }
         await writeFileAtomicIfUnchanged(
-          filePath,
-          requireFile(currentFiles, relativePath),
-          Buffer.from(writtenContent, 'utf8'),
+          path.join(repositoryRoot, relativePath),
+          inputs.get(relativePath)!,
+          content,
         );
       } catch {
         conflicts.push(relativePath);
       }
     }
     if (conflicts.length > 0) {
-      throw new Error(
-        `CLI update failed and externally changed files were preserved: ${conflicts.join(', ')}.`,
-        { cause: error },
-      );
+      throw new Error(`CLI update failed and could not restore ${conflicts.join(', ')}.`, {
+        cause: error,
+      });
     }
     throw error;
   } finally {
-    rmSync(temporaryRoot, { force: true, recursive: true });
+    if (!keepStagingRoot) rmSync(stagingRoot, { recursive: true, force: true });
   }
 };

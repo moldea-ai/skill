@@ -35,12 +35,8 @@ test.each([
       );
       if (!definition) throw new Error('Missing directory-link case');
       const sandboxHome = join(root, 'home');
-      const { repositoryPath, readOnlyMounts } = await createActorRepository(
-        root,
-        definition,
-        sandboxHome,
-        join(root, 'tools'),
-      );
+      const { repositoryPath, readOnlyMounts, hasWorkspaceBinaryDirectory } =
+        await createActorRepository(root, definition, sandboxHome, join(root, 'tools'));
       const names = Array.from(
         { length: isUnsafe ? 1 : 32 },
         (_, index) => `fixture-${String(index + 1).padStart(2, '0')}`,
@@ -78,7 +74,7 @@ test.each([
           'actor',
         ),
         cwd: repositoryPath,
-        includeWorkspaceBinaryDirectory: true,
+        includeWorkspaceBinaryDirectory: hasWorkspaceBinaryDirectory,
         prompt: 'deterministic directory-link helper check',
         readOnlyMounts,
         readOnlyWorkspacePaths: ['.agents', '.git'],
@@ -104,11 +100,10 @@ test.each([
         const result = spawnSync(
           process.execPath,
           [
-            join(repositoryPath, '.agents/skills/moldea/scripts/moldea-cli.mjs'),
+            join(repositoryPath, '.agents/skills/moldea/scripts/moldea-cli/moldea.mjs'),
+            'validate',
             '--repository',
             repositoryPath,
-            '--',
-            'validate',
             '--json',
             '--max-output-bytes',
             '65536',

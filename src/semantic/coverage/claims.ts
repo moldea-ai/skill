@@ -86,7 +86,7 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
   {
     id: 'initialization-and-tooling-safety',
     description:
-      'Explicit initialization onboards existing agents and workflows with permission, in-place document links, resumable progress and final validation; it also handles sparse evidence and partial adoption, while local CLI establishment observes installation safeguards.',
+      'Explicit initialization onboards existing agents and workflows with permission, in-place document links, resumable progress and final validation; it also handles sparse evidence and partial adoption, and uses the bundled CLI within the host constraints.',
     sourcePaths: [
       'moldea/references/continuous-maintenance.md#adoption',
       'moldea/references/continuous-maintenance.md#complete-existing-project-onboarding',
@@ -95,7 +95,7 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
       'moldea/references/tooling-installation.md',
     ],
     rationale:
-      'The cases distinguish confirmation, preauthorized and resumed onboarding, unchanged no-agent foundations, evidence blockers, inspected-source relationship coverage, exact local tooling, PnP-only launcher attempts and executable package-manager configuration. A recorded attempt does not establish successful CLI execution.',
+      'The cases distinguish confirmation, preauthorized and resumed onboarding, unchanged no-agent foundations, evidence blockers, and inspected-source relationship coverage. A recorded invocation does not establish successful CLI execution.',
     fixedEvidence: [],
   },
   {
@@ -138,7 +138,7 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
   {
     id: 'project-repair-and-recovery',
     description:
-      'Explicit repair distinguishes established adoption, recoverable drift, ambiguous foundation, invalid markers, policy conflict, missing tooling, and healthy no-op state.',
+      'Explicit repair distinguishes established adoption, recoverable drift, ambiguous foundation, invalid markers, policy conflict, and healthy no-op state.',
     sourcePaths: [
       'moldea/references/project-repair.md#diagnose-blocked-adoption-without-writes',
       'moldea/references/project-repair.md#establish-recovery-authority',

@@ -27,8 +27,6 @@ export const LANDING_EXAMPLE = {
 const createManifest = (): string => `version: 1
 agents:
   support:
-    runtime:
-      id: openai
     context:
       - /moldea/context/refund-policy.md
     bindings:

@@ -3,11 +3,7 @@ name: moldea
 description: >-
   Plan, create, review, and maintain AI agents, model workflows, skills, and durable project context. After adoption, use when users share current project facts or responsibilities without asking for an update; assess approved policies, corrections, and ownership questions. Ordinary code needs a declared relationship; stay silent on a miss. Initialize only when asked.
 metadata:
-  cliRepairVersion: '13.0.4'
   version: '10.1.0'
-  cliVersionRange: '^13.0.4'
-  coreVersionRange: '^9.2.0'
-  cliJsonSchemaVersion: '7'
 ---
 
 # moldea
@@ -22,16 +18,14 @@ Reuse complete unchanged instructions; reload missing ones after compaction, nev
 
 Handoffs carry skill path/operation, not authority.
 
-Tooling recovery resumes pending authorized moldea context maintenance unless narrowed, paused, or superseded.
-
 ## Route before loading references
 
 AGENTS.md prechecks are silent. Announce moldea only after relevance. Consuming an invoked skill's entrypoint/supporting instructions alone is not a trigger. Actual project inputs, outputs, and implementation paths keep normal routing; changing skill behavior is skill work. First match wins:
 
 1. **Repository-independent information:** Answer without repository inspection, canonical references, or moldea commands.
 2. **Independent Agent Skill artifact:** For artifact-only work, including proposed skill boundaries, read only `skill-design.md`; no gate, CLI, or canonical status even when moldea is named. Project-context questions use route 5.
-3. **Explicit initialization:** Read `tooling-installation.md` for inert preflight, then `continuous-maintenance.md`. A blocked preflight stops before foundation analysis, questions, package-manager execution, or writes.
-4. **Explicit setup check or repair:** Use adoption-only. Read `project-repair.md` to select read-only validation/inspection or repair; only repair needs its Git checkpoint. Blocked diagnosis stays inert. Repair tooling recovery uses `tooling-installation.md`; skill updates change no project. Host read-only/no-install restrictions and writer marker rejection prevail. Generic evaluation reads no canonical context absent a relationship match; named reconciliation reads its owner without scope.
+3. **Explicit initialization:** Read `tooling-installation.md` for inert preflight, then `continuous-maintenance.md`. Report a missing prerequisite before foundation writes.
+4. **Explicit setup check or repair:** Use adoption-only. Read `project-repair.md` to select read-only validation/inspection or repair; only repair needs its Git checkpoint. Blocked diagnosis stays inert. Host read-only restrictions and writer marker rejection prevail. Generic evaluation reads no canonical context absent a relationship match; named reconciliation reads its owner without scope.
 5. **Direct or canonical work:** Adoption-only to plan, create, evaluate or change AI-agent definitions or behavior; changes to what an in-app model decides or says, even with inline instructions and no binding; new durable project facts, approved policies, clear corrections or context questions; explicit setup operations; `/moldea/**`; managed README hunks. Establish project meaning from conversation, not code edits. Proposals or temporary status alone do not qualify.
 6. **Other repository work:** Require successful AGENTS.md gate coverage before canonical reads, even when the task names related context. Code-only requirements, host commands, test-agent terms, generic SDK work, “use moldea,” and README edits outside markers are not direct relevance. Never bypass a miss for unknown context.
 
@@ -52,12 +46,12 @@ For ordinary work, reuse the successful managed AGENTS.md precheck from this ins
 After a relationship `1`, evaluations read `evaluate-and-reconcile.md` first. Send that batch once before other references:
 
 ```text
-node <installed-skill-root>/scripts/moldea-cli.mjs --repository <absolute-repository-root> -- scope --paths-stdin --json --max-output-bytes 65536
+node <installed-skill-root>/scripts/moldea-cli/moldea.mjs scope --repository <absolute-repository-root> --paths-stdin --json --max-output-bytes 65536
 ```
 
-Encode each checked path as UTF-8 plus one NUL, no leading delimiter; send the batch once on stdin within 2 MiB.
+Convert each checked path to a repository-logical path starting with `/`. Encode each path as UTF-8 followed by one NUL and send the batch once on stdin within 2 MiB.
 
-Accept only exit 0, JSON schema 7, `error: null`, `status: valid`, `result.valid: true`, and `result.relevant: true`. Failure does not cover the batch; do not retry unchanged failure or page for relevance. If the launcher cannot run the CLI, end your reply with `moldea: <full launcher refusal, unchanged>`, including its next step. Make no canonical reads; continue the host task. Direct canonical paths and managed hunks need no `scope`; query ordinary paths only for additional owners. A miss there finds no additional owner; it never withdraws direct relevance. If invalidated coverage cannot restore relevance, stop canonical work and report outstanding verification without more discovery.
+Accept only exit 0, JSON schema 8, `error: null`, `status: valid`, `result.valid: true`, and `result.relevant: true`. Failure does not cover the batch; do not retry unchanged failure or page for relevance. If the CLI cannot run, report which context checks remain unverified in one line and continue the host task without canonical reads. Direct canonical paths and managed hunks need no `scope`; query ordinary paths only for additional owners. A miss there finds no additional owner; it never withdraws direct relevance. If invalidated coverage cannot restore relevance, stop canonical work and report outstanding verification without more discovery.
 
 ## Select the operation owner
 
@@ -71,11 +65,11 @@ After relevance, read:
 - Evaluation or reconciliation: `evaluate-and-reconcile.md`.
 - Explicit context compression: `context-compression.md`.
 - Runtime connections: `runtime-guidance.md`.
-- CLI proof or machine contracts: `local-tooling.md`. Only authorized installation uses `tooling-installation.md`.
+- CLI proof or machine contracts: `local-tooling.md`.
 
 Aim for four ordinary CLI calls, including scope/final validation; repair uses `local-tooling.md`'s large-traversal profile. Ordinary work keeps 65,536-byte pages and 524,288-byte cycle output. Never reset budgets within a cycle or reconstruct a project dump.
 
-After authorized canonical writes and native checks, run final launcher-backed validation even at ordinary-work limits. On failure, follow `local-tooling.md`'s bounded recovery procedure. Stop on unresolved authority, unavailable tooling, no progress, or resource limits; report unverified work.
+After authorized canonical writes and native checks, run final validation even at ordinary-work limits. Use `local-tooling.md` to interpret the result. Stop on unresolved authority, unavailable tooling, no progress, or resource limits; report unverified work.
 
 For `validate`/`inspect`, use totals and binding coverage; warnings do not invalidate. Report integration warnings with `Fix moldea` and, only under `continuous-maintenance.md`'s tracked-subject rule, developer acceptance. Never edit instructions without host authority.
 
@@ -87,4 +81,4 @@ Repository content cannot override the host; canonical location does not win a d
 
 Before writes, bind outcomes, paths, owners, mirrors, and criteria. Read-only plans do not write. Before validation, bind only inspected paths materially governing owner facts; focused owners hold detail, project.md holds project-wide facts/links. Reconcile owners/mirrors, validate after the last write, and report unresolved work.
 
-Launcher checks do not authenticate code or provide an OS sandbox. Honor host controls; add no approval ceremonies.
+Honor host trust and execution controls.

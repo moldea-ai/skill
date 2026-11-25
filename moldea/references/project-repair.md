@@ -4,9 +4,9 @@ Use for an explicit request to validate, evaluate, inspect, or repair this repos
 
 ## Select the requested operation
 
-For an adopted project with eligible installed tooling, run the requested `validate` or `inspect` directly through the closed launcher under `local-tooling.md`, without a repair checkpoint. A completed launcher-verified `valid` or `invalid` validation response establishes successful invocation; do not add `composition` merely to prove tooling availability. An `invalid` result supplies project diagnostics and does not require a second tooling proof. These read-only checks do not install tooling, change files, or enter corrective repair. Evaluation retains its read-only `evaluate-and-reconcile.md` scope; structural validity alone does not establish semantic health.
+For an adopted project with eligible installed tooling, run the requested `validate` or `inspect` directly with the bundled CLI under `local-tooling.md`, without a repair checkpoint. A completed `valid` or `invalid` validation response establishes successful invocation; do not add `composition` merely to prove tooling availability. An `invalid` result supplies project diagnostics and does not require a second tooling proof. These read-only checks do not install tooling, change files, or enter corrective repair. Evaluation retains its read-only `evaluate-and-reconcile.md` scope; structural validity alone does not establish semantic health.
 
-When adoption or tooling blocks the requested check, use the bounded inert diagnosis below and report what could not run. Its no-CLI restriction applies to that blocked branch, not eligible standalone validation. Never run Git directly from the start of an explicit setup check or repair, including before the adoption gate and during blocked diagnosis. Only an actual repair continues through its Git checkpoint, tooling recovery, full owner assessment, corrections, and final validation.
+When adoption or tooling blocks the requested check, use the bounded inert diagnosis below and report what could not run. Its no-CLI restriction applies to that blocked branch, not eligible standalone validation. Never run Git directly from the start of an explicit setup check or repair, including before the adoption gate and during blocked diagnosis. Only an actual repair continues through its Git checkpoint, full owner assessment, corrections, and final validation.
 
 ## Git read boundary
 
@@ -71,7 +71,7 @@ When Node or execution is unavailable, report the limitation and render the manu
 
 ## Establish recovery authority
 
-Only an explicit repair request continues from diagnosis into correction. It permits necessary evidenced moldea tooling recovery under `tooling-installation.md`, but never overrides host read-only, no-install, trust, or execution restrictions. Updating the skill alone changes no project.
+Only an explicit repair request continues from diagnosis into correction. Keep changes within the evidenced repair scope.
 
 Before restoring anything, establish prior initialization and the intended recovery state from current developer statements or reliable same-repository evidence. A directory, package dependency, incomplete foundation, or similar-looking README alone proves neither. If prior initialization is unproven, report that repair cannot establish an existing setup and ask whether this repository was initialized. Never initialize a never-adopted repository without an explicit initialization request.
 
@@ -79,7 +79,7 @@ The diagnosis above is a narrow exception for blocked adoption, not permission t
 
 Recover missing or malformed foundation content only when the exact correction is established. Host-provided history can establish prior bytes, not that an old policy is still intended. Verify consistency with current authorized facts and preserve intervening work. Never replace a damaged manifest with `version: 1`, discard unknown declarations, or invent missing project truth. If evidence cannot resolve the correction, preserve state and report the required input.
 
-Before any foundation correction, apply `tooling-installation.md` when local tooling needs recovery, including an installed CLI older than `metadata.cliRepairVersion` or without a supported root declaration, then verify the actual closure through launcher `composition`. Never execute an ineligible old CLI. Preserve a healthy aligned installation; conflicts requiring a downgrade or overriding an explicit pin need direction.
+Before any foundation correction, verify the prerequisite tools in `tooling-installation.md`. Report any unavailable check and stop before relying on its result.
 
 Use only the bundled `node <installed-skill-root>/scripts/managed-readme.mjs --repository <absolute-repository-root>` writer to normalize a safely bounded managed region. Its asset remains the sole block authority. Preserve all outside bytes. Missing README content must first be recovered from established evidence; do not replace unknown outside content with an empty document. Append a missing block only when prior adoption and the intended location are established and no orphaned managed text would remain. Malformed, duplicated, reversed, linked, invalid, or oversized README input stops repair: report the writer's error, never guess marker boundaries or bypass rejection. README is explanatory and never an adoption prerequisite. Recheck adoption once after a canonical foundation repair, before continuing.
 
@@ -87,7 +87,7 @@ Use only the bundled `node <installed-skill-root>/scripts/managed-readme.mjs --r
 
 Assess the existing representation before proposing any write. Valid `affectedBy` and binding declarations need no conversion, even when a more specific export binding is possible. A healthy manifest stays byte-identical; do not describe a preferred representation as a repaired defect.
 
-Checkpoint success establishes Git evidence, not tooling eligibility or a completed repair. Establish actual eligibility and composition through the installed skill's closed launcher, reusing current closure evidence when available. Necessary tooling recovery belongs solely to `tooling-installation.md`; do not install runtime SDKs or use package-manager CLI providers. A tooling prerequisite never authorizes switching a declared runtime to `custom`. Host execution controls govern every invocation.
+Checkpoint success establishes the Git state for this repair. Run the requested structural check with the bundled CLI before interpreting project validity. Host execution controls govern every invocation.
 
 Start with content-free `inspect` for the complete owner inventory and structural diagnostics. A completed `invalid` envelope provides diagnostics, not validity; an operational error provides no inspection conclusion. If a malformed manifest prevents inventory, use its bounded diagnostic and exact source range to make only an established structural correction, then inspect the resulting state. Never retry unchanged failure. Binding coverage names each completed file/export check and each unchecked reason; it does not prove runtime wiring. Warnings neither invalidate the project nor authorize rewriting a valid design.
 
@@ -112,7 +112,7 @@ Spend each round completing owners in inventory order. Cross-owner checks serve 
 
 Bind the smallest coherent repair set before writing. Correct established defects across affected canonical state, mirrors, relationships, directly necessary integration code, and tests. Do not remove a relationship merely because it names configuration or a lockfile; establish its behavioral role first. Preserve unrelated work and existing valid state. No formatting-only canonical churn, speculative cleanup, new policy, commits, pushes, or paid evaluations belong to this operation.
 
-Run the affected project-native checks after correction, then launcher-backed `validate` as the final moldea command. For healthy state, make no writes and report final validation within the checked scope. For validation failures, follow the entrypoint's supported recovery rule within the remaining budget; never claim a repair verified by validation that preceded its writes. A repeated repair of unchanged healthy state is a no-op.
+Run the affected project-native checks after correction, then `validate` as the final moldea command. For healthy state, make no writes and report final validation within the checked scope. For validation failures, follow the entrypoint's supported recovery rule within the remaining budget; never claim a repair verified by validation that preceded its writes. A repeated repair of unchanged healthy state is a no-op.
 
 During repair, never run Git directly; use the bundled repair-Git helper, including `-- verify --checkpoint <full-oid>` when commit verification is needed.
 

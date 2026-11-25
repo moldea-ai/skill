@@ -13,10 +13,10 @@ export const semanticCase = defineSemanticCase({
       'Use moldea to complete this repository task. Evaluate whether the runtime description property uses the correct canonical source.',
     repositoryEvidence: [
       {
-        claim: 'Runtime guidance defines the property as routing-facing.',
+        claim: 'The routing document defines the property as routing-facing.',
         source: {
           kind: 'workspace-path',
-          path: 'moldea/runtimes/custom.md',
+          path: 'docs/routing.md',
           expectedType: 'file',
         },
       },

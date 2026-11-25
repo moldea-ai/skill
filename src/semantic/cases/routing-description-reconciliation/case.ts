@@ -13,10 +13,10 @@ export const semanticCase = defineSemanticCase({
       'Use moldea to complete this repository task. Use the canonical target handoff description for routing-facing metadata; that is the governing decision for this task. Reconcile the runtime mapping and focused test with that decision while preserving the general agent description.',
     repositoryEvidence: [
       {
-        claim: 'Runtime guidance requires routing-facing metadata.',
+        claim: 'The routing document requires routing-facing metadata.',
         source: {
           kind: 'workspace-path',
-          path: 'moldea/runtimes/custom.md',
+          path: 'docs/routing.md',
           expectedType: 'file',
         },
       },

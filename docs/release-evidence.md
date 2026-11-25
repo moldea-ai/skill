@@ -314,18 +314,12 @@ Verify website presentation independently with `npm run website:check` and `npm 
 
 ## Repository release preparation
 
-To prepare an exact published CLI release, run `npm run release:update-cli -- <version>`. The updater verifies the published CLI, installs its locked dependency closure in a temporary directory, regenerates portable scripts from maintained TypeScript, and checks release identity before completing. It restores files it changed if preparation or verification fails, while preserving concurrent edits. Run `npm ci --ignore-scripts` afterward to bring local dependencies in line with the updated lockfile before running conformance checks.
-
-Before publication, `npm run candidate:prepare -- --artifacts <packed-closure-directory> --output <empty-directory-outside-this-repository>` prepares a complete isolated skill through the same updater against the candidate registry. An optional `--release-version <version>` selects the isolated skill version. The release-candidate workflow uses this full distribution for real manager and closed-launcher checks. Candidate registry URLs stay in the disposable output; they must not enter the official release lockfile. These checks establish tooling mechanics, not coding-agent repair effectiveness.
-
-The same release-candidate workflow is reusable by the packages trusted build. Its caller pins the skill workflow and tooling to the same immutable commit and supplies that run's public-package artifact and exact packages commit. It also passes its reviewed registry snapshot, so manager installs resolve third-party dependencies only from versions published before that instant; an empty snapshot resolves live. `src/packages/trusted-candidate.ts` verifies the recorded source identity, complete checksum manifest and package graph before copying the CLI closure. The full verified public set, including Website UI, prepares the isolated skill; the manager matrix then consumes the unchanged CLI closure tarballs. A manual dispatch packs the CLI closure and Website UI from the selected packages ref and splits them the same way. The workflow requires only read access and cannot publish packages.
-
-Source and packed package candidates accept stable caret dependency minimums, including patch minimums such as `^2.0.3`. Candidate validation checks every resolved internal runtime package against its declared range; exact internal runtime dependency pins and incompatible versions are rejected.
+Run `npm run release:update-cli -- <version>` to update the skill to one exact published CLI. The updater installs the exact package in an isolated workspace, verifies and copies its portable distribution with checksums and notices, and regenerates the matching Core manifest scope. It checks release identity before applying the update. Run `npm ci --ignore-scripts` afterward to synchronize the local development install with the lockfile. Run `npm run portable:check` and `npm run release:identity:check` to verify the committed artifacts.
 
 The skill uses independent semantic versioning. Every release must:
 
 - record its exact version in `moldea/SKILL.md`
-- declare the compatible CLI major; evidence-backed production releases also bind the exact evaluated CLI closure plus CLI JSON schema in release evidence
+- pin the exact published CLI and include its checksummed portable files and notices. Evidence-backed releases record that CLI identity and JSON schema.
 - pass current conformance; evidence-backed production releases also select verified fresh or explicitly pinned semantic evidence
 - preserve identical `moldea/` bytes across official distribution channels
 - use an immutable `v<version>` tag

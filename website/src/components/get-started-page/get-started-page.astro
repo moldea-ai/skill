@@ -1,5 +1,5 @@
 ---
-import { ArrowRight, Bot, FileBraces, FolderGit2, Terminal } from '@lucide/astro';
+import { ArrowRight, Bot, FolderGit2, Terminal } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import CodeBlock from '@moldea.ai/website-ui/code-block';
 import IconTile from '@moldea.ai/website-ui/icon-tile';
@@ -108,7 +108,7 @@ const bandLinkClass =
         Before you start
       </h2>
       <ul
-        class="mt-6 grid gap-px overflow-hidden rounded-2xl border border-border bg-border sm:grid-cols-2 lg:grid-cols-4"
+        class="mt-6 grid gap-px overflow-hidden rounded-2xl border border-border bg-border sm:grid-cols-3"
       >
         <li class={requirementClass}>
           <IconTile size="sm"><Bot /></IconTile>
@@ -129,16 +129,7 @@ const bandLinkClass =
             <p class="font-semibold">Node.js</p>
             <p class="mt-1 leading-6 text-muted-foreground">
               Version <code class="inline-code">{NODE_VERSION_RANGE}</code>, required by the Skill
-              and its local CLI
-            </p>
-          </div>
-        </li>
-        <li class={requirementClass}>
-          <IconTile size="sm"><FileBraces /></IconTile>
-          <div class="min-w-0">
-            <p class="font-semibold">A root <code class="inline-code">package.json</code></p>
-            <p class="mt-1 leading-6 text-muted-foreground">
-              Initialization adds <code class="inline-code">@moldea.ai/cli</code> to it
+              and its bundled CLI
             </p>
           </div>
         </li>

@@ -8,67 +8,19 @@ order: 180
 
 # Compatibility and local tooling
 
-Release `10.1.0` supports:
-
-- Git `>=2.32.0`
-- Node.js `>=22.17.0`
-- stable `@moldea.ai/core` releases satisfying `^9.2.0`
-- stable `@moldea.ai/cli` releases satisfying `^13.0.4`
-- repository format version 1
-- CLI JSON schema 7
-
-The CLI is a repository-root-local development dependency. Its declaration and installed stable version must satisfy `^13.0.4`; compatible CLI 13 patches and minors do not require a skill release. Installed Core must satisfy both the CLI's declared Core range and `moldea`'s supported `^9.2.0` range. Other CLI majors, prereleases, malformed declarations, incompatible installed versions, and incompatible Core versions fail closed. The skill never selects a global CLI, runs a transient download, or searches unrelated workspaces for a provider.
-
-The repair target is CLI `13.0.4`. Its locked closure resolves Core `9.2.0`, Repository/Repository FS `4.0.1`, Git helpers `0.4.0`, Process `1.6.2`, Exception `1.7.1` and Utilities `1.7.2`. These supported minimums require the YAML diagnostic-location capability and preserve JSON schema 7; earlier model observations do not verify this closure.
-
-Updating the skill does not update a project's CLI. Explicit repair or a package-manager update to CLI `13.0.4` installs Core 9.2.0 and its YAML diagnostic locations.
+The portable skill requires Node.js `>=22.17.0` and Git `>=2.32.0`. It includes the CLI and its dependencies. Adopted repositories use any language and need no package manifest or dependency install to run the skill.
 
 ## Tooling ownership
 
-This page owns CLI invocation and machine-evidence contracts. The tooling-installation reference owns authorized setup. Neither replaces Git, package management, planning, review, commit, or publication procedures owned by the host workflow.
+The installed skill owns `scripts/moldea-cli/moldea.mjs` and its checksummed supporting files. Run it with Node in the selected Git worktree. The developer's workflow owns package installation, repository configuration, Git writes, and publication.
 
-Explicit repair reads its exact CLI recovery target from the selected installed skill's `metadata.cliRepairVersion`, maintained from the locked development CLI. This target is distinct from the supported range. Updating the skill alone changes no project. Healthy aligned tooling is a no-op; healthy newer compatible versions are preserved after composition checks. Repair updates a compatible CLI older than the target, or an installed CLI without a supported root declaration, and reports both versions. It installs the exact target as a root development dependency and never lowers a newer declared version. The install replaces an unsupported range; a CLI declared in `dependencies` or another section is first removed with scripts disabled, then re-added. Other explicit operations only report that mismatch; ordinary work stays silent about a compatible CLI older than the target. After a relationship hit, ordinary work reports in a final `moldea:` line, with the launcher's complete message and next step unchanged, when the launcher cannot run the CLI because of a missing install, an unresolvable layout, or an unsupported Node.js version, then continues the task without canonical reads. Downgrades, newer unsupported majors, and explicit pin conflicts need direction.
-
-A write-capable `moldea` operation may establish the compatible dependency through the repository's package manager with lifecycle scripts disabled. Read-only work reports missing or mismatched tooling without changing dependencies, lockfiles, or configuration. Executable package-manager extensions stop automatic setup; the skill reports the obstacle and defers to the repository's trusted workflow instead of weakening host controls.
-
-Yarn setup depends on the executing Yarn line. Yarn Classic 1.x installs and removes with `-W` and `--ignore-scripts`, because a workspace root requires `-W`, and Yarn 3 and later install with `--mode=skip-build` in a node-modules layout. Yarn 2.x cannot skip dependency builds while adding, so it stops for the repository's trusted setup workflow. A `.yarnrc.yml` `yarnPath`, a Classic `.yarnrc` `yarn-path`, or a `packageManager` value other than a plain registry version selects repository-supplied or non-registry Yarn code and stops automatic setup like an executable plugin. Just before an installation that will proceed, the coding agent runs `yarn --version` once and requires it to agree with the `packageManager` value, lockfile format and configuration file; any disagreement needs direction. With every manager, a CLI declared outside root `devDependencies` is moved by a targeted removal and an exact re-add, both with scripts disabled.
-
-During initialization, sufficient project context comes before dependency changes. A known missing CLI is installed before canonical or managed README writes and before validation, without a deliberate failing probe. Installation failure stops those writes and validation while preserving and reporting any package-manager changes. An existing compatible CLI needs no reinstall or extra availability check.
-
-Every CLI operation uses the installed portable skill's `scripts/moldea-cli.mjs` launcher. From inert package metadata, the launcher validates package identity, exact installed stable version, the supported root declaration (a root `devDependencies` entry that is the exact installed stable version, or a caret range on a stable 13.x version the installed CLI satisfies), the CLI's Core dependency range against installed Core, the running Node.js version against the CLI's `engines.node` range, the binary declaration, and repository-local containment. A missing `node_modules` or CLI package is reported in one sentence that names the install step. Each Git worktree or clone needs its own installed dependencies; the launcher never borrows another checkout's packages. The resolved dependency must remain inside the repository; npm and pnpm layouts within that boundary are supported. It invokes Node with an argument array and no shell. Package management and repository setup or CI own lockfile consistency; the launcher does not read target-project lockfiles. Agents do not reproduce package, executable-link, `PATH`, or parent-workspace probes around the launcher. Metadata and containment do not authenticate executable contents or replace host execution controls.
-
-The pre-activation gate instead uses the Core matcher bundled with the installed skill. Ordinary mode emits exactly `0` or `1` plus LF and executes no repository dependencies. AGENTS.md invokes it with repeatable `--path` arguments relative to the absolute repository root, without reading stdin. NUL-delimited batches share the 2 MiB input allowance. Opt-in `--diagnose` keeps healthy hit/miss results but reports malformed or failed execution through nonzero exit and compact stderr. README and AGENTS.md are not adoption prerequisites. Core validation checks the AGENTS.md integration block and the installed skill assets; a diagnostic gate smoke test checks the displayed command separately. Missing or stale integration warns without changing canonical validity. Foundation reads reject file links and directory symlinks or junctions below the resolved repository root. Repository-contained dependency links remain supported by the launcher.
+The pre-activation gate uses Core's bundled manifest matcher. Ordinary mode emits only `0` or `1` followed by LF. `--diagnose` reports malformed or failed execution. A valid canonical foundation can be adopted without README or AGENTS.md. Missing or stale integration produces a warning without changing canonical validity.
 
 ## Machine output
 
-Compatible stable CLI 13 releases emit schema 7 JSON. Paged commands use `--json --max-output-bytes 65536`; `composition` uses the launcher's fixed 65,536-byte boundary. The envelope contains `schemaVersion`, the exact installed `cliVersion`, `command`, `status`, `result`, and `error`.
+Run `node <installed-skill-root>/scripts/moldea-cli/moldea.mjs composition --json` to inspect the CLI's embedded package versions. Use `validate`, `inspect`, `scope`, and `content` with the required repository and selection flags. Paged commands emit schema 8 JSON with the expected command, status, result, and error. They accept `--json --max-output-bytes 65536` and use the returned opaque `--cursor` with the same selection to continue.
 
-Exit codes are:
-
-- `0`: `valid`
-- `1`: `invalid`
-- `2` or `3`: `error`
-
-Before forwarding or saving any completed response, the launcher verifies complete UTF-8 JSON, schema, exact installed CLI version, command, result/error shape, and exit/status agreement. For inspection and validation it also checks nonnegative integer diagnostic totals, their arithmetic, and agreement with validity and status. It accepts additive fields and preserves verified raw bytes. Malformed or contradictory output returns 3 with a short diagnostic and no stdout. The launcher preserves a verified child's status and uses 3 for its own validation, containment, input-delivery, signal, or output-boundary failures. Receiving `SIGINT` or `SIGTERM` makes the invocation unsuccessful even if the child handles the signal and exits with 0; cancelled or signal-terminated invocations forward no stdout. It sends the requested termination signal first and force-terminates a child still active after one second. A launcher failure, signal, malformed envelope, version mismatch, unsupported schema, stale cursor, or contradictory status provides no deterministic conclusion.
-
-Command boundaries stay explicit:
-
-- `inspect` and `validate` never include canonical document bodies.
-- Each paged `kind: agent` inspection record exposes exact `agentId` and `runtimeId` assignments without the agent body.
-- `scope` accepts one `--path` or one NUL-delimited UTF-8 path set of at most 2 MiB and returns relationship matches after the two-byte gate establishes relevance.
-- `content` returns chunks only for one explicit canonical `/moldea/**` path. CLI/Core still reject noncanonical targets.
-
-Snapshot identities are operation-specific. A validation digest identifies validation records, counts, summary, and status rather than all canonical content, so changing context wording can leave it unchanged. Inspect metadata or the selected content identity establishes relevant body changes. An unchanged validation digest does not replace required reassessment, and this distinction changes no CLI schema, hashing, or cursor contract.
-
-Release `10.0.2` accepts bare repository-relative and leading-slash repository-logical paths, and normalizes leading `./` and native absolute paths contained beneath the supplied or physically resolved repository root. The gate's argv and stdin modes and the launcher's `scope` and `content` use the same normalization. Relative paths always start at the repository root, regardless of the working directory. Normalization preserves input order, duplicates, casing, and Unicode, with the same raw 2 MiB batch allowance and no target-file lookup.
-
-On POSIX, contained absolute paths take precedence; other leading-slash paths retain their repository-logical meaning, and backslashes remain errors. Windows paths accept either separator in relative paths and convert contained drive-absolute paths. Traversal, internal dot segments, repeated separators, repository-root-only selections, drive-relative paths, and UNC/device forms remain errors. Normalization does not replace canonical filesystem checks.
-
-Paged commands accept launcher-only `--save-response <absolute-temporary-file>` and `--cursor-from-response <absolute-temporary-file>` options. Create the private task directory with `node <installed-skill-root>/scripts/response-directory.mjs --repository <absolute-repository-root>`. It returns an absolute path beneath the resolved host temporary root, outside the repository, with owner-only POSIX access. Windows uses the host temporary storage permissions. The directory holds one exact raw response. The next call extracts its opaque cursor mechanically and fetches one page with unchanged filters and budget. File and directory links are rejected; new targets must be unused unless replacing the explicitly loaded checkpoint. `composition` does not support these options, and a saved cursor cannot be combined with `--cursor`. Complete valid/invalid pages can be saved; error and interrupted output cannot replace a checkpoint. The coding agent removes owned scratch files when finished. Hosts that prohibit scratch writes retain that constraint.
-
-When the host truncates or loses a response saved with `--save-response`, read the saved file instead of rerunning the command. Cancellation before the atomic write starts preserves the prior checkpoint. A write already started may complete with the new page, but the cancelled invocation still returns 3 with no stdout. Continuation never automatically fetches more or resets the shared resource budget within a cycle.
-
-For requested mechanical counts or ranges, retain distinct complete response files and use a bounded host result display, up to 2,048 display tokens where configurable. A local calculation reads every required record and verifies envelope identity, status, path, snapshot and contiguous offsets without reprinting large bodies into model context. Fetch pages interactively through the existing cursor-file option; the calculation neither fetches pages nor creates a combined snapshot. Original CLI stdout stays unchanged and fully counted. Mechanical totals do not replace semantic reading. Keep instruction reads separate from helper calls, because a mixed command's complete output is charged to its moldea work. These input-handling rules change no profile, page budget or allowance.
+Exit 0 corresponds to `valid`, exit 1 to `invalid`, and exit 2 or 3 to `error`. Treat incomplete or failed output as unverified. Diagnostic totals cover the operation's snapshot, even when only one page is returned. Inspect and validate omit document bodies. Use content for one canonical path and scope for one repository-logical path or one NUL-delimited set up to 2 MiB.
 
 ## Resource profiles
 
@@ -155,7 +107,6 @@ Failed Git reads, including reads during attribute inspection, return `git-read`
 | `.github/workflows/conformance.yml`       | Conservative PR selection, root correctness, quality, and portable Linux, Windows and macOS contracts.                                                                    |
 | `.github/workflows/website-checks.yml`    | Pages-only website quality and artifact verification; browser suites run locally.                                                                                         |
 | `.github/workflows/pages.yml`             | Pages preflight, parallel verification/production build, and gated deployment.                                                                                            |
-| `.github/workflows/release-candidate.yml` | Exact package-candidate validation without publication.                                                                                                                   |
 
 The distributed artifact is exactly `moldea/`; development-only tooling is not installed with the skill. Portable builds use fixed compiler settings in checkouts and temporary release directories. Run `npm run matcher:generate` after changing the relevance gate's locked inputs and `npm run matcher:check` to verify the committed artifact.
 

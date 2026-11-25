@@ -39,15 +39,6 @@ export const semanticCase = defineSemanticCase({
           expectedType: 'file',
         },
       },
-      {
-        claim: 'The related manifest declares the provider package.',
-        source: {
-          kind: 'related-path',
-          mount: '/related-application',
-          path: 'package.json',
-          expectedType: 'file',
-        },
-      },
     ],
   },
   expected: [

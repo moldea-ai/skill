@@ -6,14 +6,13 @@ import { loadSemanticCases } from '../cases/index.ts';
 
 import { createSemanticCatalogWebsiteModel } from './index.ts';
 
-test('the public projection omits only the approved exclusion from 143 discovered cases', async () => {
+test('the public projection omits only the approved exclusion from the discovered cases', async () => {
   const definitions = await loadSemanticCases(path.resolve(import.meta.dirname, '../cases'));
-  expect(definitions).toHaveLength(143);
   expect(
     definitions.filter(({ publication }) => publication === 'private').map(({ id }) => id),
   ).toStrictEqual(['repair-unproven-adoption']);
   const model = createSemanticCatalogWebsiteModel(definitions);
-  expect(model.caseCount).toBe(142);
+  expect(model.caseCount).toBe(definitions.length - 1);
   expect(
     model.groups
       .flatMap((group) => group.cases)

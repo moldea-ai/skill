@@ -26,13 +26,9 @@ const MAX_PROCESS_OUTPUT_BYTES = 65_536;
 const PROCESS_TIMEOUT_MS = 10_000;
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
 const websiteRoot = path.join(repositoryRoot, 'website');
-// release verification can exercise the same example against the complete installed candidate
-const candidateSkillRoot = process.env['MOLDEA_CANDIDATE_SKILL_ROOT'];
-const releaseRoot =
-  candidateSkillRoot === undefined ? repositoryRoot : path.dirname(candidateSkillRoot);
-const portableSkillRoot = candidateSkillRoot ?? path.join(repositoryRoot, 'moldea');
-const releaseIdentity = assertReleaseIdentity(releaseRoot);
-const cliPath = path.join(releaseRoot, 'node_modules', '@moldea.ai', 'cli', 'dist', 'moldea.js');
+const portableSkillRoot = path.join(repositoryRoot, 'moldea');
+const releaseIdentity = assertReleaseIdentity(repositoryRoot);
+const cliPath = path.join(portableSkillRoot, 'scripts', 'moldea-cli', 'moldea.mjs');
 
 const CliRecordSchema = z.discriminatedUnion('kind', [
   z.object({

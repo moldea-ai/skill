@@ -35,21 +35,8 @@ describe('INITIALIZE_EXAMPLE_FILES', () => {
       '/moldea/moldea.yaml': 'Added',
       '/moldea/project.md': 'Added',
       '/AGENTS.md': 'Modified',
-      '/package.json': 'Modified',
+      '/package.json': 'Unchanged',
       '/README.md': 'Modified',
-    });
-  });
-
-  test('adds the CLI at the exact version the Skill records', () => {
-    const cliVersionLine = readSkillFile('SKILL.md')
-      .split('\n')
-      .find((line) => line.trim().startsWith('cliRepairVersion:'))!;
-    const cliVersion = cliVersionLine.split(':')[1]!.trim().replaceAll("'", '');
-    const manifest = INITIALIZE_EXAMPLE_FILES.find(({ path }) => path === '/package.json')!;
-
-    expect(JSON.parse(manifest.source)).toStrictEqual({
-      ...JSON.parse(manifest.before!),
-      devDependencies: { '@moldea.ai/cli': cliVersion },
     });
   });
 

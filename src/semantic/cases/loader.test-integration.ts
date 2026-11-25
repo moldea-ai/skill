@@ -196,19 +196,18 @@ const CANDIDATE_TARGET_CASE_IDS = [
   'initialize-inspected-source-coverage',
   'maintenance-cycle-budget',
   'model-workflow-routing',
-  'pnpm-pnp-local-cli-provider',
   'repair-continuation-manifest-change',
   'routing-description-contradiction',
   'routing-description-fallback',
 ];
 
-test('the release catalog retains 143 cases with only the approved exclusion', async () => {
+test('the release catalog retains 130 cases with only the approved exclusion', async () => {
   const cases = await loadSemanticCases(import.meta.dirname);
-  expect(cases).toHaveLength(143);
+  expect(cases).toHaveLength(130);
   expect(
     cases.reduce((count, { expected, forbidden }) => count + expected.length + forbidden.length, 0),
-  ).toBe(643);
-  expect(cases.filter(({ publication }) => publication !== 'private')).toHaveLength(142);
+  ).toBe(598);
+  expect(cases.filter(({ publication }) => publication !== 'private')).toHaveLength(129);
   expect(
     cases.filter(({ publication }) => publication === 'private').map(({ id }) => id),
   ).toStrictEqual(['repair-unproven-adoption']);

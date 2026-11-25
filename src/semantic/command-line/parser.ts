@@ -91,7 +91,7 @@ const createDiagnosticSelector = (
  * - INVALID_ARGUMENTS: an unknown option, a positional argument, a missing or empty value, a
  * repeated option, or a missing required one
  * - The options don't form one supported recording, diagnostic, or verification run.
- * - --token-limit requires --diagnose-batch.
+ * - --token-limit requires --record or --diagnose-batch.
  * - --token-limit must be a positive safe integer no greater than 128000000.
  */
 export const parseSemanticEvaluationArguments = (
@@ -154,8 +154,8 @@ export const parseSemanticEvaluationArguments = (
 
   const tokenValue = getOptionValue(values, '--token-limit');
   const tokenLimit = tokenValue === undefined ? null : Number(tokenValue);
-  if (tokenValue !== undefined && !isDiagnoseBatchRequested) {
-    throw new Error('--token-limit requires --diagnose-batch.');
+  if (tokenValue !== undefined && !isRecordRequested && !isDiagnoseBatchRequested) {
+    throw new Error('--token-limit requires --record or --diagnose-batch.');
   }
   if (
     tokenLimit !== null &&
@@ -167,7 +167,14 @@ export const parseSemanticEvaluationArguments = (
   }
 
   const allowedOptions = isRecordRequested
-    ? new Set(['--record', '--cases', '--restart', '--resume-stopped-stage', '--workers'])
+    ? new Set([
+        '--record',
+        '--cases',
+        '--restart',
+        '--resume-stopped-stage',
+        '--token-limit',
+        '--workers',
+      ])
     : isDiagnoseBatchRequested
       ? new Set([
           '--all',
@@ -184,7 +191,7 @@ export const parseSemanticEvaluationArguments = (
   if (allowedOptions !== null && [...seenOptions].some((option) => !allowedOptions.has(option))) {
     throw new Error(
       isRecordRequested
-        ? '--record accepts only a worker count and one optional execution modifier.'
+        ? '--record accepts only a case selection, a worker count, a token limit, and one optional execution modifier.'
         : '--diagnose-batch accepts one selector, one worker count, and one optional execution modifier.',
     );
   }

@@ -1,7 +1,6 @@
 import { spawnSync } from 'node:child_process';
-import { readFile, unlink, writeFile } from 'node:fs/promises';
+import { unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { z } from 'zod';
 
 import { ensureDirectory, resolveContainedPath } from '../../../filesystem/index.ts';
 import type { ISemanticCaseSetup } from '../../cases/index.ts';
@@ -26,29 +25,10 @@ export const createInitializationOnboardingSetup =
       files['moldea/project.md'] = PROJECT_FOUNDATION;
       files['moldea/moldea.yaml'] =
         stage === 'continuation'
-          ? 'version: 1\n\nagents:\n  support-triage:\n    runtime:\n      id: custom\n      guidance: /moldea/runtimes/custom.md\n    bindings:\n      runtimeAgent:\n        path: /src/support-agent.js\n        symbol: runSupportAgent\n      instructionLoader:\n        path: /src/support-agent.js\n        symbol: loadSupportInstruction\n'
+          ? 'version: 1\n\nagents:\n  support-triage:\n    bindings:\n      runtimeAgent:\n        path: /src/support-agent.js\n        symbol: runSupportAgent\n      instructionLoader:\n        path: /src/support-agent.js\n        symbol: loadSupportInstruction\n'
           : 'version: 1\n';
     }
     if (stage === 'continuation') Object.assign(files, COMPLETED_SUPPORT_FILES);
-    const packageManifest = z
-      .looseObject({ scripts: z.record(z.string(), z.string()).optional() })
-      .parse(JSON.parse(await readFile(path.join(context.repositoryPath, 'package.json'), 'utf8')));
-    files['package.json'] = `${JSON.stringify(
-      {
-        ...packageManifest,
-        name: 'operations-review-service',
-        private: true,
-        type: 'module',
-        scripts: {
-          ...packageManifest.scripts,
-          test: 'npm run test:integration',
-          'test:integration':
-            'node --test src/support-agent.test-integration.js src/invoice-workflow.test-integration.js',
-        },
-      },
-      null,
-      2,
-    )}\n`;
     for (const [relativePath, content] of Object.entries(files)) {
       const filePath = resolveContainedPath(context.repositoryPath, relativePath);
       await ensureDirectory(path.dirname(filePath));

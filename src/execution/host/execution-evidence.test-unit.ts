@@ -64,7 +64,7 @@ test('distinct commands retain correspondence when parallel completion reverses 
 
 test('overlapping invocation provenance never grants ordered operation proof', () => {
   const invocation = {
-    arguments: ['--repository', '/mnt', '--', 'validate', '--json'],
+    arguments: ['validate', '--repository', '/mnt', '--json'],
     outputByteCount: 0,
     overlapping: true as const,
     canonicalBefore: null,
@@ -346,10 +346,10 @@ test.each([
   ['/usr/bin/node', '/mnt/child/..'],
   ['node', '../mnt'],
   ['node', '/mnt/../mnt'],
-])('recognizes launcher Node %s and normalized repository %s', (nodePath, repository) => {
+])('recognizes bundled CLI Node %s and normalized repository %s', (nodePath, repository) => {
   const command =
-    `${nodePath} /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs ` +
-    `--repository ${repository} -- inspect --json --max-output-bytes 65536`;
+    `${nodePath} /mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs ` +
+    `inspect --repository ${repository} --json --max-output-bytes 65536`;
   assert.equal(identifyMoldeaCliLauncherOperation(command), 'inspect');
   const evidence = projectCodexEvaluationExecutionEvidence(
     createCommandEvent(`ls moldea && ${command}`, 'bounded response'),
@@ -362,11 +362,11 @@ test.each([
 });
 
 test.each(['/tmp', '/', '/mnt/child', '/mnt/../outside'])(
-  'rejects a launcher repository resolving outside the sandbox root: %s',
+  'rejects a CLI repository resolving outside the sandbox root: %s',
   (repository) => {
     const command =
-      '/opt/node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs ' +
-      `--repository ${repository} -- inspect --json --max-output-bytes 65536`;
+      '/opt/node /mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs ' +
+      `inspect --repository ${repository} --json --max-output-bytes 65536`;
     assert.equal(identifyMoldeaCliLauncherOperation(command), null);
     assert.equal(
       projectCodexEvaluationExecutionEvidence(createCommandEvent(command)).commandPolicy
@@ -377,12 +377,12 @@ test.each(['/tmp', '/', '/mnt/child', '/mnt/../outside'])(
 );
 
 test('records separate content-free launcher miss counts without changing policy or CLI credit', () => {
-  const validScript = '/mnt/.agents/skills/moldea/scripts/moldea-cli.mjs';
-  const suffix = '--repository /mnt -- inspect --json --max-output-bytes 65536';
+  const validScript = '/mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs';
+  const suffix = 'inspect --repository /mnt --json --max-output-bytes 65536';
   const evidence = projectCodexEvaluationExecutionEvidence(
     [
       createCommandEvent(`/untrusted/node ${validScript} ${suffix}`, 'private output'),
-      createCommandEvent(`/opt/node /mnt/src/wrong-launcher.mjs ${suffix}`),
+      createCommandEvent(`/opt/node /mnt/src/moldea.mjs ${suffix}`),
       createCommandEvent(`/untrusted/node ${validScript} ${suffix}`),
       createCommandEvent('/opt/node --test src/task.test-unit.js'),
     ].join('\n'),
@@ -395,7 +395,7 @@ test('records separate content-free launcher miss counts without changing policy
   assert.equal(evidence.commandPolicy.moldeaOutputByteCount, 0);
   assert.ok(hasValidCodexEvaluationCommandPolicy(evidence.commandPolicy));
   assert.ok(hasPassingCodexEvaluationCommandPolicy(evidence.commandPolicy));
-  assert.doesNotMatch(JSON.stringify(evidence), /untrusted|wrong-launcher|private output/u);
+  assert.doesNotMatch(JSON.stringify(evidence), /untrusted|\/mnt\/src\/moldea|private output/u);
 });
 
 test('validates the closed launcher diagnostic codes and positive unique counts', () => {
@@ -438,7 +438,7 @@ test('execution evidence recognizes exact evaluator-owned local tooling checks',
       createCommandEvent('npm --version', '11.12.1\n'),
       createCommandEvent('node --version', 'v24.15.0\n'),
       createCommandEvent(
-        'node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt -- composition --json',
+        'node /mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs composition --json',
       ),
       createCommandEvent('git --version', 'git version 2.53.0\n'),
       createCommandEvent('/home/evaluator/bin/git status --short'),
@@ -738,7 +738,7 @@ test('execution evidence requires explicit paths for workspace-owned executables
         '0\n',
       ),
       createCommandEvent(
-        'node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt -- inspect --json --max-output-bytes 65536',
+        'node /mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs inspect --repository /mnt --json --max-output-bytes 65536',
       ),
     ].join('\n'),
   );
@@ -1074,7 +1074,7 @@ test('execution evidence rejects malformed and incomplete completed-command even
 
 test('execution evidence accepts a fixed Bash wrapper without exposing it', () => {
   const result = projectCodexEvaluationExecutionEvidence(
-    `${createCommandEvent("/bin/bash -lc 'node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt -- inspect --json --max-output-bytes 65536'")}\n`,
+    `${createCommandEvent("/bin/bash -lc 'node /mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs inspect --repository /mnt --json --max-output-bytes 65536'")}\n`,
   );
 
   assert.equal(result.commandPolicy.networkAccess.status, 'not-observed');
@@ -1084,7 +1084,7 @@ test('execution evidence accepts a fixed Bash wrapper without exposing it', () =
 
 test('launcher identification permits one static stdin producer and rejects multiple launchers', () => {
   const launcher =
-    'node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt -- scope --paths-stdin --json --max-output-bytes 65536';
+    'node /mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs scope --repository /mnt --paths-stdin --json --max-output-bytes 65536';
 
   assert.equal(
     identifyMoldeaCliLauncherOperation(`printf '/src/project-state.js\\0' | ${launcher}`),
@@ -1095,7 +1095,7 @@ test('launcher identification permits one static stdin producer and rejects mult
 
 test('launcher identification counts one opaque-cursor continuation even when wrapped', () => {
   const continuation =
-    'node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt -- validate --json --max-output-bytes 65536 --cursor "opaque.snapshot.cursor"';
+    'node /mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs validate --repository /mnt --json --max-output-bytes 65536 --cursor "opaque.snapshot.cursor"';
 
   assert.equal(identifyMoldeaCliLauncherOperation(continuation), 'validate');
   assert.equal(
@@ -1167,7 +1167,7 @@ test.each([
   '/moldea/project.md',
   '/mnt/moldea/project.md',
 ])('recognizes normalized canonical content path %s through every evidence boundary', (path) => {
-  const command = `node .agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt/ -- content --json --max-output-bytes 65536 --path ${path}`;
+  const command = `node .agents/skills/moldea/scripts/moldea-cli/moldea.mjs content --repository /mnt/ --json --max-output-bytes 65536 --path ${path}`;
   assert.equal(identifyMoldeaCliLauncherOperation(command), 'content');
   assert.deepEqual(projectRepairGitCommandEvidence(command), {
     compliantCount: 0,
@@ -1196,7 +1196,7 @@ test.each([
   'C:/moldea/project.md',
   './moldea//project.md',
 ])('does not recognize an invalid canonical path %s', (path) => {
-  const command = `node .agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt -- content --json --max-output-bytes 65536 --path ${path}`;
+  const command = `node .agents/skills/moldea/scripts/moldea-cli/moldea.mjs content --repository /mnt --json --max-output-bytes 65536 --path ${path}`;
   assert.equal(identifyMoldeaCliLauncherOperation(command), null);
   assert.equal(projectRepairGitCommandEvidence(command).unverifiedCount, 1);
 });
@@ -1204,13 +1204,13 @@ test.each([
 test('recognizes a supported single-path scope invocation', () => {
   assert.equal(
     identifyMoldeaCliLauncherOperation(
-      'node .agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt/ -- scope --json --max-output-bytes 65536 --path ./src/invoice.js',
+      'node .agents/skills/moldea/scripts/moldea-cli/moldea.mjs scope --repository /mnt/ --json --max-output-bytes 65536 --path ./src/invoice.js',
     ),
     'scope',
   );
   assert.equal(
     identifyMoldeaCliLauncherOperation(
-      'node .agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt -- scope --json --max-output-bytes 65536 --paths-stdin --path src/invoice.js',
+      'node .agents/skills/moldea/scripts/moldea-cli/moldea.mjs scope --repository /mnt --json --max-output-bytes 65536 --paths-stdin --path src/invoice.js',
     ),
     null,
   );
@@ -1235,7 +1235,7 @@ test.each([
 test('execution evidence rejects more than 32 moldea commands with actionable counts', () => {
   const source = Array.from({ length: 33 }, () =>
     createCommandEvent(
-      'node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt -- inspect --json --max-output-bytes 65536',
+      'node /mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs inspect --repository /mnt --json --max-output-bytes 65536',
     ),
   ).join('\n');
 
@@ -1247,7 +1247,7 @@ test('execution evidence rejects more than 32 moldea commands with actionable co
 
 test('execution evidence rejects more than 8 MiB of moldea command output', () => {
   const source = createCommandEvent(
-    'node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt -- inspect --json --max-output-bytes 65536',
+    'node /mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs inspect --repository /mnt --json --max-output-bytes 65536',
     'x'.repeat(8_388_609),
   );
 
@@ -1345,10 +1345,10 @@ test('execution evidence rejects missing or inconsistent resumed-session counter
   }
 });
 
-test('launcher identification counts mechanical continuation and capture as one call', () => {
+test('bundled CLI identification counts an opaque-cursor continuation as one call', () => {
   const base =
-    'node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt -- content --path /moldea/project.md --json --max-output-bytes 65536';
-  const continuation = `${base} --cursor-from-response /tmp/moldea-task/page.json --save-response /tmp/moldea-task/page.json`;
+    'node /mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs content --repository /mnt --path /moldea/project.md --json --max-output-bytes 65536';
+  const continuation = `${base} --cursor opaque.snapshot.cursor`;
   assert.equal(identifyMoldeaCliLauncherOperation(continuation), 'content');
   const evidence = projectCodexEvaluationExecutionEvidence(
     createCommandEvent(continuation, 'raw page'),
@@ -1655,7 +1655,9 @@ test('rejects later commands concatenated onto an installed wrapper operation', 
   const prefix = 'node /mnt/.agents/skills/moldea/scripts/';
   assert.equal(
     identifyMoldeaCliLauncherOperation(
-      wrap(`${prefix}moldea-cli.mjs --repository /mnt -- inspect --json --max-output-bytes 65536`),
+      wrap(
+        `${prefix}moldea-cli/moldea.mjs inspect --repository /mnt --json --max-output-bytes 65536`,
+      ),
     ),
     null,
   );
@@ -1695,7 +1697,7 @@ test('recognizes closed installed operations and direct tests with shell comment
   const prefix = '# known operation\nnode /mnt/.agents/skills/moldea/scripts/';
   assert.equal(
     identifyMoldeaCliLauncherOperation(
-      `${prefix}moldea-cli.mjs --repository /mnt -- inspect --json --max-output-bytes 65536 # inspect\n`,
+      `${prefix}moldea-cli/moldea.mjs inspect --repository /mnt --json --max-output-bytes 65536 # inspect\n`,
     ),
     'inspect',
   );
@@ -1917,7 +1919,7 @@ test.each([
 
 test('excludes only exact installed helpers from actor-issued repair Git', () => {
   for (const command of [
-    'node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt -- inspect --json --max-output-bytes 65536',
+    'node /mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs inspect --repository /mnt --json --max-output-bytes 65536',
     'node /mnt/.agents/skills/moldea/scripts/relevance-gate.mjs --repository /mnt',
     'node /mnt/.agents/skills/moldea/scripts/managed-agents.mjs --repository /mnt --print',
   ])
@@ -1928,7 +1930,7 @@ test('excludes only exact installed helpers from actor-issued repair Git', () =>
       reasons: [],
     });
   assert.equal(
-    projectRepairGitCommandEvidence('node src/moldea-cli.mjs -- inspect').unverifiedCount,
+    projectRepairGitCommandEvidence('node src/moldea-cli/moldea.mjs -- inspect').unverifiedCount,
     1,
   );
 });
@@ -2023,7 +2025,7 @@ test('command ownership follows the accounting table with exact totals', () => {
     [
       [`node ${SKILL_SCRIPTS}/relevance-gate.mjs --repository /mnt --adoption-only`, 2],
       [
-        `node ${SKILL_SCRIPTS}/moldea-cli.mjs --repository /mnt -- validate --json --max-output-bytes 65536`,
+        `node ${SKILL_SCRIPTS}/moldea-cli/moldea.mjs validate --repository /mnt --json --max-output-bytes 65536`,
         300,
       ],
       [`node ${SKILL_SCRIPTS}/repair-git.mjs --repository /mnt -- checkpoint`, 50],
@@ -2076,11 +2078,11 @@ test('ordered moldea events keep command and patch order without commands or pat
         item: { type: 'file_change', changes: [{ path: '/mnt/moldea/x.md' }] },
       }),
       createCommandEvent(
-        `node ${SKILL_SCRIPTS}/moldea-cli.mjs --repository /mnt -- validate --json --max-output-bytes 65536`,
+        `node ${SKILL_SCRIPTS}/moldea-cli/moldea.mjs validate --repository /mnt --json --max-output-bytes 65536`,
         'x'.repeat(30),
       ),
       createCommandEvent(
-        `node ${SKILL_SCRIPTS}/moldea-cli.mjs --repository /mnt -- validate --json --max-output-bytes 65536 | head -c $LIMIT`,
+        `node ${SKILL_SCRIPTS}/moldea-cli/moldea.mjs validate --repository /mnt --json --max-output-bytes 65536 | head -c $LIMIT`,
         'x'.repeat(40),
       ),
       createCommandEvent(`node ${SKILL_SCRIPTS}/managed-readme.mjs --repository /mnt`, ''),
@@ -2116,7 +2118,7 @@ test.each([
   'runtime canonical observation %s preserves defensible placement',
   (_name, initial, final, before, after, hasBefore, hasAfter) => {
     const digest = (letter: string | null) => (letter === null ? null : letter.repeat(64));
-    const command = `node ${SKILL_SCRIPTS}/moldea-cli.mjs --repository /mnt -- validate --json --max-output-bytes 65536`;
+    const command = `node ${SKILL_SCRIPTS}/moldea-cli/moldea.mjs validate --repository /mnt --json --max-output-bytes 65536`;
     const result = projectCodexEvaluationExecutionEvidence(
       [
         createCommandEvent(command),
@@ -2127,10 +2129,9 @@ test.each([
           invocations: [
             {
               arguments: [
+                'validate',
                 '--repository',
                 '/mnt',
-                '--',
-                'validate',
                 '--json',
                 '--max-output-bytes',
                 '65536',
@@ -2141,11 +2142,10 @@ test.each([
               callers: [
                 [
                   '/opt/node',
-                  '/mnt/.agents/skills/moldea/scripts/moldea-cli.mjs',
+                  '/mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs',
+                  'validate',
                   '--repository',
                   '/mnt',
-                  '--',
-                  'validate',
                   '--json',
                   '--max-output-bytes',
                   '65536',
@@ -2182,7 +2182,7 @@ test('ambiguous launcher correspondence grants no canonical write evidence', () 
         canonicalFinal: 'b'.repeat(64),
         invocations: [
           {
-            arguments: ['--repository', '/mnt', '--', 'validate', '--json'],
+            arguments: ['validate', '--repository', '/mnt', '--json'],
             exitCode: 0,
             outputByteCount: 0,
             stdout: '',
@@ -2200,7 +2200,7 @@ test('ambiguous launcher correspondence grants no canonical write evidence', () 
 });
 
 test('runtime observation does not duplicate existing known canonical patch evidence', () => {
-  const command = `node ${SKILL_SCRIPTS}/moldea-cli.mjs --repository /mnt -- validate --json --max-output-bytes 65536`;
+  const command = `node ${SKILL_SCRIPTS}/moldea-cli/moldea.mjs validate --repository /mnt --json --max-output-bytes 65536`;
   const result = projectCodexEvaluationExecutionEvidence(
     [
       createFileChangeEvent([{ path: '/mnt/moldea/project.md', kind: 'update' }]),
@@ -2211,7 +2211,7 @@ test('runtime observation does not duplicate existing known canonical patch evid
         canonicalFinal: 'b'.repeat(64),
         invocations: [
           {
-            arguments: ['--repository', '/mnt', '--', 'validate', '--json'],
+            arguments: ['validate', '--repository', '/mnt', '--json'],
             exitCode: 0,
             outputByteCount: 0,
             stdout: '',
@@ -2266,11 +2266,11 @@ test('ordered moldea evidence rejects inconsistent ownership totals and events',
 test.each(['count', 'bytes'] as const)(
   'rejects grouped CLI %s exceeding captured totals',
   (field) => {
-    const args = ['--repository', '/mnt', '--', 'validate', '--json'];
+    const args = ['validate', '--repository', '/mnt', '--json'];
     const { commandPolicy } = projectCodexEvaluationExecutionEvidence(
       [
         createCommandEvent(
-          `node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs ${args.join(' ')}`,
+          `node /mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs ${args.join(' ')}`,
           '{}',
         ),
         JSON.stringify({
@@ -2282,7 +2282,7 @@ test.each(['count', 'bytes'] as const)(
               stdout: '{}',
               outputByteCount: 2,
               callers: [
-                ['/opt/node', '/mnt/.agents/skills/moldea/scripts/moldea-cli.mjs', ...args],
+                ['/opt/node', '/mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs', ...args],
               ],
             },
           ],

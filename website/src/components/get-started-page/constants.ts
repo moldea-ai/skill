@@ -1,6 +1,5 @@
 import managedAgentsBlock from '../../../../moldea/assets/managed-agents-block.md?raw';
 import managedReadmeBlock from '../../../../moldea/assets/managed-readme-block.md?raw';
-import skillEntrypoint from '../../../../moldea/SKILL.md?raw';
 
 import {
   getLandingExampleFile,
@@ -14,15 +13,17 @@ import type { IProjectFileTreeEntry, IProjectFileTreeFile } from '../project-fil
 
 // the installation path the managed AGENTS.md block names for a skills.sh repository install
 const SKILL_INSTALL_PATH = '.agents/skills/moldea';
-// initialization installs the CLI at the exact version the installed Skill records
-const cliVersion = /^\s*cliRepairVersion:\s*'([^']+)'/mu.exec(skillEntrypoint)?.[1];
-if (cliVersion === undefined) throw new Error('The Skill entrypoint is missing cliRepairVersion.');
-const packageBefore = {
-  name: 'trailside',
-  private: true,
-  type: 'module',
-  scripts: { test: 'node --experimental-strip-types --test' },
-};
+// the example application owns its package manifest
+const packageSource = `${JSON.stringify(
+  {
+    name: 'trailside',
+    private: true,
+    type: 'module',
+    scripts: { test: 'node --experimental-strip-types --test' },
+  },
+  null,
+  2,
+)}\n`;
 // the README explains setup but not the project, which is why initialization asks
 const readmeBefore = `# trailside-api
 
@@ -108,8 +109,7 @@ const existingCodeFiles: readonly IProjectFileTreeFile[] = [
 ];
 
 /*
- * Files an initialization adds or updates in the Trailside repository. The package.json, README and
- * AGENTS.md changes come from the Skill's own CLI version and managed blocks, so they stay current.
+ * Files shown during Trailside initialization, including the Skill's managed README and AGENTS.md blocks.
  */
 export const INITIALIZE_EXAMPLE_FILES: readonly IProjectFileTreeFile[] = [
   ...existingCodeFiles,
@@ -132,12 +132,8 @@ export const INITIALIZE_EXAMPLE_FILES: readonly IProjectFileTreeFile[] = [
     label: 'Package manifest',
     language: 'json',
     path: '/package.json',
-    before: `${JSON.stringify(packageBefore, null, 2)}\n`,
-    source: `${JSON.stringify(
-      { ...packageBefore, devDependencies: { '@moldea.ai/cli': cliVersion } },
-      null,
-      2,
-    )}\n`,
+    before: packageSource,
+    source: packageSource,
   },
   {
     id: 'agents',

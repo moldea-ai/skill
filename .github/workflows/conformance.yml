@@ -155,6 +155,8 @@ jobs:
         run: npm run runtime:build
       - name: Check portable generated artifacts
         run: npm run portable:check
+      - name: Smoke the shipped CLI with compatibility-test Node.js
+        run: '"$MOLDEA_TEST_NODE" moldea/scripts/moldea-cli/moldea.mjs composition --json'
       - name: Run portable integration tests
         env:
           MOLDEA_RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}

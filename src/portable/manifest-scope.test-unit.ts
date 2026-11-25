@@ -29,7 +29,7 @@ const cases: Array<[string, string, string[], boolean]> = [
   ['invalid YAML', 'version: [\n', ['/src/a.ts'], false],
   [
     'binding',
-    'version: 1\nagents:\n  assistant:\n    runtime:\n      id: custom\n    bindings:\n      runtimeAgent:\n        path: /src/agent.ts\n        symbol: agent\n',
+    'version: 1\nagents:\n  assistant:\n    bindings:\n      runtimeAgent:\n        path: /src/agent.ts\n        symbol: agent\n',
     ['/src/agent.ts'],
     true,
   ],

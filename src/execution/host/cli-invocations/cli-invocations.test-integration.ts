@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { execFileSync, spawnSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
-import { copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -17,7 +17,7 @@ import { buildCodexEvaluationBwrapArguments, prepareCodexEvaluationHome } from '
 import { prepareGitCommandPolicyBoundary } from '../git-command-policy-boundary.ts';
 import { readCliInvocationCapture, readCliInvocations } from './cli-invocations.ts';
 
-const { cliVersion } = readReleaseIdentity(process.cwd());
+const { cliVersion, cliJsonSchemaVersion } = readReleaseIdentity(process.cwd());
 
 test('distinct parallel commands retain method provenance without canonical chronology', async () => {
   const root = await mkdtemp(join(tmpdir(), 'moldea-parallel-proof-'));
@@ -27,11 +27,10 @@ test('distinct parallel commands retain method provenance without canonical chro
     const commands = [
       [
         'node',
-        '/mnt/.agents/skills/moldea/scripts/moldea-cli.mjs',
+        '/mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs',
+        'validate',
         '--repository',
         '/mnt',
-        '--',
-        'validate',
         '--json',
         '--max-output-bytes',
         '65536',
@@ -98,7 +97,7 @@ test('overlapping launcher intervals retain calls but cannot prove canonical chr
     const path = join(root, 'capture.jsonl');
     const first = randomUUID();
     const second = randomUUID();
-    const args = ['--repository', '/mnt', '--', 'validate', '--json'];
+    const args = ['validate', '--repository', '/mnt', '--json'];
     const records = [
       { kind: 'start', id: first, arguments: args, canonicalBefore: 'a'.repeat(64) },
       { kind: 'start', id: second, arguments: args, canonicalBefore: 'b'.repeat(64) },
@@ -138,7 +137,7 @@ test('overlapping calls retain method provenance but lose only their canonical c
   try {
     const path = join(root, 'capture.jsonl');
     const ids = Array.from({ length: 5 }, () => randomUUID());
-    const args = ['--repository', '/mnt', '--', 'validate', '--json'];
+    const args = ['validate', '--repository', '/mnt', '--json'];
     const callers = ids.map((_, index) => ['/bin/bash', '-lc', `launcher-${index}`]);
     const identities = ids.map((_, index) => `${100 + index}:1`);
     const starts = ids.map((id, index) => ({
@@ -206,27 +205,24 @@ test('Node startup records direct and wrapped launchers, early failures and filt
     vi.stubEnv('CODEX_HOME', join(root, 'source-home'));
     await prepareCodexEvaluationHome(home);
     await prepareGitCommandPolicyBoundary(join(home, 'bin'), {
-      trustedReadOnlyWorkspacePaths: ['.agents', 'node_modules'],
+      trustedReadOnlyWorkspacePaths: ['.agents'],
       realGitExecutable: '/opt/moldea-real-git/git',
       invocationLogPath: '/home/evaluator/git-invocations.jsonl',
     });
-    for (const path of ['.agents/skills/moldea/scripts', 'node_modules', 'moldea', 'src'])
-      await mkdir(join(repository, path), { recursive: true });
-    for (const filename of ['moldea-cli.mjs', 'repository-files.mjs', 'repository-package.mjs'])
-      await copyFile(
-        join(process.cwd(), 'moldea/scripts', filename),
-        join(repository, '.agents/skills/moldea/scripts', filename),
-      );
-    await writeFile(
-      join(repository, 'package.json'),
-      JSON.stringify({
-        name: 'capture-fixture',
-        private: true,
-        type: 'module',
-        devDependencies: { '@moldea.ai/cli': cliVersion },
-      }),
+    for (const name of ['.agents/skills/moldea/scripts', 'moldea', 'src'])
+      await mkdir(join(repository, name), { recursive: true });
+    await cp(
+      join(process.cwd(), 'moldea/scripts/moldea-cli'),
+      join(repository, '.agents/skills/moldea/scripts/moldea-cli'),
+      {
+        recursive: true,
+        filter: (source) =>
+          !source
+            .split(/[\\/]/u)
+            .some((part) => ['_archive', '_archives', '_backup', '_backups'].includes(part)),
+      },
     );
-    await writeFile(join(repository, '.gitignore'), '.agents/\nnode_modules/\n');
+    await writeFile(join(repository, '.gitignore'), '.agents/\n');
     await writeFile(
       join(repository, 'moldea/project.md'),
       '# Status service\nThis project reports status for operators.\n',
@@ -237,18 +233,17 @@ test('Node startup records direct and wrapped launchers, early failures and filt
     );
     await writeFile(join(repository, 'src/status.js'), 'export const status = "available";\n');
     execFileSync('/usr/bin/git', ['init', '--quiet'], { cwd: repository });
-    const launcher = '/mnt/.agents/skills/moldea/scripts/moldea-cli.mjs';
+    const launcher = '/mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs';
     const args = [
       launcher,
+      'validate',
       '--repository',
       '/mnt/.',
-      '--',
-      'validate',
       '--json',
       '--max-output-bytes',
       '65536',
     ];
-    const run = async (command: string[], installed = true) => {
+    const run = async (command: string[]) => {
       await writeFile(log, '');
       const result = spawnSync(
         'bwrap',
@@ -263,9 +258,6 @@ test('Node startup records direct and wrapped launchers, early failures and filt
           sandboxHome: home,
           hostExecutable: process.execPath,
           nodeExecutable: process.execPath,
-          readOnlyMounts: installed
-            ? [{ source: join(process.cwd(), 'node_modules'), target: '/mnt/node_modules' }]
-            : [],
         }),
         { encoding: 'utf8', timeout: 20_000 },
       );
@@ -323,7 +315,7 @@ test('Node startup records direct and wrapped launchers, early failures and filt
         .join('\n');
       const parsed = parseSemanticEvaluationHostOutput(stream, {
         cliVersion,
-        jsonSchemaVersion: 7,
+        jsonSchemaVersion: cliJsonSchemaVersion,
       });
       expect(
         hasValidSemanticCycles(
@@ -337,7 +329,7 @@ test('Node startup records direct and wrapped launchers, early failures and filt
               workspaceChanges: { created: [], modified: [], deleted: [] },
             },
           ],
-          { cliVersion, jsonSchemaVersion: 7 },
+          { cliVersion, jsonSchemaVersion: cliJsonSchemaVersion },
         ),
       ).toBe(true);
       expect(parsed.actorResourceEvidence.commandCount).toBe(callCount);
@@ -360,14 +352,12 @@ test('Node startup records direct and wrapped launchers, early failures and filt
         );
       expect(JSON.stringify(parsed)).not.toContain('Status service');
     }
-    const failed = await run(
-      [launcher, '--repository', '/mnt', '--', 'composition', '--json'],
-      false,
-    );
+    await rm(join(repository, '.agents/skills/moldea/scripts/moldea-cli/moldea.mjs'));
+    const failed = await run([launcher, 'composition', '--json']);
     expect(failed.result.status).not.toBe(0);
     expect(failed.invocations).toHaveLength(1);
     expect(failed.invocations[0]).toMatchObject({
-      arguments: ['--repository', '/mnt', '--', 'composition', '--json'],
+      arguments: ['composition', '--json'],
       exitCode: failed.result.status,
     });
     expect(failed.invocations[0]?.stdout).toBe('');
@@ -389,7 +379,7 @@ test('Node startup records direct and wrapped launchers, early failures and filt
           },
           {
             type: 'item.completed',
-            item: { type: 'agent_message', text: 'The launcher closure is unavailable.' },
+            item: { type: 'agent_message', text: 'The bundled executable is unavailable.' },
           },
           {
             type: 'moldea.git-invocations',
@@ -407,12 +397,9 @@ test('Node startup records direct and wrapped launchers, early failures and filt
         ]
           .map((event) => JSON.stringify(event))
           .join('\n'),
-        { cliVersion, jsonSchemaVersion: 7 },
+        { cliVersion, jsonSchemaVersion: cliJsonSchemaVersion },
       );
-    const failedComposition = projectFailedAttempt(
-      [launcher, '--repository', '/mnt', '--', 'composition', '--json'],
-      failed,
-    );
+    const failedComposition = projectFailedAttempt([launcher, 'composition', '--json'], failed);
     const attempts = failedComposition.actorExecutionEvidence.filter(
       ({ item }) => item.commandKind === 'moldea',
     );
@@ -435,15 +422,14 @@ test('Node startup records direct and wrapped launchers, early failures and filt
     });
     const validationArgs = [
       launcher,
+      'validate',
       '--repository',
       '/mnt',
-      '--',
-      'validate',
       '--json',
       '--max-output-bytes',
       '65536',
     ];
-    const failedValidation = await run(validationArgs, false);
+    const failedValidation = await run(validationArgs);
     expect(failedValidation.result.status).not.toBe(0);
     expect(failedValidation.invocations).toHaveLength(1);
     const validationEvidence = projectFailedAttempt(validationArgs, failedValidation);
@@ -474,12 +460,12 @@ test('Node startup records direct and wrapped launchers, early failures and filt
       ),
     ).toBe(false);
     for (const method of ['spawnSync', 'execFileSync'] as const) {
-      const compositionArgs = [launcher, '--repository', '/mnt', '--', 'composition', '--json'];
+      const compositionArgs = [launcher, 'composition', '--json'];
       const wrapperArgs = [
         '-e',
         `const cp = require('node:child_process'); try { const result = cp.${method}(process.execPath, ${JSON.stringify(compositionArgs)}, {stdio:'pipe'}); process.exitCode = result.status ?? 0; } catch (error) { process.exitCode = error.status ?? 1; }`,
       ];
-      const wrappedFailure = await run(wrapperArgs, false);
+      const wrappedFailure = await run(wrapperArgs);
       expect(wrappedFailure.result.status).not.toBe(0);
       expect(wrappedFailure.invocations).toHaveLength(1);
       expect(wrappedFailure.invocations[0]).toMatchObject({
@@ -514,10 +500,6 @@ test('Node startup records direct and wrapped launchers, early failures and filt
         ),
       ).toBe(false);
     }
-    await rm(join(repository, '.agents/skills/moldea/scripts/moldea-cli.mjs'));
-    const missingEntry = await run(args);
-    expect(missingEntry.result.status).not.toBe(0);
-    expect(missingEntry.invocations).toHaveLength(1);
     const ordinary = await run(['-e', 'console.log("ordinary Node script")']);
     expect(ordinary.result.status).toBe(0);
     expect(ordinary.invocations).toStrictEqual([]);
@@ -546,15 +528,7 @@ test.each([
       const start = {
         kind: 'start',
         id,
-        arguments: [
-          '--repository',
-          '/mnt',
-          '--',
-          'validate',
-          '--json',
-          '--max-output-bytes',
-          '65536',
-        ],
+        arguments: ['validate', '--repository', '/mnt', '--json', '--max-output-bytes', '65536'],
       };
       const exit = { kind: 'exit', id, exitCode: 0, outputByteCount: 2, stdout: '{}' };
       const records =

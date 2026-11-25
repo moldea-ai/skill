@@ -51,26 +51,31 @@ test.each([
         (entry) => entry.id === id,
       );
       if (!definition) throw new Error('Missing integration warning case');
-      const { repositoryPath, readOnlyMounts } = await createActorRepository(
-        root,
-        definition,
-        join(root, 'home'),
-        join(root, 'tools'),
-      );
+      const { repositoryPath, readOnlyMounts, hasWorkspaceBinaryDirectory } =
+        await createActorRepository(root, definition, join(root, 'home'), join(root, 'tools'));
       const scripts = join(repositoryPath, '.agents/skills/moldea/scripts');
       const run = (filename: string, args: string[]) => {
-        const result = spawnSync(
-          process.execPath,
-          [join(scripts, filename), '--repository', repositoryPath, ...args],
-          { encoding: 'utf8', timeout: 10_000, maxBuffer: 65536 },
-        );
+        const result = spawnSync(process.execPath, [join(scripts, filename), ...args], {
+          encoding: 'utf8',
+          timeout: 10_000,
+          maxBuffer: 65536,
+        });
         expect(result.status, result.stderr || result.stdout).toBe(0);
         return result.stdout;
       };
+      const runManagedAgents = (args: string[]) =>
+        run('managed-agents.mjs', ['--repository', repositoryPath, ...args]);
       const validate = () =>
         ValidationSchema.parse(
           JSON.parse(
-            run('moldea-cli.mjs', ['--', 'validate', '--json', '--max-output-bytes', '65536']),
+            run('moldea-cli/moldea.mjs', [
+              'validate',
+              '--repository',
+              repositoryPath,
+              '--json',
+              '--max-output-bytes',
+              '65536',
+            ]),
           ),
         );
       const beforeAgents = await readFile(join(repositoryPath, 'AGENTS.md'));
@@ -100,9 +105,7 @@ test.each([
           await readIndexEntries(repositoryPath, { paths: ['AGENTS.md', 'CLAUDE.local.md'] }),
         ).toStrictEqual([]);
         expect(beforeIgnore.toString('utf8')).toContain('AGENTS.md\nCLAUDE.local.md\n');
-        expect(run('managed-agents.mjs', ['--claude', '/CLAUDE.local.md', '--print'])).toBe(
-          '@AGENTS.md\n',
-        );
+        expect(runManagedAgents(['--claude', '/CLAUDE.local.md', '--print'])).toBe('@AGENTS.md\n');
       } else if (id === 'setup-shared-claude-precedence') {
         expect(initial.result.warningCount).toBe(1);
         expect(initial.result.page.records).toContainEqual(
@@ -118,14 +121,14 @@ test.each([
           await readIndexEntries(repositoryPath, { paths: ['.claude/CLAUDE.md'] }),
         ).toMatchObject([{ path: '.claude/CLAUDE.md', stage: 0 }]);
         const sharedBefore = await readFile(join(repositoryPath, '.claude/CLAUDE.md'), 'utf8');
-        expect(run('managed-agents.mjs', ['--claude', '/.claude/CLAUDE.md', '--print'])).toBe(
+        expect(runManagedAgents(['--claude', '/.claude/CLAUDE.md', '--print'])).toBe(
           '@../AGENTS.md\n',
         );
         expect(await readFile(join(repositoryPath, '.claude/CLAUDE.md'), 'utf8')).toBe(
           sharedBefore,
         );
         // this disposable resolution control is not an actor write or a semantic pass
-        expect(run('managed-agents.mjs', ['--claude', '/.claude/CLAUDE.md'])).toBe('updated\n');
+        expect(runManagedAgents(['--claude', '/.claude/CLAUDE.md'])).toBe('updated\n');
         expect(await readFile(join(repositoryPath, '.claude/CLAUDE.md'), 'utf8')).toBe(
           sharedBefore + '@../AGENTS.md\n',
         );
@@ -161,7 +164,7 @@ test.each([
             cwd: repositoryPath,
             hostExecutable: process.execPath,
             nodeExecutable: process.execPath,
-            includeWorkspaceBinaryDirectory: true,
+            includeWorkspaceBinaryDirectory: hasWorkspaceBinaryDirectory,
             readOnlyWorkspacePaths: ['.agents', '.git'],
             readOnlyMounts,
             sandboxHome: join(root, 'home'),

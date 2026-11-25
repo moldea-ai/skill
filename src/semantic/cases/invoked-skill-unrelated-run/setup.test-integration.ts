@@ -33,16 +33,15 @@ test.each([
       join(root, 'home'),
       join(root, 'tools'),
     );
-    const launcher = join(repositoryPath, '.agents/skills/moldea/scripts/moldea-cli.mjs');
+    const bundledCli = join(repositoryPath, '.agents/skills/moldea/scripts/moldea-cli/moldea.mjs');
     const run = (argumentsList: string[], input?: string) => {
       const result = spawnSync(
         process.execPath,
         [
-          launcher,
+          bundledCli,
+          ...argumentsList,
           '--repository',
           repositoryPath,
-          '--',
-          ...argumentsList,
           '--json',
           '--max-output-bytes',
           '65536',
@@ -71,7 +70,8 @@ test.each([
       expect(gate.status, gate.stderr).toBe(0);
       expect(gate.stdout.trim()).toBe(expected ? '1' : '0');
       expect(
-        ScopeSchema.parse(JSON.parse(run(['scope', '--paths-stdin'], `${path}\0`))).result.relevant,
+        ScopeSchema.parse(JSON.parse(run(['scope', '--paths-stdin'], `/${path}\0`))).result
+          .relevant,
       ).toBe(expected);
     }
     const validation = z

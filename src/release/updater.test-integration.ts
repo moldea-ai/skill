@@ -1,514 +1,78 @@
 // @vitest-environment node
-import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { cp, mkdir, mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { basename, dirname, join, resolve } from 'node:path';
-import { satisfies } from 'semver';
-import { test } from 'vitest';
-import { z } from 'zod';
+import path from 'node:path';
 
-import { generatePortableArtifacts, PORTABLE_ARTIFACT_PATHS } from '../portable/index.ts';
+import { expect, test } from 'vitest';
 
-import { CLI_VERSION_RANGE_TEXT_PATHS, RELEASE_PATHS } from './constants.ts';
-import { inspectReleaseIdentity, readReleaseIdentity } from './identity.ts';
-import { updateCliRelease } from './updater.ts';
+import { PORTABLE_ARTIFACT_PATHS } from '../portable/index.ts';
 
-const REPOSITORY_ROOT = resolve(import.meta.dirname, '..', '..');
-const SEMANTIC_CLI_EXECUTABLE_PATH = 'fixtures/tooling/semantic-cli/bin/moldea.js';
-const BUNDLED_PACKAGES = [
-  '@moldea.ai/core',
-  '@moldea.ai/repository',
-  '@moldea.ai/repository-fs',
-  'jg-crypto',
-  'jg-exception',
-  'jg-fs',
-  'jg-git-commands',
-  'jg-process',
-  'jg-utilities',
-  'semver',
-  'uuid',
-  'yaml',
-  'zod',
-] as const;
-const UPDATE_PATHS = [
-  ...new Set([
-    ...CLI_VERSION_RANGE_TEXT_PATHS,
-    ...Object.values(RELEASE_PATHS),
-    ...PORTABLE_ARTIFACT_PATHS,
-    'docs/compatibility-and-local-tooling.md',
-    'moldea/assets/managed-readme-block.md',
-    'moldea/assets/managed-agents-block.md',
-    'website/package.json',
-    SEMANTIC_CLI_EXECUTABLE_PATH,
-  ]),
-];
-const CompositionEnvelopeSchema = z.object({
-  cliVersion: z.string(),
-  result: z.object({ packages: z.array(z.object({ name: z.string() })) }),
-  schemaVersion: z.number().int().positive(),
-});
+import { RELEASE_PATHS } from './constants.ts';
 
-/** Creates a disposable copy of every file read or written by the CLI updater. */
-const createTemporaryReleaseRoot = (): string => {
-  const temporaryRoot = mkdtempSync(join(tmpdir(), 'moldea-release-update-'));
+const repository = path.resolve(import.meta.dirname, '../..');
 
-  for (const relativePath of UPDATE_PATHS) {
-    const sourcePath = join(REPOSITORY_ROOT, relativePath);
-    const destinationPath = join(temporaryRoot, relativePath);
-    mkdirSync(dirname(destinationPath), { recursive: true });
-    cpSync(sourcePath, destinationPath);
-  }
-  for (const relativePath of ['src/portable']) {
-    cpSync(join(REPOSITORY_ROOT, relativePath), join(temporaryRoot, relativePath), {
-      recursive: true,
-      filter: (sourcePath) =>
-        !['_archive', '_archives', '_backup', '_backups'].includes(basename(sourcePath)),
-    });
-  }
-  return temporaryRoot;
-};
-
-/** Gives the staged generator a synthetic dependency closure matching its test lock. */
-const installSyntheticDependencies = (temporaryRoot: string): void => {
-  const lock = JSON.parse(readFileSync(join(temporaryRoot, RELEASE_PATHS.packageLock), 'utf8')) as {
-    packages: Record<string, { version?: string }>;
-  };
-  for (const packageName of BUNDLED_PACKAGES) {
-    const relativePath = join('node_modules', packageName);
-    const destination = join(temporaryRoot, relativePath);
-    mkdirSync(dirname(destination), { recursive: true });
-    cpSync(join(REPOSITORY_ROOT, relativePath), destination, {
-      dereference: true,
-      recursive: true,
-      filter: (sourcePath) =>
-        !['_archive', '_archives', '_backup', '_backups'].includes(basename(sourcePath)),
-    });
-    const manifestPath = join(destination, 'package.json');
-    const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as { version: string };
-    const lockedVersion = lock.packages[relativePath]?.version;
-    if (lockedVersion === undefined) throw new Error(`Missing lock version for ${packageName}.`);
-    if (manifest.version !== lockedVersion) {
-      writeFileSync(manifestPath, `${JSON.stringify({ ...manifest, version: lockedVersion })}\n`);
-    }
-  }
-};
-
-/** Installs inert CLI/Core metadata so the shipped launcher can execute its real lookup path. */
-const installSyntheticRuntime = (
-  temporaryRoot: string,
-  cliVersion: string,
-  cliDependencies: Record<string, string>,
-  schemaVersion: number,
-): void => {
-  const cliRoot = join(temporaryRoot, 'node_modules/@moldea.ai/cli');
-  const coreRoot = join(temporaryRoot, 'node_modules/@moldea.ai/core');
-  mkdirSync(join(cliRoot, 'dist'), { recursive: true });
-  mkdirSync(join(coreRoot, 'dist'), { recursive: true });
-  writeFileSync(
-    join(cliRoot, 'package.json'),
-    `${JSON.stringify({
-      bin: { moldea: './dist/moldea.js' },
-      dependencies: cliDependencies,
-      engines: { node: '>=22.17.0' },
-      moldeaRelease: { cliJsonSchemaVersion: schemaVersion },
-      name: '@moldea.ai/cli',
-      version: cliVersion,
-    })}\n`,
-  );
-  cpSync(join(temporaryRoot, SEMANTIC_CLI_EXECUTABLE_PATH), join(cliRoot, 'dist/moldea.js'));
-  writeFileSync(
-    join(coreRoot, 'package.json'),
-    `${JSON.stringify({ name: '@moldea.ai/core', version: cliDependencies['@moldea.ai/core']?.slice(1) })}\n`,
-  );
-  writeFileSync(join(coreRoot, 'dist/index.js'), '');
-};
-
-/** Produces deterministic npm-owned manifest output without contacting the registry. */
-const createRootManifestUpdater =
-  (cliDependencies: Record<string, string>) =>
-  ({
-    packageLock,
-    packageManifest,
-    version,
-  }: {
-    packageLock: string;
-    packageManifest: {
-      devDependencies: Record<string, string>;
-      moldeaRelease: {
-        cliJsonSchemaVersion: number;
-        cliVersionRange: string;
-        coreVersionRange: string;
-      };
-      version: string;
-    };
-    version: string;
-  }): { packageLock: string; packageManifest: string } => {
-    const updatedPackageLock = JSON.parse(packageLock) as {
-      packages: Record<
-        string,
-        {
-          dependencies?: Record<string, string>;
-          devDependencies?: Record<string, string>;
-          integrity?: string;
-          version: string;
-        }
-      >;
-    };
-    const coreRange = cliDependencies['@moldea.ai/core'];
-    if (coreRange === undefined) throw new Error('Synthetic CLI requires a Core dependency.');
-    const coreMinimumVersion = coreRange.slice(1);
-    const rootPackage = updatedPackageLock.packages[''];
-    const cliPackage = updatedPackageLock.packages['node_modules/@moldea.ai/cli'];
-    const corePackage = updatedPackageLock.packages['node_modules/@moldea.ai/core'];
-    if (
-      rootPackage?.devDependencies === undefined ||
-      cliPackage === undefined ||
-      corePackage === undefined
-    ) {
-      throw new Error('Synthetic package lock is missing the CLI closure.');
-    }
-    const existingCoreVersion = corePackage.version;
-    const coreVersion = satisfies(existingCoreVersion, coreRange)
-      ? existingCoreVersion
-      : coreMinimumVersion;
-    rootPackage.devDependencies['@moldea.ai/cli'] = version;
-    updatedPackageLock.packages['node_modules/@moldea.ai/cli'] = {
-      ...cliPackage,
-      dependencies: cliDependencies,
-      integrity: `sha512-${version}`,
-      version,
-    };
-    updatedPackageLock.packages['node_modules/@moldea.ai/core'] = {
-      ...corePackage,
-      integrity: `sha512-${coreVersion}`,
-      version: coreVersion,
-    };
-
-    return {
-      packageLock: `${JSON.stringify(updatedPackageLock, null, 2)}\n`,
-      packageManifest: `${JSON.stringify(packageManifest, null, 2)}\n`,
-    };
-  };
-
-test('updateCliRelease synchronizes a complete copied release tree', async () => {
-  const temporaryRoot = createTemporaryReleaseRoot();
-  const originalRootManifest = JSON.parse(
-    readFileSync(join(temporaryRoot, RELEASE_PATHS.packageManifest), 'utf8'),
-  ) as Record<string, unknown>;
-  const currentIdentity = readReleaseIdentity(REPOSITORY_ROOT);
-  const nextVersion = '9.0.0';
-  const nextCliJsonSchemaVersion = currentIdentity.cliJsonSchemaVersion + 1;
-  const nextCliDependencies = Object.fromEntries(
-    Object.entries(currentIdentity.cliDependencies).map(([name, versionRange]) => [
-      name,
-      name === '@moldea.ai/core'
-        ? currentIdentity.coreVersionRange
-        : versionRange.replace(/^\^?\d+/u, (major) => `^${Number(major.replace('^', '')) + 1}`),
-    ]),
-  );
-  nextCliDependencies['@moldea.ai/extension-future'] = '^1.0.0';
-
+test('an unavailable npm release leaves the skill manifests and portable files intact', async () => {
+  const root = await mkdtemp(path.join(tmpdir(), 'moldea-cli-update-'));
   try {
-    const identity = await updateCliRelease({
-      repositoryRoot: temporaryRoot,
-      version: nextVersion,
-      resolveManifest: () => ({
-        dependencies: nextCliDependencies,
-        jsonSchemaVersion: nextCliJsonSchemaVersion,
-        version: nextVersion,
-      }),
-      updateRootManifests: createRootManifestUpdater(nextCliDependencies),
-      installDependencies: installSyntheticDependencies,
-    });
-
-    assert.equal(identity.cliVersion, nextVersion);
-    assert.equal(identity.cliJsonSchemaVersion, nextCliJsonSchemaVersion);
-    assert.deepEqual(inspectReleaseIdentity(temporaryRoot), []);
-    installSyntheticDependencies(temporaryRoot);
-    // staged generation must reproduce the same bytes under either surrounding compiler profile
-    for (const strict of [true, false]) {
-      writeFileSync(
-        join(temporaryRoot, 'tsconfig.json'),
-        JSON.stringify({ compilerOptions: { strict, useDefineForClassFields: strict } }),
-      );
-      await generatePortableArtifacts({ check: true, rootDirectory: temporaryRoot });
+    for (const name of [
+      RELEASE_PATHS.packageManifest,
+      RELEASE_PATHS.packageLock,
+      RELEASE_PATHS.skill,
+      RELEASE_PATHS.portableCli,
+      'website/package.json',
+      'moldea/assets/managed-readme-block.md',
+      'moldea/assets/managed-agents-block.md',
+      ...PORTABLE_ARTIFACT_PATHS,
+    ]) {
+      const destination = path.join(root, name);
+      await mkdir(path.dirname(destination), { recursive: true });
+      await cp(path.join(repository, name), destination, { recursive: true });
     }
-    const updatedRootManifest = JSON.parse(
-      readFileSync(join(temporaryRoot, RELEASE_PATHS.packageManifest), 'utf8'),
-    ) as Record<string, unknown>;
-    for (const field of ['name', 'workspaces', 'engines', 'scripts']) {
-      assert.notEqual(originalRootManifest[field], undefined);
-      assert.deepEqual(updatedRootManifest[field], originalRootManifest[field]);
-    }
-    assert.match(
-      readFileSync(join(temporaryRoot, RELEASE_PATHS.skill), 'utf8'),
-      new RegExp(`cliJsonSchemaVersion: '${nextCliJsonSchemaVersion}'`, 'u'),
-    );
-    for (const relativePath of CLI_VERSION_RANGE_TEXT_PATHS) {
-      assert.match(readFileSync(join(temporaryRoot, relativePath), 'utf8'), /\^9\.0\.0/u);
-    }
-    assert.match(
-      readFileSync(join(temporaryRoot, RELEASE_PATHS.skillRepositoryPackage), 'utf8'),
-      /EXPECTED_CLI_RANGE = "\^9\.0\.0"/u,
-    );
-
-    installSyntheticRuntime(
-      temporaryRoot,
-      nextVersion,
-      nextCliDependencies,
-      nextCliJsonSchemaVersion,
-    );
-    const launchedComposition = spawnSync(
+    await mkdir(path.join(root, 'src', 'portable'), { recursive: true });
+    const modulePath = path.join(repository, 'src', 'release', 'updater.ts');
+    const managedPaths = [
+      RELEASE_PATHS.packageManifest,
+      RELEASE_PATHS.packageLock,
+      ...PORTABLE_ARTIFACT_PATHS,
+    ];
+    const readManagedFiles = () =>
+      Promise.all(managedPaths.map((name) => readFile(path.join(root, name))));
+    const before = await readManagedFiles();
+    const distribution = path.join(root, RELEASE_PATHS.portableCli);
+    const checksum = await readFile(path.join(distribution, 'SHA256SUMS'));
+    const update = spawnSync(
       process.execPath,
       [
-        join(temporaryRoot, RELEASE_PATHS.skillCliLauncher),
-        '--repository',
-        temporaryRoot,
-        '--',
-        'composition',
-        '--json',
+        '--input-type=module',
+        '--eval',
+        `
+        import { pathToFileURL } from 'node:url';
+        const { updateCliRelease } = await import(pathToFileURL(process.argv[1]).href);
+        await updateCliRelease({ repositoryRoot: process.argv[2], version: '99999.0.0' });
+      `,
+        modulePath,
+        root,
       ],
-      { cwd: temporaryRoot, encoding: 'utf8' },
-    );
-    assert.equal(launchedComposition.status, 0, launchedComposition.stderr);
-    const launchedEnvelope = CompositionEnvelopeSchema.parse(
-      JSON.parse(launchedComposition.stdout) as unknown,
-    );
-    assert.equal(launchedEnvelope.cliVersion, nextVersion);
-    assert.equal(launchedEnvelope.schemaVersion, nextCliJsonSchemaVersion);
-
-    const composition = spawnSync(
-      process.execPath,
-      [join(temporaryRoot, SEMANTIC_CLI_EXECUTABLE_PATH), 'composition', '--json'],
-      { cwd: temporaryRoot, encoding: 'utf8' },
-    );
-    const compositionEnvelope = CompositionEnvelopeSchema.parse(
-      JSON.parse(composition.stdout) as unknown,
-    );
-    assert.equal(composition.status, 0, composition.stderr);
-    assert.equal(compositionEnvelope.schemaVersion, nextCliJsonSchemaVersion);
-    assert.ok(
-      compositionEnvelope.result.packages.some(
-        ({ name }) => name === '@moldea.ai/extension-future',
-      ),
-      'The synthetic CLI must derive newly published packages from its dependency inventory.',
-    );
-  } finally {
-    rmSync(temporaryRoot, { force: true, recursive: true });
-  }
-});
-
-test('updateCliRelease accepts a higher same-major Core declaration minimum', async () => {
-  const temporaryRoot = createTemporaryReleaseRoot();
-  const currentIdentity = readReleaseIdentity(REPOSITORY_ROOT);
-  const cliDependencies = {
-    ...currentIdentity.cliDependencies,
-    '@moldea.ai/core': currentIdentity.coreVersionRange.replace(/\.\d+$/u, '.1'),
-  };
-
-  try {
-    const identity = await updateCliRelease({
-      repositoryRoot: temporaryRoot,
-      version: '9.0.1',
-      resolveManifest: () => ({
-        dependencies: cliDependencies,
-        jsonSchemaVersion: currentIdentity.cliJsonSchemaVersion,
-        version: '9.0.1',
-      }),
-      updateRootManifests: createRootManifestUpdater(cliDependencies),
-      installDependencies: installSyntheticDependencies,
-    });
-
-    assert.equal(identity.cliCoreVersionRange, cliDependencies['@moldea.ai/core']);
-    assert.equal(identity.coreVersionRange, currentIdentity.coreVersionRange);
-    assert.deepEqual(inspectReleaseIdentity(temporaryRoot), []);
-    assert.match(
-      readFileSync(join(temporaryRoot, RELEASE_PATHS.skill), 'utf8'),
-      new RegExp(`cliJsonSchemaVersion: '${currentIdentity.cliJsonSchemaVersion}'`, 'u'),
-    );
-  } finally {
-    rmSync(temporaryRoot, { force: true, recursive: true });
-  }
-});
-
-test('updateCliRelease preserves the supported Core range when the CLI minimum rises again', async () => {
-  const temporaryRoot = createTemporaryReleaseRoot();
-  const initialIdentity = readReleaseIdentity(REPOSITORY_ROOT);
-  const coreMajor = Number(initialIdentity.coreVersion.split('.')[0]);
-  const nextCoreVersion = `${coreMajor}.${Number(initialIdentity.coreVersion.split('.')[1]) + 1}.0`;
-  const semanticCliManifestPath = join(temporaryRoot, RELEASE_PATHS.semanticCliManifest);
-  const semanticCliManifest = JSON.parse(readFileSync(semanticCliManifestPath, 'utf8')) as {
-    dependencies: Record<string, string>;
-  };
-  const packageLockPath = join(temporaryRoot, RELEASE_PATHS.packageLock);
-  const packageLock = JSON.parse(readFileSync(packageLockPath, 'utf8')) as {
-    packages: Record<
-      string,
-      { dependencies?: Record<string, string>; integrity?: string; version: string }
-    >;
-  };
-  const lockedCli = packageLock.packages['node_modules/@moldea.ai/cli'];
-  const lockedCore = packageLock.packages['node_modules/@moldea.ai/core'];
-  assert.ok(lockedCli?.dependencies && lockedCore);
-  semanticCliManifest.dependencies['@moldea.ai/core'] = initialIdentity.coreVersionRange;
-  lockedCli.dependencies['@moldea.ai/core'] = initialIdentity.coreVersionRange;
-  lockedCore.version = nextCoreVersion;
-  lockedCore.integrity = `sha512-${nextCoreVersion}`;
-  writeFileSync(semanticCliManifestPath, `${JSON.stringify(semanticCliManifest, null, 2)}\n`);
-  writeFileSync(packageLockPath, `${JSON.stringify(packageLock, null, 2)}\n`);
-
-  try {
-    assert.deepEqual(inspectReleaseIdentity(temporaryRoot), []);
-    const currentIdentity = readReleaseIdentity(temporaryRoot);
-    const cliDependencies = {
-      ...currentIdentity.cliDependencies,
-      '@moldea.ai/core': `^${nextCoreVersion}`,
-    };
-
-    const identity = await updateCliRelease({
-      repositoryRoot: temporaryRoot,
-      version: '9.0.1',
-      resolveManifest: () => ({
-        dependencies: cliDependencies,
-        jsonSchemaVersion: currentIdentity.cliJsonSchemaVersion,
-        version: '9.0.1',
-      }),
-      updateRootManifests: createRootManifestUpdater(cliDependencies),
-      installDependencies: installSyntheticDependencies,
-    });
-
-    assert.equal(identity.cliCoreVersionRange, `^${nextCoreVersion}`);
-    assert.equal(identity.coreVersionRange, currentIdentity.coreVersionRange);
-    assert.deepEqual(inspectReleaseIdentity(temporaryRoot), []);
-    assert.equal(
-      readFileSync(join(temporaryRoot, RELEASE_PATHS.readme), 'utf8'),
-      readFileSync(join(REPOSITORY_ROOT, RELEASE_PATHS.readme), 'utf8'),
-    );
-    assert.ok(
-      readFileSync(join(temporaryRoot, RELEASE_PATHS.skillLocalTooling), 'utf8').includes(
-        `stable \`@moldea.ai/core\` releases satisfying \`${currentIdentity.coreVersionRange}\``,
-      ),
-    );
-  } finally {
-    rmSync(temporaryRoot, { force: true, recursive: true });
-  }
-});
-
-test('updateCliRelease restores every managed file after failed identity verification', async () => {
-  const temporaryRoot = createTemporaryReleaseRoot();
-  const originalFiles = new Map(
-    UPDATE_PATHS.map((relativePath) => [
-      relativePath,
-      readFileSync(join(temporaryRoot, relativePath), 'utf8'),
-    ]),
-  );
-  const currentIdentity = readReleaseIdentity(REPOSITORY_ROOT);
-  const nextVersion = '8.0.0';
-
-  try {
-    await assert.rejects(
-      updateCliRelease({
-        repositoryRoot: temporaryRoot,
-        version: nextVersion,
-        resolveManifest: () => ({
-          dependencies: currentIdentity.cliDependencies,
-          jsonSchemaVersion: currentIdentity.cliJsonSchemaVersion,
-          version: nextVersion,
-        }),
-        updateRootManifests: createRootManifestUpdater({
-          ...currentIdentity.cliDependencies,
-          '@moldea.ai/repository': '0.0.0',
-        }),
-        installDependencies: installSyntheticDependencies,
-      }),
-      /dependency inventory does not match/u,
-    );
-
-    for (const [relativePath, originalContent] of originalFiles) {
-      assert.equal(readFileSync(join(temporaryRoot, relativePath), 'utf8'), originalContent);
-    }
-  } finally {
-    rmSync(temporaryRoot, { force: true, recursive: true });
-  }
-});
-
-test('updateCliRelease leaves the repository unchanged when generation fails', async () => {
-  const temporaryRoot = createTemporaryReleaseRoot();
-  const originalFiles = new Map(
-    UPDATE_PATHS.map((relativePath) => [
-      relativePath,
-      readFileSync(join(temporaryRoot, relativePath), 'utf8'),
-    ]),
-  );
-  const currentIdentity = readReleaseIdentity(REPOSITORY_ROOT);
-
-  try {
-    await assert.rejects(
-      updateCliRelease({
-        repositoryRoot: temporaryRoot,
-        version: '8.0.1',
-        resolveManifest: () => ({
-          dependencies: currentIdentity.cliDependencies,
-          jsonSchemaVersion: currentIdentity.cliJsonSchemaVersion,
-          version: '8.0.1',
-        }),
-        updateRootManifests: createRootManifestUpdater(currentIdentity.cliDependencies),
-        installDependencies: installSyntheticDependencies,
-        generateArtifacts: async () => {
-          throw new Error('Synthetic generation failure.');
+      {
+        encoding: 'utf8',
+        env: {
+          ...process.env,
+          npm_config_offline: 'true',
+          npm_config_cache: path.join(root, 'cache'),
         },
-      }),
-      /Synthetic generation failure/u,
+        timeout: 20_000,
+      },
     );
-    for (const [relativePath, originalContent] of originalFiles) {
-      assert.equal(readFileSync(join(temporaryRoot, relativePath), 'utf8'), originalContent);
-    }
-  } finally {
-    rmSync(temporaryRoot, { force: true, recursive: true });
-  }
-});
-
-test('updateCliRelease preserves an externally changed artifact and restores its own writes', async () => {
-  const temporaryRoot = createTemporaryReleaseRoot();
-  const originalFiles = new Map(
-    UPDATE_PATHS.map((relativePath) => [
-      relativePath,
-      readFileSync(join(temporaryRoot, relativePath), 'utf8'),
-    ]),
-  );
-  const currentIdentity = readReleaseIdentity(REPOSITORY_ROOT);
-  const conflictedPath = PORTABLE_ARTIFACT_PATHS[0];
-  const externalContent = 'external artifact change\n';
-
-  try {
-    assert.ok(conflictedPath, 'Expected a generated portable artifact for the conflict test.');
-    await assert.rejects(
-      updateCliRelease({
-        repositoryRoot: temporaryRoot,
-        version: '8.0.1',
-        resolveManifest: () => ({
-          dependencies: currentIdentity.cliDependencies,
-          jsonSchemaVersion: currentIdentity.cliJsonSchemaVersion,
-          version: '8.0.1',
-        }),
-        updateRootManifests: createRootManifestUpdater(currentIdentity.cliDependencies),
-        installDependencies: installSyntheticDependencies,
-        generateArtifacts: async (options) => {
-          const result = await generatePortableArtifacts(options);
-          writeFileSync(join(temporaryRoot, conflictedPath), externalContent);
-          return result;
-        },
-      }),
-      /changed while the CLI update was being applied/u,
+    if (update.error) throw update.error;
+    expect(update.status).toBe(1);
+    expect(update.stderr).toContain('Unable to install @moldea.ai/cli@99999.0.0.');
+    expect(await readManagedFiles()).toStrictEqual(before);
+    expect(await readFile(path.join(distribution, 'SHA256SUMS'))).toStrictEqual(checksum);
+    expect((await readdir(root)).filter((name) => name.startsWith('.release-cli-'))).toStrictEqual(
+      [],
     );
-    for (const [relativePath, originalContent] of originalFiles) {
-      assert.equal(
-        readFileSync(join(temporaryRoot, relativePath), 'utf8'),
-        relativePath === conflictedPath ? externalContent : originalContent,
-      );
-    }
   } finally {
-    rmSync(temporaryRoot, { force: true, recursive: true });
+    await rm(root, { recursive: true, force: true });
   }
 });

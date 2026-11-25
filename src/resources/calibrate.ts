@@ -7,6 +7,8 @@ import { fileURLToPath } from 'node:url';
 import { parseStrictArgs } from 'jg-process';
 import { z } from 'zod';
 
+import { readReleaseIdentity, RELEASE_PATHS } from '../release/index.ts';
+
 import {
   CALIBRATION_ESTIMATED_UTF8_BYTES_PER_TOKEN,
   CALIBRATION_MINIMUM_HEADROOM_PERCENT,
@@ -21,9 +23,7 @@ const modelStageArtifactPath = path.join(
   'fixtures',
   'model-stage-resource-calibration.json',
 );
-const cliPackagePath = path.join(repositoryRoot, 'node_modules', '@moldea.ai', 'cli');
-const cliManifestPath = path.join(cliPackagePath, 'package.json');
-const cliExecutablePath = path.join(cliPackagePath, 'dist', 'moldea.js');
+const cliExecutablePath = path.join(repositoryRoot, RELEASE_PATHS.portableCli, 'moldea.mjs');
 const requiredCaseIds = new Set([
   'binary-large-file',
   'broadly-relevant',
@@ -457,13 +457,10 @@ const collectCalibration = async (sampleCount: number): Promise<ICalibrationArti
         observations: summarizeSamples(samples),
       });
     }
-    const cliManifest = z
-      .object({ version: z.string().min(1) })
-      .parse(JSON.parse(readFileSync(cliManifestPath, 'utf8')) as unknown);
     return {
       schemaVersion: 1,
       environment: {
-        cliVersion: cliManifest.version,
+        cliVersion: readReleaseIdentity(repositoryRoot).cliVersion,
         gitVersion: execute('git', ['--version']).trim(),
         nodeVersion: process.version,
         platform: `${process.platform}-${process.arch}`,

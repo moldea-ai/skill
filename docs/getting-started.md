@@ -26,7 +26,7 @@ npx skills add "moldea-ai/skill#v10.1.0"
 
 Repository installation is required because the selected skill version must travel with the project. A global installation does not establish adoption and is not a supported path.
 
-The project needs Node.js `>=22.17.0` and a root `package.json`. Initialization installs `@moldea.ai/cli` as a root development dependency with npm, pnpm, or Yarn. With another package manager, add `@moldea.ai/cli` to the root `devDependencies` yourself before initializing. The declaration can be an exact 13.x version or a caret range on a 13.x release. A `--copy` installation leaves one copy of the skill in each agent directory. Keep every copy at the same version, because validation checks the copy recorded in AGENTS.md.
+The coding agent needs Node.js `>=22.17.0` and Git `>=2.32.0`. The skill bundles its CLI. Your project can use any language and does not need a package manifest for moldea.
 
 ## Initialize project context
 
@@ -39,7 +39,7 @@ This request explicitly authorizes adoption. The coding agent:
 1. Inspects the Git worktree, repository structure, code, configuration, documentation, and other high-information evidence.
 2. Selects the `initialize` operation and confirms that repository and developer authority permit its writes.
 3. Determines whether the evidence establishes a sufficient project foundation or requires one focused clarification.
-4. After the foundation is sufficient, installs a known missing compatible repository-local `@moldea.ai/cli` development dependency with lifecycle scripts disabled. A failed installation stops canonical and README writes and reports any package-manager changes. An existing compatible CLI needs no reinstall or failing availability probe; a global CLI is never a fallback.
+4. Checks that the selected installation and its bundled tools are available before writing the foundation.
 5. Writes the grounded foundation and explanatory README region. `project.md` links to existing architecture, policy, and active decision documents at their current paths; those documents stay in place and are not copied into `/moldea/**`. It also establishes or hands off the managed AGENTS.md bridge as host instructions permit.
 6. Uses the bundled read-only initialization inspection helper for a bounded metadata inventory, then lists the existing agents, inline model workflows, documents, decision records, and project-owned Agent Skills it found. It registers the existing agents and workflows through the agent-design procedure in the same initialization. Before registration or the first application-code change, it asks one confirmation listing the agents and workflows to include. `Initialize moldea including my agents` already grants that permission, so it does not ask again.
 7. Connects every included responsibility to canonical instructions, preserves established behavior, and runs focused tests of the changed invocation paths. Existing Agent Skills are inventoried; the installed moldea distribution is not a project-owned Skill. Other Skill paths require ownership evidence and are not automatically copied or assigned to agents. The helper batches already-known source files without inferring behavior or writing application code.

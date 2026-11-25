@@ -90,7 +90,7 @@ export const COMPLETED_SUPPORT_FILES: Record<string, string> = {
     'Classifies customer support requests for human follow-up.\n',
   'moldea/agents/support-triage/instruction.md':
     'You are the `support-triage` agent. Classify the support request for Customer Operations. Do not invent order details or promise a refund. Humans retain refund authorization.\n',
-  'moldea/runtimes/custom.md':
+  'docs/support-runtime.md':
     '# Project Responses client\n\nThe caller supplies a client whose responses.create method accepts input, instructions, and optional previous_response_id and returns a response with an id. Support performs two calls; invoice review performs one. Support reads its canonical instruction from its repository file before both invocations. This is a project-defined contract, not provider certification.\n',
   'src/support-agent.js': `import { readFileSync } from 'node:fs';
 

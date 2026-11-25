@@ -1,7 +1,7 @@
 {
   "devDependencies": {
     "@eslint/js": "10.0.1",
-    "@moldea.ai/cli": "13.0.4",
+    "@moldea.ai/cli": "14.0.0",
     "@moldea.ai/website-ui": "5.0.1",
     "@types/node": "22.20.1",
     "@types/semver": "7.8.0",
@@ -24,11 +24,6 @@
     "yaml": "2.9.0",
     "zod": "4.3.6"
   },
-  "moldeaRelease": {
-    "cliJsonSchemaVersion": 7,
-    "cliVersionRange": "^13.0.4",
-    "coreVersionRange": "^9.2.0"
-  },
   "version": "10.1.0",
   "name": "@moldea.ai/skill-conformance",
   "private": true,
@@ -42,13 +37,11 @@
     "npm": ">=10.9.0"
   },
   "scripts": {
-    "candidate:prepare": "node src/packages/skill-candidate.ts",
     "docs:check": "npm --workspace website run docs:check",
     "docs:generate": "npm --workspace website run docs:generate",
     "evidence:pack": "node src/command-line/evidence.ts pack",
     "evidence:prepare": "node src/command-line/evidence.ts prepare",
     "evidence:publish": "node src/command-line/evidence.ts publish",
-    "eval:journeys": "node src/scripted-journeys/command-line/runner.ts",
     "eval:semantic": "node src/semantic/command-line/runner.ts",
     "eval:semantic:diagnose": "node src/semantic/command-line/runner.ts --diagnose-batch",
     "eval:semantic:compose": "node src/semantic/command-line/compose.ts",

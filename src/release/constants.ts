@@ -1,46 +1,15 @@
-// package identity controlled by release metadata
+// npm package identity shared by the development pin and recorded CLI evidence
 export const CLI_PACKAGE_NAME = '@moldea.ai/cli';
 
 // protocol versions recorded by the current evaluators
-export const SEMANTIC_EVALUATION_PROTOCOL_VERSION = 57;
-
-// portable release files that carry the supported CLI major range
-export const CLI_VERSION_RANGE_TEXT_PATHS = [
-  'docs/compatibility-and-local-tooling.md',
-  'moldea/SKILL.md',
-  'moldea/references/local-tooling.md',
-  'src/portable/repository-package.ts',
-] as const;
-
-// portable release files that carry the minimum supported Core range
-export const CORE_VERSION_RANGE_TEXT_PATHS = [
-  'docs/compatibility-and-local-tooling.md',
-  'moldea/SKILL.md',
-  'moldea/references/local-tooling.md',
-  'src/portable/repository-package.ts',
-] as const;
-
-// release files that carry the exact CLI JSON schema version
-export const CLI_JSON_SCHEMA_VERSION_TEXT_PATHS = [
-  'docs/compatibility-and-local-tooling.md',
-  'moldea/SKILL.md',
-  'moldea/references/local-tooling.md',
-  'src/portable/response-page/types.ts',
-] as const;
+export const SEMANTIC_EVALUATION_PROTOCOL_VERSION = 58;
 
 // repository-owned release identity paths
 export const RELEASE_PATHS = {
-  conformanceCases: 'fixtures/conformance-cases.json',
-  conformanceWorkflow: '.github/workflows/conformance.yml',
-  gettingStarted: 'docs/getting-started.md',
+  installedPortableCli: 'node_modules/@moldea.ai/cli/dist/portable',
+  manifestScope: 'moldea/scripts/manifest-scope.cjs',
   packageLock: 'package-lock.json',
   packageManifest: 'package.json',
-  readme: 'README.md',
-  semanticCliManifest: 'fixtures/tooling/semantic-cli/package.json',
+  portableCli: 'moldea/scripts/moldea-cli',
   skill: 'moldea/SKILL.md',
-  skillCliLauncher: 'moldea/scripts/moldea-cli.mjs',
-  skillLocalTooling: 'moldea/references/local-tooling.md',
-  skillRelevanceGate: 'moldea/scripts/relevance-gate.mjs',
-  skillRepositoryPackage: 'moldea/scripts/repository-package.mjs',
-  sourceRepositoryPackage: 'src/portable/repository-package.ts',
 } as const;

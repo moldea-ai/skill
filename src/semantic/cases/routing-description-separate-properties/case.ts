@@ -13,10 +13,10 @@ export const semanticCase = defineSemanticCase({
       'Use moldea to complete this repository task. Evaluate both runtime description consumers.',
     repositoryEvidence: [
       {
-        claim: 'Runtime guidance distinguishes general and routing consumers.',
+        claim: 'The routing document distinguishes general and routing consumers.',
         source: {
           kind: 'workspace-path',
-          path: 'moldea/runtimes/custom.md',
+          path: 'docs/routing.md',
           expectedType: 'file',
         },
       },

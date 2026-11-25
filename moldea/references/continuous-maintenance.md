@@ -10,27 +10,21 @@ Do not recommend initialization during unrelated work. Do not treat generic know
 
 Create the smallest foundation that accurately represents established current truth. Zero agents, relationships, runtimes, and requirements are valid. Never create placeholder agents or speculative bindings to make a project appear complete. Initialization also onboards evidenced existing agents and cohesive inline model workflows through the agent-design procedure below; it does not invent new responsibilities.
 
-For initialization, reuse the entrypoint's `tooling-installation.md` preflight. An executable-installation hazard preempts foundation classification: follow that reference's complete blocked-install result and stop before invoking the package manager, asking for project purpose, or writing adoption artifacts. Preserve repository controls. Do not repeat completed metadata checks. This preflight does not apply to ordinary canonical maintenance when no tooling installation is required.
+For initialization, reuse the entrypoint's local prerequisite check. Establish the foundation only after the host can run the bundled tools.
 
 ## Decide whether foundation evidence is sufficient
 
-Before installing or changing a dependency, creating canonical state, or adding the managed README block, inspect the smallest high-information project-owned sources and classify the foundation:
+Before creating canonical state or adding the managed README block, inspect the smallest high-information project-owned sources and classify the foundation:
 
 - **Insufficient:** reliable evidence does not establish what the project does and who or what it serves. Say explicitly that the project is not adopted or was not initialized because the complete adoption contract is absent or the evidence cannot support a truthful foundation; an indirect status such as paused or incomplete is not the adoption result. Identify the exact evidence inspected, state that the sources do not establish what the project is for, and ask one focused question: what does the project do, and who or what does it serve? Do not add generic product-benefit boilerplate to this concise blocked result.
 - **Partial:** evidence supports some useful foundation but leaves one material purpose, user, goal, authority, safety, value-bearing, or operating boundary unresolved, or supports consequential conflicting interpretations. Preserve every existing artifact. Name the present and missing canonical foundation elements among `/moldea/moldea.yaml` and `/moldea/project.md`; report document integration separately. Summarize the supported truth separately from the highest-value unresolved boundary, and ask one focused clarification that distinguishes the material alternatives.
 - **Sufficient:** evidence establishes a useful project purpose and served people or systems, and no unresolved material boundary would make the persisted foundation misleading. Proceed without a ceremonial question.
 
-Insufficient and partial foundations stop before every dependency, `/moldea/**`, and managed README write. Do not store developer-answerable ambiguity as an unresolved requirement. A repository name, generic label, brief package metadata, placeholder source, or empty export does not establish a foundation by itself. A concise authoritative source can be sufficient when it establishes the necessary truth. Developer-provided context in the initialization request may contribute when its intended authority is clear.
+Insufficient and partial foundations stop before writing `/moldea/**` or the managed README block. Do not store developer-answerable ambiguity as an unresolved requirement. A repository name, generic label, brief package metadata, placeholder source, or empty export does not establish a foundation by itself. A concise authoritative source can be sufficient when it establishes the necessary truth. Developer-provided context in the initialization request may contribute when its intended authority is clear.
 
 Do not use successful structural validation to justify placeholder truth. Validation proves that files satisfy the repository format; it does not prove that their claims are meaningful or evidence-backed.
 
 A sufficient foundation permits the complete initialization flow below. Do not finish after writing the foundation when existing-agent onboarding remains pending. Initialization does not authorize inventing a new agent or responsibility.
-
-## Establish required tooling before foundation writes
-
-After the foundation is sufficient, reuse the early bounded package-metadata finding. If it establishes a missing compatible local CLI, apply `tooling-installation.md` and complete its authorized safe installation before creating canonical files or the managed README block. Never invoke `validate` or `composition` merely to rediscover known absence. Keep the executable-configuration stop contract and disabled lifecycle scripts; do not bypass installation controls.
-
-An installation failure stops before foundation writes and validation. Preserve existing project files, report any package-manager changes and the exact blocker, and do not claim adoption or automatically roll back dependency changes. A reported installation success does not authorize ignoring known missing or incompatible package metadata. If compatible tooling was already present, do not reinstall it or add an availability probe. The final launcher call still owns executable-provenance verification.
 
 ## Write and validate the complete foundation
 

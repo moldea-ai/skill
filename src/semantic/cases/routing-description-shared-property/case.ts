@@ -13,10 +13,10 @@ export const semanticCase = defineSemanticCase({
       'Use moldea to complete this repository task. Evaluate the shared runtime metadata mapping.',
     repositoryEvidence: [
       {
-        claim: 'Runtime guidance defines one shared routing-facing property.',
+        claim: 'The routing document defines one shared routing-facing property.',
         source: {
           kind: 'workspace-path',
-          path: 'moldea/runtimes/custom.md',
+          path: 'docs/routing.md',
           expectedType: 'file',
         },
       },

@@ -58,7 +58,7 @@ describe('semantic evaluation argument parsing', () => {
     ).toThrow(/diagnostic-only/u);
   });
 
-  test('accepts only a lower diagnostic admission ceiling', () => {
+  test('accepts a bounded admission ceiling for recordings and diagnostic batches', () => {
     expect(parseSemanticEvaluationArguments(['--diagnose-batch', '--all']).tokenLimit).toBeNull();
     expect(
       parseSemanticEvaluationArguments(['--diagnose-batch', '--all', '--token-limit', '64000000'])
@@ -68,6 +68,15 @@ describe('semantic evaluation argument parsing', () => {
       parseSemanticEvaluationArguments(['--diagnose-batch', '--all', '--token-limit', '128000000'])
         .tokenLimit,
     ).toBe(128_000_000);
+    expect(
+      parseSemanticEvaluationArguments(['--record', '--cases', 'one', '--token-limit', '64000000']),
+    ).toMatchObject({ recordCaseIds: ['one'], tokenLimit: 64_000_000 });
+    expect(
+      parseSemanticEvaluationArguments(['--record', '--token-limit', '128000000']).tokenLimit,
+    ).toBe(128_000_000);
+    expect(() =>
+      parseSemanticEvaluationArguments(['--record', '--token-limit', '128000001']),
+    ).toThrow(/must be a positive safe integer no greater than 128000000/u);
     for (const tokenLimit of [
       '0',
       '-1',
@@ -89,7 +98,6 @@ describe('semantic evaluation argument parsing', () => {
       ).toThrow(/token-limit/u);
     }
     for (const mode of [
-      ['--record'],
       ['--preflight'],
       ['--case', 'one'],
       ['--record-checkpoint'],

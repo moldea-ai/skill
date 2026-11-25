@@ -56,7 +56,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'material-relationship-repair',
       criterion:
-        'The refunds owner retains /src/refund-policy.js and /src/refund-settings.js because they govern approval and threshold facts, and removes /src/ui/navigation.js, /package.json and /package-lock.json because they govern presentation/tooling outside those owner facts.',
+        'The refunds owner retains /src/refund-policy.js and /src/refund-settings.js because they govern approval and threshold facts, and removes /src/ui/navigation.js because it governs presentation outside those owner facts.',
     },
     {
       label: 'verify-minimal-repair',

@@ -69,15 +69,14 @@ test('walks through the requirements and four setup steps in order', async ({ pa
   }
 
   const requirements = page.locator('#before-you-start li');
-  await expect(requirements).toHaveCount(4);
+  await expect(requirements).toHaveCount(3);
   await expect(requirements.nth(0).getByRole('link')).toHaveAttribute(
     'href',
     toPublicPath('/docs/coding-agent-compatibility/'),
   );
   await expect(requirements.nth(1)).toContainText(NODE_VERSION_RANGE);
-  await expect(requirements.nth(2)).toContainText('package.json');
-  await expect(requirements.nth(3)).toContainText(GIT_VERSION_RANGE);
-  await expect(requirements.nth(3)).toContainText('not globally');
+  await expect(requirements.nth(2)).toContainText(GIT_VERSION_RANGE);
+  await expect(requirements.nth(2)).toContainText('not globally');
 
   const install = page.locator('#install');
   await expect(install.locator('[data-install-command]')).toContainText(INSTALL_COMMAND);
@@ -128,7 +127,7 @@ test('walks through the requirements and four setup steps in order', async ({ pa
     ['/moldea/moldea.yaml', 'Added'],
     ['/moldea/project.md', 'Added'],
     ['/AGENTS.md', 'Modified'],
-    ['/package.json', 'Modified'],
+    ['/package.json', 'Unchanged'],
     ['/README.md', 'Modified'],
   ]);
 

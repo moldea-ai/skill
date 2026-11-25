@@ -15,7 +15,7 @@ import {
   writeFile,
 } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join, relative, resolve, sep } from 'node:path';
+import { join, resolve, sep } from 'node:path';
 import { expect, test } from 'vitest';
 
 import { readReleaseIdentity } from '../../release/index.ts';
@@ -37,8 +37,13 @@ const withInstallation = async (
       join(skill, 'assets', 'managed-agents-block.md'),
     );
     await copyFile(join(SOURCE, 'SKILL.md'), join(skill, 'SKILL.md'));
-    for (const name of await readdir(join(SOURCE, 'scripts')))
-      await copyFile(join(SOURCE, 'scripts', name), join(skill, 'scripts', name));
+    await cp(join(SOURCE, 'scripts'), join(skill, 'scripts'), {
+      recursive: true,
+      filter: (source) =>
+        !source
+          .split(/[\\/]/u)
+          .some((part) => ['_archive', '_archives', '_backup', '_backups'].includes(part)),
+    });
     const run = (flags: string[] = []) =>
       spawnSync(
         TEST_NODE_EXECUTABLE,
@@ -52,24 +57,7 @@ const withInstallation = async (
 };
 
 const prepareValidation = async (root: string): Promise<() => unknown> => {
-  const { collectProductionPackageRoots } = await import('../../semantic/workspace/index.ts');
-  const packageRoot = resolve(SOURCE, '../node_modules');
-  const { cliVersion } = readReleaseIdentity(resolve(SOURCE, '..'));
-  for (const source of collectProductionPackageRoots(join(packageRoot, '@moldea.ai/cli')))
-    await cp(source, join(root, 'node_modules', relative(packageRoot, source)), {
-      recursive: true,
-      filter: (path) =>
-        !relative(source, path)
-          .split(/[\\/]/u)
-          .some((part) =>
-            ['node_modules', '_archive', '_archives', '_backup', '_backups'].includes(part),
-          ),
-    });
-  await writeFile(
-    join(root, 'package.json'),
-    JSON.stringify({ devDependencies: { '@moldea.ai/cli': cliVersion } }),
-  );
-  await writeFile(join(root, '.gitignore'), '/node_modules/\n');
+  const { cliVersion, cliJsonSchemaVersion } = readReleaseIdentity(resolve(SOURCE, '..'));
   await mkdir(join(root, 'moldea'));
   await writeFile(join(root, 'moldea/project.md'), '# Project\n');
   await writeFile(join(root, 'moldea/moldea.yaml'), 'version: 1\n');
@@ -77,11 +65,10 @@ const prepareValidation = async (root: string): Promise<() => unknown> => {
     const result = spawnSync(
       TEST_NODE_EXECUTABLE,
       [
-        join(root, '.agents/skills/moldea/scripts/moldea-cli.mjs'),
+        join(root, '.agents/skills/moldea/scripts/moldea-cli/moldea.mjs'),
+        'validate',
         '--repository',
         root,
-        '--',
-        'validate',
         '--json',
         '--max-output-bytes',
         '65536',
@@ -94,7 +81,7 @@ const prepareValidation = async (root: string): Promise<() => unknown> => {
     const envelope: unknown = JSON.parse(result.stdout);
     expect(envelope).toMatchObject({
       cliVersion,
-      schemaVersion: 7,
+      schemaVersion: cliJsonSchemaVersion,
       command: 'validate',
       error: null,
       status: 'valid',
@@ -459,26 +446,7 @@ test(
   'bundled helpers handle long paths within native process limits',
   { tags: ['full'] },
   async () => {
-    const { collectProductionPackageRoots } = await import('../../semantic/workspace/index.ts');
     await withInstallation(async (root) => {
-      const packageRoot = resolve(SOURCE, '../node_modules');
-      const { cliVersion } = readReleaseIdentity(resolve(SOURCE, '..'));
-      for (const source of collectProductionPackageRoots(join(packageRoot, '@moldea.ai/cli'))) {
-        await cp(source, join(root, 'node_modules', relative(packageRoot, source)), {
-          recursive: true,
-          filter: (path) =>
-            !relative(source, path)
-              .split(/[\\/]/u)
-              .some((part) =>
-                ['node_modules', '_archive', '_archives', '_backup', '_backups'].includes(part),
-              ),
-        });
-      }
-      await writeFile(
-        join(root, 'package.json'),
-        JSON.stringify({ devDependencies: { '@moldea.ai/cli': cliVersion } }),
-      );
-      await writeFile(join(root, '.gitignore'), '/node_modules/\n');
       await mkdir(join(root, 'src'));
       await writeFile(join(root, 'src/refund.js'), 'export const refund = true;\n');
       await mkdir(join(root, 'moldea'));
@@ -493,15 +461,7 @@ test(
       };
       git('init', '--quiet');
       git('config', 'core.longpaths', 'true');
-      git(
-        'add',
-        '--',
-        'moldea/project.md',
-        'moldea/moldea.yaml',
-        'package.json',
-        '.gitignore',
-        'src/refund.js',
-      );
+      git('add', '--', 'moldea/project.md', 'moldea/moldea.yaml', 'src/refund.js');
       git(
         '-c',
         'commit.gpgsign=false',
@@ -557,18 +517,22 @@ test(
           expect(JSON.parse(repair.stdout)).toMatchObject({ status: 'available' });
         }
         for (const command of ['validate', 'inspect']) {
-          const cli = run('moldea-cli.mjs', [
-            '--',
-            command,
-            '--json',
-            '--max-output-bytes',
-            '65536',
-          ]);
+          const cli = spawnSync(
+            TEST_NODE_EXECUTABLE,
+            [
+              join(deep, '.agents/skills/moldea/scripts/moldea-cli/moldea.mjs'),
+              command,
+              '--repository',
+              deep,
+              '--json',
+              '--max-output-bytes',
+              '65536',
+            ],
+            { encoding: 'utf8', timeout: 30_000 },
+          );
           if (process.platform === 'win32') {
-            expect(cli.status, cli.stdout + cli.stderr).toBe(1);
-            expect(cli.stdout).toBe('');
-            expect(cli.stderr).toContain('Error: read ENOTCONN');
-            expect(cli.stderr).toContain('at ChildProcess.spawn');
+            expect(cli.status, cli.stdout + cli.stderr).not.toBe(0);
+            expect(JSON.parse(cli.stdout)).toMatchObject({ command, status: 'error' });
           } else {
             expect(cli.status, cli.stdout + cli.stderr).toBe(0);
             expect(JSON.parse(cli.stdout)).toMatchObject({ command, status: 'valid' });

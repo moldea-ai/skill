@@ -13,10 +13,10 @@ export const semanticCase = defineSemanticCase({
       'Use moldea to complete this repository task. Evaluate whether the runtime routing description is aligned.',
     repositoryEvidence: [
       {
-        claim: 'Runtime guidance defines routing-facing semantics.',
+        claim: 'The routing document defines routing-facing semantics.',
         source: {
           kind: 'workspace-path',
-          path: 'moldea/runtimes/custom.md',
+          path: 'docs/routing.md',
           expectedType: 'file',
         },
       },

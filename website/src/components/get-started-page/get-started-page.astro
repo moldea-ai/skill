@@ -1,7 +1,9 @@
 ---
-import { ArrowRight, Bot, FolderGit2, Terminal } from '@lucide/astro';
+import { ArrowRight, Bot, FolderGit2, Terminal, UserRound } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import CodeBlock from '@moldea.ai/website-ui/code-block';
+import Conversation from '@moldea.ai/website-ui/conversation';
+import ConversationMessage from '@moldea.ai/website-ui/conversation-message';
 import IconTile from '@moldea.ai/website-ui/icon-tile';
 import { withBase } from '@moldea.ai/website-ui/site';
 
@@ -27,6 +29,7 @@ import {
 } from './constants.ts';
 
 const basePath = import.meta.env.BASE_URL;
+const skillMarkPath = withBase('/logo/icon-xs-light.png', basePath);
 const pageMetadata = PRODUCT_PAGE_METADATA.getStarted;
 const prAssuranceUrl = new URL('pr-assurance', CLOUD_WEBSITE_URL).href;
 const stepLinks = [
@@ -61,8 +64,8 @@ const bandLinkClass =
         <p class="eyebrow mb-4">Get started</p>
         <h1 class="page-title">Get started with moldea</h1>
         <p class="mt-5 max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-          Install the Skill in your repository, initialize it once, then keep working with your
-          coding agent as usual. When something seems off, ask it to fix <code class="inline-code"
+          Install the Skill, map your project in guided rounds, then keep working with your coding
+          agent as usual. When something seems off, ask it to fix <code class="inline-code"
             >moldea</code
           >.
         </p>
@@ -128,8 +131,9 @@ const bandLinkClass =
           <div class="min-w-0">
             <p class="font-semibold">Node.js</p>
             <p class="mt-1 leading-6 text-muted-foreground">
-              Version <code class="inline-code">{NODE_VERSION_RANGE}</code>, required by the Skill
-              and its bundled CLI
+              Version <code class="inline-code">{NODE_VERSION_RANGE}</code> runs the bundled CLI. Your
+              project can use any language and needs no <code class="inline-code">package.json</code
+              >.
             </p>
           </div>
         </li>
@@ -139,7 +143,7 @@ const bandLinkClass =
             <p class="font-semibold">A Git repository</p>
             <p class="mt-1 leading-6 text-muted-foreground">
               Git <code class="inline-code">{GIT_VERSION_RANGE}</code>, with the Skill installed
-              inside it, not globally
+              inside it
             </p>
           </div>
         </li>
@@ -204,7 +208,7 @@ const bandLinkClass =
             id="initialize-title"
             class="section-title"
           >
-            Initialize the project once.
+            Map the areas that matter.
           </h2>
           <p class="mt-5 leading-8 text-muted-foreground">
             Open the repository in your coding agent and ask it to <code class="inline-code"
@@ -220,7 +224,18 @@ const bandLinkClass =
             <li>
               One question if the repository doesn't make the project's purpose or boundaries clear.
             </li>
-            <li>One confirmation before it registers agents your project already has.</li>
+            <li>
+              Up to five evidence-backed proposals per round. Say yes, answer by number, or skip.
+            </li>
+            <li>Area coverage, agent registrations, changed files and remaining gaps as you go.</li>
+            <li>
+              One agent-registration item in round 1 when needed. Include your agents in the request
+              to approve it up front.
+            </li>
+            <li>
+              Choose another round, or stop and validate the covered scope. Continue resumes an
+              unanswered round in this conversation.
+            </li>
             <li>
               A block to add to <code class="inline-code">AGENTS.md</code> yourself if it can't edit that
               file.
@@ -239,27 +254,97 @@ const bandLinkClass =
           </ActionLink>
         </div>
         <div class="min-w-0">
-          <SkillConversation ariaLabel="Developer and coding agent initialization conversation">
-            <p slot="request">Initialize moldea</p>
-            <p slot="question">
-              I read the repository, but it doesn't say what this project is for. What does it do,
-              and who uses it?
-            </p>
-            <p slot="answer">
-              It's the backend for Trailside, our online hiking and camping gear store. Our
-              customers and support team use it.
-            </p>
-            <p slot="response">
-              I saved the project foundation, linked it from your README, and connected it to
-              <code class="inline-code">AGENTS.md</code>. Structural validation passed.
-            </p>
-            <ProjectFileTree
-              entries={INITIALIZE_EXAMPLE_ENTRIES}
-              files={INITIALIZE_EXAMPLE_FILES}
-              idPrefix="get-started-initialize"
-              label="Files initialization adds and updates"
-            />
-          </SkillConversation>
+          <Conversation ariaLabel="Developer and coding agent guided initialization">
+            <ConversationMessage role="user">
+              <UserRound
+                slot="avatar"
+                class="size-4"
+              />
+              <p>Initialize moldea</p>
+            </ConversationMessage>
+            <ConversationMessage role="assistant">
+              <img
+                slot="avatar"
+                src={skillMarkPath}
+                width="207"
+                height="215"
+                alt=""
+                class="dark:invert"
+              />
+              <div class="grid gap-2 text-sm leading-6 sm:text-base">
+                <p class="font-semibold">Round 1</p>
+                <p>Trailside serves customers and support with order and refund workflows.</p>
+                <p>Coverage: 0 of 2 areas. Agents: none found.</p>
+                <p>
+                  Files changed: README.md, AGENTS.md, moldea/project.md and moldea/moldea.yaml.
+                </p>
+                <p>Gaps: Refunds and Orders.</p>
+                <ol class="list-decimal ps-5">
+                  <li>
+                    <code class="inline-code">src/refund-policy.ts</code> gives customers 30 days to request
+                    a refund and leaves eligibility to the application. Save that rule under Refunds and
+                    link it to this file?
+                  </li>
+                </ol>
+              </div>
+            </ConversationMessage>
+            <ConversationMessage role="user">
+              <UserRound
+                slot="avatar"
+                class="size-4"
+              />
+              <p>Yes</p>
+            </ConversationMessage>
+            <ConversationMessage role="assistant">
+              <img
+                slot="avatar"
+                src={skillMarkPath}
+                width="207"
+                height="215"
+                alt=""
+                class="dark:invert"
+              />
+              <div class="grid gap-2 text-sm leading-6 sm:text-base">
+                <p>Refunds is mapped. I added its policy, relationship and routing link.</p>
+                <ol class="list-decimal ps-5">
+                  <li>Continue with Orders.</li>
+                  <li>Stop here and validate the covered scope.</li>
+                </ol>
+              </div>
+            </ConversationMessage>
+            <ConversationMessage role="user">
+              <UserRound
+                slot="avatar"
+                class="size-4"
+              />
+              <p>2. Stop here.</p>
+            </ConversationMessage>
+            <ConversationMessage role="assistant">
+              <img
+                slot="avatar"
+                src={skillMarkPath}
+                width="207"
+                height="215"
+                alt=""
+                class="dark:invert"
+              />
+              <div class="grid gap-2 text-sm leading-6 sm:text-base">
+                <p>
+                  Trailside is adopted. Structural validation passed with no errors or warnings.
+                </p>
+                <p>Coverage: 1 of 2 areas. Refunds is mapped. Orders remains uncovered.</p>
+                <p>Next: Ask “Help moldea learn the Orders area” to map it later.</p>
+              </div>
+              <div class="mt-4 min-w-0">
+                <ProjectFileTree
+                  entries={INITIALIZE_EXAMPLE_ENTRIES}
+                  files={INITIALIZE_EXAMPLE_FILES}
+                  idPrefix="get-started-initialize"
+                  label="Files initialization adds and updates"
+                />
+              </div>
+            </ConversationMessage>
+          </Conversation>
         </div>
       </section>
 
@@ -339,10 +424,10 @@ const bandLinkClass =
           <div class="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3">
             <ActionLink
               class="font-bold"
-              href={withBase('/docs/evaluate-reconcile-validate/#repair-a-project', basePath)}
+              href={withBase('/docs/check-fix-validate/#fix-a-project', basePath)}
               variant="link"
             >
-              Repair guide
+              Check and fix guide
               <ArrowRight
                 class="size-4"
                 aria-hidden="true"

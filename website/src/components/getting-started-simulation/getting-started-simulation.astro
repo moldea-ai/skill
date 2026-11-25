@@ -23,13 +23,13 @@ const skillMarkPath = withBase('/logo/icon-xs-dark.png', basePath);
         id="getting-started-title"
         class="section-title max-w-4xl scroll-mt-24"
       >
-        One install. One ordinary request.
+        Install, then map your project.
       </h2>
     </div>
     <div class="lg:justify-self-end">
       <p class="text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-        Add the skill, initialize the project once, then ask your coding agent for the outcome you
-        want.
+        Confirm evidence-backed proposals, see which areas are covered, and stop when you have
+        enough context.
       </p>
       <div class="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
         <ActionLink
@@ -100,7 +100,7 @@ const skillMarkPath = withBase('/logo/icon-xs-dark.png', basePath);
           </IconTile>
           <div class="min-w-0">
             <p class="eyebrow mb-2">One-time setup</p>
-            <h3 class="text-xl font-semibold tracking-tight">Initialize the project once.</h3>
+            <h3 class="text-xl font-semibold tracking-tight">Start a guided round.</h3>
             <div
               class="mt-4 flex items-start gap-3 rounded-xl border border-border bg-background p-4"
             >
@@ -159,7 +159,7 @@ const skillMarkPath = withBase('/logo/icon-xs-dark.png', basePath);
             <p class="text-xs font-semibold tracking-[0.12em] text-current/60 uppercase">
               Coding agent and skill
             </p>
-            <h3 class="mt-1 font-semibold">Your coding agent handles the rest</h3>
+            <h3 class="mt-1 font-semibold">Map Trailside in a guided round</h3>
           </div>
         </div>
 
@@ -170,9 +170,9 @@ const skillMarkPath = withBase('/logo/icon-xs-dark.png', basePath);
               aria-hidden="true"
             />
             <div>
-              <p class="font-semibold">Reads saved project truth</p>
+              <p class="font-semibold">Round 1</p>
               <p class="mt-1 text-sm leading-6 text-current/65">
-                Starts with the facts and decisions the project already owns.
+                Trailside serves customers and support. Coverage: 0 of 2 areas. Agents: none found.
               </p>
             </div>
           </li>
@@ -182,9 +182,10 @@ const skillMarkPath = withBase('/logo/icon-xs-dark.png', basePath);
               aria-hidden="true"
             />
             <div>
-              <p class="font-semibold">Builds the connected agent</p>
+              <p class="font-semibold">Propose the refund rule</p>
               <p class="mt-1 text-sm leading-6 text-current/65">
-                Creates the model call, instructions, tool, and declared relationships together.
+                The refund-policy code allows requests within 30 completed days. Save that rule and
+                link it to Refunds?
               </p>
             </div>
           </li>
@@ -194,9 +195,10 @@ const skillMarkPath = withBase('/logo/icon-xs-dark.png', basePath);
               aria-hidden="true"
             />
             <div>
-              <p class="font-semibold">Runs deterministic checks</p>
+              <p class="font-semibold">Choose what to cover</p>
               <p class="mt-1 text-sm leading-6 text-current/65">
-                Verifies the saved structure and supported runtime connections before reporting.
+                Say yes to save Refunds. Continue with Orders or stop and validate the covered
+                scope.
               </p>
             </div>
           </li>
@@ -209,9 +211,9 @@ const skillMarkPath = withBase('/logo/icon-xs-dark.png', basePath);
           <div class="flex items-center justify-between gap-4">
             <div>
               <p class="text-xs font-semibold tracking-[0.12em] text-primary/60 uppercase">
-                Verified result
+                Stopped after round 1
               </p>
-              <p class="mt-1 text-lg font-semibold">Support agent ready.</p>
+              <p class="mt-1 text-lg font-semibold">Trailside adopted</p>
             </div>
             <ShieldCheck
               class="size-9 shrink-0 text-emerald-700 dark:text-emerald-700"
@@ -220,7 +222,7 @@ const skillMarkPath = withBase('/logo/icon-xs-dark.png', basePath);
           </div>
           <ul
             class="mt-4 grid gap-2"
-            aria-label="Created support agent result"
+            aria-label="Initialization result"
           >
             <li
               class="flex items-center gap-3 rounded-lg bg-[var(--website-ui-light-secondary)] px-3 py-2.5 text-sm font-semibold"
@@ -229,7 +231,7 @@ const skillMarkPath = withBase('/logo/icon-xs-dark.png', basePath);
                 class="size-4 shrink-0 text-emerald-700 dark:text-emerald-700"
                 aria-hidden="true"
               />
-              Project instructions saved
+              Refunds mapped. Orders remains uncovered.
             </li>
             <li
               class="flex items-center gap-3 rounded-lg bg-[var(--website-ui-light-secondary)] px-3 py-2.5 text-sm font-semibold"
@@ -238,7 +240,7 @@ const skillMarkPath = withBase('/logo/icon-xs-dark.png', basePath);
                 class="size-4 shrink-0 text-emerald-700 dark:text-emerald-700"
                 aria-hidden="true"
               />
-              Order lookup connected
+              Refund policy and source linked
             </li>
             <li
               class="flex items-center gap-3 rounded-lg bg-[var(--website-ui-light-secondary)] px-3 py-2.5 text-sm font-semibold"
@@ -247,7 +249,7 @@ const skillMarkPath = withBase('/logo/icon-xs-dark.png', basePath);
                 class="size-4 shrink-0 text-emerald-700 dark:text-emerald-700"
                 aria-hidden="true"
               />
-              Deterministic checks passed
+              Structural validation passed
             </li>
           </ul>
         </div>

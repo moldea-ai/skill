@@ -114,7 +114,7 @@ test('filtering preview paths retains the complete final workspace change count'
                 changes: [
                   { path: 'moldea/agents/support/description.md', type: 'file' },
                   { path: 'moldea/agents/support/instruction.md', type: 'file' },
-                  { path: 'moldea/runtimes/custom.md', type: 'file' },
+                  { path: 'moldea/context/support.md', type: 'file' },
                 ],
                 tree: [],
               },

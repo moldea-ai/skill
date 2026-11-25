@@ -7,11 +7,11 @@ import { INSTALL_COMMAND, SKILLS_DIRECTORY_URL } from '../../lib/model/constants
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
 
-test('shows one install followed by an ordinary coding-agent request', async ({ page }) => {
+test('shows installation and a guided round before ordinary work', async ({ page }) => {
   await page.goto(toPublicPath('/'));
 
   const gettingStarted = page.getByRole('region', {
-    name: 'One install. One ordinary request.',
+    name: 'Install, then map your project.',
   });
   const journey = gettingStarted.getByRole('list', { name: 'Getting started' });
   const steps = journey.locator(':scope > li');
@@ -19,7 +19,7 @@ test('shows one install followed by an ordinary coding-agent request', async ({ 
   await expect(
     gettingStarted.getByRole('heading', {
       level: 2,
-      name: 'One install. One ordinary request.',
+      name: 'Install, then map your project.',
     }),
   ).toBeVisible();
   await expect(gettingStarted.getByRole('link', { name: 'Get the skill' })).toHaveAttribute(
@@ -35,9 +35,7 @@ test('shows one install followed by an ordinary coding-agent request', async ({ 
     steps.nth(0).getByText('Install it in this project.', { exact: true }),
   ).toBeVisible();
   await expect(steps.nth(0).locator('[data-install-command] code')).toHaveText(INSTALL_COMMAND);
-  await expect(
-    steps.nth(1).getByText('Initialize the project once.', { exact: true }),
-  ).toBeVisible();
+  await expect(steps.nth(1).getByText('Start a guided round.', { exact: true })).toBeVisible();
   await expect(steps.nth(1).getByText('Initialize moldea', { exact: true })).toBeVisible();
   await expect(steps.nth(1).locator('code')).toHaveCount(0);
   await expect(
@@ -45,20 +43,21 @@ test('shows one install followed by an ordinary coding-agent request', async ({ 
   ).toBeVisible();
   await expect(steps.nth(2).getByText(LANDING_EXAMPLE.request, { exact: true })).toBeVisible();
   await expect(
-    gettingStarted.getByRole('heading', { level: 3, name: 'Your coding agent handles the rest' }),
+    gettingStarted.getByRole('heading', { level: 3, name: 'Map Trailside in a guided round' }),
   ).toBeVisible();
   await expect(gettingStarted.locator('[data-getting-started-agent-panel] img')).toHaveAttribute(
     'src',
     toPublicPath('/logo/icon-xs-dark.png'),
   );
-  await expect(gettingStarted.getByText('Support agent ready.', { exact: true })).toBeVisible();
+  await expect(gettingStarted.getByText('Trailside adopted', { exact: true })).toBeVisible();
+  await expect(gettingStarted.getByText('Coverage: 0 of 2 areas.', { exact: false })).toBeVisible();
   const projectResult = gettingStarted.getByRole('list', {
-    name: 'Created support agent result',
+    name: 'Initialization result',
   });
   await expect(projectResult.getByRole('listitem')).toHaveText([
-    'Project instructions saved',
-    'Order lookup connected',
-    'Deterministic checks passed',
+    'Refunds mapped. Orders remains uncovered.',
+    'Refund policy and source linked',
+    'Structural validation passed',
   ]);
   await expect(gettingStarted.getByRole('button', { name: 'Copy code', exact: true })).toHaveCount(
     1,
@@ -99,7 +98,7 @@ test('keeps the setup readable without JavaScript and compact at 320px', async (
     await page.goto(toPublicPath('/'));
 
     const gettingStarted = page.getByRole('region', {
-      name: 'One install. One ordinary request.',
+      name: 'Install, then map your project.',
     });
     const journey = gettingStarted.getByRole('list', { name: 'Getting started' });
     const widths = await gettingStarted.evaluate((element) => ({

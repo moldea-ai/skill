@@ -10,7 +10,7 @@ Adopted projects own a canonical `/moldea/**` tree. Focused context, implementat
 
 [Get moldea on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or read the complete documentation at [skill.moldea.ai](https://skill.moldea.ai).
 
-This checkout contains `moldea` `10.1.0`. Install the latest published version from `main` inside each repository that will use it:
+This checkout contains `moldea` `11.0.0`. Install the latest published version from `main` inside each repository that will use it:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -19,10 +19,10 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the immutable release after publication:
 
 ```bash
-npx skills add "moldea-ai/skill#v10.1.0"
+npx skills add "moldea-ai/skill#v11.0.0"
 ```
 
-Both commands install the portable skill named `moldea`. They do not install the CLI globally or require a hosted account. See the [Setup reference](docs/getting-started.md) for initialization, updates, and removal.
+Both commands install the portable skill named `moldea`. The skill ships its CLI, runs with Node in the Git worktree, and requires no hosted account. See the [Setup reference](docs/getting-started.md) for initialization, updates, and removal.
 
 ## Project blueprint
 
@@ -33,14 +33,13 @@ Both commands install the portable skill named `moldea`. They do not install the
 | Explore supported outcomes and examples                            | [Capabilities](docs/capabilities.md) and [examples](docs/examples/index.md)                   |
 | Understand canonical project state and its repository layout       | [Project state](docs/project-state.md) and [repository format](docs/repository-format.md)     |
 | Plan an agent system                                               | [Planning agent systems](docs/planning-agent-systems.md)                                      |
-| Design agents or Agent Skills                                      | [Designing agents](docs/designing-agents.md) and [designing skills](docs/designing-skills.md) |
+| Design agents or project-grounded Agent Skills                     | [Designing agents](docs/designing-agents.md) and [designing skills](docs/designing-skills.md) |
 | Maintain or compress accumulated context                           | [Continuous maintenance](docs/continuous-maintenance.md)                                      |
-| Evaluate, reconcile, validate, or repair                           | [Evaluate, reconcile, and validate](docs/evaluate-reconcile-validate.md)                      |
+| Check or fix project context and validate structure                | [Check, fix, and validate](docs/check-fix-validate.md)                                        |
 | Understand warnings, unfinished checks, and large inputs           | [Limitations](docs/limitations.md)                                                            |
 | Inspect compatibility, local tooling, and resource limits          | [Compatibility and local tooling](docs/compatibility-and-local-tooling.md)                    |
 | Review instruction-loading behavior                                | [Reference-reading checks](docs/reference-reading.md)                                         |
 | Run semantic evaluation                                            | [Semantic evaluation](docs/semantic-evaluation.md)                                            |
-| Run subscription-based ChatGPT and Claude journeys                 | [Scripted journeys](docs/scripted-journeys.md)                                                |
 | Select fresh or pinned release evidence                            | [Release evidence](docs/release-evidence.md)                                                  |
 | Browse all public documentation                                    | [Documentation index](docs/index.md)                                                          |
 

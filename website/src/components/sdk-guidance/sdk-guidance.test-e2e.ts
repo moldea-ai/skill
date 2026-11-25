@@ -7,7 +7,7 @@ test.use({ hasTouch: true });
 
 for (const width of [320, 375, 1440]) {
   for (const colorScheme of ['light', 'dark'] as const) {
-    test(`keeps the runtime grid stable while scripts load at ${width}px in ${colorScheme}`, async ({
+    test(`keeps the SDK grid stable while scripts load at ${width}px in ${colorScheme}`, async ({
       page,
     }) => {
       await page.setViewportSize({ width, height: 900 });
@@ -20,9 +20,9 @@ for (const width of [320, 375, 1440]) {
         if (route.request().resourceType() === 'script') await scriptsReady;
         await route.continue();
       });
-      const list = page.getByRole('list', { name: 'Runtime guidance', exact: true });
+      const list = page.getByRole('list', { name: 'SDK guidance', exact: true });
       const section = page.getByRole('region', {
-        name: 'Guidance for the runtime you use.',
+        name: 'Guidance for the SDK you use.',
         exact: true,
       });
       let initialHeight: number;
@@ -40,7 +40,7 @@ for (const width of [320, 375, 1440]) {
       }
       await expect(list.getByRole('listitem')).toHaveCount(initialCount);
       expect((await section.boundingBox())!.height).toBeCloseTo(initialHeight, 0);
-      const loadMore = section.getByRole('button', { name: 'Load more runtimes', exact: true });
+      const loadMore = section.getByRole('button', { name: 'Load more SDKs', exact: true });
       expect(await page.evaluate(() => matchMedia('(pointer: coarse)').matches)).toBe(true);
       const bounds = (await loadMore.boundingBox())!;
       expect(bounds.width).toBeGreaterThanOrEqual(44);
@@ -60,13 +60,13 @@ for (const width of [320, 375, 1440]) {
 test.describe('without JavaScript', () => {
   test.use({ javaScriptEnabled: false });
   for (const colorScheme of ['light', 'dark'] as const) {
-    test(`keeps every runtime available in ${colorScheme}`, async ({ page }) => {
+    test(`keeps every SDK available in ${colorScheme}`, async ({ page }) => {
       await page.setViewportSize({ width: 320, height: 900 });
       await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' });
       await page.goto(homepage);
-      const list = page.getByRole('list', { name: 'Runtime guidance', exact: true });
+      const list = page.getByRole('list', { name: 'SDK guidance', exact: true });
       await expect(list.getByRole('listitem')).toHaveCount(35);
-      await expect(page.getByRole('button', { name: 'Load more runtimes' })).toBeHidden();
+      await expect(page.getByRole('button', { name: 'Load more SDKs' })).toBeHidden();
     });
   }
 });

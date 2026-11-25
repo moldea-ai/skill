@@ -12,7 +12,7 @@ order: 160
 
 > **You**
 >
-> The canonical agent repository is open here, and the application implementation is in `../storefront`. Evaluate the checkout agent across both repositories without changing either one.
+> The canonical agent repository is open here, and the application implementation is in `../storefront`. Check the checkout agent across both repositories without changing either one.
 
 > **Coding agent**
 >
@@ -21,7 +21,7 @@ order: 160
 ## Coding agent and `moldea` under the hood
 
 1. The coding agent treats the current repository as the canonical owner and the identified application as separate semantic evidence.
-2. It runs deterministic inspection only against the canonical repository's verified local tooling.
+2. It runs deterministic inspection only against the canonical repository with the selected skill’s bundled CLI.
 3. It inspects the external application's actual runtime construction, instruction provisioning, capabilities, and tests proportionally.
 4. It does not register cross-repository paths, mirrors, bindings, or impact relationships in format version 1.
 5. It evaluates each repository independently and does not imply cross-repository Git atomicity.

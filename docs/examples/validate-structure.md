@@ -32,8 +32,8 @@ The mirror must match the canonical instruction after text normalization. These 
 ## Coding agent and `moldea` under the hood
 
 1. The coding agent selects read-only validation.
-2. It checks repository-root-local package identity, containment, and supported installed versions through the installed skill’s closed launcher.
-3. It runs the launcher’s bounded `validate` operation. The launcher owns the child-process resource limits and invokes the verified executable directly.
+2. It selects the repository-local installed skill and its bundled CLI.
+3. It runs the bundled CLI’s bounded `validate` operation directly with Node.
 4. It validates the current release’s schema identity, CLI version, command, status, payload, diagnostic totals, and exit-code consistency before reading diagnostics.
 5. It treats `status: invalid` as completed deterministic evidence and an operational or resource-limit failure as an incomplete operation.
 6. It reports the diagnostic without editing the mirror or claiming semantic alignment.

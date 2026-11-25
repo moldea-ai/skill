@@ -5,7 +5,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { parseSearchDocuments } from '@moldea.ai/website-ui/search';
 import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
-import { SOURCE_REPOSITORY_URL } from '../lib/model/constants.ts';
+import { SKILLS_DIRECTORY_URL, SOURCE_REPOSITORY_URL } from '../lib/model/constants.ts';
 
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
@@ -20,7 +20,7 @@ const REPRESENTATIVE_PATHS = [
   '/docs/safety-and-privacy/',
   '/examples/',
   '/examples/create-a-support-agent/',
-  '/examples/evaluate-and-reconcile/',
+  '/examples/check-and-fix/',
   '/evidence/',
   '/evidence/semantic/',
   '/search/',
@@ -1077,7 +1077,10 @@ test('keeps essential documentation available without JavaScript', async ({ brow
 
   await page.goto(toPublicPath('/docs/getting-started/'));
   await expect(page.getByRole('heading', { level: 1, name: 'Setup reference' })).toBeVisible();
-  await expect(page.getByText(/The primary distribution page is/)).toBeVisible();
+  await expect(page.getByRole('link', { name: 'moldea from skills.sh' })).toHaveAttribute(
+    'href',
+    SKILLS_DIRECTORY_URL,
+  );
 
   await context.close();
 });

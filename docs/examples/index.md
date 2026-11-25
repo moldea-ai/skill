@@ -22,7 +22,7 @@ The “under the hood” section then shows how the coding agent uses `moldea` g
 - [Add project context as the business grows](/examples/add-project-context/)
 - [Maintain a refund policy](/examples/maintain-a-refund-policy/)
 - [Compress accumulated project context](/examples/compress-project-context/)
-- [Evaluate and reconcile drift](/examples/evaluate-and-reconcile/)
+- [Check and fix drift](/examples/check-and-fix/)
 - [Validate structure](/examples/validate-structure/)
 - [Work across dedicated repositories](/examples/dedicated-repositories/)
 

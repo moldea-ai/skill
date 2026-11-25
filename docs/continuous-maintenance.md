@@ -38,7 +38,6 @@ An impact path, explicit knowledge-maintenance request, or semantic relationship
 
 During ordinary maintenance, the coding agent adds or corrects relationships only for owners whose canonical content the task changes, using already-inspected source that materially governs that content. Merely assessing an accurate owner during code work leaves its prose and manifest declarations unchanged; at most the report notes an established gap in one line. It may correct or remove an existing declaration made invalid by a file move or deletion in the same task, without adding new relationships. Read-only work reports gaps without writing. Initialization registers evidenced new content, while explicitly requested relationship maintenance and repair keep their own scope. A binding already establishes relevance and need not be repeated as an exact impact path. Relationships track material facts and behavior, not layout, navigation, or shared infrastructure merely used by a feature. The coding agent does not scan for candidate paths. It reuses completed scope evidence for relationship-gated work without another inventory call; direct context and repair retain their existing bounded metadata routes. Incomplete evidence is reported as a limitation, not proof of missing coverage. A relationship does not require a new agent or binding, and zero relationships remain valid when none are grounded. The coding agent carries every selected owner, mirror, and outstanding criterion through planning, implementation, and host context compaction. At completion it compares final behavior with each still-applicable owner, corrects contradictions together, and preserves accurate or unrelated content. If an agent's bound file or known loader, schema, or tool path changed, it checks that agent's actual instruction connection and runs an existing focused test. After required project-native checks, it validates the final canonical and relationship state. Structural validity alone does not prove semantic alignment.
 
-The same scope rule applies to unresolved requirements. Discovering a referenced path is not enough: before changing it, the coding agent reads the requirement and every resolution criterion. After the authorized work, it removes each satisfied condition from both the current-state description and resolution text while retaining every outstanding or evidence-blocked condition. It does not complete additional work merely to close the requirement, and the requirement remains until current evidence satisfies every criterion.
 
 When neither facts nor evidenced relationships need correction, the completion report identifies the canonical state reconsidered, states that no canonical change was required, and explains why it remains correct. This avoids noisy documentation churn while still preventing silent drift.
 
@@ -49,13 +48,12 @@ Depending on the change, maintenance can reconsider:
 - project and focused context
 - accepted decisions
 - runtime guidance
-- descriptions, handoff descriptions, and instructions
+- canonical routing descriptions and instructions
 - Agent Skill authoritative sources, activation, workflows, references, scripts, assets, host metadata, installed or distributed copies, and consumers
 - runtime construction and routing metadata
 - schemas, tools, skills, and variable providers
 - bindings and broader impact paths
 - exact instruction mirrors
-- unresolved requirements and their resolution criteria
 - implementation, tests, and directly affected documentation
 
 ## Keep accumulated context organized
@@ -74,12 +72,16 @@ This remains a Maintain operation. It can consolidate proven duplicates, move fa
 
 Compression is limited to repository-owned context. It does not manage host context windows, conversation compaction, prompt caches, token budgets, or model internals, and it does not claim token savings.
 
+## Learn a named area
+
+Ask **Help moldea learn the billing area** to run one evidence-backed round rather than a broad audit. The coding agent shows coverage, agent status, changed files and gaps, then offers up to five numbered proposals. Accept all with **yes**, answer by number, or **skip**. Only confirmed rules, decisions, relationships and routing are saved. Final validation follows the last write.
+
 ## Adoption remains explicit
 
 The README may select the entrypoint before relevance is known. Further `moldea` work requires direct project or agent relevance, an explicit operation, canonical or managed-README work, or a declared relationship. The managed-block boundary limits `moldea`-specific maintenance; it does not prevent documentation changes independently authorized by the host task. Selection does not adopt `moldea` or authorize persistence. Initialization requires explicit developer intent, and adoption is established only by the complete canonical contract.
 
 If the developer prohibits corresponding `moldea` changes, the coding agent respects that scope, completes the authorized implementation, reports likely drift, and does not claim alignment. If an explicit `moldea` request targets an unadopted repository without authorizing initialization, the coding agent does not persist the knowledge and explains that initialization remains a separate explicit operation. Unrelated work receives no adoption recommendation or `moldea` report.
 
-After synchronized writes, each launcher-backed deterministic CLI invocation runs as a separate process from project checks, mirror comparisons, and Git inspection. The completion report names the deterministic operation or proof stage when material, its status, and material diagnostics or mirror findings established by that completed process. It does not need to repeat the literal invocation. A generic success claim, failed aggregate command, or unverified response is not sufficient evidence.
+After synchronized writes, each bundled CLI invocation runs as a separate process from project checks, mirror comparisons, and Git inspection. The completion report names the deterministic operation or proof stage when material, its status, and material diagnostics or mirror findings established by that completed process. It does not need to repeat the literal invocation. A generic success claim, failed aggregate command, or unverified response is not sufficient evidence.
 
 When an Agent Skill copy, consumer, or related application belongs to another Git repository, each repository keeps its own authority and verification boundary. The report names every repository's observed current state as changed, unchanged, uninspected, or blocked and separates related evidence from facts local deterministic inspection cannot observe. It reports actual state, not a promise about what it would preserve later. A scope-only direction with no actual semantic change produces no invented work; the coding agent reports the repository states and asks one focused question. Coordinated changes are non-atomic, and a change on one side never proves the other side is complete.

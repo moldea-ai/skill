@@ -1,4 +1,4 @@
-// fixed live URLs retained as static handoffs to current evidence documentation
+// fixed live URLs retained as static redirects to current pages
 export const RETIRED_PAGE_REDIRECTS: Record<string, string> = {
   '/evidence/qualification/': '/evidence/',
   '/evidence/qualification/anthropic/typescript-messages-api-0-117/': '/evidence/',
@@ -15,5 +15,8 @@ export const RETIRED_PAGE_REDIRECTS: Record<string, string> = {
   '/evidence/qualification/openai-agents-sdk/typescript-agent-handoffs-0-16/': '/evidence/',
   '/evidence/qualification/vercel-ai-sdk/typescript-generate-stream-text-7/': '/evidence/',
   '/evidence/qualification/vercel-ai-sdk/typescript-tool-loop-agent-7/': '/evidence/',
+  '/docs/evaluate-reconcile-validate/': '/docs/check-fix-validate/',
+  '/examples/evaluate-and-reconcile/': '/examples/check-and-fix/',
+  '/docs/scripted-journeys/': '/evidence/',
   '/docs/adapter-qualification/': '/docs/release-evidence/',
 };

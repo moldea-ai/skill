@@ -16,7 +16,7 @@ test('shows the overview prompts as three separate conversations', async ({ page
     'Update the refund flow and keep the support agent aligned.',
   );
   await expect(conversations.nth(2)).toContainText(
-    'Evaluate the current project context without changing files.',
+    'Check the current project context without changing files.',
   );
   for (const conversation of await conversations.all()) {
     await expect(conversation.locator('[data-conversation-message]')).toHaveCount(1);
@@ -34,9 +34,10 @@ test('renders authored turns in order while preserving document navigation and t
     await messages.evaluateAll((elements) =>
       elements.map((element) => element.getAttribute('data-conversation-message')),
     ),
-  ).toStrictEqual(['user', 'assistant', 'assistant', 'user', 'assistant', 'assistant']);
-  await expect(messages.nth(3).locator('code')).toHaveText('product-brief.md');
-  await expect(messages.nth(5).getByRole('list')).toContainText('product-brief.md');
+  ).toStrictEqual(['user', 'assistant', 'user', 'assistant', 'user', 'assistant']);
+  await expect(messages.nth(1).getByRole('list')).toContainText('src/refund-policy.ts');
+  await expect(messages.nth(3).getByRole('list')).toContainText('Continue with Orders.');
+  await expect(messages.nth(5)).toContainText('Coverage: 1 of 2 areas.');
   await expect(
     page.getByRole('heading', { name: 'Some context, but a material gap', exact: true }),
   ).toHaveAttribute('id', 'some-context-but-a-material-gap');
@@ -53,7 +54,7 @@ test('renders authored turns in order while preserving document navigation and t
   expect(
     records.find(({ url }) => url === withBase('/examples/initialize-a-project/', basePath))
       ?.searchText,
-  ).toContain('Initialization completed');
+  ).toContain('Orders remains unmapped');
 });
 
 for (const width of [320, 768, 1440]) {

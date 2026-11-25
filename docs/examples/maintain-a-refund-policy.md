@@ -23,7 +23,7 @@ The developer does not mention `moldea`.
 ## Coding agent and `moldea` under the hood
 
 1. The coding agent recognizes relevance-triggered maintenance in an adopted project.
-2. It reads continuous-maintenance guidance and runs deterministic inspection through the verified closed launcher.
+2. It uses the maintenance reference and reads the focused owner from the bundled CLI scope result.
 3. It traces the implementation change through the refund context's material impact paths, agent instruction, capability use conditions, schemas, routing, and tests. The runtime binding already establishes relevance; shared UI and presentation code do not become refund-policy relationships.
 4. It confirms that approval remains deterministic and the support agent only escalates.
 5. It edits only the representations whose truth changed.

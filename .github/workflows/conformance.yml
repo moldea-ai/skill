@@ -335,6 +335,15 @@ jobs:
         run: npm run portable:check
       - name: Run portable integration tests
         run: npm run test:integration -- src/portable
+      - name: Install and compare the portable artifact
+        env:
+          SKILLS_TEST_HOME: ${{ runner.temp }}/skills-home
+          npm_config_before: ${{ env.SKILLS_REGISTRY_SNAPSHOT }}
+        run: |
+          mkdir -p "$SKILLS_TEST_HOME"
+          HOME="$SKILLS_TEST_HOME" XDG_CONFIG_HOME="$SKILLS_TEST_HOME/.config" npx --yes skills@1.5.22 add ./moldea -g -a codex -y --copy
+          test -d "$SKILLS_TEST_HOME/.agents/skills/moldea"
+          diff -qr moldea "$SKILLS_TEST_HOME/.agents/skills/moldea"
 
   minimum-git:
     needs: changes

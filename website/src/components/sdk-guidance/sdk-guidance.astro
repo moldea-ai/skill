@@ -7,28 +7,28 @@ import { PACKAGES_WEBSITE_URL } from '../../lib/model/constants.ts';
 
 <section
   class="border-b border-border bg-background py-12 sm:py-16"
-  aria-labelledby="runtime-guidance-title"
-  data-runtime-guidance
+  aria-labelledby="sdk-guidance-title"
+  data-sdk-guidance
 >
   <div class="page-shell">
     <header class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_30rem] lg:items-end">
       <div>
-        <p class="eyebrow mb-4">Runtime guidance</p>
+        <p class="eyebrow mb-4">SDK guidance</p>
         <h2
-          id="runtime-guidance-title"
+          id="sdk-guidance-title"
           class="section-title max-w-4xl"
         >
-          Guidance for the runtime you use.
+          Guidance for the SDK you use.
         </h2>
       </div>
       <p class="text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-        Runtime labels point your coding agent to the relevant guidance. <code class="inline-code"
-          >moldea</code
-        > checks declared files and exports; connection tests check the outgoing request.
+        Start with the SDK your project uses, then verify the contract for its installed version.
+        The bundled CLI checks declared files and supported exports. A connection test checks the
+        outgoing model request.
       </p>
     </header>
     <div class="mt-8">
-      <RuntimeGrid ariaLabel="Runtime guidance" />
+      <RuntimeGrid ariaLabel="SDK guidance" />
     </div>
     <ActionLink
       class="mt-8 font-bold"
@@ -37,7 +37,7 @@ import { PACKAGES_WEBSITE_URL } from '../../lib/model/constants.ts';
       target="_blank"
       rel="noopener noreferrer"
     >
-      Browse runtime guidance
+      Browse SDK guidance
     </ActionLink>
   </div>
 </section>

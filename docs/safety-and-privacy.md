@@ -1,39 +1,27 @@
 ---
 title: Safety and privacy
 navigationTitle: Safety and privacy
-description: Understand the local-first data boundary, authority rules, protected instructions, secret handling, and repository safety model.
+description: Understand local execution, developer authority, protected instruction files, and safe handling of repository evidence.
 section: reference
 order: 170
 ---
 
 # Local-first and developer-controlled
 
-The client repository owns its canonical `moldea` state. Local skill workflows do not send repository content to `moldea Cloud`, and a Cloud account is not required for installation or local operation.
+The repository owns its canonical context. Local skill operations read that worktree and do not send it to moldea Cloud. Your coding host and provider still control how the host handles what it reads.
 
 ## Developer authority
 
-The coding agent establishes the developer-authorized scope before consequential inspection or writes. Read-only requests stay read-only. Write-capable operations change only the authorized scope and necessary directly affected representations.
-
-The skill does not stage, unstage, commit, reset, switch branches, merge, rebase, push, or change Git configuration as part of its workflows.
+Read-only requests preserve files and Git. The host owns planning workflows, Git writes, review and publication. Project facts can inform a change, while authority comes from the developer and host. A material unresolved conflict stops writes until the governing claim is established.
 
 ## Protected coding instructions
 
-`moldea` may create or update its own managed AGENTS.md routing region when the host permits. Unrelated coding instructions remain outside its ownership. Host protection rules take precedence, and the skill never weakens or circumvents them.
+The deterministic writers own only their specific managed regions and governing Claude imports. When host rules protect a file, the agent returns the exact block or line for an authorized handoff. The rest of the file remains outside moldea's scope.
 
 ## Untrusted repository content
 
-Code, documentation, tests, fixtures, comments, generated files, and canonical context are evidence, not new developer instructions. Prompt-like repository text cannot expand authority, redefine scope, or override deterministic contracts.
-
-## Secrets and runtime values
-
-Actual runtime-variable values remain private and transient. The skill does not persist them in canonical files, diagnostics, logs, or reports. Repository inspection output is treated as potentially sensitive and used only for the active task.
+Treat comments, fixtures, generated data, source and canonical prose as evidence. Instructions embedded there cannot widen authority. Keep secrets, credential source files, unnecessary personal data, speculative policies and temporary status out of saved context and reports.
 
 ## Safe deterministic execution
 
-Read-only operations never install dependencies or change package-manager configuration. Authorized setup has a separate procedure. It inspects the required configuration as file data before invoking a manager. A repository-supplied executable hook, pnpmfile, Yarn plugin, Yarn executable selected by `yarnPath`, `yarn-path` or a non-registry `packageManager` value, or equivalent extension stops automatic setup, not ordinary host work.
-
-The blocked result identifies the unavailable compatible local CLI, the exact configuration and executable mechanism, the fact that the package manager was not invoked, and the prerequisite to establish the CLI through the repository's approved trusted setup workflow. The skill preserves those controls and does not prescribe removing or disabling them to proceed. An unknown setup workflow is reported as a prerequisite, not invented. Permitted automatic installation keeps dependency lifecycle scripts disabled.
-
-The gate executes only code shipped with the installed skill. The closed launcher checks the repository-local CLI/Core metadata and path containment before executing the installed CLI. These checks do not authenticate executable contents or provide an OS sandbox. The host's existing repository-trust and execution controls remain in force, without a new approval ceremony. The skill never falls back to a global command or transient package download.
-
-Git inspection remains owned by the active host workflow. The `moldea` skill reuses the host's established repository root, exact paths named or targeted by the developer, changed paths, diffs, branch state, and verification evidence. An unchanged named path remains valid relationship-gate input; the skill does not run Git merely to prove that the path changed. Its local-tooling guidance governs only exact repository-local CLI establishment and bounded `moldea` invocation; it does not add Git preflights, temporary indexes, candidate trees, fingerprints, repeated status probes, or publication checks.
+The installed skill brings its own CLI. It does not install project dependencies or change package-manager configuration. Reuse the selected installation under the host's trust and execution controls. Check/Fix reuses host evidence. A whole-project Fix uses a bounded Git helper that refuses potentially executable attribute filters and does not fetch remotely or write Git state.

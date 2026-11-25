@@ -303,8 +303,19 @@ jobs:
               throw 'The installed skill directory is missing.'
             }
 
-            git diff --no-index --exit-code -- moldea $installedSkill
-            if ($LASTEXITCODE -ne 0) {
+            # compare raw bytes because Git can normalize line endings on only one side
+            function Get-SkillFileHashes([string] $root) {
+              Get-ChildItem -LiteralPath $root -Recurse -File -Force | ForEach-Object {
+                $relativePath = [System.IO.Path]::GetRelativePath($root, $_.FullName)
+                $hash = (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash
+                "$relativePath $hash"
+              }
+            }
+            $sourceHashes = @(Get-SkillFileHashes $sourceSkill)
+            $installedHashes = @(Get-SkillFileHashes $installedSkill)
+            $differences = Compare-Object -ReferenceObject $sourceHashes -DifferenceObject $installedHashes -CaseSensitive
+            if ($differences) {
+              $differences | Format-Table
               throw 'The installed skill differs from the portable source.'
             }
           } finally {

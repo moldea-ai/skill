@@ -13,7 +13,7 @@ const repository = path.resolve(import.meta.dirname, '../..');
 test('the pinned distribution and manifest scope identify one release', () => {
   const release = assertReleaseIdentity(repository);
   expect(release).toMatchObject({
-    cliVersion: '14.0.0',
+    cliVersion: '14.0.1',
     cliJsonSchemaVersion: 8,
     coreVersion: '10.0.0',
   });
@@ -22,7 +22,7 @@ test('the pinned distribution and manifest scope identify one release', () => {
     jsonSchemaVersion: 8,
     name: '@moldea.ai/cli',
     packageLockSha256: release.packageLockSha256,
-    version: '14.0.0',
+    version: '14.0.1',
   });
 });
 

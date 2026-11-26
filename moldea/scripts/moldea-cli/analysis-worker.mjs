@@ -1,193 +1,170 @@
-import { n as CoreOperationException } from "./chunk-728df961.mjs";
-import { u as normalizeCoreOptions } from "./chunk-a5514957.mjs";
-import { i as RepositorySourceException } from "./chunk-8d6114d2.mjs";
-import { a as createInspectionProcessFailure, c as encodeInspectionMessage, i as NODE_INSPECTION_TRANSPORT_BYTES, l as serializeInspectionFailure, o as decodeInspectionMessage, s as deserializeInspectionFailure, t as NODE_INSPECTION_FILE_PAGE_BYTES } from "./chunk-ec3f49d3.mjs";
-import { a as parseRpcLinkText, i as parseRpcFilePage, n as parseRpcEntry, r as parseRpcEntryPage } from "./chunk-131f8005.mjs";
-import { parentPort, workerData } from "node:worker_threads";
-import { getHeapStatistics } from "node:v8";
+import { n as e } from "./chunk-2cc3bf5c.mjs";
+import { u as t } from "./chunk-8f198616.mjs";
+import { i as n } from "./chunk-98d84174.mjs";
+import { a as r, c as i, i as a, l as o, o as s, s as c, t as l } from "./chunk-24ea7c23.mjs";
+import { a as u, i as d, n as f, r as p } from "./chunk-2e9d4c63.mjs";
+import { parentPort as m, workerData as h } from "node:worker_threads";
+import { getHeapStatistics as g } from "node:v8";
 //#region ../core/dist/analysis-worker.js
-var port = parentPort;
-if (port === null) throw createInspectionProcessFailure();
-var start = decodeInspectionMessage(workerData);
-if (start.kind !== "start") throw createInspectionProcessFailure();
-var attemptId = start.attemptId;
-var maxAnalysisHeapBytes = getHeapStatistics().heap_size_limit;
-var inspection;
-var hasRun = false;
-var isReadingPage = false;
-var nextRequestId = 0;
-var pending = new Map();
-var send = (message) => {
-	port.postMessage(encodeInspectionMessage(message));
-};
-var requestReader = (request) => {
-	if (pending.size >= 4) return Promise.reject(new CoreOperationException({
+var _ = m;
+if (_ === null) throw r();
+var v = s(h);
+if (v.kind !== "start") throw r();
+var y = v.attemptId, b = g().heap_size_limit, x, S = !1, C = !1, w = 0, T = new Map(), E = (e) => {
+	_.postMessage(i(e));
+}, D = (t) => {
+	if (T.size >= 4) return Promise.reject(new e({
 		code: "RESOURCE_LIMIT_EXCEEDED",
 		operation: "create-project-inspection",
 		limit: "maxReaderRequests",
 		limitMaximum: 4,
-		observedUsage: pending.size + 1,
+		observedUsage: T.size + 1,
 		nextAction: null
 	}));
-	const requestId = nextRequestId++;
-	return new Promise((resolve, reject) => {
-		pending.set(requestId, {
-			resolve,
-			reject
+	let n = w++;
+	return new Promise((e, i) => {
+		T.set(n, {
+			resolve: e,
+			reject: i
 		});
 		try {
-			send({
-				attemptId,
+			E({
+				attemptId: y,
 				kind: "reader-request",
-				requestId,
-				request
+				requestId: n,
+				request: t
 			});
-		} catch (cause) {
-			pending.delete(requestId);
-			reject(cause instanceof Error ? cause : createInspectionProcessFailure(cause));
+		} catch (e) {
+			T.delete(n), i(e instanceof Error ? e : r(e));
 		}
 	});
-};
-var createProxyReader = (source, snapshot) => ({
-	snapshot,
-	getEntry: async (path) => parseRpcEntry(await requestReader({
+}, O = (e, t) => ({
+	snapshot: t,
+	getEntry: async (t) => f(await D({
 		method: "getEntry",
-		path,
-		source
+		path: t,
+		source: e
 	})),
-	listEntriesPage: async (options) => source === "repository" ? parseRpcEntryPage(await requestReader({
+	listEntriesPage: async (t) => e === "repository" ? p(await D({
 		method: "listEntriesPage",
-		maxEntries: Math.min(128, options.maxEntries),
-		...options.cursor === void 0 ? {} : { cursor: options.cursor },
-		...options.prefix === void 0 ? {} : { prefix: options.prefix }
-	})) : Promise.reject(new RepositorySourceException({
+		maxEntries: Math.min(128, t.maxEntries),
+		...t.cursor === void 0 ? {} : { cursor: t.cursor },
+		...t.prefix === void 0 ? {} : { prefix: t.prefix }
+	})) : Promise.reject(new n({
 		code: "SOURCE_UNAVAILABLE",
 		operation: "list-entries-page",
 		path: null,
-		retryable: false
+		retryable: !1
 	})),
-	readFilePage: async (path, options) => parseRpcFilePage(await requestReader({
+	readFilePage: async (t, n) => d(await D({
 		method: "readFilePage",
-		path,
-		offset: options.offset,
-		maxBytes: Math.min(NODE_INSPECTION_FILE_PAGE_BYTES, options.maxBytes),
-		source
+		path: t,
+		offset: n.offset,
+		maxBytes: Math.min(l, n.maxBytes),
+		source: e
 	})),
-	readLinkText: async (path) => parseRpcLinkText(await requestReader({
+	readLinkText: async (t) => u(await D({
 		method: "readLinkText",
-		path,
-		source
+		path: t,
+		source: e
 	})),
-	compare: () => Promise.reject(new RepositorySourceException({
+	compare: () => Promise.reject(new n({
 		code: "SOURCE_UNAVAILABLE",
 		operation: "create-comparison",
 		path: null,
-		retryable: false
+		retryable: !1
 	}))
-});
-var repository = createProxyReader("repository", start.snapshot);
-var instructions = start.instructions === null ? null : createProxyReader("instructions", start.instructions.snapshot);
-var prepare = async () => {
-	const { createCore } = await import("./chunk-b98ca669.mjs").then((n) => n.t);
-	inspection = await createCore(normalizeCoreOptions({ limits: {
-		...start.limits,
-		maxRetainedBytes: start.limits.maxRetainedBytes - NODE_INSPECTION_TRANSPORT_BYTES
+}), k = O("repository", v.snapshot), A = v.instructions === null ? null : O("instructions", v.instructions.snapshot), j = async () => {
+	let { createCore: e } = await import("./chunk-1306b995.mjs").then((e) => e.t);
+	x = await e(t({ limits: {
+		...v.limits,
+		maxRetainedBytes: v.limits.maxRetainedBytes - a
 	} })).createProjectInspection({
-		repository,
-		...instructions === null ? {} : { instructions }
+		repository: k,
+		...A === null ? {} : { instructions: A }
 	});
-	const metadata = {
-		source: inspection.source,
-		formatVersion: inspection.formatVersion,
-		valid: inspection.valid,
-		counts: inspection.counts,
-		coverageCounts: inspection.coverageCounts,
-		summary: inspection.summary,
-		resourceUsage: inspection.resourceUsage,
-		inspectionDigest: inspection.inspectionDigest
+	let n = {
+		source: x.source,
+		formatVersion: x.formatVersion,
+		valid: x.valid,
+		counts: x.counts,
+		coverageCounts: x.coverageCounts,
+		summary: x.summary,
+		resourceUsage: x.resourceUsage,
+		inspectionDigest: x.inspectionDigest
 	};
-	send({
-		attemptId,
+	E({
+		attemptId: y,
 		kind: "prepared",
 		inspection: {
-			...metadata,
-			maxAnalysisHeapBytes,
+			...n,
+			maxAnalysisHeapBytes: b,
 			resourceUsage: {
-				...metadata.resourceUsage,
-				retainedBytes: metadata.resourceUsage.retainedBytes + NODE_INSPECTION_TRANSPORT_BYTES,
-				peakRetainedBytes: metadata.resourceUsage.peakRetainedBytes + NODE_INSPECTION_TRANSPORT_BYTES
+				...n.resourceUsage,
+				retainedBytes: n.resourceUsage.retainedBytes + a,
+				peakRetainedBytes: n.resourceUsage.peakRetainedBytes + a
 			}
 		}
 	});
-};
-var fail = (cause) => {
+}, M = (t) => {
 	try {
-		const failure = serializeInspectionFailure(cause);
-		if (cause instanceof CoreOperationException && cause.code === "RESOURCE_LIMIT_EXCEEDED" && cause.limit === "maxRetainedBytes" && cause.observedUsage !== null) {
-			failure.options["limitMaximum"] = start.limits.maxRetainedBytes;
-			failure.options["observedUsage"] = cause.observedUsage + NODE_INSPECTION_TRANSPORT_BYTES;
-		}
-		send({
-			attemptId,
+		let n = o(t);
+		t instanceof e && t.code === "RESOURCE_LIMIT_EXCEEDED" && t.limit === "maxRetainedBytes" && t.observedUsage !== null && (n.options.limitMaximum = v.limits.maxRetainedBytes, n.options.observedUsage = t.observedUsage + a), E({
+			attemptId: y,
 			kind: "failure",
-			failure
+			failure: n
 		});
 	} catch {
-		port.close();
+		_.close();
 	}
 };
-port.on("message", (frame) => {
+_.on("message", (t) => {
 	try {
-		const message = decodeInspectionMessage(frame);
-		if (message.attemptId !== attemptId) throw createInspectionProcessFailure();
-		if (message.kind === "run") {
-			if (hasRun) throw createInspectionProcessFailure();
-			hasRun = true;
-			prepare().catch(fail);
-		} else if (message.kind === "reader-response" || message.kind === "reader-failure") {
-			const request = pending.get(message.requestId);
-			if (request === void 0) throw createInspectionProcessFailure();
-			pending.delete(message.requestId);
-			if (message.kind === "reader-failure") request.reject(deserializeInspectionFailure(message.failure));
-			else request.resolve(message.result);
-		} else if (message.kind === "read-page") {
-			if (inspection === void 0 || isReadingPage) throw createInspectionProcessFailure();
-			isReadingPage = true;
+		let n = s(t);
+		if (n.attemptId !== y) throw r();
+		if (n.kind === "run") {
+			if (S) throw r();
+			S = !0, j().catch(M);
+		} else if (n.kind === "reader-response" || n.kind === "reader-failure") {
+			let e = T.get(n.requestId);
+			if (e === void 0) throw r();
+			T.delete(n.requestId), n.kind === "reader-failure" ? e.reject(c(n.failure)) : e.resolve(n.result);
+		} else if (n.kind === "read-page") {
+			if (x === void 0 || C) throw r();
+			C = !0;
 			try {
-				if (message.input.maxItems > start.limits.maxEntries) throw new CoreOperationException({
+				if (n.input.maxItems > v.limits.maxEntries) throw new e({
 					code: "INVALID_ARGUMENT",
 					operation: "create-project-inspection"
 				});
-				let maxItems = Math.min(256, message.input.maxItems);
-				while (true) try {
-					const frame = encodeInspectionMessage({
-						attemptId,
+				let t = Math.min(256, n.input.maxItems);
+				for (;;) try {
+					let e = i({
+						attemptId: y,
 						kind: "page",
-						requestId: message.requestId,
-						result: inspection.readPage({
-							...message.input,
-							maxItems
+						requestId: n.requestId,
+						result: x.readPage({
+							...n.input,
+							maxItems: t
 						})
 					});
-					port.postMessage(frame);
+					_.postMessage(e);
 					break;
-				} catch (cause) {
-					if (!(cause instanceof CoreOperationException) || cause.code !== "RESOURCE_LIMIT_EXCEEDED" || cause.limit !== "maxInspectionMessageBytes" || maxItems === 1) throw cause;
-					maxItems = Math.max(1, Math.floor(maxItems / 2));
+				} catch (n) {
+					if (!(n instanceof e) || n.code !== "RESOURCE_LIMIT_EXCEEDED" || n.limit !== "maxInspectionMessageBytes" || t === 1) throw n;
+					t = Math.max(1, Math.floor(t / 2));
 				}
 			} finally {
-				isReadingPage = false;
+				C = !1;
 			}
-		} else throw createInspectionProcessFailure();
-	} catch (cause) {
-		fail(cause);
+		} else throw r();
+	} catch (e) {
+		M(e);
 	}
-});
-port.on("messageerror", fail);
-send({
-	attemptId,
+}), _.on("messageerror", M), E({
+	attemptId: y,
 	kind: "ready",
-	maxAnalysisHeapBytes
+	maxAnalysisHeapBytes: b
 });
 //#endregion
 export {};

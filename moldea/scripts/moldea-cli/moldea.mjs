@@ -1,486 +1,328 @@
-import { c as validateByteLimit, d as ERRORS, f as Exception, l as isIntegerValid, m as hasErrorCode, n as CoreOperationException, t as CoreConfigurationException, u as isObjectValid } from "./chunk-728df961.mjs";
-import { A as formatMoldeaCliJsonScopeResult, B as ERRORS$2, C as formatMoldeaCliHumanInspectResult, D as formatMoldeaCliJsonContentResult, E as formatMoldeaCliJsonCompositionResult, F as isRepositoryDirectoryInputValid, H as MOLDEA_CLI_COMMANDS, I as createMoldeaCliOutputPage, L as calculateMoldeaCliJsonDigest, M as createMoldeaCliOwnedError, N as MOLDEA_CLI_GIT_WORKING_TREE_SOURCE, O as formatMoldeaCliJsonError, P as parseMoldeaCliArguments, R as decodeMoldeaCliCursor, S as formatMoldeaCliHumanError, T as formatMoldeaCliHumanValidateResult, U as ERRORS$1, V as MoldeaCliOutputPageException, _ as createMoldeaCliInspectProjection, a as require_semver, b as formatMoldeaCliHumanCompositionResult, c as checkGitResult, d as listUntrackedFiles, f as readConfigBoolean, g as createMoldeaCliDiagnosticRecord, h as runGit, j as formatMoldeaCliJsonValidateResult, k as formatMoldeaCliJsonInspectResult, l as createGitFailure, m as readTopLevel, o as MoldeaCliCompositionException, p as readIndexEntries, s as createGitVersionPreflight, u as readGit, v as createMoldeaCliValidateProjection, w as formatMoldeaCliHumanScopeResult, x as formatMoldeaCliHumanContentResult, y as formatMoldeaCliHelp, z as encodeMoldeaCliCursor } from "./chunk-d5af3eda.mjs";
-import { g as countUtf8Bytes } from "./chunk-a5514957.mjs";
-import { n as createCore } from "./chunk-459da9cf.mjs";
-import { a as compareRepositoryPaths$1, c as isRepositoryPath, i as RepositorySourceException, l as parseRepositoryPath, n as REPOSITORY_ROOT, o as createRepositoryComparison, r as RepositoryPathException } from "./chunk-8d6114d2.mjs";
-import path from "node:path";
-import process$1 from "node:process";
-import { fileURLToPath } from "node:url";
-import { constants } from "node:fs";
-import { constants as constants$1 } from "node:os";
-import { TextDecoder as TextDecoder$1 } from "node:util";
-import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
-import { lstat, open, opendir, readdir, readlink, realpath, stat } from "node:fs/promises";
-import { Buffer as Buffer$1 } from "node:buffer";
+import { c as e, d as t, f as n, l as r, m as i, n as a, t as o, u as s } from "./chunk-2cc3bf5c.mjs";
+import { A as c, B as l, C as u, D as d, E as f, F as p, H as m, I as h, L as g, M as _, N as v, O as ee, P as y, R as b, S as te, T as ne, U as x, V as S, _ as re, a as ie, b as ae, c as oe, d as se, f as ce, g as le, h as ue, j as de, k as fe, l as pe, m as me, o as he, p as ge, s as _e, u as C, v as ve, w as ye, x as be, y as xe, z as Se } from "./chunk-43b8574a.mjs";
+import { g as Ce } from "./chunk-8f198616.mjs";
+import { n as we } from "./chunk-9e42770a.mjs";
+import { a as Te, c as Ee, i as w, l as T, n as E, o as De, r as Oe } from "./chunk-98d84174.mjs";
+import D from "node:path";
+import O from "node:process";
+import { fileURLToPath as ke } from "node:url";
+import { constants as Ae } from "node:fs";
+import { constants as je } from "node:os";
+import { TextDecoder as Me } from "node:util";
+import { createHash as Ne, createHmac as Pe, randomBytes as Fe, timingSafeEqual as Ie } from "node:crypto";
+import { lstat as k, open as Le, opendir as Re, readdir as ze, readlink as Be, realpath as Ve, stat as He } from "node:fs/promises";
+import { Buffer as Ue } from "node:buffer";
 //#region ../../node_modules/.pnpm/jg-utilities@1.7.2/node_modules/jg-utilities/dist/utils/byte-cache.js
-var cloneBytes = (bytes) => new Uint8Array(bytes);
-var createByteCache = ({ maxBytes, maxEntries }) => {
-	validateByteLimit(maxBytes);
-	if (maxEntries !== void 0 && (!Number.isSafeInteger(maxEntries) || maxEntries < 1)) throw new Exception("The entry limit must be a positive safe integer.", {
-		code: ERRORS.INVALID_BYTE_LIMIT,
-		data: { maxEntries: String(maxEntries) }
+var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
+	if (e(r), i !== void 0 && (!Number.isSafeInteger(i) || i < 1)) throw new n("The entry limit must be a positive safe integer.", {
+		code: t.INVALID_BYTE_LIMIT,
+		data: { maxEntries: String(i) }
 	});
-	const entryLimit = maxEntries ?? Number.POSITIVE_INFINITY;
-	const entries = new Map();
-	let byteLength = 0;
-	let retainedBytes = 0;
-	let retainedEntries = 0;
-	const evict = (key, entry) => {
-		entries.delete(key);
-		byteLength -= entry.bytes.byteLength;
+	let a = i ?? Infinity, o = new Map(), s = 0, c = 0, l = 0, u = (e, t) => {
+		o.delete(e), s -= t.bytes.byteLength;
 	};
 	return {
-		get: (key) => {
-			const entry = entries.get(key);
-			if (entry === void 0) return;
-			entries.delete(key);
-			entries.set(key, entry);
-			return cloneBytes(entry.bytes);
+		get: (e) => {
+			let t = o.get(e);
+			if (t !== void 0) return o.delete(e), o.set(e, t), We(t.bytes);
 		},
-		set: (key, bytes) => {
-			const existing = entries.get(key);
-			if (existing !== void 0 && existing.retentions > 0) return false;
-			if (retainedBytes + bytes.byteLength > maxBytes || retainedEntries + 1 > entryLimit) return false;
-			if (existing !== void 0) evict(key, existing);
-			for (const [oldestKey, oldest] of entries) {
-				if (byteLength + bytes.byteLength <= maxBytes && entries.size < entryLimit) break;
-				if (oldest.retentions === 0) evict(oldestKey, oldest);
+		set: (e, t) => {
+			let n = o.get(e);
+			if (n !== void 0 && n.retentions > 0 || c + t.byteLength > r || l + 1 > a) return !1;
+			n !== void 0 && u(e, n);
+			for (let [e, n] of o) {
+				if (s + t.byteLength <= r && o.size < a) break;
+				n.retentions === 0 && u(e, n);
 			}
-			entries.set(key, {
-				bytes: cloneBytes(bytes),
+			return o.set(e, {
+				bytes: We(t),
 				retentions: 0
-			});
-			byteLength += bytes.byteLength;
-			return true;
+			}), s += t.byteLength, !0;
 		},
-		retain: (key) => {
-			let entry = entries.get(key);
-			if (entry === void 0) return;
-			if (entry.retentions === 0) {
-				retainedBytes += entry.bytes.byteLength;
-				retainedEntries += 1;
-			}
-			entry.retentions += 1;
-			return {
-				copyBytes: () => entry === void 0 ? void 0 : cloneBytes(entry.bytes),
+		retain: (e) => {
+			let t = o.get(e);
+			if (t !== void 0) return t.retentions === 0 && (c += t.bytes.byteLength, l += 1), t.retentions += 1, {
+				copyBytes: () => t === void 0 ? void 0 : We(t.bytes),
 				release: () => {
-					if (entry === void 0) return;
-					entry.retentions -= 1;
-					if (entry.retentions === 0) {
-						retainedBytes -= entry.bytes.byteLength;
-						retainedEntries -= 1;
-					}
-					entry = void 0;
+					t !== void 0 && (--t.retentions, t.retentions === 0 && (c -= t.bytes.byteLength, --l), t = void 0);
 				}
 			};
 		},
 		get byteLength() {
-			return byteLength;
+			return s;
 		}
 	};
-};
-//#endregion
-//#region ../../node_modules/.pnpm/jg-utilities@1.7.2/node_modules/jg-utilities/dist/utils/constants.js
-var MAX_TIMEOUT_MS = 2147483647;
-//#endregion
-//#region ../../node_modules/.pnpm/jg-utilities@1.7.2/node_modules/jg-utilities/dist/utils/request-coordinator.js
-var assertQueueLimit = (limit, name) => {
-	if (!isIntegerValid(limit, 0)) throw new Exception("The queue limit must be an integer of at least 0.", {
-		code: ERRORS.INVALID_QUEUE_LIMIT,
-		data: { [name]: String(limit) }
+}, Ke = 2147483647, qe = (e, i) => {
+	if (!r(e, 0)) throw new n("The queue limit must be an integer of at least 0.", {
+		code: t.INVALID_QUEUE_LIMIT,
+		data: { [i]: String(e) }
 	});
-};
-var toDeadlineMs = (deadline) => {
-	const deadlineMs = deadline instanceof Date ? deadline.getTime() : deadline;
-	if (typeof deadlineMs !== "number" || Number.isNaN(new Date(deadlineMs).getTime())) throw new Exception("The deadline must be a valid Date or epoch milliseconds a Date accepts.", {
-		code: ERRORS.INVALID_DATE,
-		data: { deadline: String(deadline) }
+}, Je = (e) => {
+	let r = e instanceof Date ? e.getTime() : e;
+	if (typeof r != "number" || Number.isNaN(new Date(r).getTime())) throw new n("The deadline must be a valid Date or epoch milliseconds a Date accepts.", {
+		code: t.INVALID_DATE,
+		data: { deadline: String(e) }
 	});
-	return deadlineMs;
-};
-var createRequestCoordinator = ({ maxConcurrent, maxQueued }) => {
-	if (!isIntegerValid(maxConcurrent, 1)) throw new Exception("The concurrency limit must be an integer of at least 1.", {
-		code: ERRORS.INVALID_CONCURRENCY_LIMIT,
-		data: { maxConcurrent: String(maxConcurrent) }
+	return r;
+}, Ye = ({ maxConcurrent: e, maxQueued: i }) => {
+	if (!r(e, 1)) throw new n("The concurrency limit must be an integer of at least 1.", {
+		code: t.INVALID_CONCURRENCY_LIMIT,
+		data: { maxConcurrent: String(e) }
 	});
-	assertQueueLimit(maxQueued, "maxQueued");
-	let activeCount = 0;
-	let cooldownUntil = 0;
-	let timer;
-	let isClosed = false;
-	const waiters = [];
-	const createCooldownError = () => new Exception("Requests are paused until the cooldown ends.", {
-		code: ERRORS.REQUEST_COOLDOWN_ACTIVE,
-		data: { retryAt: new Date(cooldownUntil).toISOString() }
-	});
-	const createClosedError = () => new Exception("The request coordinator is closed.", { code: ERRORS.REQUEST_COORDINATOR_CLOSED });
-	const clearTimer = () => {
-		if (timer !== void 0) {
-			clearTimeout(timer);
-			timer = void 0;
-		}
-	};
-	const schedule = () => {
-		clearTimer();
-		if (waiters.length === 0) return;
-		const remainingMs = cooldownUntil - Date.now();
-		if (remainingMs > 0) {
-			for (let index = waiters.length - 1; index >= 0; index -= 1) {
-				const waiter = waiters[index];
-				if (waiter?.rejectDuringCooldown === true) {
-					waiters.splice(index, 1);
-					waiter.detach();
-					waiter.reject(createCooldownError());
-				}
+	qe(i, "maxQueued");
+	let a = 0, o = 0, s, c = !1, l = [], u = () => new n("Requests are paused until the cooldown ends.", {
+		code: t.REQUEST_COOLDOWN_ACTIVE,
+		data: { retryAt: new Date(o).toISOString() }
+	}), d = () => new n("The request coordinator is closed.", { code: t.REQUEST_COORDINATOR_CLOSED }), f = () => {
+		s !== void 0 && (clearTimeout(s), s = void 0);
+	}, p = () => {
+		if (f(), l.length === 0) return;
+		let t = o - Date.now();
+		if (t > 0) {
+			for (let e = l.length - 1; e >= 0; --e) {
+				let t = l[e];
+				t?.rejectDuringCooldown === !0 && (l.splice(e, 1), t.detach(), t.reject(u()));
 			}
-			if (waiters.length > 0) timer = setTimeout(schedule, Math.min(remainingMs, MAX_TIMEOUT_MS));
+			l.length > 0 && (s = setTimeout(p, Math.min(t, Ke)));
 			return;
 		}
-		while (activeCount < maxConcurrent) {
-			const waiter = waiters.shift();
-			if (waiter === void 0) return;
-			waiter.detach();
-			if (waiter.signal?.aborted === true) waiter.reject(waiter.signal.reason);
-			else {
-				activeCount += 1;
-				waiter.resolve();
-			}
+		for (; a < e;) {
+			let e = l.shift();
+			if (e === void 0) return;
+			e.detach(), e.signal?.aborted === !0 ? e.reject(e.signal.reason) : (a += 1, e.resolve());
 		}
-	};
-	const acquire = ({ signal, caller, maxQueuedForCaller, rejectDuringCooldown = false }) => {
-		if (isClosed) return Promise.reject(createClosedError());
-		if (signal?.aborted === true) return Promise.reject(signal.reason);
-		if (maxQueuedForCaller !== void 0) assertQueueLimit(maxQueuedForCaller, "maxQueuedForCaller");
-		const isCoolingDown = cooldownUntil > Date.now();
-		if (isCoolingDown && rejectDuringCooldown) return Promise.reject(createCooldownError());
-		if (!isCoolingDown && activeCount < maxConcurrent && waiters.length === 0) {
-			activeCount += 1;
-			return Promise.resolve();
-		}
-		if (maxQueuedForCaller !== void 0) {
-			const callerQueued = waiters.filter((waiter) => waiter.caller === caller).length;
-			if (callerQueued >= maxQueuedForCaller) return Promise.reject(new Exception("The request queue is full.", {
-				code: ERRORS.REQUEST_QUEUE_FULL,
+	}, m = ({ signal: r, caller: s, maxQueuedForCaller: f, rejectDuringCooldown: m = !1 }) => {
+		if (c) return Promise.reject(d());
+		if (r?.aborted === !0) return Promise.reject(r.reason);
+		f !== void 0 && qe(f, "maxQueuedForCaller");
+		let h = o > Date.now();
+		if (h && m) return Promise.reject(u());
+		if (!h && a < e && l.length === 0) return a += 1, Promise.resolve();
+		if (f !== void 0) {
+			let e = l.filter((e) => e.caller === s).length;
+			if (e >= f) return Promise.reject(new n("The request queue is full.", {
+				code: t.REQUEST_QUEUE_FULL,
 				data: {
 					scope: "caller",
-					queued: callerQueued,
-					limit: maxQueuedForCaller
+					queued: e,
+					limit: f
 				}
 			}));
 		}
-		if (waiters.length >= maxQueued) return Promise.reject(new Exception("The request queue is full.", {
-			code: ERRORS.REQUEST_QUEUE_FULL,
+		return l.length >= i ? Promise.reject(new n("The request queue is full.", {
+			code: t.REQUEST_QUEUE_FULL,
 			data: {
 				scope: "global",
-				queued: waiters.length,
-				limit: maxQueued
+				queued: l.length,
+				limit: i
 			}
-		}));
-		return new Promise((resolve, reject) => {
-			const onAbort = () => {
-				waiters.splice(waiters.indexOf(waiter), 1);
-				waiter.detach();
-				schedule();
-				reject(signal?.reason);
+		})) : new Promise((e, t) => {
+			let n = () => {
+				l.splice(l.indexOf(i), 1), i.detach(), p(), t(r?.reason);
+			}, i = {
+				caller: s,
+				signal: r,
+				rejectDuringCooldown: m,
+				resolve: e,
+				reject: t,
+				detach: () => r?.removeEventListener("abort", n)
 			};
-			const waiter = {
-				caller,
-				signal,
-				rejectDuringCooldown,
-				resolve,
-				reject,
-				detach: () => signal?.removeEventListener("abort", onAbort)
-			};
-			waiters.push(waiter);
-			signal?.addEventListener("abort", onAbort, { once: true });
-			schedule();
+			l.push(i), r?.addEventListener("abort", n, { once: !0 }), p();
 		});
 	};
 	return {
-		run: async (task, options = {}) => {
-			await acquire(options);
+		run: async (e, t = {}) => {
+			await m(t);
 			try {
-				return await task();
+				return await e();
 			} finally {
-				activeCount -= 1;
-				schedule();
+				--a, p();
 			}
 		},
-		deferUntil: (deadline) => {
-			cooldownUntil = Math.max(cooldownUntil, toDeadlineMs(deadline));
-			schedule();
+		deferUntil: (e) => {
+			o = Math.max(o, Je(e)), p();
 		},
-		isIdle: () => activeCount === 0 && waiters.length === 0 && cooldownUntil <= Date.now(),
+		isIdle: () => a === 0 && l.length === 0 && o <= Date.now(),
 		close: () => {
-			isClosed = true;
-			clearTimer();
-			for (const waiter of waiters.splice(0)) {
-				waiter.detach();
-				waiter.reject(createClosedError());
-			}
+			c = !0, f();
+			for (let e of l.splice(0)) e.detach(), e.reject(d());
 		}
 	};
-};
-//#endregion
-//#region ../../node_modules/.pnpm/jg-process@1.6.2/node_modules/jg-process/dist/shutdown-signal/constants.js
-var DEFAULT_SHUTDOWN_SIGNALS = ["SIGINT", "SIGTERM"];
-var UNHANDLEABLE_SIGNALS = new Set(["SIGKILL", "SIGSTOP"]);
-//#endregion
-//#region ../../node_modules/.pnpm/jg-process@1.6.2/node_modules/jg-process/dist/shutdown-signal/shutdown-signal.js
-var createInvalidSignalError = () => new Exception("The shutdown needs a non-empty list of signals Node.js can listen for, such as SIGINT, other than SIGKILL and SIGSTOP, and an onSignal that's a function when it's given.", { code: ERRORS$1.INVALID_SIGNAL });
-var readSignals = (signals) => {
-	const unique = Array.isArray(signals) ? [...new Set(signals)] : [];
-	if (!(unique.length > 0 && unique.every((signal) => typeof signal === "string" && Object.hasOwn(constants$1.signals, signal) && !UNHANDLEABLE_SIGNALS.has(signal)))) throw createInvalidSignalError();
-	return unique;
-};
-var createShutdownSignal = ({ signals = DEFAULT_SHUTDOWN_SIGNALS, onSignal, setExitCode = true, forceOnRepeat = false, disconnect = false } = {}) => {
-	if (onSignal !== void 0 && typeof onSignal !== "function") throw createInvalidSignalError();
-	const listenedSignals = readSignals(signals);
-	const controller = new AbortController();
-	let received = null;
-	let isDisposed = false;
-	const toExitCode = (signal) => 128 + constants$1.signals[signal];
-	const onDisconnect = () => {
-		onProcessSignal("SIGTERM");
-	};
-	const onProcessSignal = (signal) => {
-		if (received !== null) return;
-		received = signal;
-		const exitCode = toExitCode(signal);
-		if (setExitCode) process.exitCode = exitCode;
-		if (forceOnRepeat) dispose();
-		controller.abort(new Exception(`The process was interrupted by ${signal}.`, {
-			code: ERRORS$1.PROCESS_INTERRUPTED,
+}, Xe = ["SIGINT", "SIGTERM"], Ze = new Set(["SIGKILL", "SIGSTOP"]), Qe = () => new n("The shutdown needs a non-empty list of signals Node.js can listen for, such as SIGINT, other than SIGKILL and SIGSTOP, and an onSignal that's a function when it's given.", { code: x.INVALID_SIGNAL }), $e = (e) => {
+	let t = Array.isArray(e) ? [...new Set(e)] : [];
+	if (!(t.length > 0 && t.every((e) => typeof e == "string" && Object.hasOwn(je.signals, e) && !Ze.has(e)))) throw Qe();
+	return t;
+}, et = ({ signals: e = Xe, onSignal: t, setExitCode: r = !0, forceOnRepeat: i = !1, disconnect: a = !1 } = {}) => {
+	if (t !== void 0 && typeof t != "function") throw Qe();
+	let o = $e(e), s = new AbortController(), c = null, l = !1, u = (e) => 128 + je.signals[e], d = () => {
+		f("SIGTERM");
+	}, f = (e) => {
+		if (c !== null) return;
+		c = e;
+		let a = u(e);
+		r && (process.exitCode = a), i && p(), s.abort(new n(`The process was interrupted by ${e}.`, {
+			code: x.PROCESS_INTERRUPTED,
 			data: {
-				signal,
-				exitCode
+				signal: e,
+				exitCode: a
 			}
 		}));
 		try {
-			Promise.resolve(onSignal?.(signal)).catch(() => void 0);
+			Promise.resolve(t?.(e)).catch(() => void 0);
 		} catch {}
+	}, p = () => {
+		if (!l) {
+			l = !0;
+			for (let e of o) process.off(e, f);
+			process.off("disconnect", d);
+		}
 	};
-	const dispose = () => {
-		if (isDisposed) return;
-		isDisposed = true;
-		for (const signal of listenedSignals) process.off(signal, onProcessSignal);
-		process.off("disconnect", onDisconnect);
+	for (let e of o) process.on(e, f);
+	return a && process.send !== void 0 && (process.connected ? process.on("disconnect", d) : d()), {
+		signal: s.signal,
+		receivedSignal: () => c,
+		exitCode: () => c === null ? null : u(c),
+		dispose: p
 	};
-	for (const signal of listenedSignals) process.on(signal, onProcessSignal);
-	if (disconnect && process.send !== void 0) {
-		if (process.connected) process.on("disconnect", onDisconnect);
-		else onDisconnect();
-	}
-	return {
-		signal: controller.signal,
-		receivedSignal: () => received,
-		exitCode: () => received === null ? null : toExitCode(received),
-		dispose
-	};
-};
-//#endregion
-//#region ../../node_modules/.pnpm/jg-process@1.6.2/node_modules/jg-process/dist/command-line/stdin.js
-var readStdin = ({ maxBytes, signal }) => new Promise((resolve, reject) => {
-	if (!Number.isSafeInteger(maxBytes) || maxBytes <= 0) {
-		reject(new Exception("The stdin limit must be a positive safe integer.", {
-			code: ERRORS$1.INVALID_PROCESS_OPTIONS,
-			data: { maxBytes: String(maxBytes) }
+}, tt = ({ maxBytes: e, signal: t }) => new Promise((r, i) => {
+	if (!Number.isSafeInteger(e) || e <= 0) {
+		i(new n("The stdin limit must be a positive safe integer.", {
+			code: x.INVALID_PROCESS_OPTIONS,
+			data: { maxBytes: String(e) }
 		}));
 		return;
 	}
-	const { stdin } = process;
-	const chunks = [];
-	let byteLength = 0;
-	const cleanUp = () => {
-		stdin.off("data", onData);
-		stdin.off("end", onEnd);
-		stdin.off("error", onError);
-		signal?.removeEventListener("abort", onAbort);
-	};
-	const fail = (error) => {
-		cleanUp();
-		stdin.destroy();
-		reject(error);
-	};
-	const onData = (chunk) => {
-		byteLength += chunk.length;
-		if (byteLength > maxBytes) {
-			fail(new Exception(`The input on stdin is larger than ${maxBytes} bytes.`, {
-				code: ERRORS$1.STDIN_TOO_LARGE,
-				data: { maxBytes }
+	let { stdin: a } = process, o = [], s = 0, c = () => {
+		a.off("data", u), a.off("end", d), a.off("error", f), t?.removeEventListener("abort", p);
+	}, l = (e) => {
+		c(), a.destroy(), i(e);
+	}, u = (t) => {
+		if (s += t.length, s > e) {
+			l(new n(`The input on stdin is larger than ${e} bytes.`, {
+				code: x.STDIN_TOO_LARGE,
+				data: { maxBytes: e }
 			}));
 			return;
 		}
-		chunks.push(chunk);
+		o.push(t);
+	}, d = () => {
+		c(), r(Buffer.concat(o));
+	}, f = (e) => {
+		l(e);
+	}, p = () => {
+		l(t?.reason);
 	};
-	const onEnd = () => {
-		cleanUp();
-		resolve(Buffer.concat(chunks));
-	};
-	const onError = (error) => {
-		fail(error);
-	};
-	const onAbort = () => {
-		fail(signal?.reason);
-	};
-	if (signal?.aborted) {
-		fail(signal.reason);
+	if (t?.aborted) {
+		l(t.reason);
 		return;
 	}
-	signal?.addEventListener("abort", onAbort, { once: true });
-	stdin.on("data", onData);
-	stdin.once("end", onEnd);
-	stdin.once("error", onError);
-});
-//#endregion
-//#region src/cli-execution/constants.ts
-var MOLDEA_CLI_EXIT_CODES = {
+	t?.addEventListener("abort", p, { once: !0 }), a.on("data", u), a.once("end", d), a.once("error", f);
+}), A = {
 	Interrupted: 130,
 	OperationalError: 3,
 	StructuralInvalid: 1,
 	Success: 0,
 	Terminated: 143,
 	UsageError: 2
-};
-//#endregion
-//#region ../../node_modules/.pnpm/jg-crypto@0.3.0/node_modules/jg-crypto/dist/hmac/utilities.js
-var SIGNATURE_PATTERN = /^[0-9a-f]{64}$/;
-var computeHmac = (message, secret, { domain }) => {
-	if (!(typeof secret === "string" ? secret.length > 0 : secret instanceof Uint8Array && secret.length > 0)) throw new Exception("The HMAC secret must be a non-empty string or byte array.", { code: ERRORS$2.INVALID_HMAC_SECRET });
-	if (domain !== void 0 && (typeof domain !== "string" || domain.length === 0)) throw new Exception("The HMAC domain must be a non-empty string when it's given.", { code: ERRORS$2.INVALID_HMAC_DOMAIN });
-	const key = domain === void 0 ? secret : createHmac("sha256", secret).update(domain).digest();
-	return createHmac("sha256", key).update(message).digest();
-};
-//#endregion
-//#region ../../node_modules/.pnpm/jg-crypto@0.3.0/node_modules/jg-crypto/dist/hmac/hmac.js
-var signHmac = (message, secret, options = {}) => computeHmac(message, secret, options).toString("hex");
-var verifyHmac = (message, signature, secret, options = {}) => {
-	const expected = computeHmac(message, secret, options);
-	if (typeof signature !== "string" || !SIGNATURE_PATTERN.test(signature)) return false;
-	return timingSafeEqual(Buffer.from(signature, "hex"), expected);
-};
-//#endregion
-//#region src/json-output-contract/guard.ts
-var assertMoldeaCliJsonResultIsContentFree = (value, canonicalBodies = []) => {
-	const pending = [value];
-	const visited = new Set();
-	const bodies = new Set(canonicalBodies.filter((body) => body.length > 0));
-	while (pending.length > 0) {
-		const current = pending.pop();
-		if (typeof current === "string") {
-			if (bodies.has(current)) throw new TypeError("A non-content CLI result contains canonical document text.");
+}, nt = /^[0-9a-f]{64}$/, rt = (e, t, { domain: r }) => {
+	if (!((typeof t == "string" || t instanceof Uint8Array) && t.length > 0)) throw new n("The HMAC secret must be a non-empty string or byte array.", { code: l.INVALID_HMAC_SECRET });
+	if (r !== void 0 && (typeof r != "string" || r.length === 0)) throw new n("The HMAC domain must be a non-empty string when it's given.", { code: l.INVALID_HMAC_DOMAIN });
+	let i = r === void 0 ? t : Pe("sha256", t).update(r).digest();
+	return Pe("sha256", i).update(e).digest();
+}, it = (e, t, n = {}) => rt(e, t, n).toString("hex"), at = (e, t, n, r = {}) => {
+	let i = rt(e, n, r);
+	return typeof t != "string" || !nt.test(t) ? !1 : Ie(Buffer.from(t, "hex"), i);
+}, ot = (e, t = []) => {
+	let n = [e], r = new Set(), i = new Set(t.filter((e) => e.length > 0));
+	for (; n.length > 0;) {
+		let e = n.pop();
+		if (typeof e == "string") {
+			if (i.has(e)) throw TypeError("A non-content CLI result contains canonical document text.");
 			continue;
 		}
-		if (typeof current !== "object" || current === null || visited.has(current)) continue;
-		visited.add(current);
-		if (Array.isArray(current)) {
-			for (const item of current) pending.push(item);
+		if (typeof e != "object" || !e || r.has(e)) continue;
+		if (r.add(e), Array.isArray(e)) {
+			for (let t of e) n.push(t);
 			continue;
 		}
-		const record = current;
-		if (Object.hasOwn(record, "content")) throw new TypeError("A non-content CLI result contains a content property.");
-		pending.push(...Object.values(record));
+		let t = e;
+		if (Object.hasOwn(t, "content")) throw TypeError("A non-content CLI result contains a content property.");
+		n.push(...Object.values(t));
 	}
-};
-//#endregion
-//#region src/git-working-tree/constants.ts
-var MAX_GIT_DISCOVERY_OUTPUT_BYTES = 262144;
-//#endregion
-//#region src/git-working-tree/parser.ts
-var UTF8_BYTE_ORDER_MARK = [
+}, st = 262144, ct = [
 	239,
 	187,
 	191
-];
-var decodeGitOutput = (output) => {
-	if (output.byteLength === 0 || output.byteLength > 262144 || UTF8_BYTE_ORDER_MARK.every((byte, index) => output[index] === byte)) return null;
-	let decodedOutput;
+], lt = (e) => {
+	if (e.byteLength === 0 || e.byteLength > 262144 || ct.every((t, n) => e[n] === t)) return null;
+	let t;
 	try {
-		decodedOutput = new TextDecoder("utf-8", {
-			fatal: true,
-			ignoreBOM: true
-		}).decode(output);
+		t = new TextDecoder("utf-8", {
+			fatal: !0,
+			ignoreBOM: !0
+		}).decode(e);
 	} catch {
 		return null;
 	}
-	if (decodedOutput.includes("\0") || !decodedOutput.isWellFormed()) return null;
-	return decodedOutput;
-};
-var parseGitPathOutput = (output) => {
-	const decodedOutput = decodeGitOutput(output);
-	if (decodedOutput === null || !decodedOutput.endsWith("\n")) return null;
-	const gitPath = process$1.platform === "win32" && decodedOutput.endsWith("\r\n") ? decodedOutput.slice(0, -2) : decodedOutput.slice(0, -1);
-	return gitPath.length === 0 ? null : gitPath;
-};
-var parseGitAbsolutePathOutput = (output) => {
-	const gitPath = parseGitPathOutput(output);
-	if (gitPath === null || !path.isAbsolute(gitPath)) return null;
-	return gitPath;
-};
-//#endregion
-//#region src/git-working-tree/starting-directory.ts
-var mapFilesystemFailure$3 = (error) => {
-	const errorCode = error?.code?.toUpperCase();
-	if (errorCode === "ENOENT" || errorCode === "ENOTDIR") return Object.freeze({
+	return t.includes("\0") || !t.isWellFormed() ? null : t;
+}, ut = (e) => {
+	let t = lt(e);
+	if (t === null || !t.endsWith("\n")) return null;
+	let n = O.platform === "win32" && t.endsWith("\r\n") ? t.slice(0, -2) : t.slice(0, -1);
+	return n.length === 0 ? null : n;
+}, dt = (e) => {
+	let t = ut(e);
+	return t === null || !D.isAbsolute(t) ? null : t;
+}, ft = (e) => {
+	let t = e?.code?.toUpperCase();
+	return Object.freeze(t === "ENOENT" || t === "ENOTDIR" ? {
 		errorCode: "GIT_REPOSITORY_NOT_FOUND",
 		kind: "failed"
-	});
-	if (errorCode === "EACCES" || errorCode === "EPERM") return Object.freeze({
+	} : t === "EACCES" || t === "EPERM" ? {
 		errorCode: "GIT_ACCESS_DENIED",
 		kind: "failed"
-	});
-	return Object.freeze({
+	} : {
 		errorCode: "GIT_COMMAND_FAILED",
 		kind: "failed"
 	});
-};
-var createGitStartingDirectoryInspector = (inspectPath = stat) => async (input) => {
-	if (!path.isAbsolute(input.invocationDirectory) || input.invocationDirectory.includes("\0") || !input.invocationDirectory.isWellFormed() || input.repositoryDirectory !== null && !isRepositoryDirectoryInputValid(input.repositoryDirectory)) return Object.freeze({
+}, pt = ((e = He) => async (t) => {
+	if (!D.isAbsolute(t.invocationDirectory) || t.invocationDirectory.includes("\0") || !t.invocationDirectory.isWellFormed() || t.repositoryDirectory !== null && !p(t.repositoryDirectory)) return Object.freeze({
 		errorCode: "GIT_REPOSITORY_NOT_FOUND",
 		kind: "failed"
 	});
-	const selectedDirectory = input.repositoryDirectory === null ? input.invocationDirectory : path.isAbsolute(input.repositoryDirectory) ? input.repositoryDirectory : path.resolve(input.invocationDirectory, input.repositoryDirectory);
+	let n = t.repositoryDirectory === null ? t.invocationDirectory : D.isAbsolute(t.repositoryDirectory) ? t.repositoryDirectory : D.resolve(t.invocationDirectory, t.repositoryDirectory);
 	try {
-		if (!(await inspectPath(selectedDirectory)).isDirectory()) return Object.freeze({
+		if (!(await e(n)).isDirectory()) return Object.freeze({
 			errorCode: "GIT_REPOSITORY_NOT_FOUND",
 			kind: "failed"
 		});
-	} catch (error) {
-		return mapFilesystemFailure$3(error);
+	} catch (e) {
+		return ft(e);
 	}
 	return Object.freeze({
-		directory: selectedDirectory,
+		directory: n,
 		kind: "found"
 	});
-};
-var inspectGitStartingDirectory = createGitStartingDirectoryInspector();
-//#endregion
-//#region src/git-command/run-git-command.ts
-var runGitCommand = async (args, { cwd, input, maxOutputBytes, signal }) => {
-	const subcommand = args[0];
-	const execution = await readGit(() => runGit(args, {
-		cwd,
+})(), mt = async (e, { cwd: t, input: n, maxOutputBytes: r, signal: i }) => {
+	let a = e[0], o = await C(() => ue(e, {
+		cwd: t,
 		encoding: "buffer",
-		maxOutputBytes,
+		maxOutputBytes: r,
 		timeoutSeconds: 300,
-		...input === void 0 ? {} : { input },
-		...signal === void 0 ? {} : { signal }
-	}), signal, subcommand);
-	if (execution.kind === "failed") return execution;
-	const reason = checkGitResult(execution.value, subcommand ?? "");
-	return reason === null ? Object.freeze({
+		...n === void 0 ? {} : { input: n },
+		...i === void 0 ? {} : { signal: i }
+	}), i, a);
+	if (o.kind === "failed") return o;
+	let s = oe(o.value, a ?? "");
+	return s === null ? Object.freeze({
 		kind: "completed",
-		value: execution.value.stdout
-	}) : createGitFailure(reason, subcommand);
-};
-//#endregion
-//#region src/git-working-tree/discovery.ts
-var GIT_DISCOVERY_READS = Object.freeze({
-	readConfigBoolean,
-	readTopLevel
-});
-var mapGitFailure$5 = (reason) => {
-	switch (reason) {
+		value: o.value.stdout
+	}) : pe(s, a);
+}, ht = Object.freeze({
+	readConfigBoolean: ce,
+	readTopLevel: me
+}), gt = (e) => {
+	switch (e) {
 		case "aborted": return "GIT_OPERATION_ABORTED";
 		case "not-found": return "GIT_NOT_FOUND";
 		case "repository-not-found": return "GIT_REPOSITORY_NOT_FOUND";
@@ -489,64 +331,42 @@ var mapGitFailure$5 = (reason) => {
 		case "output-invalid": return "GIT_OUTPUT_INVALID";
 		case "command-failed": return "GIT_COMMAND_FAILED";
 	}
-};
-var createDiscoveryFailure = (errorCode) => Object.freeze({
-	errorCode,
+}, j = (e) => Object.freeze({
+	errorCode: e,
 	kind: "failed"
-});
-var createGitWorkingTreeDiscovery = (git = GIT_DISCOVERY_READS, startingDirectoryInspector = inspectGitStartingDirectory, gitVersionPreflight = createGitVersionPreflight()) => async (input) => {
-	const startingDirectoryResult = await startingDirectoryInspector(input);
-	if (startingDirectoryResult.kind === "failed") return createDiscoveryFailure(startingDirectoryResult.errorCode);
-	const gitOptions = {
-		maxOutputBytes: MAX_GIT_DISCOVERY_OUTPUT_BYTES,
+}), _t = ((e = ht, t = pt, n = _e()) => async (r) => {
+	let i = await t(r);
+	if (i.kind === "failed") return j(i.errorCode);
+	let a = {
+		maxOutputBytes: st,
 		timeoutSeconds: 300,
-		...input.signal === void 0 ? {} : { signal: input.signal }
-	};
-	const rootResult = await readGit(() => git.readTopLevel(startingDirectoryResult.directory, gitOptions), input.signal);
-	if (rootResult.kind === "failed") return createDiscoveryFailure(mapGitFailure$5(rootResult.reason));
-	if (rootResult.value === null) return createDiscoveryFailure("GIT_WORK_TREE_REQUIRED");
-	const repositoryRoot = rootResult.value;
-	if (!path.isAbsolute(repositoryRoot)) return createDiscoveryFailure("GIT_OUTPUT_INVALID");
-	const rootDirectoryResult = await startingDirectoryInspector({
-		invocationDirectory: startingDirectoryResult.directory,
-		repositoryDirectory: repositoryRoot
+		...r.signal === void 0 ? {} : { signal: r.signal }
+	}, o = await C(() => e.readTopLevel(i.directory, a), r.signal);
+	if (o.kind === "failed") return j(gt(o.reason));
+	if (o.value === null) return j("GIT_WORK_TREE_REQUIRED");
+	let s = o.value;
+	if (!D.isAbsolute(s)) return j("GIT_OUTPUT_INVALID");
+	let c = await t({
+		invocationDirectory: i.directory,
+		repositoryDirectory: s
 	});
-	if (rootDirectoryResult.kind === "failed") return createDiscoveryFailure(rootDirectoryResult.errorCode);
-	const versionResult = await gitVersionPreflight(rootDirectoryResult.directory, input.signal);
-	if (versionResult.kind === "failed") return createDiscoveryFailure(versionResult.errorCode);
-	const sparseCheckoutResult = await readGit(() => git.readConfigBoolean(rootDirectoryResult.directory, "core.sparseCheckout", false, gitOptions), input.signal);
-	if (sparseCheckoutResult.kind === "failed") return createDiscoveryFailure(mapGitFailure$5(sparseCheckoutResult.reason));
-	if (sparseCheckoutResult.value) return createDiscoveryFailure("GIT_SPARSE_CHECKOUT_UNSUPPORTED");
-	return Object.freeze({
+	if (c.kind === "failed") return j(c.errorCode);
+	let l = await n(c.directory, r.signal);
+	if (l.kind === "failed") return j(l.errorCode);
+	let u = await C(() => e.readConfigBoolean(c.directory, "core.sparseCheckout", !1, a), r.signal);
+	return u.kind === "failed" ? j(gt(u.reason)) : u.value ? j("GIT_SPARSE_CHECKOUT_UNSUPPORTED") : Object.freeze({
 		kind: "discovered",
-		repositoryRoot
+		repositoryRoot: s
 	});
-};
-var discoverGitWorkingTree = createGitWorkingTreeDiscovery();
-//#endregion
-//#region src/host-path-identity/utilities.ts
-var areHostPathsEquivalent = (left, right, hostPathOperations = path) => hostPathOperations.relative(hostPathOperations.resolve(left), hostPathOperations.resolve(right)) === "";
-var haveSameHostPathIdentity = (left, right) => left.ino !== 0n && left.dev === right.dev && left.ino === right.ino;
-//#endregion
-//#region src/git-working-tree/identity/comparator.ts
-var areLocationsEqual = (left, right) => haveSameHostPathIdentity(left, right);
-var areGitWorkingTreeIdentitiesEqual = (left, right) => areLocationsEqual(left.repositoryRoot, right.repositoryRoot) && areLocationsEqual(left.gitDirectory, right.gitDirectory) && areLocationsEqual(left.commonDirectory, right.commonDirectory);
-//#endregion
-//#region src/git-working-tree/identity/constants.ts
-var GIT_WORKING_TREE_IDENTITY_ARGUMENTS = Object.freeze({
+})(), vt = (e, t, n = D) => n.relative(n.resolve(e), n.resolve(t)) === "", yt = (e, t) => e.ino !== 0n && e.dev === t.dev && e.ino === t.ino, bt = (e, t) => yt(e, t), xt = (e, t) => bt(e.repositoryRoot, t.repositoryRoot) && bt(e.gitDirectory, t.gitDirectory) && bt(e.commonDirectory, t.commonDirectory), St = Object.freeze({
 	CommonDirectory: Object.freeze(["rev-parse", "--git-common-dir"]),
 	GitDirectory: Object.freeze(["rev-parse", "--absolute-git-dir"]),
 	RepositoryRoot: Object.freeze(["rev-parse", "--show-toplevel"])
-});
-//#endregion
-//#region src/git-working-tree/identity/inspector.ts
-var inspectDirectoryIdentity = async (hostPath) => stat(hostPath, { bigint: true });
-var createInspectionFailure$2 = (errorCode) => Object.freeze({
-	errorCode,
+}), Ct = async (e) => He(e, { bigint: !0 }), M = (e) => Object.freeze({
+	errorCode: e,
 	kind: "failed"
-});
-var mapGitFailure$4 = (reason) => {
-	switch (reason) {
+}), wt = (e) => {
+	switch (e) {
 		case "aborted": return "GIT_OPERATION_ABORTED";
 		case "not-found": return "GIT_NOT_FOUND";
 		case "repository-not-found": return "GIT_REPOSITORY_NOT_FOUND";
@@ -555,424 +375,317 @@ var mapGitFailure$4 = (reason) => {
 		case "output-invalid": return "GIT_OUTPUT_INVALID";
 		case "command-failed": return "GIT_COMMAND_FAILED";
 	}
-};
-var mapFilesystemFailure$2 = (error) => {
-	let errorCode;
+}, Tt = (e) => {
+	let t;
 	try {
-		if (typeof error === "object" && error !== null && "code" in error) {
-			const unknownCode = error.code;
-			errorCode = typeof unknownCode === "string" ? unknownCode.toUpperCase() : void 0;
+		if (typeof e == "object" && e && "code" in e) {
+			let n = e.code;
+			t = typeof n == "string" ? n.toUpperCase() : void 0;
 		}
 	} catch {
 		return "GIT_COMMAND_FAILED";
 	}
-	if (errorCode === "ENOENT" || errorCode === "ENOTDIR") return "GIT_REPOSITORY_NOT_FOUND";
-	if (errorCode === "EACCES" || errorCode === "EPERM") return "GIT_ACCESS_DENIED";
-	return "GIT_COMMAND_FAILED";
-};
-var queryGitPath = async (runGit, repositoryRoot, arguments_, isAbsoluteRequired, signal) => {
-	const result = await runGit(arguments_, {
-		cwd: repositoryRoot,
-		maxOutputBytes: MAX_GIT_DISCOVERY_OUTPUT_BYTES,
-		...signal === void 0 ? {} : { signal }
+	return t === "ENOENT" || t === "ENOTDIR" ? "GIT_REPOSITORY_NOT_FOUND" : t === "EACCES" || t === "EPERM" ? "GIT_ACCESS_DENIED" : "GIT_COMMAND_FAILED";
+}, Et = async (e, t, n, r, i) => {
+	let a = await e(n, {
+		cwd: t,
+		maxOutputBytes: st,
+		...i === void 0 ? {} : { signal: i }
 	});
-	if (result.kind === "failed") return createInspectionFailure$2(mapGitFailure$4(result.reason));
-	return (isAbsoluteRequired ? parseGitAbsolutePathOutput(result.value) : parseGitPathOutput(result.value)) ?? createInspectionFailure$2("GIT_OUTPUT_INVALID");
-};
-var captureLocation = async (inspectPath, hostPath, invalidTypeCode) => {
+	return a.kind === "failed" ? M(wt(a.reason)) : (r ? dt(a.value) : ut(a.value)) ?? M("GIT_OUTPUT_INVALID");
+}, Dt = async (e, t, n) => {
 	try {
-		const statistics = await inspectPath(hostPath);
-		if (!statistics.isDirectory() || statistics.ino === 0n) return createInspectionFailure$2(invalidTypeCode);
-		return Object.freeze({
-			dev: statistics.dev,
-			ino: statistics.ino,
-			path: hostPath
+		let r = await e(t);
+		return !r.isDirectory() || r.ino === 0n ? M(n) : Object.freeze({
+			dev: r.dev,
+			ino: r.ino,
+			path: t
 		});
-	} catch (error) {
-		return createInspectionFailure$2(mapFilesystemFailure$2(error));
+	} catch (e) {
+		return M(Tt(e));
 	}
-};
-var isInspectionFailure$1 = (result) => typeof result === "object" && "kind" in result && result.kind === "failed";
-var createGitWorkingTreeIdentityInspector = (runGit = runGitCommand, inspectPath = inspectDirectoryIdentity) => {
-	return async (input) => {
-		if (!path.isAbsolute(input.repositoryRoot) || input.repositoryRoot.includes("\0") || !input.repositoryRoot.isWellFormed()) return createInspectionFailure$2("GIT_OUTPUT_INVALID");
-		const discoveredRoot = await queryGitPath(runGit, input.repositoryRoot, GIT_WORKING_TREE_IDENTITY_ARGUMENTS.RepositoryRoot, true, input.signal);
-		if (isInspectionFailure$1(discoveredRoot)) return discoveredRoot;
-		const repositoryRoot = await captureLocation(inspectPath, discoveredRoot, "GIT_WORK_TREE_REQUIRED");
-		if (input.signal?.aborted) return createInspectionFailure$2("GIT_OPERATION_ABORTED");
-		if (isInspectionFailure$1(repositoryRoot)) return repositoryRoot;
-		if (!areHostPathsEquivalent(discoveredRoot, input.repositoryRoot)) {
-			const selectedRepositoryRoot = await captureLocation(inspectPath, input.repositoryRoot, "GIT_WORK_TREE_REQUIRED");
-			if (input.signal?.aborted) return createInspectionFailure$2("GIT_OPERATION_ABORTED");
-			if (isInspectionFailure$1(selectedRepositoryRoot)) return selectedRepositoryRoot;
-			if (!haveSameHostPathIdentity(repositoryRoot, selectedRepositoryRoot)) return Object.freeze({ kind: "mismatched" });
-		}
-		const gitDirectoryPath = await queryGitPath(runGit, input.repositoryRoot, GIT_WORKING_TREE_IDENTITY_ARGUMENTS.GitDirectory, true, input.signal);
-		if (isInspectionFailure$1(gitDirectoryPath)) return gitDirectoryPath;
-		const commonDirectoryOutput = await queryGitPath(runGit, input.repositoryRoot, GIT_WORKING_TREE_IDENTITY_ARGUMENTS.CommonDirectory, false, input.signal);
-		if (isInspectionFailure$1(commonDirectoryOutput)) return commonDirectoryOutput;
-		const commonDirectoryPath = path.isAbsolute(commonDirectoryOutput) ? commonDirectoryOutput : path.resolve(input.repositoryRoot, commonDirectoryOutput);
-		const gitDirectory = await captureLocation(inspectPath, gitDirectoryPath, "GIT_OUTPUT_INVALID");
-		if (input.signal?.aborted) return createInspectionFailure$2("GIT_OPERATION_ABORTED");
-		if (isInspectionFailure$1(gitDirectory)) return gitDirectory;
-		const commonDirectory = await captureLocation(inspectPath, commonDirectoryPath, "GIT_OUTPUT_INVALID");
-		if (input.signal?.aborted) return createInspectionFailure$2("GIT_OPERATION_ABORTED");
-		if (isInspectionFailure$1(commonDirectory)) return commonDirectory;
-		return Object.freeze({
-			identity: Object.freeze({
-				commonDirectory,
-				gitDirectory,
-				repositoryRoot
-			}),
-			kind: "inspected"
-		});
-	};
-};
-var inspectGitWorkingTreeIdentity = createGitWorkingTreeIdentityInspector();
-//#endregion
-//#region src/project-content/exception.ts
-var MoldeaCliProjectContentException = class extends Error {
+}, N = (e) => typeof e == "object" && "kind" in e && e.kind === "failed", Ot = ((e = mt, t = Ct) => async (n) => {
+	if (!D.isAbsolute(n.repositoryRoot) || n.repositoryRoot.includes("\0") || !n.repositoryRoot.isWellFormed()) return M("GIT_OUTPUT_INVALID");
+	let r = await Et(e, n.repositoryRoot, St.RepositoryRoot, !0, n.signal);
+	if (N(r)) return r;
+	let i = await Dt(t, r, "GIT_WORK_TREE_REQUIRED");
+	if (n.signal?.aborted) return M("GIT_OPERATION_ABORTED");
+	if (N(i)) return i;
+	if (!vt(r, n.repositoryRoot)) {
+		let e = await Dt(t, n.repositoryRoot, "GIT_WORK_TREE_REQUIRED");
+		if (n.signal?.aborted) return M("GIT_OPERATION_ABORTED");
+		if (N(e)) return e;
+		if (!yt(i, e)) return Object.freeze({ kind: "mismatched" });
+	}
+	let a = await Et(e, n.repositoryRoot, St.GitDirectory, !0, n.signal);
+	if (N(a)) return a;
+	let o = await Et(e, n.repositoryRoot, St.CommonDirectory, !1, n.signal);
+	if (N(o)) return o;
+	let s = D.isAbsolute(o) ? o : D.resolve(n.repositoryRoot, o), c = await Dt(t, a, "GIT_OUTPUT_INVALID");
+	if (n.signal?.aborted) return M("GIT_OPERATION_ABORTED");
+	if (N(c)) return c;
+	let l = await Dt(t, s, "GIT_OUTPUT_INVALID");
+	return n.signal?.aborted ? M("GIT_OPERATION_ABORTED") : N(l) ? l : Object.freeze({
+		identity: Object.freeze({
+			commonDirectory: l,
+			gitDirectory: c,
+			repositoryRoot: i
+		}),
+		kind: "inspected"
+	});
+})(), kt = class extends Error {
 	code;
-	constructor(code) {
-		super(code);
-		this.code = code;
-		this.name = "MoldeaCliProjectContentException";
+	constructor(e) {
+		super(e), this.code = e, this.name = "MoldeaCliProjectContentException";
 	}
-};
-//#endregion
-//#region src/project-content/validations.ts
-var CONTEXT_PATH_PATTERN = /^\/moldea\/context\/(?:[^/]+\/)*[^/]+\.md$/u;
-var DECISION_PATH_PATTERN = /^\/moldea\/decisions\/[^/]+\.md$/u;
-var AGENT_PATH_PATTERN = /^\/moldea\/agents\/[^/]+\/(?:description|instruction)\.md$/u;
-var isMoldeaCliCanonicalContentPath = (path) => {
-	if (/[?*[\]{}]/u.test(path)) return false;
-	return path === "/moldea/moldea.yaml" || path === "/moldea/project.md" || CONTEXT_PATH_PATTERN.test(path) || DECISION_PATH_PATTERN.test(path) || AGENT_PATH_PATTERN.test(path);
-};
-var parseMoldeaCliCanonicalContentPath = (input) => {
-	let path;
+}, At = /^\/moldea\/context\/(?:[^/]+\/)*[^/]+\.md$/u, jt = /^\/moldea\/decisions\/[^/]+\.md$/u, Mt = /^\/moldea\/agents\/[^/]+\/(?:description|instruction)\.md$/u, Nt = (e) => /[?*[\]{}]/u.test(e) ? !1 : e === "/moldea/moldea.yaml" || e === "/moldea/project.md" || At.test(e) || jt.test(e) || Mt.test(e), Pt = (e) => {
+	let t;
 	try {
-		path = parseRepositoryPath(input);
+		t = T(e);
 	} catch {
-		throw new MoldeaCliProjectContentException("CONTENT_PATH_INVALID");
+		throw new kt("CONTENT_PATH_INVALID");
 	}
-	if (!isMoldeaCliCanonicalContentPath(path)) throw new MoldeaCliProjectContentException("CONTENT_PATH_INVALID");
-	return path;
-};
-//#endregion
-//#region src/project-content/executor.ts
-var createMoldeaCliProjectContentExecutor = (coreFactory = createCore) => {
-	return async (input) => {
-		return coreFactory({ limits: Object.freeze({
-			maxDiagnostics: input.resourceLimits.maxDiagnostics,
-			maxEntries: input.resourceLimits.maxEntries,
-			maxCoverage: input.resourceLimits.maxCoverage,
-			maxFileBytes: input.resourceLimits.maxFileBytes,
-			maxManifestBytes: input.resourceLimits.maxManifestBytes,
-			maxTotalBytesRead: input.resourceLimits.maxTotalBytes
-		}) }).readCanonicalContentPage({
-			maxBytes: input.maxBytes,
-			offset: input.offset,
-			path: input.path,
-			repository: input.repository,
-			...input.signal === void 0 ? {} : { signal: input.signal }
-		});
-	};
-};
-var executeMoldeaCliProjectContent = createMoldeaCliProjectContentExecutor();
-//#endregion
-//#region src/project-content/page.ts
-var createCandidate = (input, scalars, scalarEnd, snapshotDigest) => {
-	const content = scalars.slice(0, scalarEnd).join("");
-	const byteEnd = input.page.byteStart + Buffer.byteLength(content, "utf8");
-	const isComplete = byteEnd === input.page.totalBytes;
+	if (!Nt(t)) throw new kt("CONTENT_PATH_INVALID");
+	return t;
+}, Ft = ((e = we) => async (t) => e({ limits: Object.freeze({
+	maxDiagnostics: t.resourceLimits.maxDiagnostics,
+	maxEntries: t.resourceLimits.maxEntries,
+	maxCoverage: t.resourceLimits.maxCoverage,
+	maxFileBytes: t.resourceLimits.maxFileBytes,
+	maxManifestBytes: t.resourceLimits.maxManifestBytes,
+	maxTotalBytesRead: t.resourceLimits.maxTotalBytes
+}) }).readCanonicalContentPage({
+	maxBytes: t.maxBytes,
+	offset: t.offset,
+	path: t.path,
+	repository: t.repository,
+	...t.signal === void 0 ? {} : { signal: t.signal }
+}))(), It = (e, t, n, r) => {
+	let i = t.slice(0, n).join(""), a = e.page.byteStart + Buffer.byteLength(i, "utf8"), o = a === e.page.totalBytes;
 	return {
 		asset: {
-			contentIdentity: input.page.contentIdentity,
-			path: input.page.path,
-			totalBytes: input.page.totalBytes
+			contentIdentity: e.page.contentIdentity,
+			path: e.page.path,
+			totalBytes: e.page.totalBytes
 		},
 		chunk: {
-			byteEnd,
-			byteStart: input.page.byteStart,
-			content
+			byteEnd: a,
+			byteStart: e.page.byteStart,
+			content: i
 		},
-		cursor: isComplete ? null : encodeMoldeaCliCursor("content", { path: input.page.path }, snapshotDigest, `byte:${byteEnd}`, `byte:${byteEnd}`),
-		snapshotDigest
+		cursor: o ? null : Se("content", { path: e.page.path }, r, `byte:${a}`, `byte:${a}`),
+		snapshotDigest: r
 	};
-};
-var createSnapshotDigest = (input) => calculateMoldeaCliJsonDigest({
-	contentIdentity: input.page.contentIdentity,
-	path: input.page.path,
-	totalBytes: input.page.totalBytes
-});
-var createMoldeaCliContentPage = (input) => {
-	const snapshotDigest = createSnapshotDigest(input);
-	const cursorState = input.cursor === null ? null : decodeMoldeaCliCursor({
+}, Lt = (e) => g({
+	contentIdentity: e.page.contentIdentity,
+	path: e.page.path,
+	totalBytes: e.page.totalBytes
+}), Rt = (e) => {
+	let t = Lt(e), n = e.cursor === null ? null : b({
 		command: "content",
-		cursor: input.cursor,
-		filters: { path: input.page.path },
-		snapshotDigest
-	});
-	const expectedSourceCursor = `byte:${input.page.byteStart}`;
-	if (cursorState === null && input.page.byteStart !== 0 || cursorState !== null && cursorState.sourceCursor !== expectedSourceCursor) throw new MoldeaCliOutputPageException("CURSOR_INVALID");
-	const scalars = Array.from(input.page.content);
-	const emptyResult = createCandidate(input, scalars, 0, snapshotDigest);
-	if (scalars.length === 0) {
-		if (!input.page.isComplete || input.measure(emptyResult) > input.maxOutputBytes) throw new MoldeaCliOutputPageException("OUTPUT_BUDGET_TOO_SMALL");
+		cursor: e.cursor,
+		filters: { path: e.page.path },
+		snapshotDigest: t
+	}), r = `byte:${e.page.byteStart}`;
+	if (n === null && e.page.byteStart !== 0 || n !== null && n.sourceCursor !== r) throw new S("CURSOR_INVALID");
+	let i = Array.from(e.page.content), a = It(e, i, 0, t);
+	if (i.length === 0) {
+		if (!e.page.isComplete || e.measure(a) > e.maxOutputBytes) throw new S("OUTPUT_BUDGET_TOO_SMALL");
 		return Object.freeze({
-			...emptyResult,
-			asset: Object.freeze(emptyResult.asset),
-			chunk: Object.freeze(emptyResult.chunk)
+			...a,
+			asset: Object.freeze(a.asset),
+			chunk: Object.freeze(a.chunk)
 		});
 	}
-	let lower = 1;
-	let upper = scalars.length;
-	let selected = null;
-	while (lower <= upper) {
-		const scalarEnd = lower + Math.floor((upper - lower) / 2);
-		const candidate = createCandidate(input, scalars, scalarEnd, snapshotDigest);
-		if (input.measure(candidate) <= input.maxOutputBytes) {
-			selected = candidate;
-			lower = scalarEnd + 1;
-		} else upper = scalarEnd - 1;
+	let o = 1, s = i.length, c = null;
+	for (; o <= s;) {
+		let n = o + Math.floor((s - o) / 2), r = It(e, i, n, t);
+		e.measure(r) <= e.maxOutputBytes ? (c = r, o = n + 1) : s = n - 1;
 	}
-	if (selected === null) throw new MoldeaCliOutputPageException("OUTPUT_BUDGET_TOO_SMALL");
+	if (c === null) throw new S("OUTPUT_BUDGET_TOO_SMALL");
 	return Object.freeze({
-		...selected,
-		asset: Object.freeze(selected.asset),
-		chunk: Object.freeze(selected.chunk)
+		...c,
+		asset: Object.freeze(c.asset),
+		chunk: Object.freeze(c.chunk)
 	});
-};
-//#endregion
-//#region src/project-scope/constants.ts
-var MOLDEA_MANIFEST_PATH = parseRepositoryPath("/moldea/moldea.yaml");
-//#endregion
-//#region src/project-scope/exception.ts
-var MoldeaCliProjectScopeException = class extends Error {
+}, P = T("/moldea/moldea.yaml"), zt = class extends Error {
 	code;
-	constructor(code) {
-		super(code);
-		this.code = code;
-		this.name = "MoldeaCliProjectScopeException";
+	constructor(e) {
+		super(e), this.code = e, this.name = "MoldeaCliProjectScopeException";
 	}
-};
-//#endregion
-//#region src/project-scope/paths.ts
-var parseMoldeaCliScopePathBytes = (input, maxEntries) => {
-	if (input.byteLength === 0) return Object.freeze([]);
-	let text;
+}, Bt = (e, t) => {
+	if (e.byteLength === 0) return Object.freeze([]);
+	let n;
 	try {
-		text = new TextDecoder("utf-8", { fatal: true }).decode(input);
+		n = new TextDecoder("utf-8", { fatal: !0 }).decode(e);
 	} catch {
-		throw new MoldeaCliProjectScopeException("PATH_INPUT_INVALID");
+		throw new zt("PATH_INPUT_INVALID");
 	}
-	if (!text.endsWith("\0")) throw new MoldeaCliProjectScopeException("PATH_INPUT_INVALID");
-	const paths = text.slice(0, -1).split("\0");
-	if (paths.length > maxEntries || paths.some((path) => path.length === 0)) throw new MoldeaCliProjectScopeException("PATH_INPUT_INVALID");
-	return Object.freeze(paths);
-};
-//#endregion
-//#region src/project-scope/executor.ts
-var readBoundedManifest = async (input) => {
-	const operationOptions = input.signal === void 0 ? void 0 : { signal: input.signal };
-	const entry = await input.repository.getEntry(MOLDEA_MANIFEST_PATH, operationOptions);
-	if (entry === null) throw new RepositorySourceException({
+	if (!n.endsWith("\0")) throw new zt("PATH_INPUT_INVALID");
+	let r = n.slice(0, -1).split("\0");
+	if (r.length > t || r.some((e) => e.length === 0)) throw new zt("PATH_INPUT_INVALID");
+	return Object.freeze(r);
+}, Vt = async (e) => {
+	let t = e.signal === void 0 ? void 0 : { signal: e.signal }, n = await e.repository.getEntry(P, t);
+	if (n === null) throw new w({
 		code: "ENTRY_NOT_FOUND",
 		operation: "read-file-page",
-		path: MOLDEA_MANIFEST_PATH,
-		retryable: false
+		path: P,
+		retryable: !1
 	});
-	if (entry.type !== "file" || entry.byteLength === null) throw new RepositorySourceException({
+	if (n.type !== "file" || n.byteLength === null) throw new w({
 		code: "ENTRY_NOT_FILE",
 		operation: "read-file-page",
-		path: MOLDEA_MANIFEST_PATH,
-		retryable: false
+		path: P,
+		retryable: !1
 	});
-	const maxBytes = Math.min(input.resourceLimits.maxManifestBytes, input.resourceLimits.maxTotalBytes);
-	if (entry.byteLength > maxBytes) throw new RepositorySourceException({
+	let r = Math.min(e.resourceLimits.maxManifestBytes, e.resourceLimits.maxTotalBytes);
+	if (n.byteLength > r) throw new w({
 		code: "RESOURCE_LIMIT_EXCEEDED",
 		operation: "read-file-page",
-		path: MOLDEA_MANIFEST_PATH,
-		retryable: false
+		path: P,
+		retryable: !1
 	});
-	const chunks = [];
-	let byteLength = 0;
-	let nextOffset = 0;
-	let isComplete = false;
-	while (!isComplete) {
-		const page = await input.repository.readFilePage(MOLDEA_MANIFEST_PATH, {
-			maxBytes: Math.max(1, entry.byteLength - byteLength),
-			offset: nextOffset,
-			...input.signal === void 0 ? {} : { signal: input.signal }
+	let i = [], a = 0, o = 0, s = !1;
+	for (; !s;) {
+		let t = await e.repository.readFilePage(P, {
+			maxBytes: Math.max(1, n.byteLength - a),
+			offset: o,
+			...e.signal === void 0 ? {} : { signal: e.signal }
 		});
-		if (page.snapshot.id !== input.repository.snapshot.id || page.offset !== nextOffset || page.totalBytes !== entry.byteLength || page.bytes.byteLength > entry.byteLength - byteLength || page.bytes.byteLength === 0 && !page.isComplete || !page.isComplete && page.nextOffset !== page.offset + page.bytes.byteLength) throw new RepositorySourceException({
+		if (t.snapshot.id !== e.repository.snapshot.id || t.offset !== o || t.totalBytes !== n.byteLength || t.bytes.byteLength > n.byteLength - a || t.bytes.byteLength === 0 && !t.isComplete || !t.isComplete && t.nextOffset !== t.offset + t.bytes.byteLength) throw new w({
 			code: "INVALID_SOURCE_DATA",
 			operation: "read-file-page",
-			path: MOLDEA_MANIFEST_PATH,
-			retryable: false
+			path: P,
+			retryable: !1
 		});
-		chunks.push(page.bytes);
-		byteLength += page.bytes.byteLength;
-		nextOffset = page.nextOffset ?? byteLength;
-		isComplete = page.isComplete;
+		i.push(t.bytes), a += t.bytes.byteLength, o = t.nextOffset ?? a, s = t.isComplete;
 	}
-	if (byteLength !== entry.byteLength) throw new RepositorySourceException({
+	if (a !== n.byteLength) throw new w({
 		code: "PROVIDER_INCOMPLETE",
 		operation: "read-file-page",
-		path: MOLDEA_MANIFEST_PATH,
-		retryable: false
+		path: P,
+		retryable: !1
 	});
-	const manifestBytes = new Uint8Array(byteLength);
-	let writeOffset = 0;
-	for (const chunk of chunks) {
-		manifestBytes.set(chunk, writeOffset);
-		writeOffset += chunk.byteLength;
-	}
-	return manifestBytes;
-};
-var createMoldeaCliProjectScopeExecutor = (coreFactory = createCore) => {
-	return async (input) => {
-		const manifestBytes = await readBoundedManifest(input);
-		const scope = await coreFactory({ limits: Object.freeze({
-			maxDiagnostics: input.resourceLimits.maxDiagnostics,
-			maxEntries: input.resourceLimits.maxEntries,
-			maxCoverage: input.resourceLimits.maxCoverage,
-			maxFileBytes: input.resourceLimits.maxFileBytes,
-			maxManifestBytes: input.resourceLimits.maxManifestBytes,
-			maxTotalBytesRead: input.resourceLimits.maxTotalBytes
-		}) }).matchManifestScope({
-			manifest: {
-				content: manifestBytes,
-				path: MOLDEA_MANIFEST_PATH
-			},
-			paths: input.paths
-		});
-		return Object.freeze({
-			manifestContent: new TextDecoder("utf-8").decode(manifestBytes),
-			scope
-		});
-	};
-};
-var executeMoldeaCliProjectScope = createMoldeaCliProjectScopeExecutor();
-//#endregion
-//#region src/project-scope/transformers.ts
-var compareKeys = (left, right) => left.key < right.key ? -1 : left.key > right.key ? 1 : 0;
-var createMatchKey = (match) => JSON.stringify([
-	"match",
-	match.owner.kind,
-	match.owner.agentId,
-	match.owner.id,
-	match.field,
-	match.declaration.kind === "exact" ? match.declaration.path : match.declaration.pattern,
-	match.inputPath,
-	match.pointer
-]);
-var createMoldeaCliScopeProjection = (execution) => {
-	const records = [...execution.scope.diagnostics.map((diagnostic, index) => createMoldeaCliDiagnosticRecord(diagnostic, index)), ...execution.scope.matches.map((match) => ({
-		key: createMatchKey(match),
-		kind: "match",
-		match
-	}))].sort(compareKeys);
-	const snapshotDigest = calculateMoldeaCliJsonDigest({
-		inputDigest: execution.scope.inputDigest,
-		manifestDigest: execution.scope.manifestDigest,
-		records,
-		valid: execution.scope.valid
+	let c = new Uint8Array(a), l = 0;
+	for (let e of i) c.set(e, l), l += e.byteLength;
+	return c;
+}, Ht = ((e = we) => async (t) => {
+	let n = await Vt(t), r = await e({ limits: Object.freeze({
+		maxDiagnostics: t.resourceLimits.maxDiagnostics,
+		maxEntries: t.resourceLimits.maxEntries,
+		maxCoverage: t.resourceLimits.maxCoverage,
+		maxFileBytes: t.resourceLimits.maxFileBytes,
+		maxManifestBytes: t.resourceLimits.maxManifestBytes,
+		maxTotalBytesRead: t.resourceLimits.maxTotalBytes
+	}) }).matchManifestScope({
+		manifest: {
+			content: n,
+			path: P
+		},
+		paths: t.paths
 	});
 	return Object.freeze({
-		canonicalBodies: Object.freeze([execution.manifestContent]),
-		counts: Object.freeze({
-			...execution.scope.counts,
-			diagnostics: execution.scope.diagnostics.length
-		}),
-		inputDigest: execution.scope.inputDigest,
-		manifestDigest: execution.scope.manifestDigest,
-		records: Object.freeze(records),
-		relevant: execution.scope.relevant,
-		snapshotDigest,
-		valid: execution.scope.valid
+		manifestContent: new TextDecoder("utf-8").decode(n),
+		scope: r
 	});
-};
-//#endregion
-//#region src/repository-content-transformation-guard/exception.ts
-var GitContentTransformUnsupportedException = class extends RepositorySourceException {
-	constructor(path) {
+})(), Ut = (e, t) => e.key < t.key ? -1 : +(e.key > t.key), Wt = (e) => JSON.stringify([
+	"match",
+	e.owner.kind,
+	e.owner.agentId,
+	e.owner.id,
+	e.field,
+	e.declaration.kind === "exact" ? e.declaration.path : e.declaration.pattern,
+	e.inputPath,
+	e.pointer
+]), Gt = (e) => {
+	let t = [...e.scope.diagnostics.map((e, t) => le(e, t)), ...e.scope.matches.map((e) => ({
+		key: Wt(e),
+		kind: "match",
+		match: e
+	}))].sort(Ut), n = g({
+		inputDigest: e.scope.inputDigest,
+		manifestDigest: e.scope.manifestDigest,
+		records: t,
+		valid: e.scope.valid
+	});
+	return Object.freeze({
+		canonicalBodies: Object.freeze([e.manifestContent]),
+		counts: Object.freeze({
+			...e.scope.counts,
+			diagnostics: e.scope.diagnostics.length
+		}),
+		inputDigest: e.scope.inputDigest,
+		manifestDigest: e.scope.manifestDigest,
+		records: Object.freeze(t),
+		relevant: e.scope.relevant,
+		snapshotDigest: n,
+		valid: e.scope.valid
+	});
+}, Kt = class extends w {
+	constructor(e) {
 		super({
 			code: "SOURCE_UNAVAILABLE",
 			operation: "read-file-page",
-			path,
-			retryable: false
-		});
-		this.name = "GitContentTransformUnsupportedException";
+			path: e,
+			retryable: !1
+		}), this.name = "GitContentTransformUnsupportedException";
 	}
-};
-//#endregion
-//#region src/repository-content-transformation-guard/reader.ts
-var throwIfAborted$2 = (signal, path) => {
-	if (!signal?.aborted) return;
-	throw new RepositorySourceException({
-		cause: signal.reason,
+}, qt = (e, t) => {
+	if (e?.aborted) throw new w({
+		cause: e.reason,
 		code: "ABORTED",
 		operation: "read-file-page",
-		path,
-		retryable: false
+		path: t,
+		retryable: !1
 	});
-};
-var createInvalidSourceException = (path) => new RepositorySourceException({
+}, Jt = (e) => new w({
 	code: "INVALID_SOURCE_DATA",
 	operation: "read-file-page",
-	path,
-	retryable: false
-});
-var GitContentTransformationGuardRepositoryReader = class {
+	path: e,
+	retryable: !1
+}), Yt = class {
 	snapshot;
-	#guardedPaths;
-	#reader;
-	constructor(reader, guardedPaths) {
-		this.#reader = reader;
-		this.#guardedPaths = guardedPaths;
-		this.snapshot = reader.snapshot;
+	#e;
+	#t;
+	constructor(e, t) {
+		this.#t = e, this.#e = t, this.snapshot = e.snapshot;
 	}
-	compare(candidate, options) {
-		return createRepositoryComparison(this, candidate, options);
+	compare(e, t) {
+		return De(this, e, t);
 	}
-	getEntry(path, options) {
-		return this.#reader.getEntry(path, options);
+	getEntry(e, t) {
+		return this.#t.getEntry(e, t);
 	}
-	async readFilePage(path, options) {
-		const parsedPath = parseRepositoryPath(path);
-		if (!this.#guardedPaths.has(parsedPath)) return this.#reader.readFilePage(parsedPath, options);
-		throwIfAborted$2(options?.signal, parsedPath);
-		const entry = await this.#reader.getEntry(parsedPath, options);
-		throwIfAborted$2(options?.signal, parsedPath);
-		if (entry !== null && (entry.path !== parsedPath || entry.type !== "file" && entry.type !== "directory" && entry.type !== "symlink")) throw createInvalidSourceException(parsedPath);
-		if (entry?.type !== "file") return this.#reader.readFilePage(parsedPath, options);
-		throw new GitContentTransformUnsupportedException(parsedPath);
+	async readFilePage(e, t) {
+		let n = T(e);
+		if (!this.#e.has(n)) return this.#t.readFilePage(n, t);
+		qt(t?.signal, n);
+		let r = await this.#t.getEntry(n, t);
+		if (qt(t?.signal, n), r !== null && (r.path !== n || r.type !== "file" && r.type !== "directory" && r.type !== "symlink")) throw Jt(n);
+		if (r?.type !== "file") return this.#t.readFilePage(n, t);
+		throw new Kt(n);
 	}
-	readLinkText(path, options) {
-		return this.#reader.readLinkText(path, options);
+	readLinkText(e, t) {
+		return this.#t.readLinkText(e, t);
 	}
-	listEntriesPage(options) {
-		return this.#reader.listEntriesPage(options);
+	listEntriesPage(e) {
+		return this.#t.listEntriesPage(e);
 	}
-};
-var createGitContentTransformationGuardRepositoryReader = (reader, guardedPaths) => {
-	const parsedGuardedPaths = new Set();
-	for (const guardedPath of guardedPaths) {
-		const parsedPath = parseRepositoryPath(guardedPath);
-		if (parsedPath === REPOSITORY_ROOT) throw new RepositorySourceException({
+}, Xt = (e, t) => {
+	let n = new Set();
+	for (let e of t) {
+		let t = T(e);
+		if (t === E) throw new w({
 			code: "INVALID_SOURCE_DATA",
 			operation: "create-reader",
-			path: parsedPath,
-			retryable: false
+			path: t,
+			retryable: !1
 		});
-		parsedGuardedPaths.add(parsedPath);
+		n.add(t);
 	}
-	return Object.freeze(new GitContentTransformationGuardRepositoryReader(reader, parsedGuardedPaths));
-};
-//#endregion
-//#region src/operational-error/constants.ts
-var REPOSITORY_SOURCE_ERROR_MESSAGES = Object.freeze({
+	return Object.freeze(new Yt(e, n));
+}, Zt = Object.freeze({
 	ABORTED: "The repository operation was aborted.",
 	ACCESS_DENIED: "Access to the repository source was denied.",
 	ENTRY_NOT_DIRECTORY: "The requested repository entry is not a directory.",
@@ -985,9 +698,7 @@ var REPOSITORY_SOURCE_ERROR_MESSAGES = Object.freeze({
 	RESOURCE_LIMIT_EXCEEDED: "A repository reading resource limit was exceeded.",
 	SNAPSHOT_CHANGED: "The repository snapshot changed during the operation.",
 	SOURCE_UNAVAILABLE: "The repository source is unavailable."
-});
-var CORE_CONFIGURATION_ERROR_MESSAGES = Object.freeze({ INVALID_RESOURCE_LIMIT: "A Core resource limit is invalid." });
-var CORE_OPERATION_ERROR_MESSAGES = Object.freeze({
+}), Qt = Object.freeze({ INVALID_RESOURCE_LIMIT: "A Core resource limit is invalid." }), $t = Object.freeze({
 	ABORTED: "The Core operation was aborted.",
 	CONTENT_INVALID: "The requested canonical content is invalid.",
 	INVALID_ARGUMENT: "The Core operation received an invalid argument.",
@@ -995,55 +706,34 @@ var CORE_OPERATION_ERROR_MESSAGES = Object.freeze({
 	INSPECTION_TIMEOUT: "The isolated project inspection timed out.",
 	INSPECTION_PROCESS_FAILED: "The isolated project inspection failed.",
 	RESOURCE_LIMIT_EXCEEDED: "A Core resource limit was exceeded."
-});
-//#endregion
-//#region src/operational-error/mapper.ts
-var EMPTY_ERROR_DETAILS = Object.freeze({});
-var createCoreErrorDetails = (error) => {
-	const details = { operation: error.operation };
-	if (error instanceof CoreOperationException) {
-		if (error.limit !== null) details["limit"] = error.limit;
-		if (error.limitMaximum !== null) details["limitMaximum"] = error.limitMaximum;
-		if (error.nextAction !== null) details["nextAction"] = error.nextAction;
-		if (error.observedUsage !== null || error.nextAction === "review-inspection-capacity") details["observedUsage"] = error.observedUsage;
-	}
-	return Object.freeze(details);
-};
-var mapMoldeaCliOperationalError = (error) => {
-	if (error instanceof MoldeaCliCompositionException || error instanceof MoldeaCliOutputPageException || error instanceof MoldeaCliProjectContentException || error instanceof MoldeaCliProjectScopeException) return createMoldeaCliOwnedError(error.code);
-	if (error instanceof GitContentTransformUnsupportedException) return Object.freeze({
-		...createMoldeaCliOwnedError("GIT_CONTENT_TRANSFORM_UNSUPPORTED"),
-		path: isRepositoryPath(error.path) ? error.path : null
-	});
-	if (error instanceof RepositorySourceException) return Object.freeze({
-		code: error.code,
-		details: EMPTY_ERROR_DETAILS,
-		message: REPOSITORY_SOURCE_ERROR_MESSAGES[error.code],
-		path: error.path !== null && isRepositoryPath(error.path) ? error.path : null,
-		retryable: error.retryable,
-		source: "repository"
-	});
-	if (error instanceof CoreConfigurationException) return Object.freeze({
-		code: error.code,
-		details: createCoreErrorDetails(error),
-		message: CORE_CONFIGURATION_ERROR_MESSAGES[error.code],
-		path: null,
-		retryable: false,
-		source: "core"
-	});
-	if (error instanceof CoreOperationException) return Object.freeze({
-		code: error.code,
-		details: createCoreErrorDetails(error),
-		message: CORE_OPERATION_ERROR_MESSAGES[error.code],
-		path: null,
-		retryable: error.retryable,
-		source: "core"
-	});
-	return createMoldeaCliOwnedError("INTERNAL_ERROR");
-};
-//#endregion
-//#region src/git-inventory/constants.ts
-var GIT_IGNORED_INVENTORY_ARGUMENTS = [
+}), en = Object.freeze({}), tn = (e) => {
+	let t = { operation: e.operation };
+	return e instanceof a && (e.limit !== null && (t.limit = e.limit), e.limitMaximum !== null && (t.limitMaximum = e.limitMaximum), e.nextAction !== null && (t.nextAction = e.nextAction), (e.observedUsage !== null || e.nextAction === "review-inspection-capacity") && (t.observedUsage = e.observedUsage)), Object.freeze(t);
+}, nn = (e) => e instanceof he || e instanceof S || e instanceof kt || e instanceof zt ? _(e.code) : e instanceof Kt ? Object.freeze({
+	..._("GIT_CONTENT_TRANSFORM_UNSUPPORTED"),
+	path: Ee(e.path) ? e.path : null
+}) : e instanceof w ? Object.freeze({
+	code: e.code,
+	details: en,
+	message: Zt[e.code],
+	path: e.path !== null && Ee(e.path) ? e.path : null,
+	retryable: e.retryable,
+	source: "repository"
+}) : e instanceof o ? Object.freeze({
+	code: e.code,
+	details: tn(e),
+	message: Qt[e.code],
+	path: null,
+	retryable: !1,
+	source: "core"
+}) : e instanceof a ? Object.freeze({
+	code: e.code,
+	details: tn(e),
+	message: $t[e.code],
+	path: null,
+	retryable: e.retryable,
+	source: "core"
+}) : _("INTERNAL_ERROR"), rn = [
 	"ls-files",
 	"--others",
 	"--ignored",
@@ -1052,147 +742,100 @@ var GIT_IGNORED_INVENTORY_ARGUMENTS = [
 	"--no-recurse-submodules",
 	"-z",
 	"--"
-];
-var GIT_INVENTORY_LISTING_SUBCOMMAND = "ls-files";
-var INSTRUCTION_PATHS = Object.freeze([
+], an = "ls-files", on = Object.freeze([
 	"/AGENTS.md",
 	"/CLAUDE.md",
 	"/.claude/CLAUDE.md",
 	"/CLAUDE.local.md"
-].map((path) => parseRepositoryPath(path)));
-var GIT_TRACKED_ENTRY_MODES = [
+].map((e) => T(e))), sn = [
 	"100644",
 	"100755",
 	"120000",
 	"160000"
-];
-//#endregion
-//#region src/git-inventory/content-transformation/constants.ts
-var GIT_CONTENT_TRANSFORMATION_ATTRIBUTES = [
+], cn = [
 	"filter",
 	"working-tree-encoding",
 	"ident"
-];
-var GIT_CONTENT_TRANSFORMATION_ARGUMENTS = [
+], ln = [
 	"check-attr",
 	"--stdin",
 	"-z",
-	...GIT_CONTENT_TRANSFORMATION_ATTRIBUTES
-];
-//#endregion
-//#region src/git-inventory/content-transformation/parser.ts
-var concatenateField = (fragments, byteLength) => {
-	const field = new Uint8Array(byteLength);
-	let offset = 0;
-	for (const fragment of fragments) {
-		field.set(fragment, offset);
-		offset += fragment.byteLength;
-	}
-	return field;
-};
-var decodeField = (field) => {
+	...cn
+], un = (e, t) => {
+	let n = new Uint8Array(t), r = 0;
+	for (let t of e) n.set(t, r), r += t.byteLength;
+	return n;
+}, dn = (e) => {
 	try {
 		return new TextDecoder("utf-8", {
-			fatal: true,
-			ignoreBOM: true
-		}).decode(field);
+			fatal: !0,
+			ignoreBOM: !0
+		}).decode(e);
 	} catch {
 		return null;
 	}
-};
-var resolveAttribute = (candidate) => {
-	return GIT_CONTENT_TRANSFORMATION_ATTRIBUTES.find((attribute) => attribute === candidate) ?? null;
-};
-var storeAttribute = (values, attribute, value) => {
-	const property = attribute === "working-tree-encoding" ? "workingTreeEncoding" : attribute;
-	if (Object.hasOwn(values, property)) return false;
-	values[property] = value;
-	return true;
-};
-var hasCompleteValues = (values) => Object.hasOwn(values, "filter") && Object.hasOwn(values, "ident") && Object.hasOwn(values, "workingTreeEncoding");
-var createGitContentTransformationParser = (input) => {
-	const paths = [...input.paths];
-	const valuesByPath = new Map();
-	let fields = [];
-	let isFailed = false;
-	let pendingByteLength = 0;
-	let pendingFragments = [];
-	for (const path of paths) {
-		if (path.length === 0 || path.includes("\0") || valuesByPath.has(path)) {
-			isFailed = true;
+}, fn = (e) => cn.find((t) => t === e) ?? null, pn = (e, t, n) => {
+	let r = t === "working-tree-encoding" ? "workingTreeEncoding" : t;
+	return !Object.hasOwn(e, r) && (e[r] = n, !0);
+}, mn = (e) => Object.hasOwn(e, "filter") && Object.hasOwn(e, "ident") && Object.hasOwn(e, "workingTreeEncoding"), hn = (e) => {
+	let t = [...e.paths], n = new Map(), r = [], i = !1, a = 0, o = [];
+	for (let e of t) {
+		if (e.length === 0 || e.includes("\0") || n.has(e)) {
+			i = !0;
 			continue;
 		}
-		valuesByPath.set(path, {});
+		n.set(e, {});
 	}
-	const consumeRecord = () => {
-		if (isFailed || fields.length !== 3) return;
-		const path = decodeField(fields[0] ?? new Uint8Array());
-		const attributeCandidate = decodeField(fields[1] ?? new Uint8Array());
-		const value = decodeField(fields[2] ?? new Uint8Array());
-		fields = [];
-		if (path === null || attributeCandidate === null || value === null) {
-			isFailed = true;
+	let s = () => {
+		if (i || r.length !== 3) return;
+		let e = dn(r[0] ?? new Uint8Array()), t = dn(r[1] ?? new Uint8Array()), a = dn(r[2] ?? new Uint8Array());
+		if (r = [], e === null || t === null || a === null) {
+			i = !0;
 			return;
 		}
-		const attribute = resolveAttribute(attributeCandidate);
-		const values = valuesByPath.get(path);
-		if (attribute === null || values === void 0 || !storeAttribute(values, attribute, value)) isFailed = true;
-	};
-	const consumeField = () => {
-		if (isFailed) return;
-		fields.push(concatenateField(pendingFragments, pendingByteLength));
-		pendingByteLength = 0;
-		pendingFragments = [];
-		if (fields.length === 3) consumeRecord();
+		let o = fn(t), s = n.get(e);
+		(o === null || s === void 0 || !pn(s, o, a)) && (i = !0);
+	}, c = () => {
+		i || (r.push(un(o, a)), a = 0, o = [], r.length === 3 && s());
 	};
 	return {
-		consume: (chunk) => {
-			if (isFailed) return;
-			let fragmentStart = 0;
-			for (let index = 0; index < chunk.byteLength; index += 1) {
-				if (chunk[index] !== 0) continue;
-				const fragment = chunk.subarray(fragmentStart, index);
-				pendingFragments.push(Uint8Array.from(fragment));
-				pendingByteLength += fragment.byteLength;
-				consumeField();
-				if (isFailed) return;
-				fragmentStart = index + 1;
+		consume: (e) => {
+			if (i) return;
+			let t = 0;
+			for (let n = 0; n < e.byteLength; n += 1) {
+				if (e[n] !== 0) continue;
+				let r = e.subarray(t, n);
+				if (o.push(Uint8Array.from(r)), a += r.byteLength, c(), i) return;
+				t = n + 1;
 			}
-			const trailingFragment = chunk.subarray(fragmentStart);
-			if (trailingFragment.byteLength > 0) {
-				pendingFragments.push(Uint8Array.from(trailingFragment));
-				pendingByteLength += trailingFragment.byteLength;
-			}
+			let n = e.subarray(t);
+			n.byteLength > 0 && (o.push(Uint8Array.from(n)), a += n.byteLength);
 		},
 		finish: () => {
-			if (isFailed || pendingByteLength > 0 || fields.length > 0) return Object.freeze({ kind: "failed" });
-			const attributes = [];
-			for (const path of paths) {
-				const values = valuesByPath.get(path);
-				if (values === void 0 || !hasCompleteValues(values)) return Object.freeze({ kind: "failed" });
-				attributes.push(Object.freeze({
-					filter: values.filter,
-					ident: values.ident,
-					path,
-					workingTreeEncoding: values.workingTreeEncoding
+			if (i || a > 0 || r.length > 0) return Object.freeze({ kind: "failed" });
+			let e = [];
+			for (let r of t) {
+				let t = n.get(r);
+				if (t === void 0 || !mn(t)) return Object.freeze({ kind: "failed" });
+				e.push(Object.freeze({
+					filter: t.filter,
+					ident: t.ident,
+					path: r,
+					workingTreeEncoding: t.workingTreeEncoding
 				}));
 			}
 			return Object.freeze({
-				attributes: Object.freeze(attributes),
+				attributes: Object.freeze(e),
 				kind: "completed"
 			});
 		}
 	};
-};
-//#endregion
-//#region src/git-inventory/content-transformation/classifier.ts
-var createClassificationFailure = (errorCode, subcommand) => Object.freeze({
-	errorCode,
+}, F = (e, t) => Object.freeze({
+	errorCode: e,
 	kind: "failed",
-	...subcommand === void 0 ? {} : { subcommand }
-});
-var mapGitFailure$3 = (reason) => {
-	switch (reason) {
+	...t === void 0 ? {} : { subcommand: t }
+}), gn = (e) => {
+	switch (e) {
 		case "aborted": return "GIT_OPERATION_ABORTED";
 		case "not-found": return "GIT_NOT_FOUND";
 		case "access-denied": return "GIT_ACCESS_DENIED";
@@ -1201,168 +844,128 @@ var mapGitFailure$3 = (reason) => {
 		case "output-invalid": return "GIT_OUTPUT_INVALID";
 		case "command-failed": return "GIT_COMMAND_FAILED";
 	}
-};
-var isGuardedAttributeValue = (attributeValue) => attributeValue !== "unset" && attributeValue !== "unspecified";
-var encodePaths = (paths) => {
-	const encoder = new TextEncoder();
-	const encodedPaths = [];
-	let byteLength = 0;
-	for (const path of paths) {
-		if (path.length === 0 || path.includes("\0")) return null;
-		const encodedPath = encoder.encode(path);
-		if (!Number.isSafeInteger(byteLength + encodedPath.byteLength + 1)) return null;
-		encodedPaths.push(encodedPath);
-		byteLength += encodedPath.byteLength + 1;
+}, _n = (e) => e !== "unset" && e !== "unspecified", vn = (e) => {
+	let t = new TextEncoder(), n = [], r = 0;
+	for (let i of e) {
+		if (i.length === 0 || i.includes("\0")) return null;
+		let e = t.encode(i);
+		if (!Number.isSafeInteger(r + e.byteLength + 1)) return null;
+		n.push(e), r += e.byteLength + 1;
 	}
-	const stdin = new Uint8Array(byteLength);
-	let offset = 0;
-	for (const encodedPath of encodedPaths) {
-		stdin.set(encodedPath, offset);
-		offset += encodedPath.byteLength + 1;
-	}
-	return stdin;
-};
-var createClassification = (filter, ident, workingTreeEncoding) => Object.freeze({
-	filter,
-	ident,
-	isGuarded: isGuardedAttributeValue(filter) || isGuardedAttributeValue(ident) || isGuardedAttributeValue(workingTreeEncoding),
-	workingTreeEncoding
-});
-var createGitContentTransformationClassifier = (runGit = runGitCommand) => {
-	return async (input) => {
-		if (input.signal?.aborted) return createClassificationFailure("GIT_OPERATION_ABORTED");
-		if (!Number.isSafeInteger(input.maxMetadataBytes) || input.maxMetadataBytes < 0) return createClassificationFailure("RESOURCE_LIMIT_EXCEEDED");
-		if (input.entries.length === 0) return Object.freeze({
-			entries: Object.freeze([]),
-			gitMetadataBytes: 0,
-			kind: "classified"
+	let i = new Uint8Array(r), a = 0;
+	for (let e of n) i.set(e, a), a += e.byteLength + 1;
+	return i;
+}, yn = (e, t, n) => Object.freeze({
+	filter: e,
+	ident: t,
+	isGuarded: _n(e) || _n(t) || _n(n),
+	workingTreeEncoding: n
+}), bn = (e = mt) => async (t) => {
+	if (t.signal?.aborted) return F("GIT_OPERATION_ABORTED");
+	if (!Number.isSafeInteger(t.maxMetadataBytes) || t.maxMetadataBytes < 0) return F("RESOURCE_LIMIT_EXCEEDED");
+	if (t.entries.length === 0) return Object.freeze({
+		entries: Object.freeze([]),
+		gitMetadataBytes: 0,
+		kind: "classified"
+	});
+	let n = t.entries.map((e) => e.path), r = vn(n);
+	if (r === null) return F("GIT_OUTPUT_INVALID");
+	let i = await e(ln, {
+		cwd: t.repositoryRoot,
+		input: r,
+		maxOutputBytes: Math.max(t.maxMetadataBytes, 1),
+		...t.signal === void 0 ? {} : { signal: t.signal }
+	});
+	if (i.kind === "failed") return F(gn(i.reason), i.subcommand);
+	if (i.value.byteLength > t.maxMetadataBytes) return F("RESOURCE_LIMIT_EXCEEDED");
+	let a = hn({ paths: n });
+	a.consume(i.value);
+	let o = a.finish();
+	if (o.kind === "failed" || o.attributes.length !== t.entries.length) return F("GIT_OUTPUT_INVALID");
+	let s = t.entries.map((e, t) => {
+		let n = o.attributes[t];
+		return n === void 0 || n.path !== e.path ? null : Object.freeze({
+			...e,
+			contentTransformation: yn(n.filter, n.ident, n.workingTreeEncoding)
 		});
-		const paths = input.entries.map((entry) => entry.path);
-		const stdin = encodePaths(paths);
-		if (stdin === null) return createClassificationFailure("GIT_OUTPUT_INVALID");
-		const result = await runGit(GIT_CONTENT_TRANSFORMATION_ARGUMENTS, {
-			cwd: input.repositoryRoot,
-			input: stdin,
-			maxOutputBytes: Math.max(input.maxMetadataBytes, 1),
-			...input.signal === void 0 ? {} : { signal: input.signal }
-		});
-		if (result.kind === "failed") return createClassificationFailure(mapGitFailure$3(result.reason), result.subcommand);
-		if (result.value.byteLength > input.maxMetadataBytes) return createClassificationFailure("RESOURCE_LIMIT_EXCEEDED");
-		const parser = createGitContentTransformationParser({ paths });
-		parser.consume(result.value);
-		const parserResult = parser.finish();
-		if (parserResult.kind === "failed" || parserResult.attributes.length !== input.entries.length) return createClassificationFailure("GIT_OUTPUT_INVALID");
-		const entries = input.entries.map((entry, index) => {
-			const attributes = parserResult.attributes[index];
-			if (attributes === void 0 || attributes.path !== entry.path) return null;
-			return Object.freeze({
-				...entry,
-				contentTransformation: createClassification(attributes.filter, attributes.ident, attributes.workingTreeEncoding)
-			});
-		});
-		if (entries.some((entry) => entry === null)) return createClassificationFailure("GIT_OUTPUT_INVALID");
-		return Object.freeze({
-			entries: Object.freeze(entries.filter((entry) => entry !== null)),
-			gitMetadataBytes: result.value.byteLength,
-			kind: "classified"
-		});
-	};
-};
-//#endregion
-//#region src/git-inventory/entry-type/candidate-collapser.ts
-var createCollapseFailure = () => Object.freeze({ kind: "failed" });
-var collapseGitInventoryCandidates = (candidates) => {
-	const candidatesByPath = new Map();
-	for (const candidate of candidates) {
-		const existingCandidate = candidatesByPath.get(candidate.path);
-		if (candidate.kind === "untracked") {
-			if (existingCandidate !== void 0) return createCollapseFailure();
-			candidatesByPath.set(candidate.path, {
+	});
+	return s.some((e) => e === null) ? F("GIT_OUTPUT_INVALID") : Object.freeze({
+		entries: Object.freeze(s.filter((e) => e !== null)),
+		gitMetadataBytes: i.value.byteLength,
+		kind: "classified"
+	});
+}, I = () => Object.freeze({ kind: "failed" }), xn = (e) => {
+	let t = new Map();
+	for (let n of e) {
+		let e = t.get(n.path);
+		if (n.kind === "untracked") {
+			if (e !== void 0) return I();
+			t.set(n.path, {
 				kind: "untracked",
-				path: candidate.path
+				path: n.path
 			});
 			continue;
 		}
-		if (candidate.mode === "160000" || existingCandidate?.kind === "untracked") return createCollapseFailure();
-		const trackedCandidate = existingCandidate ?? {
+		if (n.mode === "160000" || e?.kind === "untracked") return I();
+		let r = e ?? {
 			indexEntriesByStage: new Map(),
 			kind: "tracked",
-			path: candidate.path
+			path: n.path
 		};
-		if (trackedCandidate.indexEntriesByStage.has(candidate.stage)) return createCollapseFailure();
-		trackedCandidate.indexEntriesByStage.set(candidate.stage, Object.freeze({
-			mode: candidate.mode,
-			stage: candidate.stage
-		}));
-		candidatesByPath.set(candidate.path, trackedCandidate);
+		if (r.indexEntriesByStage.has(n.stage)) return I();
+		r.indexEntriesByStage.set(n.stage, Object.freeze({
+			mode: n.mode,
+			stage: n.stage
+		})), t.set(n.path, r);
 	}
-	const collapsedCandidates = [];
-	for (const candidate of candidatesByPath.values()) {
-		if (candidate.kind === "untracked") {
-			collapsedCandidates.push(Object.freeze(candidate));
+	let n = [];
+	for (let e of t.values()) {
+		if (e.kind === "untracked") {
+			n.push(Object.freeze(e));
 			continue;
 		}
-		if (candidate.indexEntriesByStage.has(0) && candidate.indexEntriesByStage.size !== 1) return createCollapseFailure();
-		const indexEntries = [...candidate.indexEntriesByStage.values()].sort((left, right) => left.stage - right.stage);
-		if (indexEntries.length === 0) return createCollapseFailure();
-		collapsedCandidates.push(Object.freeze({
-			indexEntries: Object.freeze(indexEntries),
+		if (e.indexEntriesByStage.has(0) && e.indexEntriesByStage.size !== 1) return I();
+		let t = [...e.indexEntriesByStage.values()].sort((e, t) => e.stage - t.stage);
+		if (t.length === 0) return I();
+		n.push(Object.freeze({
+			indexEntries: Object.freeze(t),
 			kind: "tracked",
-			path: candidate.path
+			path: e.path
 		}));
 	}
 	return Object.freeze({
-		candidates: Object.freeze(collapsedCandidates),
+		candidates: Object.freeze(n),
 		kind: "collapsed"
 	});
-};
-//#endregion
-//#region src/git-inventory/entry-type/entry-inspector.ts
-var createInspectionFailure$1 = (errorCode) => Object.freeze({
-	errorCode,
+}, Sn = (e) => Object.freeze({
+	errorCode: e,
 	kind: "failed"
-});
-var mapFilesystemFailure$1 = (error) => {
-	const errorCode = error?.code?.toUpperCase();
-	if (errorCode === "ENOENT" || errorCode === "ENOTDIR") return null;
-	if (errorCode === "EACCES" || errorCode === "EPERM") return createInspectionFailure$1("GIT_ACCESS_DENIED");
-	if (errorCode === "ELOOP") return createInspectionFailure$1("GIT_OUTPUT_INVALID");
-	return createInspectionFailure$1("GIT_COMMAND_FAILED");
-};
-var inspectHostEntry = async (hostPath) => lstat(hostPath);
-var createGitInventoryEntryInspector = (inspectEntry = inspectHostEntry) => {
-	return async (repositoryRoot, candidatePath) => {
-		let statistics;
-		try {
-			statistics = await inspectEntry(path.join(repositoryRoot, candidatePath));
-		} catch (error) {
-			return mapFilesystemFailure$1(error) ?? Object.freeze({ kind: "missing" });
-		}
-		if (statistics.isSymbolicLink()) return Object.freeze({
-			entryType: "symlink",
-			kind: "inspected"
-		});
-		if (statistics.isFile()) return Object.freeze({
-			entryType: "file",
-			kind: "inspected"
-		});
-		return Object.freeze({
-			entryType: "unsupported",
-			kind: "inspected"
-		});
-	};
-};
-var inspectGitInventoryEntry = createGitInventoryEntryInspector();
-//#endregion
-//#region src/git-inventory/entry-type/symlink-configuration.ts
-var GIT_CONFIG_SUBCOMMAND = "config";
-var createConfigurationFailure = (errorCode, subcommand) => Object.freeze({
-	errorCode,
+}), Cn = (e) => {
+	let t = e?.code?.toUpperCase();
+	return t === "ENOENT" || t === "ENOTDIR" ? null : Sn(t === "EACCES" || t === "EPERM" ? "GIT_ACCESS_DENIED" : t === "ELOOP" ? "GIT_OUTPUT_INVALID" : "GIT_COMMAND_FAILED");
+}, wn = async (e) => k(e), Tn = ((e = wn) => async (t, n) => {
+	let r;
+	try {
+		r = await e(D.join(t, n));
+	} catch (e) {
+		return Cn(e) ?? Object.freeze({ kind: "missing" });
+	}
+	return r.isSymbolicLink() ? Object.freeze({
+		entryType: "symlink",
+		kind: "inspected"
+	}) : r.isFile() ? Object.freeze({
+		entryType: "file",
+		kind: "inspected"
+	}) : Object.freeze({
+		entryType: "unsupported",
+		kind: "inspected"
+	});
+})(), En = "config", Dn = (e, t) => Object.freeze({
+	errorCode: e,
 	kind: "failed",
-	...subcommand === void 0 ? {} : { subcommand }
-});
-var mapGitFailure$2 = (reason) => {
-	switch (reason) {
+	...t === void 0 ? {} : { subcommand: t }
+}), On = (e) => {
+	switch (e) {
 		case "aborted": return "GIT_OPERATION_ABORTED";
 		case "not-found": return "GIT_NOT_FOUND";
 		case "access-denied": return "GIT_ACCESS_DENIED";
@@ -1371,293 +974,209 @@ var mapGitFailure$2 = (reason) => {
 		case "output-invalid": return "GIT_OUTPUT_INVALID";
 		case "command-failed": return "GIT_COMMAND_FAILED";
 	}
-};
-var createGitSymlinkConfigurationResolver = (readBoolean = readConfigBoolean) => {
-	return async (input) => {
-		if (input.signal?.aborted) return createConfigurationFailure("GIT_OPERATION_ABORTED");
-		if (!Number.isSafeInteger(input.maxMetadataBytes) || input.maxMetadataBytes < 0) return createConfigurationFailure("RESOURCE_LIMIT_EXCEEDED");
-		const result = await readGit(() => readBoolean(input.repositoryRoot, "core.symlinks", true, {
-			maxOutputBytes: Math.max(input.maxMetadataBytes, 1),
-			timeoutSeconds: 300,
-			...input.signal === void 0 ? {} : { signal: input.signal }
-		}), input.signal, GIT_CONFIG_SUBCOMMAND);
-		if (result.kind === "failed") return createConfigurationFailure(mapGitFailure$2(result.reason), result.subcommand);
-		const gitMetadataBytes = result.value ? 5 : 6;
-		if (gitMetadataBytes > input.maxMetadataBytes) return createConfigurationFailure("RESOURCE_LIMIT_EXCEEDED");
-		return Object.freeze({
-			gitMetadataBytes,
-			isEnabled: result.value,
-			kind: "resolved"
-		});
-	};
-};
-var resolveGitSymlinkConfiguration = createGitSymlinkConfigurationResolver();
-//#endregion
-//#region src/git-inventory/entry-type/normalizer.ts
-var createNormalizationFailure = (errorCode) => Object.freeze({
-	errorCode,
+}, kn = (e = ce) => async (t) => {
+	if (t.signal?.aborted) return Dn("GIT_OPERATION_ABORTED");
+	if (!Number.isSafeInteger(t.maxMetadataBytes) || t.maxMetadataBytes < 0) return Dn("RESOURCE_LIMIT_EXCEEDED");
+	let n = await C(() => e(t.repositoryRoot, "core.symlinks", !0, {
+		maxOutputBytes: Math.max(t.maxMetadataBytes, 1),
+		timeoutSeconds: 300,
+		...t.signal === void 0 ? {} : { signal: t.signal }
+	}), t.signal, En);
+	if (n.kind === "failed") return Dn(On(n.reason), n.subcommand);
+	let r = n.value ? 5 : 6;
+	return r > t.maxMetadataBytes ? Dn("RESOURCE_LIMIT_EXCEEDED") : Object.freeze({
+		gitMetadataBytes: r,
+		isEnabled: n.value,
+		kind: "resolved"
+	});
+}, An = kn(), L = (e) => Object.freeze({
+	errorCode: e,
 	kind: "failed"
-});
-var hasSymlinkMode = (candidate) => candidate.indexEntries.some(({ mode }) => mode === "120000");
-var hasRegularFileMode = (candidate) => candidate.indexEntries.some(({ mode }) => mode === "100644" || mode === "100755");
-var createGitInventoryEntryTypeNormalizer = (entryInspector = inspectGitInventoryEntry, symlinkConfigurationResolver = resolveGitSymlinkConfiguration) => {
-	return async (input) => {
-		if (input.signal?.aborted) return createNormalizationFailure("GIT_OPERATION_ABORTED");
-		if (!Number.isSafeInteger(input.maxMetadataBytes) || input.maxMetadataBytes < 0) return createNormalizationFailure("RESOURCE_LIMIT_EXCEEDED");
-		const collapseResult = collapseGitInventoryCandidates(input.candidates);
-		if (collapseResult.kind === "failed") return createNormalizationFailure("GIT_OUTPUT_INVALID");
-		const entries = [];
-		let symlinkConfiguration = null;
-		for (const candidate of collapseResult.candidates) {
-			if (input.signal?.aborted) return createNormalizationFailure("GIT_OPERATION_ABORTED");
-			const inspectionResult = await entryInspector(input.repositoryRoot, candidate.path);
-			if (input.signal?.aborted) return createNormalizationFailure("GIT_OPERATION_ABORTED");
-			if (inspectionResult.kind === "failed") return inspectionResult;
-			if (inspectionResult.kind === "missing") continue;
-			if (inspectionResult.entryType === "unsupported") return createNormalizationFailure("GIT_OUTPUT_INVALID");
-			if (candidate.kind === "untracked") {
-				entries.push(Object.freeze({
-					entryType: inspectionResult.entryType,
-					kind: "untracked",
-					path: candidate.path,
-					requiresSymlinkOverlay: false
-				}));
-				continue;
-			}
-			if (inspectionResult.entryType === "symlink" || !hasSymlinkMode(candidate)) {
-				entries.push(Object.freeze({
-					entryType: inspectionResult.entryType,
-					indexEntries: candidate.indexEntries,
-					kind: "tracked",
-					path: candidate.path,
-					requiresSymlinkOverlay: false
-				}));
-				continue;
-			}
-			symlinkConfiguration ??= await symlinkConfigurationResolver({
-				maxMetadataBytes: input.maxMetadataBytes,
-				repositoryRoot: input.repositoryRoot,
-				...input.signal === void 0 ? {} : { signal: input.signal }
-			});
-			if (symlinkConfiguration.kind === "failed") return symlinkConfiguration;
-			if (!Number.isSafeInteger(symlinkConfiguration.gitMetadataBytes) || symlinkConfiguration.gitMetadataBytes < 0 || symlinkConfiguration.gitMetadataBytes > input.maxMetadataBytes) return createNormalizationFailure("GIT_OUTPUT_INVALID");
-			if (!symlinkConfiguration.isEnabled && hasRegularFileMode(candidate)) return createNormalizationFailure("GIT_OUTPUT_INVALID");
-			const requiresSymlinkOverlay = !symlinkConfiguration.isEnabled;
-			entries.push(Object.freeze({
-				entryType: requiresSymlinkOverlay ? "symlink" : "file",
-				indexEntries: candidate.indexEntries,
-				kind: "tracked",
-				path: candidate.path,
-				requiresSymlinkOverlay
+}), jn = (e) => e.indexEntries.some(({ mode: e }) => e === "120000"), Mn = (e) => e.indexEntries.some(({ mode: e }) => e === "100644" || e === "100755"), Nn = (e = Tn, t = An) => async (n) => {
+	if (n.signal?.aborted) return L("GIT_OPERATION_ABORTED");
+	if (!Number.isSafeInteger(n.maxMetadataBytes) || n.maxMetadataBytes < 0) return L("RESOURCE_LIMIT_EXCEEDED");
+	let r = xn(n.candidates);
+	if (r.kind === "failed") return L("GIT_OUTPUT_INVALID");
+	let i = [], a = null;
+	for (let o of r.candidates) {
+		if (n.signal?.aborted) return L("GIT_OPERATION_ABORTED");
+		let r = await e(n.repositoryRoot, o.path);
+		if (n.signal?.aborted) return L("GIT_OPERATION_ABORTED");
+		if (r.kind === "failed") return r;
+		if (r.kind === "missing") continue;
+		if (r.entryType === "unsupported") return L("GIT_OUTPUT_INVALID");
+		if (o.kind === "untracked") {
+			i.push(Object.freeze({
+				entryType: r.entryType,
+				kind: "untracked",
+				path: o.path,
+				requiresSymlinkOverlay: !1
 			}));
-		}
-		return Object.freeze({
-			entries: Object.freeze(entries),
-			gitMetadataBytes: symlinkConfiguration?.kind === "resolved" ? symlinkConfiguration.gitMetadataBytes : 0,
-			kind: "normalized"
-		});
-	};
-};
-//#endregion
-//#region src/git-inventory/link-ancestors/shadower.ts
-var createAbortedFailure = () => Object.freeze({
-	errorCode: "GIT_OPERATION_ABORTED",
-	kind: "failed"
-});
-var listProperAncestors = (candidatePath) => {
-	const segments = candidatePath.replace(/\/$/u, "").split("/");
-	return segments.slice(0, -1).map((_segment, index) => segments.slice(0, index + 1).join("/"));
-};
-var isBeneathLink = (candidatePath, links) => listProperAncestors(candidatePath).some((ancestor) => links.has(ancestor));
-var createGitLinkAncestorShadower = (inspectEntry = inspectGitInventoryEntry) => {
-	return async (input) => {
-		if (input.signal?.aborted) return createAbortedFailure();
-		const ancestors = [...new Set(input.candidates.flatMap(({ path }) => listProperAncestors(path)))].sort((left, right) => left.split("/").length - right.split("/").length);
-		const links = new Set();
-		for (const ancestor of ancestors) {
-			if (isBeneathLink(ancestor, links)) continue;
-			const inspection = await inspectEntry(input.repositoryRoot, ancestor);
-			if (input.signal?.aborted) return createAbortedFailure();
-			if (inspection.kind === "failed") return inspection;
-			if (inspection.kind === "inspected" && inspection.entryType === "symlink") links.add(ancestor);
-		}
-		if (links.size === 0) return Object.freeze({
-			candidates: input.candidates,
-			kind: "shadowed"
-		});
-		const remainingCandidates = input.candidates.filter(({ path }) => !isBeneathLink(path, links));
-		const remainingPaths = new Set(remainingCandidates.map(({ path }) => path));
-		const linkCandidates = [...links].filter((link) => !remainingPaths.has(link)).map((link) => Object.freeze({
-			kind: "untracked",
-			path: link
-		}));
-		return Object.freeze({
-			candidates: Object.freeze([...remainingCandidates, ...linkCandidates]),
-			kind: "shadowed"
-		});
-	};
-};
-var shadowGitLinkAncestors = createGitLinkAncestorShadower();
-//#endregion
-//#region src/git-inventory/logical-path/normalizer.ts
-var createLogicalPathFailure = () => Object.freeze({
-	errorCode: "GIT_OUTPUT_INVALID",
-	kind: "failed"
-});
-var resolveRepositoryPath = (gitPath) => {
-	const logicalPath = `/${gitPath}`;
-	return logicalPath !== "/" && isRepositoryPath(logicalPath) ? logicalPath : null;
-};
-var resolveCandidateRepositoryPath = (candidate) => {
-	return resolveRepositoryPath(candidate.kind === "untracked" && candidate.path.endsWith("/") ? candidate.path.slice(0, -1) : candidate.path);
-};
-var compareRepositoryPaths = (left, right) => {
-	const leftScalars = left[Symbol.iterator]();
-	const rightScalars = right[Symbol.iterator]();
-	while (true) {
-		const leftScalar = leftScalars.next();
-		const rightScalar = rightScalars.next();
-		if (leftScalar.done === true) return rightScalar.done === true ? 0 : -1;
-		if (rightScalar.done === true) return 1;
-		const leftCodePoint = leftScalar.value.codePointAt(0) ?? 0;
-		const rightCodePoint = rightScalar.value.codePointAt(0) ?? 0;
-		if (leftCodePoint !== rightCodePoint) return leftCodePoint < rightCodePoint ? -1 : 1;
-	}
-};
-var filterGitInventoryCandidateLogicalPaths = (input) => {
-	const candidates = [];
-	for (const candidate of input.candidates) {
-		if (resolveCandidateRepositoryPath(candidate) === null) {
-			if (candidate.path === "moldea" || candidate.path.startsWith("moldea/")) return createLogicalPathFailure();
 			continue;
 		}
-		candidates.push(candidate);
-	}
-	return Object.freeze({
-		candidates: Object.freeze(candidates),
-		kind: "filtered"
-	});
-};
-var normalizeGitInventoryLogicalPaths = (input) => {
-	const entries = [];
-	const logicalPaths = new Set();
-	for (const entry of input.entries) {
-		const logicalPath = resolveRepositoryPath(entry.path);
-		if (logicalPath === null || logicalPaths.has(logicalPath)) return createLogicalPathFailure();
-		logicalPaths.add(logicalPath);
-		entries.push(Object.freeze({
-			...entry,
-			path: logicalPath
+		if (r.entryType === "symlink" || !jn(o)) {
+			i.push(Object.freeze({
+				entryType: r.entryType,
+				indexEntries: o.indexEntries,
+				kind: "tracked",
+				path: o.path,
+				requiresSymlinkOverlay: !1
+			}));
+			continue;
+		}
+		if (a ??= await t({
+			maxMetadataBytes: n.maxMetadataBytes,
+			repositoryRoot: n.repositoryRoot,
+			...n.signal === void 0 ? {} : { signal: n.signal }
+		}), a.kind === "failed") return a;
+		if (!Number.isSafeInteger(a.gitMetadataBytes) || a.gitMetadataBytes < 0 || a.gitMetadataBytes > n.maxMetadataBytes || !a.isEnabled && Mn(o)) return L("GIT_OUTPUT_INVALID");
+		let s = !a.isEnabled;
+		i.push(Object.freeze({
+			entryType: s ? "symlink" : "file",
+			indexEntries: o.indexEntries,
+			kind: "tracked",
+			path: o.path,
+			requiresSymlinkOverlay: s
 		}));
 	}
-	entries.sort((left, right) => compareRepositoryPaths(left.path, right.path));
 	return Object.freeze({
-		entries: Object.freeze(entries),
+		entries: Object.freeze(i),
+		gitMetadataBytes: a?.kind === "resolved" ? a.gitMetadataBytes : 0,
 		kind: "normalized"
 	});
-};
-//#endregion
-//#region src/git-inventory/parser.ts
-var decodeGitPath = (pathBytes) => {
-	if (pathBytes.byteLength === 0) return null;
+}, Pn = () => Object.freeze({
+	errorCode: "GIT_OPERATION_ABORTED",
+	kind: "failed"
+}), Fn = (e) => {
+	let t = e.replace(/\/$/u, "").split("/");
+	return t.slice(0, -1).map((e, n) => t.slice(0, n + 1).join("/"));
+}, In = (e, t) => Fn(e).some((e) => t.has(e)), Ln = ((e = Tn) => async (t) => {
+	if (t.signal?.aborted) return Pn();
+	let n = [...new Set(t.candidates.flatMap(({ path: e }) => Fn(e)))].sort((e, t) => e.split("/").length - t.split("/").length), r = new Set();
+	for (let i of n) {
+		if (In(i, r)) continue;
+		let n = await e(t.repositoryRoot, i);
+		if (t.signal?.aborted) return Pn();
+		if (n.kind === "failed") return n;
+		n.kind === "inspected" && n.entryType === "symlink" && r.add(i);
+	}
+	if (r.size === 0) return Object.freeze({
+		candidates: t.candidates,
+		kind: "shadowed"
+	});
+	let i = t.candidates.filter(({ path: e }) => !In(e, r)), a = new Set(i.map(({ path: e }) => e)), o = [...r].filter((e) => !a.has(e)).map((e) => Object.freeze({
+		kind: "untracked",
+		path: e
+	}));
+	return Object.freeze({
+		candidates: Object.freeze([...i, ...o]),
+		kind: "shadowed"
+	});
+})(), Rn = () => Object.freeze({
+	errorCode: "GIT_OUTPUT_INVALID",
+	kind: "failed"
+}), zn = (e) => {
+	let t = `/${e}`;
+	return t !== "/" && Ee(t) ? t : null;
+}, Bn = (e) => zn(e.kind === "untracked" && e.path.endsWith("/") ? e.path.slice(0, -1) : e.path), Vn = (e, t) => {
+	let n = e[Symbol.iterator](), r = t[Symbol.iterator]();
+	for (;;) {
+		let e = n.next(), t = r.next();
+		if (e.done === !0) return t.done === !0 ? 0 : -1;
+		if (t.done === !0) return 1;
+		let i = e.value.codePointAt(0) ?? 0, a = t.value.codePointAt(0) ?? 0;
+		if (i !== a) return i < a ? -1 : 1;
+	}
+}, Hn = (e) => {
+	let t = [];
+	for (let n of e.candidates) {
+		if (Bn(n) === null) {
+			if (n.path === "moldea" || n.path.startsWith("moldea/")) return Rn();
+			continue;
+		}
+		t.push(n);
+	}
+	return Object.freeze({
+		candidates: Object.freeze(t),
+		kind: "filtered"
+	});
+}, Un = (e) => {
+	let t = [], n = new Set();
+	for (let r of e.entries) {
+		let e = zn(r.path);
+		if (e === null || n.has(e)) return Rn();
+		n.add(e), t.push(Object.freeze({
+			...r,
+			path: e
+		}));
+	}
+	return t.sort((e, t) => Vn(e.path, t.path)), Object.freeze({
+		entries: Object.freeze(t),
+		kind: "normalized"
+	});
+}, Wn = (e) => {
+	if (e.byteLength === 0) return null;
 	try {
 		return new TextDecoder("utf-8", {
-			fatal: true,
-			ignoreBOM: true
-		}).decode(pathBytes);
+			fatal: !0,
+			ignoreBOM: !0
+		}).decode(e);
 	} catch {
 		return null;
 	}
-};
-var concatenateRecord = (fragments, byteLength) => {
-	const record = new Uint8Array(byteLength);
-	let offset = 0;
-	for (const fragment of fragments) {
-		record.set(fragment, offset);
-		offset += fragment.byteLength;
-	}
-	return record;
-};
-var parseUntrackedCandidate = (record) => {
-	const path = decodeGitPath(record);
-	if (path === null || !path.isWellFormed()) return null;
-	return Object.freeze({
+}, Gn = (e, t) => {
+	let n = new Uint8Array(t), r = 0;
+	for (let t of e) n.set(t, r), r += t.byteLength;
+	return n;
+}, Kn = (e) => {
+	let t = Wn(e);
+	return t === null || !t.isWellFormed() ? null : Object.freeze({
 		kind: "untracked",
-		path
+		path: t
 	});
-};
-var createGitInventoryParser = (maxEntries, parseCandidate) => {
-	const candidates = [];
-	let failureReason = null;
-	let pendingByteLength = 0;
-	let pendingFragments = [];
-	const consumeRecord = () => {
-		if (failureReason !== null) return;
-		if (candidates.length >= maxEntries) {
-			failureReason = "entry-limit-exceeded";
-			pendingByteLength = 0;
-			pendingFragments = [];
+}, qn = (e, t) => {
+	let n = [], r = null, i = 0, a = [], o = () => {
+		if (r !== null) return;
+		if (n.length >= e) {
+			r = "entry-limit-exceeded", i = 0, a = [];
 			return;
 		}
-		const candidate = parseCandidate(concatenateRecord(pendingFragments, pendingByteLength));
-		pendingByteLength = 0;
-		pendingFragments = [];
-		if (candidate === null) {
-			failureReason = "invalid";
+		let o = t(Gn(a, i));
+		if (i = 0, a = [], o === null) {
+			r = "invalid";
 			return;
 		}
-		candidates.push(candidate);
+		n.push(o);
 	};
 	return {
-		consume: (chunk) => {
-			if (failureReason !== null) return;
-			let fragmentStart = 0;
-			for (let index = 0; index < chunk.byteLength; index += 1) {
-				if (chunk[index] !== 0) continue;
-				const fragment = chunk.subarray(fragmentStart, index);
-				pendingFragments.push(fragment);
-				pendingByteLength += fragment.byteLength;
-				consumeRecord();
-				if (failureReason !== null) return;
-				fragmentStart = index + 1;
+		consume: (e) => {
+			if (r !== null) return;
+			let t = 0;
+			for (let n = 0; n < e.byteLength; n += 1) {
+				if (e[n] !== 0) continue;
+				let s = e.subarray(t, n);
+				if (a.push(s), i += s.byteLength, o(), r !== null) return;
+				t = n + 1;
 			}
-			const trailingFragment = chunk.subarray(fragmentStart);
-			if (trailingFragment.byteLength > 0) {
-				pendingFragments.push(trailingFragment);
-				pendingByteLength += trailingFragment.byteLength;
-			}
+			let n = e.subarray(t);
+			n.byteLength > 0 && (a.push(n), i += n.byteLength);
 		},
-		finish: () => {
-			if (failureReason === null && pendingByteLength > 0) failureReason = "invalid";
-			if (failureReason !== null) return Object.freeze({
-				kind: "failed",
-				reason: failureReason
-			});
-			return Object.freeze({
-				candidates: Object.freeze([...candidates]),
-				kind: "completed"
-			});
-		}
+		finish: () => (r === null && i > 0 && (r = "invalid"), Object.freeze(r === null ? {
+			candidates: Object.freeze([...n]),
+			kind: "completed"
+		} : {
+			kind: "failed",
+			reason: r
+		}))
 	};
-};
-var createUntrackedGitInventoryParser = (maxEntries) => createGitInventoryParser(maxEntries, parseUntrackedCandidate);
-//#endregion
-//#region src/git-inventory/repository-ownership/boundary-inspector.ts
-var GIT_CONTROL_SEGMENT = ".git";
-var TOP_LEVEL_OUTPUT_OVERHEAD_BYTES = 6;
-var isInspectionFailure = (result) => "kind" in result;
-var createInspectionFailure = (errorCode) => Object.freeze({
-	errorCode,
+}, Jn = (e) => qn(e, Kn), Yn = ".git", Xn = 6, Zn = (e) => "kind" in e, R = (e) => Object.freeze({
+	errorCode: e,
 	kind: "failed"
-});
-var mapFilesystemFailure = (error) => {
-	const errorCode = error?.code?.toUpperCase();
-	if (errorCode === "EACCES" || errorCode === "EPERM") return "GIT_ACCESS_DENIED";
-	if (errorCode === "ENOENT" || errorCode === "ENOTDIR" || errorCode === "ELOOP") return "GIT_OUTPUT_INVALID";
-	return "GIT_COMMAND_FAILED";
-};
-var mapGitFailure$1 = (reason) => {
-	switch (reason) {
+}), Qn = (e) => {
+	let t = e?.code?.toUpperCase();
+	return t === "EACCES" || t === "EPERM" ? "GIT_ACCESS_DENIED" : t === "ENOENT" || t === "ENOTDIR" || t === "ELOOP" ? "GIT_OUTPUT_INVALID" : "GIT_COMMAND_FAILED";
+}, $n = (e) => {
+	switch (e) {
 		case "aborted": return "GIT_OPERATION_ABORTED";
 		case "not-found": return "GIT_NOT_FOUND";
 		case "access-denied": return "GIT_ACCESS_DENIED";
@@ -1666,289 +1185,230 @@ var mapGitFailure$1 = (reason) => {
 		case "output-invalid": return "GIT_OUTPUT_INVALID";
 		case "command-failed": return "GIT_COMMAND_FAILED";
 	}
-};
-var readDirectoryNames = async (hostPath, readDirectory) => {
+}, er = async (e, t) => {
 	try {
-		const encodedNames = await readDirectory(hostPath);
+		let n = await t(e);
 		return Object.freeze({
-			encodedNameKeys: new Set(encodedNames.map((encodedName) => encodedName.toString("hex"))),
+			encodedNameKeys: new Set(n.map((e) => e.toString("hex"))),
 			kind: "read"
 		});
-	} catch (error) {
-		return createInspectionFailure(mapFilesystemFailure(error));
+	} catch (e) {
+		return R(Qn(e));
 	}
-};
-var inspectPath = async (hostPath, inspectHostPath) => {
+}, z = async (e, t) => {
 	try {
 		return Object.freeze({
 			kind: "inspected",
-			statistics: await inspectHostPath(hostPath)
+			statistics: await t(e)
 		});
-	} catch (error) {
-		return createInspectionFailure(mapFilesystemFailure(error));
+	} catch (e) {
+		return R(Qn(e));
 	}
-};
-var hasExactDirectoryName = (encodedNameKeys, segment) => encodedNameKeys.has(Buffer$1.from(segment, "utf8").toString("hex"));
-var hasStableDirectoryIdentity = (initialStatistics, revalidatedStatistics) => initialStatistics.isDirectory() && !initialStatistics.isSymbolicLink() && revalidatedStatistics.isDirectory() && !revalidatedStatistics.isSymbolicLink() && initialStatistics.dev === revalidatedStatistics.dev && initialStatistics.ino === revalidatedStatistics.ino;
-var validateGitBoundary = async (directory, repositoryRoot, directoryStatistics, maxMetadataBytes, readRoot, inspectHostPath, signal) => {
-	if (signal?.aborted) return createInspectionFailure("GIT_OPERATION_ABORTED");
-	if (!Number.isSafeInteger(maxMetadataBytes) || maxMetadataBytes < 0) return createInspectionFailure("RESOURCE_LIMIT_EXCEEDED");
-	const rootResult = await readGit(() => readRoot(directory, {
-		maxOutputBytes: Math.max(maxMetadataBytes, 1),
+}, tr = (e, t) => e.has(Ue.from(t, "utf8").toString("hex")), nr = (e, t) => e.isDirectory() && !e.isSymbolicLink() && t.isDirectory() && !t.isSymbolicLink() && e.dev === t.dev && e.ino === t.ino, rr = async (e, t, n, r, i, a, o) => {
+	if (o?.aborted) return R("GIT_OPERATION_ABORTED");
+	if (!Number.isSafeInteger(r) || r < 0) return R("RESOURCE_LIMIT_EXCEEDED");
+	let s = await C(() => i(e, {
+		maxOutputBytes: Math.max(r, 1),
 		timeoutSeconds: 300,
-		...signal === void 0 ? {} : { signal }
-	}), signal);
-	if (rootResult.kind === "failed") return createInspectionFailure(mapGitFailure$1(rootResult.reason));
-	if (rootResult.value === null) return createInspectionFailure("GIT_COMMAND_FAILED");
-	const discoveredRoot = rootResult.value;
-	const gitMetadataBytes = TOP_LEVEL_OUTPUT_OVERHEAD_BYTES + countUtf8Bytes(discoveredRoot);
-	if (gitMetadataBytes > maxMetadataBytes) return createInspectionFailure("RESOURCE_LIMIT_EXCEEDED");
-	if (!path.isAbsolute(discoveredRoot)) return createInspectionFailure("GIT_OUTPUT_INVALID");
-	if (areHostPathsEquivalent(discoveredRoot, directory)) return Object.freeze({
-		gitMetadataBytes,
+		...o === void 0 ? {} : { signal: o }
+	}), o);
+	if (s.kind === "failed") return R($n(s.reason));
+	if (s.value === null) return R("GIT_COMMAND_FAILED");
+	let c = s.value, l = Xn + Ce(c);
+	if (l > r) return R("RESOURCE_LIMIT_EXCEEDED");
+	if (!D.isAbsolute(c)) return R("GIT_OUTPUT_INVALID");
+	if (vt(c, e)) return Object.freeze({
+		gitMetadataBytes: l,
 		kind: "validated",
 		ownership: "nested-repository"
 	});
-	if (areHostPathsEquivalent(discoveredRoot, repositoryRoot)) return Object.freeze({
-		gitMetadataBytes,
+	if (vt(c, t)) return Object.freeze({
+		gitMetadataBytes: l,
 		kind: "validated",
 		ownership: "selected-repository"
 	});
-	const discoveredRootInspection = await inspectPath(discoveredRoot, inspectHostPath);
-	if (signal?.aborted) return createInspectionFailure("GIT_OPERATION_ABORTED");
-	if (discoveredRootInspection.kind === "failed") return discoveredRootInspection;
-	if (!discoveredRootInspection.statistics.isDirectory() || discoveredRootInspection.statistics.isSymbolicLink()) return createInspectionFailure("GIT_OUTPUT_INVALID");
-	if (haveSameHostPathIdentity(discoveredRootInspection.statistics, directoryStatistics)) return Object.freeze({
-		gitMetadataBytes,
+	let u = await z(c, a);
+	if (o?.aborted) return R("GIT_OPERATION_ABORTED");
+	if (u.kind === "failed") return u;
+	if (!u.statistics.isDirectory() || u.statistics.isSymbolicLink()) return R("GIT_OUTPUT_INVALID");
+	if (yt(u.statistics, n)) return Object.freeze({
+		gitMetadataBytes: l,
 		kind: "validated",
 		ownership: "nested-repository"
 	});
-	const repositoryRootInspection = await inspectPath(repositoryRoot, inspectHostPath);
-	if (signal?.aborted) return createInspectionFailure("GIT_OPERATION_ABORTED");
-	if (repositoryRootInspection.kind === "failed") return repositoryRootInspection;
-	if (repositoryRootInspection.statistics.isDirectory() && !repositoryRootInspection.statistics.isSymbolicLink() && haveSameHostPathIdentity(discoveredRootInspection.statistics, repositoryRootInspection.statistics)) return Object.freeze({
-		gitMetadataBytes,
+	let d = await z(t, a);
+	return o?.aborted ? R("GIT_OPERATION_ABORTED") : d.kind === "failed" ? d : d.statistics.isDirectory() && !d.statistics.isSymbolicLink() && yt(u.statistics, d.statistics) ? Object.freeze({
+		gitMetadataBytes: l,
 		kind: "validated",
 		ownership: "selected-repository"
-	});
-	return createInspectionFailure("GIT_OUTPUT_INVALID");
-};
-var inspectOwnershipPath = async (hostPath) => lstat(hostPath, { bigint: true });
-var readOwnershipDirectory = async (hostPath) => readdir(hostPath, { encoding: "buffer" });
-var createGitInventoryBoundaryInspector = (readRoot = readTopLevel, inspectHostPath = inspectOwnershipPath, readDirectory = readOwnershipDirectory) => {
-	return async (input) => {
-		if (input.signal?.aborted) return createInspectionFailure("GIT_OPERATION_ABORTED");
-		const directoryObservations = new Map();
-		const ownership = [];
-		let gitMetadataBytes = 0;
-		let rootEncodedNameKeys = null;
-		const getRootEncodedNames = async () => {
-			if (input.signal?.aborted) return createInspectionFailure("GIT_OPERATION_ABORTED");
-			if (rootEncodedNameKeys !== null) return Object.freeze({
-				encodedNameKeys: rootEncodedNameKeys,
-				kind: "read"
-			});
-			const readResult = await readDirectoryNames(input.repositoryRoot, readDirectory);
-			if (input.signal?.aborted) return createInspectionFailure("GIT_OPERATION_ABORTED");
-			if (readResult.kind === "read") rootEncodedNameKeys = readResult.encodedNameKeys;
-			return readResult;
-		};
-		const inspectDirectory = async (parentObservation, parentPrefix, segment) => {
-			if (input.signal?.aborted) return createInspectionFailure("GIT_OPERATION_ABORTED");
-			const prefix = parentPrefix.length === 0 ? segment : `${parentPrefix}/${segment}`;
-			const cachedObservation = directoryObservations.get(prefix);
-			if (cachedObservation !== void 0) return cachedObservation;
-			const parentNamesResult = parentObservation === null ? await getRootEncodedNames() : Object.freeze({
-				encodedNameKeys: parentObservation.encodedNameKeys,
-				kind: "read"
-			});
-			if (parentNamesResult.kind === "failed") return parentNamesResult;
-			if (!hasExactDirectoryName(parentNamesResult.encodedNameKeys, segment)) return createInspectionFailure("GIT_OUTPUT_INVALID");
-			const parentHostPath = parentObservation?.hostPath ?? input.repositoryRoot;
-			const hostPath = path.join(parentHostPath, segment);
-			const initialInspection = await inspectPath(hostPath, inspectHostPath);
-			if (input.signal?.aborted) return createInspectionFailure("GIT_OPERATION_ABORTED");
-			if (initialInspection.kind === "failed") return initialInspection;
-			if (!initialInspection.statistics.isDirectory() || initialInspection.statistics.isSymbolicLink()) return createInspectionFailure("GIT_OUTPUT_INVALID");
-			const directoryNamesResult = await readDirectoryNames(hostPath, readDirectory);
-			if (input.signal?.aborted) return createInspectionFailure("GIT_OPERATION_ABORTED");
-			if (directoryNamesResult.kind === "failed") return directoryNamesResult;
-			const revalidatedInspection = await inspectPath(hostPath, inspectHostPath);
-			if (input.signal?.aborted) return createInspectionFailure("GIT_OPERATION_ABORTED");
-			if (revalidatedInspection.kind === "failed") return revalidatedInspection;
-			if (!hasStableDirectoryIdentity(initialInspection.statistics, revalidatedInspection.statistics)) return createInspectionFailure("GIT_OUTPUT_INVALID");
-			const gitControlPath = path.join(hostPath, GIT_CONTROL_SEGMENT);
-			const hasExactGitControlSegment = hasExactDirectoryName(directoryNamesResult.encodedNameKeys, GIT_CONTROL_SEGMENT);
-			let directoryOwnership = "selected-repository";
-			if (!hasExactGitControlSegment) try {
-				await inspectHostPath(gitControlPath);
-				if (input.signal?.aborted) return createInspectionFailure("GIT_OPERATION_ABORTED");
-				return createInspectionFailure("GIT_OUTPUT_INVALID");
-			} catch (error) {
-				const errorCode = error?.code?.toUpperCase();
-				if (errorCode !== "ENOENT" && errorCode !== "ENOTDIR") return createInspectionFailure(mapFilesystemFailure(error));
-			}
-			else {
-				const gitControlInspection = await inspectPath(gitControlPath, inspectHostPath);
-				if (input.signal?.aborted) return createInspectionFailure("GIT_OPERATION_ABORTED");
-				if (gitControlInspection.kind === "failed") return gitControlInspection;
-				if (gitControlInspection.statistics.isSymbolicLink() || !gitControlInspection.statistics.isDirectory() && !gitControlInspection.statistics.isFile()) return createInspectionFailure("GIT_OUTPUT_INVALID");
-				const boundaryValidation = await validateGitBoundary(hostPath, input.repositoryRoot, revalidatedInspection.statistics, input.maxMetadataBytes - gitMetadataBytes, readRoot, inspectHostPath, input.signal);
-				if (boundaryValidation.kind === "failed") return boundaryValidation;
-				gitMetadataBytes += boundaryValidation.gitMetadataBytes;
-				directoryOwnership = boundaryValidation.ownership;
-			}
-			const observation = Object.freeze({
-				encodedNameKeys: directoryNamesResult.encodedNameKeys,
-				hostPath,
-				ownership: directoryOwnership
-			});
-			directoryObservations.set(prefix, observation);
-			return observation;
-		};
-		for (const plan of input.plans) {
-			if (input.signal?.aborted) return createInspectionFailure("GIT_OPERATION_ABORTED");
-			let candidateOwnership = "selected-repository";
-			let parentObservation = null;
-			let parentPrefix = "";
-			for (const segment of plan.directorySegments) {
-				if (input.signal?.aborted) return createInspectionFailure("GIT_OPERATION_ABORTED");
-				const observation = await inspectDirectory(parentObservation, parentPrefix, segment);
-				if (isInspectionFailure(observation)) return observation;
-				parentObservation = observation;
-				parentPrefix = parentPrefix.length === 0 ? segment : `${parentPrefix}/${segment}`;
-				if (observation.ownership === "nested-repository") {
-					candidateOwnership = "nested-repository";
-					break;
-				}
-			}
-			if (plan.isDirectoryRecord && candidateOwnership !== "nested-repository") return createInspectionFailure("GIT_OUTPUT_INVALID");
-			ownership.push(candidateOwnership);
-		}
-		return Object.freeze({
-			gitMetadataBytes,
-			kind: "inspected",
-			ownership: Object.freeze([...ownership])
+	}) : R("GIT_OUTPUT_INVALID");
+}, ir = async (e) => k(e, { bigint: !0 }), ar = async (e) => ze(e, { encoding: "buffer" }), or = (e = me, t = ir, n = ar) => async (r) => {
+	if (r.signal?.aborted) return R("GIT_OPERATION_ABORTED");
+	let i = new Map(), a = [], o = 0, s = null, c = async () => {
+		if (r.signal?.aborted) return R("GIT_OPERATION_ABORTED");
+		if (s !== null) return Object.freeze({
+			encodedNameKeys: s,
+			kind: "read"
 		});
+		let e = await er(r.repositoryRoot, n);
+		return r.signal?.aborted ? R("GIT_OPERATION_ABORTED") : (e.kind === "read" && (s = e.encodedNameKeys), e);
+	}, l = async (a, s, l) => {
+		if (r.signal?.aborted) return R("GIT_OPERATION_ABORTED");
+		let u = s.length === 0 ? l : `${s}/${l}`, d = i.get(u);
+		if (d !== void 0) return d;
+		let f = a === null ? await c() : Object.freeze({
+			encodedNameKeys: a.encodedNameKeys,
+			kind: "read"
+		});
+		if (f.kind === "failed") return f;
+		if (!tr(f.encodedNameKeys, l)) return R("GIT_OUTPUT_INVALID");
+		let p = a?.hostPath ?? r.repositoryRoot, m = D.join(p, l), h = await z(m, t);
+		if (r.signal?.aborted) return R("GIT_OPERATION_ABORTED");
+		if (h.kind === "failed") return h;
+		if (!h.statistics.isDirectory() || h.statistics.isSymbolicLink()) return R("GIT_OUTPUT_INVALID");
+		let g = await er(m, n);
+		if (r.signal?.aborted) return R("GIT_OPERATION_ABORTED");
+		if (g.kind === "failed") return g;
+		let _ = await z(m, t);
+		if (r.signal?.aborted) return R("GIT_OPERATION_ABORTED");
+		if (_.kind === "failed") return _;
+		if (!nr(h.statistics, _.statistics)) return R("GIT_OUTPUT_INVALID");
+		let v = D.join(m, Yn), ee = tr(g.encodedNameKeys, Yn), y = "selected-repository";
+		if (ee) {
+			let n = await z(v, t);
+			if (r.signal?.aborted) return R("GIT_OPERATION_ABORTED");
+			if (n.kind === "failed") return n;
+			if (n.statistics.isSymbolicLink() || !n.statistics.isDirectory() && !n.statistics.isFile()) return R("GIT_OUTPUT_INVALID");
+			let i = await rr(m, r.repositoryRoot, _.statistics, r.maxMetadataBytes - o, e, t, r.signal);
+			if (i.kind === "failed") return i;
+			o += i.gitMetadataBytes, y = i.ownership;
+		} else try {
+			return await t(v), r.signal?.aborted ? R("GIT_OPERATION_ABORTED") : R("GIT_OUTPUT_INVALID");
+		} catch (e) {
+			let t = e?.code?.toUpperCase();
+			if (t !== "ENOENT" && t !== "ENOTDIR") return R(Qn(e));
+		}
+		let b = Object.freeze({
+			encodedNameKeys: g.encodedNameKeys,
+			hostPath: m,
+			ownership: y
+		});
+		return i.set(u, b), b;
 	};
-};
-var inspectGitInventoryBoundaries = createGitInventoryBoundaryInspector();
-//#endregion
-//#region src/git-inventory/repository-ownership/path-planner.ts
-var planGitInventoryOwnershipPath = (candidate) => {
-	const isDirectoryRecord = candidate.path.endsWith("/");
-	if (candidate.path.length === 0 || candidate.path.startsWith("/") || candidate.path.includes("\\") || candidate.kind === "tracked" && isDirectoryRecord) return Object.freeze({ kind: "failed" });
-	const segments = (isDirectoryRecord ? candidate.path.slice(0, -1) : candidate.path).split("/");
-	if (segments.length === 0 || segments.some((segment) => segment.length === 0 || segment === "." || segment === "..")) return Object.freeze({ kind: "failed" });
-	const frozenSegments = Object.freeze([...segments]);
-	const directorySegments = Object.freeze(isDirectoryRecord ? [...segments] : segments.slice(0, -1));
+	for (let e of r.plans) {
+		if (r.signal?.aborted) return R("GIT_OPERATION_ABORTED");
+		let t = "selected-repository", n = null, i = "";
+		for (let a of e.directorySegments) {
+			if (r.signal?.aborted) return R("GIT_OPERATION_ABORTED");
+			let e = await l(n, i, a);
+			if (Zn(e)) return e;
+			if (n = e, i = i.length === 0 ? a : `${i}/${a}`, e.ownership === "nested-repository") {
+				t = "nested-repository";
+				break;
+			}
+		}
+		if (e.isDirectoryRecord && t !== "nested-repository") return R("GIT_OUTPUT_INVALID");
+		a.push(t);
+	}
+	return Object.freeze({
+		gitMetadataBytes: o,
+		kind: "inspected",
+		ownership: Object.freeze([...a])
+	});
+}, sr = or(), cr = (e) => {
+	let t = e.path.endsWith("/");
+	if (e.path.length === 0 || e.path.startsWith("/") || e.path.includes("\\") || e.kind === "tracked" && t) return Object.freeze({ kind: "failed" });
+	let n = (t ? e.path.slice(0, -1) : e.path).split("/");
+	if (n.length === 0 || n.some((e) => e.length === 0 || e === "." || e === "..")) return Object.freeze({ kind: "failed" });
+	let r = Object.freeze([...n]), i = Object.freeze(t ? [...n] : n.slice(0, -1));
 	return Object.freeze({
 		kind: "planned",
 		plan: Object.freeze({
-			candidate,
-			directorySegments,
-			hasGitControlSegment: segments.includes(".git"),
-			isDirectoryRecord,
-			segments: frozenSegments
+			candidate: e,
+			directorySegments: i,
+			hasGitControlSegment: n.includes(".git"),
+			isDirectoryRecord: t,
+			segments: r
 		})
 	});
-};
-//#endregion
-//#region src/git-inventory/repository-ownership/ownership-filter.ts
-var createOwnershipFailure = (errorCode = "GIT_OUTPUT_INVALID") => Object.freeze({
-	errorCode,
+}, lr = (e = "GIT_OUTPUT_INVALID") => Object.freeze({
+	errorCode: e,
 	kind: "failed"
-});
-var createGitlinkTrie = (rootSegments) => {
-	const trie = {
+}), ur = (e) => {
+	let t = {
 		children: new Map(),
-		isRoot: false
+		isRoot: !1
 	};
-	for (const segments of rootSegments) {
-		let node = trie;
-		for (const segment of segments) {
-			let childNode = node.children.get(segment);
-			if (childNode === void 0) {
-				childNode = {
-					children: new Map(),
-					isRoot: false
-				};
-				node.children.set(segment, childNode);
-			}
-			node = childNode;
+	for (let n of e) {
+		let e = t;
+		for (let t of n) {
+			let n = e.children.get(t);
+			n === void 0 && (n = {
+				children: new Map(),
+				isRoot: !1
+			}, e.children.set(t, n)), e = n;
 		}
-		node.isRoot = true;
+		e.isRoot = !0;
 	}
-	return trie;
-};
-var isAtOrBelowGitlink = (candidateSegments, gitlinkTrie) => {
-	let node = gitlinkTrie;
-	for (const segment of candidateSegments) {
-		const childNode = node.children.get(segment);
-		if (childNode === void 0) return false;
-		if (childNode.isRoot) return true;
-		node = childNode;
+	return t;
+}, dr = (e, t) => {
+	let n = t;
+	for (let t of e) {
+		let e = n.children.get(t);
+		if (e === void 0) return !1;
+		if (e.isRoot) return !0;
+		n = e;
 	}
-	return false;
-};
-var createGitInventoryOwnershipFilter = (boundaryInspector = inspectGitInventoryBoundaries) => {
-	return async (input) => {
-		const plannedCandidates = [];
-		for (const [candidateIndex, candidate] of input.candidates.entries()) {
-			if (input.signal?.aborted) return createOwnershipFailure("GIT_OPERATION_ABORTED");
-			const planResult = planGitInventoryOwnershipPath(candidate);
-			if (planResult.kind === "failed") return createOwnershipFailure();
-			plannedCandidates.push({
-				candidateIndex,
-				plan: planResult.plan
-			});
-		}
-		const gitlinkTrie = createGitlinkTrie(plannedCandidates.filter(({ plan }) => !plan.hasGitControlSegment && plan.candidate.kind === "tracked" && plan.candidate.mode === "160000").map(({ plan }) => plan.segments));
-		const includedCandidates = Array.from({ length: input.candidates.length }, () => false);
-		const untrackedPlans = [];
-		for (const { candidateIndex, plan } of plannedCandidates) {
-			if (plan.hasGitControlSegment || isAtOrBelowGitlink(plan.segments, gitlinkTrie)) continue;
-			if (plan.candidate.kind === "tracked") {
-				includedCandidates[candidateIndex] = true;
-				continue;
-			}
-			untrackedPlans.push({
-				candidate: plan.candidate,
-				candidateIndex,
-				plan
-			});
-		}
-		const boundaryResult = await boundaryInspector({
-			maxMetadataBytes: input.maxMetadataBytes,
-			plans: untrackedPlans.map(({ plan }) => plan),
-			repositoryRoot: input.repositoryRoot,
-			...input.signal === void 0 ? {} : { signal: input.signal }
+	return !1;
+}, fr = (e = sr) => async (t) => {
+	let n = [];
+	for (let [e, r] of t.candidates.entries()) {
+		if (t.signal?.aborted) return lr("GIT_OPERATION_ABORTED");
+		let i = cr(r);
+		if (i.kind === "failed") return lr();
+		n.push({
+			candidateIndex: e,
+			plan: i.plan
 		});
-		if (boundaryResult.kind === "failed") return boundaryResult;
-		if (boundaryResult.ownership.length !== untrackedPlans.length) return createOwnershipFailure();
-		for (const [ownershipIndex, ownership] of boundaryResult.ownership.entries()) {
-			if (input.signal?.aborted) return createOwnershipFailure("GIT_OPERATION_ABORTED");
-			const untrackedPlan = untrackedPlans[ownershipIndex];
-			if (untrackedPlan === void 0) return createOwnershipFailure();
-			if (ownership === "selected-repository") includedCandidates[untrackedPlan.candidateIndex] = true;
+	}
+	let r = ur(n.filter(({ plan: e }) => !e.hasGitControlSegment && e.candidate.kind === "tracked" && e.candidate.mode === "160000").map(({ plan: e }) => e.segments)), i = Array.from({ length: t.candidates.length }, () => !1), a = [];
+	for (let { candidateIndex: e, plan: t } of n) if (!(t.hasGitControlSegment || dr(t.segments, r))) {
+		if (t.candidate.kind === "tracked") {
+			i[e] = !0;
+			continue;
 		}
-		const candidates = input.candidates.filter((_candidate, candidateIndex) => includedCandidates[candidateIndex] === true);
-		return Object.freeze({
-			candidates: Object.freeze(candidates),
-			gitMetadataBytes: boundaryResult.gitMetadataBytes,
-			kind: "filtered"
+		a.push({
+			candidate: t.candidate,
+			candidateIndex: e,
+			plan: t
 		});
-	};
-};
-//#endregion
-//#region src/git-inventory/probe.ts
-var GIT_INVENTORY_LISTING_READS = Object.freeze({
-	listUntrackedFiles,
-	readIndexEntries,
-	runGit: runGitCommand
-});
-var mapGitFailure = (reason) => {
-	switch (reason) {
+	}
+	let o = await e({
+		maxMetadataBytes: t.maxMetadataBytes,
+		plans: a.map(({ plan: e }) => e),
+		repositoryRoot: t.repositoryRoot,
+		...t.signal === void 0 ? {} : { signal: t.signal }
+	});
+	if (o.kind === "failed") return o;
+	if (o.ownership.length !== a.length) return lr();
+	for (let [e, n] of o.ownership.entries()) {
+		if (t.signal?.aborted) return lr("GIT_OPERATION_ABORTED");
+		let r = a[e];
+		if (r === void 0) return lr();
+		n === "selected-repository" && (i[r.candidateIndex] = !0);
+	}
+	let s = t.candidates.filter((e, t) => i[t] === !0);
+	return Object.freeze({
+		candidates: Object.freeze(s),
+		gitMetadataBytes: o.gitMetadataBytes,
+		kind: "filtered"
+	});
+}, pr = Object.freeze({
+	listUntrackedFiles: se,
+	readIndexEntries: ge,
+	runGit: mt
+}), mr = (e) => {
+	switch (e) {
 		case "aborted": return "GIT_OPERATION_ABORTED";
 		case "not-found": return "GIT_NOT_FOUND";
 		case "repository-not-found": return "GIT_REPOSITORY_NOT_FOUND";
@@ -1957,132 +1417,99 @@ var mapGitFailure = (reason) => {
 		case "output-limit-exceeded": return "RESOURCE_LIMIT_EXCEEDED";
 		case "command-failed": return "GIT_COMMAND_FAILED";
 	}
-};
-var isTrackedEntryMode = (mode) => GIT_TRACKED_ENTRY_MODES.includes(mode);
-var toTrackedCandidates = (entries) => {
-	const candidates = [];
-	for (const { mode, path, stage } of entries) {
-		if (!isTrackedEntryMode(mode)) return null;
-		candidates.push(Object.freeze({
+}, hr = (e) => sn.includes(e), gr = (e) => {
+	let t = [];
+	for (let { mode: n, path: r, stage: i } of e) {
+		if (!hr(n)) return null;
+		t.push(Object.freeze({
 			kind: "tracked",
-			mode,
-			path,
-			stage
+			mode: n,
+			path: r,
+			stage: i
 		}));
 	}
-	return Object.freeze(candidates);
-};
-var measureTrackedOutput = (entries) => entries.reduce((bytes, { path }) => bytes + 75 + countUtf8Bytes(path), 0);
-var measureUntrackedOutput = (paths) => paths.reduce((bytes, path) => bytes + countUtf8Bytes(path) + 1, 0);
-var createProbeFailure = (errorCode, subcommand) => Object.freeze({
-	errorCode,
+	return Object.freeze(t);
+}, _r = (e) => e.reduce((e, { path: t }) => e + 75 + Ce(t), 0), vr = (e) => e.reduce((e, t) => e + Ce(t) + 1, 0), B = (e, t) => Object.freeze({
+	errorCode: e,
 	kind: "failed",
-	...subcommand === void 0 ? {} : { subcommand }
-});
-var resolveParserResult = (parserResult) => {
-	if (parserResult.kind === "completed") return parserResult.candidates;
-	return createProbeFailure(parserResult.reason === "entry-limit-exceeded" ? "RESOURCE_LIMIT_EXCEEDED" : "GIT_OUTPUT_INVALID");
-};
-var isProbeFailure = (result) => !Array.isArray(result);
-var createGitInventoryProbe = (git = GIT_INVENTORY_LISTING_READS, ownershipFilter = createGitInventoryOwnershipFilter(createGitInventoryBoundaryInspector()), entryTypeNormalizer = createGitInventoryEntryTypeNormalizer(inspectGitInventoryEntry, createGitSymlinkConfigurationResolver()), contentTransformationClassifier = createGitContentTransformationClassifier(), logicalPathNormalizer = normalizeGitInventoryLogicalPaths, linkAncestorShadower = shadowGitLinkAncestors) => async (input) => {
-	if (input.signal?.aborted) return createProbeFailure("GIT_OPERATION_ABORTED");
-	const selectionPaths = (input.selectionPaths ?? []).map((selectionPath) => selectionPath.slice(1));
-	let remainingMetadataBytes = input.maxMetadataBytes;
-	const createReadOptions = () => ({
-		maxOutputBytes: Math.max(remainingMetadataBytes, 1),
+	...t === void 0 ? {} : { subcommand: t }
+}), yr = (e) => e.kind === "completed" ? e.candidates : B(e.reason === "entry-limit-exceeded" ? "RESOURCE_LIMIT_EXCEEDED" : "GIT_OUTPUT_INVALID"), br = (e) => !Array.isArray(e), xr = ((e = pr, t = fr(or()), n = Nn(Tn, kn()), r = bn(), i = Un, a = Ln) => async (o) => {
+	if (o.signal?.aborted) return B("GIT_OPERATION_ABORTED");
+	let s = (o.selectionPaths ?? []).map((e) => e.slice(1)), c = o.maxMetadataBytes, l = () => ({
+		maxOutputBytes: Math.max(c, 1),
 		timeoutSeconds: 300,
-		...selectionPaths.length === 0 ? {} : { paths: selectionPaths },
-		...input.signal === void 0 ? {} : { signal: input.signal }
-	});
-	const trackedResult = await readGit(() => git.readIndexEntries(input.repositoryRoot, createReadOptions()), input.signal, GIT_INVENTORY_LISTING_SUBCOMMAND);
-	if (trackedResult.kind === "failed") return createProbeFailure(mapGitFailure(trackedResult.reason), trackedResult.subcommand);
-	remainingMetadataBytes -= measureTrackedOutput(trackedResult.value);
-	if (trackedResult.value.length > input.maxEntries || remainingMetadataBytes < 0) return createProbeFailure("RESOURCE_LIMIT_EXCEEDED");
-	const trackedCandidates = toTrackedCandidates(trackedResult.value);
-	if (trackedCandidates === null) return createProbeFailure("GIT_OUTPUT_INVALID");
-	const untrackedResult = await readGit(() => git.listUntrackedFiles(input.repositoryRoot, createReadOptions()), input.signal, GIT_INVENTORY_LISTING_SUBCOMMAND);
-	if (untrackedResult.kind === "failed") return createProbeFailure(mapGitFailure(untrackedResult.reason), untrackedResult.subcommand);
-	remainingMetadataBytes -= measureUntrackedOutput(untrackedResult.value);
-	if (trackedCandidates.length + untrackedResult.value.length > input.maxEntries || remainingMetadataBytes < 0) return createProbeFailure("RESOURCE_LIMIT_EXCEEDED");
-	if (untrackedResult.value.some((path) => path.length === 0)) return createProbeFailure("GIT_OUTPUT_INVALID");
-	const untrackedCandidates = Object.freeze(untrackedResult.value.map((path) => Object.freeze({
+		...s.length === 0 ? {} : { paths: s },
+		...o.signal === void 0 ? {} : { signal: o.signal }
+	}), u = await C(() => e.readIndexEntries(o.repositoryRoot, l()), o.signal, an);
+	if (u.kind === "failed") return B(mr(u.reason), u.subcommand);
+	if (c -= _r(u.value), u.value.length > o.maxEntries || c < 0) return B("RESOURCE_LIMIT_EXCEEDED");
+	let d = gr(u.value);
+	if (d === null) return B("GIT_OUTPUT_INVALID");
+	let f = await C(() => e.listUntrackedFiles(o.repositoryRoot, l()), o.signal, an);
+	if (f.kind === "failed") return B(mr(f.reason), f.subcommand);
+	if (c -= vr(f.value), d.length + f.value.length > o.maxEntries || c < 0) return B("RESOURCE_LIMIT_EXCEEDED");
+	if (f.value.some((e) => e.length === 0)) return B("GIT_OUTPUT_INVALID");
+	let p = Object.freeze(f.value.map((e) => Object.freeze({
 		kind: "untracked",
-		path
-	})));
-	let ignoredCandidates = [];
-	if (input.includeIgnored === true && selectionPaths.length > 0) {
-		const ignoredResult = await git.runGit([...GIT_IGNORED_INVENTORY_ARGUMENTS, ...selectionPaths], {
-			cwd: input.repositoryRoot,
-			maxOutputBytes: Math.max(remainingMetadataBytes, 1),
-			...input.signal === void 0 ? {} : { signal: input.signal }
+		path: e
+	}))), m = [];
+	if (o.includeIgnored === !0 && s.length > 0) {
+		let t = await e.runGit([...rn, ...s], {
+			cwd: o.repositoryRoot,
+			maxOutputBytes: Math.max(c, 1),
+			...o.signal === void 0 ? {} : { signal: o.signal }
 		});
-		if (ignoredResult.kind === "failed") return createProbeFailure(mapGitFailure(ignoredResult.reason), ignoredResult.subcommand);
-		remainingMetadataBytes -= ignoredResult.value.byteLength;
-		if (remainingMetadataBytes < 0) return createProbeFailure("RESOURCE_LIMIT_EXCEEDED");
-		const ignoredParser = createUntrackedGitInventoryParser(input.maxEntries - trackedCandidates.length - untrackedCandidates.length);
-		ignoredParser.consume(ignoredResult.value);
-		const parsedIgnoredCandidates = resolveParserResult(ignoredParser.finish());
-		if (isProbeFailure(parsedIgnoredCandidates)) return parsedIgnoredCandidates;
-		const untrackedPaths = new Set(untrackedCandidates.map((candidate) => candidate.path));
-		ignoredCandidates = parsedIgnoredCandidates.filter((candidate) => !untrackedPaths.has(candidate.path));
+		if (t.kind === "failed") return B(mr(t.reason), t.subcommand);
+		if (c -= t.value.byteLength, c < 0) return B("RESOURCE_LIMIT_EXCEEDED");
+		let n = Jn(o.maxEntries - d.length - p.length);
+		n.consume(t.value);
+		let r = yr(n.finish());
+		if (br(r)) return r;
+		let i = new Set(p.map((e) => e.path));
+		m = r.filter((e) => !i.has(e.path));
 	}
-	const logicalPathFilterResult = filterGitInventoryCandidateLogicalPaths({ candidates: Object.freeze([
-		...trackedCandidates,
-		...untrackedCandidates,
-		...ignoredCandidates
+	let h = Hn({ candidates: Object.freeze([
+		...d,
+		...p,
+		...m
 	]) });
-	if (logicalPathFilterResult.kind === "failed") return logicalPathFilterResult;
-	const shadowResult = await linkAncestorShadower({
-		candidates: logicalPathFilterResult.candidates,
-		repositoryRoot: input.repositoryRoot,
-		...input.signal === void 0 ? {} : { signal: input.signal }
+	if (h.kind === "failed") return h;
+	let g = await a({
+		candidates: h.candidates,
+		repositoryRoot: o.repositoryRoot,
+		...o.signal === void 0 ? {} : { signal: o.signal }
 	});
-	if (shadowResult.kind === "failed") return shadowResult;
-	const ownershipResult = await ownershipFilter({
-		candidates: shadowResult.candidates,
-		maxMetadataBytes: remainingMetadataBytes,
-		repositoryRoot: input.repositoryRoot,
-		...input.signal === void 0 ? {} : { signal: input.signal }
+	if (g.kind === "failed") return g;
+	let _ = await t({
+		candidates: g.candidates,
+		maxMetadataBytes: c,
+		repositoryRoot: o.repositoryRoot,
+		...o.signal === void 0 ? {} : { signal: o.signal }
 	});
-	if (ownershipResult.kind === "failed") return ownershipResult;
-	const entryTypeResult = await entryTypeNormalizer({
-		candidates: ownershipResult.candidates,
-		maxMetadataBytes: remainingMetadataBytes - ownershipResult.gitMetadataBytes,
-		repositoryRoot: input.repositoryRoot,
-		...input.signal === void 0 ? {} : { signal: input.signal }
+	if (_.kind === "failed") return _;
+	let v = await n({
+		candidates: _.candidates,
+		maxMetadataBytes: c - _.gitMetadataBytes,
+		repositoryRoot: o.repositoryRoot,
+		...o.signal === void 0 ? {} : { signal: o.signal }
 	});
-	if (entryTypeResult.kind === "failed") return entryTypeResult;
-	const contentTransformationResult = await contentTransformationClassifier({
-		entries: entryTypeResult.entries,
-		maxMetadataBytes: remainingMetadataBytes - ownershipResult.gitMetadataBytes - entryTypeResult.gitMetadataBytes,
-		repositoryRoot: input.repositoryRoot,
-		...input.signal === void 0 ? {} : { signal: input.signal }
+	if (v.kind === "failed") return v;
+	let ee = await r({
+		entries: v.entries,
+		maxMetadataBytes: c - _.gitMetadataBytes - v.gitMetadataBytes,
+		repositoryRoot: o.repositoryRoot,
+		...o.signal === void 0 ? {} : { signal: o.signal }
 	});
-	if (contentTransformationResult.kind === "failed") return contentTransformationResult;
-	const logicalPathResult = logicalPathNormalizer({ entries: contentTransformationResult.entries });
-	if (logicalPathResult.kind === "failed") return logicalPathResult;
-	return Object.freeze({
-		entries: logicalPathResult.entries,
+	if (ee.kind === "failed") return ee;
+	let y = i({ entries: ee.entries });
+	return y.kind === "failed" ? y : Object.freeze({
+		entries: y.entries,
 		kind: "probed"
 	});
-};
-var probeGitInventory = createGitInventoryProbe();
-//#endregion
-//#region src/git-inventory/comparison/comparator.ts
-var areContentTransformationsEqual = (left, right) => left.filter === right.filter && left.ident === right.ident && left.isGuarded === right.isGuarded && left.workingTreeEncoding === right.workingTreeEncoding;
-var areIndexEntriesEqual = (left, right) => left.length === right.length && left.every((leftEntry, index) => leftEntry.mode === right[index]?.mode && leftEntry.stage === right[index]?.stage);
-var areInventoryEntriesEqual = (left, right) => {
-	if (left.kind !== right.kind || left.path !== right.path || left.entryType !== right.entryType || left.requiresSymlinkOverlay !== right.requiresSymlinkOverlay || !areContentTransformationsEqual(left.contentTransformation, right.contentTransformation)) return false;
-	if (left.kind === "untracked" || right.kind === "untracked") return left.kind === right.kind;
-	return areIndexEntriesEqual(left.indexEntries, right.indexEntries);
-};
-var areGitInventoriesEqual = (left, right) => left.length === right.length && left.every((leftEntry, index) => {
-	const rightEntry = right[index];
-	return rightEntry !== void 0 && areInventoryEntriesEqual(leftEntry, rightEntry);
-});
-//#endregion
-//#region ../repository-fs/dist/index.js
-var DEFAULT_FILESYSTEM_REPOSITORY_RESOURCE_LIMITS = Object.freeze({
+})(), Sr = (e, t) => e.filter === t.filter && e.ident === t.ident && e.isGuarded === t.isGuarded && e.workingTreeEncoding === t.workingTreeEncoding, Cr = (e, t) => e.length === t.length && e.every((e, n) => e.mode === t[n]?.mode && e.stage === t[n]?.stage), wr = (e, t) => e.kind !== t.kind || e.path !== t.path || e.entryType !== t.entryType || e.requiresSymlinkOverlay !== t.requiresSymlinkOverlay || !Sr(e.contentTransformation, t.contentTransformation) ? !1 : e.kind === "untracked" || t.kind === "untracked" ? e.kind === t.kind : Cr(e.indexEntries, t.indexEntries), Tr = (e, t) => e.length === t.length && e.every((e, n) => {
+	let r = t[n];
+	return r !== void 0 && wr(e, r);
+}), V = Object.freeze({
 	maxCachedBytes: 67108864,
 	maxConcurrentOperations: 16,
 	maxDirectoryEntries: 131072,
@@ -2090,19 +1517,12 @@ var DEFAULT_FILESYSTEM_REPOSITORY_RESOURCE_LIMITS = Object.freeze({
 	maxPageEntries: 4096,
 	maxQueuedOperations: 256,
 	maxReadBytes: 1048576
-});
-var isAbsoluteHostRootDirectory = (candidate) => {
-	return typeof candidate === "string" && candidate.length > 0 && !candidate.includes("\0") && candidate.isWellFormed() && path.isAbsolute(candidate);
-};
-var OPTION_PROPERTY_NAMES = new Set([
+}), Er = (e) => typeof e == "string" && e.length > 0 && !e.includes("\0") && e.isWellFormed() && D.isAbsolute(e), Dr = new Set([
 	"limits",
 	"rootDirectory",
 	"selection",
 	"signal"
-]);
-var DIRECTORY_SELECTION_PROPERTY_NAMES = new Set(["kind"]);
-var PATH_SELECTION_PROPERTY_NAMES = new Set(["kind", "paths"]);
-var LIMIT_PROPERTY_NAMES = [
+]), Or = new Set(["kind"]), kr = new Set(["kind", "paths"]), Ar = [
 	"maxCachedBytes",
 	"maxConcurrentOperations",
 	"maxDirectoryEntries",
@@ -2110,1388 +1530,1100 @@ var LIMIT_PROPERTY_NAMES = [
 	"maxPageEntries",
 	"maxQueuedOperations",
 	"maxReadBytes"
-];
-var LIMIT_PROPERTY_NAME_SET = new Set(LIMIT_PROPERTY_NAMES);
-var throwInvalidSourceData = (path = null) => {
-	throw new RepositorySourceException({
+], jr = new Set(Ar), H = (e = null) => {
+	throw new w({
 		code: "INVALID_SOURCE_DATA",
 		operation: "create-reader",
-		path,
-		retryable: false
+		path: e,
+		retryable: !1
 	});
-};
-var isArray = (candidate) => {
+}, Mr = (e) => {
 	try {
-		return Array.isArray(candidate);
+		return Array.isArray(e);
 	} catch {
-		return throwInvalidSourceData();
+		return H();
 	}
-};
-var isUnknownRecord = (candidate) => {
-	return typeof candidate === "object" && candidate !== null && !isArray(candidate);
-};
-var hasExactOwnProperties = (candidate, allowedPropertyNames) => {
+}, Nr = (e) => typeof e == "object" && !!e && !Mr(e), Pr = (e, t) => {
 	try {
-		return Reflect.ownKeys(candidate).every((propertyName) => typeof propertyName === "string" && allowedPropertyNames.has(propertyName));
+		return Reflect.ownKeys(e).every((e) => typeof e == "string" && t.has(e));
 	} catch {
-		return throwInvalidSourceData();
+		return H();
 	}
-};
-var hasOwnProperty = (candidate, propertyName) => {
+}, U = (e, t) => {
 	try {
-		return Object.hasOwn(candidate, propertyName);
+		return Object.hasOwn(e, t);
 	} catch {
-		return throwInvalidSourceData();
+		return H();
 	}
-};
-var readOwnProperty = (candidate, propertyName) => {
+}, W = (e, t) => {
 	try {
-		return Reflect.get(candidate, propertyName);
+		return Reflect.get(e, t);
 	} catch {
-		return throwInvalidSourceData();
+		return H();
 	}
-};
-var parseSelectedPath = (candidate) => {
-	if (typeof candidate !== "string") throw new RepositoryPathException();
-	return parseRepositoryPath(candidate);
-};
-var normalizePathSelection = (selection) => {
-	if (!hasExactOwnProperties(selection, PATH_SELECTION_PROPERTY_NAMES) || !hasOwnProperty(selection, "paths")) return throwInvalidSourceData();
-	const pathCandidates = readOwnProperty(selection, "paths");
-	if (!isArray(pathCandidates)) return throwInvalidSourceData();
-	const pathCount = readOwnProperty(pathCandidates, "length");
-	if (typeof pathCount !== "number" || !Number.isSafeInteger(pathCount) || pathCount < 0) return throwInvalidSourceData();
-	const paths = [];
-	for (let index = 0; index < pathCount; index += 1) {
-		const propertyName = String(index);
-		if (!hasOwnProperty(pathCandidates, propertyName)) return throwInvalidSourceData();
-		paths.push(parseSelectedPath(readOwnProperty(pathCandidates, propertyName)));
+}, Fr = (e) => {
+	if (typeof e != "string") throw new Oe();
+	return T(e);
+}, Ir = (e) => {
+	if (!Pr(e, kr) || !U(e, "paths")) return H();
+	let t = W(e, "paths");
+	if (!Mr(t)) return H();
+	let n = W(t, "length");
+	if (typeof n != "number" || !Number.isSafeInteger(n) || n < 0) return H();
+	let r = [];
+	for (let e = 0; e < n; e += 1) {
+		let n = String(e);
+		if (!U(t, n)) return H();
+		r.push(Fr(W(t, n)));
 	}
-	const uniquePaths = new Set();
-	for (const selectedPath of paths) {
-		if (selectedPath === REPOSITORY_ROOT || uniquePaths.has(selectedPath)) return throwInvalidSourceData();
-		uniquePaths.add(selectedPath);
+	let i = new Set();
+	for (let e of r) {
+		if (e === E || i.has(e)) return H();
+		i.add(e);
 	}
-	paths.sort();
-	return Object.freeze({
+	return r.sort(), Object.freeze({
 		kind: "paths",
-		paths: Object.freeze(paths)
+		paths: Object.freeze(r)
 	});
-};
-var normalizeSelection = (candidate) => {
-	if (!isUnknownRecord(candidate) || !hasOwnProperty(candidate, "kind")) return throwInvalidSourceData();
-	const kind = readOwnProperty(candidate, "kind");
-	if (kind === "directory") {
-		if (!hasExactOwnProperties(candidate, DIRECTORY_SELECTION_PROPERTY_NAMES)) return throwInvalidSourceData();
-		return Object.freeze({ kind: "directory" });
-	}
-	if (kind === "paths") return normalizePathSelection(candidate);
-	return throwInvalidSourceData();
-};
-var isPositiveSafeInteger = (candidate) => {
-	return typeof candidate === "number" && Number.isSafeInteger(candidate) && candidate > 0;
-};
-var normalizeLimits = (candidate) => {
-	if (candidate === void 0) return DEFAULT_FILESYSTEM_REPOSITORY_RESOURCE_LIMITS;
-	if (!isUnknownRecord(candidate) || !hasExactOwnProperties(candidate, LIMIT_PROPERTY_NAME_SET)) return throwInvalidSourceData();
-	const limits = {
-		maxCachedBytes: DEFAULT_FILESYSTEM_REPOSITORY_RESOURCE_LIMITS.maxCachedBytes,
-		maxConcurrentOperations: DEFAULT_FILESYSTEM_REPOSITORY_RESOURCE_LIMITS.maxConcurrentOperations,
-		maxDirectoryEntries: DEFAULT_FILESYSTEM_REPOSITORY_RESOURCE_LIMITS.maxDirectoryEntries,
-		maxEntries: DEFAULT_FILESYSTEM_REPOSITORY_RESOURCE_LIMITS.maxEntries,
-		maxPageEntries: DEFAULT_FILESYSTEM_REPOSITORY_RESOURCE_LIMITS.maxPageEntries,
-		maxQueuedOperations: DEFAULT_FILESYSTEM_REPOSITORY_RESOURCE_LIMITS.maxQueuedOperations,
-		maxReadBytes: DEFAULT_FILESYSTEM_REPOSITORY_RESOURCE_LIMITS.maxReadBytes
+}, Lr = (e) => {
+	if (!Nr(e) || !U(e, "kind")) return H();
+	let t = W(e, "kind");
+	return t === "directory" ? Pr(e, Or) ? Object.freeze({ kind: "directory" }) : H() : t === "paths" ? Ir(e) : H();
+}, Rr = (e) => typeof e == "number" && Number.isSafeInteger(e) && e > 0, zr = (e) => {
+	if (e === void 0) return V;
+	if (!Nr(e) || !Pr(e, jr)) return H();
+	let t = {
+		maxCachedBytes: V.maxCachedBytes,
+		maxConcurrentOperations: V.maxConcurrentOperations,
+		maxDirectoryEntries: V.maxDirectoryEntries,
+		maxEntries: V.maxEntries,
+		maxPageEntries: V.maxPageEntries,
+		maxQueuedOperations: V.maxQueuedOperations,
+		maxReadBytes: V.maxReadBytes
 	};
-	for (const propertyName of LIMIT_PROPERTY_NAMES) {
-		if (!hasOwnProperty(candidate, propertyName)) continue;
-		const configuredLimit = readOwnProperty(candidate, propertyName);
-		if (!isPositiveSafeInteger(configuredLimit)) return throwInvalidSourceData();
-		limits[propertyName] = configuredLimit;
+	for (let n of Ar) {
+		if (!U(e, n)) continue;
+		let r = W(e, n);
+		if (!Rr(r)) return H();
+		t[n] = r;
 	}
-	return Object.freeze(limits);
-};
-var normalizeSignal = (candidate) => {
+	return Object.freeze(t);
+}, Br = (e) => {
 	try {
-		if (candidate === void 0 || candidate instanceof AbortSignal) return candidate;
+		if (e === void 0 || e instanceof AbortSignal) return e;
 	} catch {
-		return throwInvalidSourceData();
+		return H();
 	}
-	return throwInvalidSourceData();
-};
-var normalizeFilesystemRepositoryOptions = (candidate) => {
-	let normalizedOptions;
+	return H();
+}, Vr = (e) => {
+	let t;
 	try {
-		if (!isUnknownRecord(candidate) || !hasExactOwnProperties(candidate, OPTION_PROPERTY_NAMES) || !hasOwnProperty(candidate, "rootDirectory") || !hasOwnProperty(candidate, "selection")) return throwInvalidSourceData();
-		const rootDirectory = readOwnProperty(candidate, "rootDirectory");
-		const selection = readOwnProperty(candidate, "selection");
-		const limits = hasOwnProperty(candidate, "limits") ? readOwnProperty(candidate, "limits") : void 0;
-		const signal = hasOwnProperty(candidate, "signal") ? readOwnProperty(candidate, "signal") : void 0;
-		if (!isAbsoluteHostRootDirectory(rootDirectory)) return throwInvalidSourceData();
-		normalizedOptions = {
-			limits: normalizeLimits(limits),
-			rootDirectory,
-			selection: normalizeSelection(selection),
-			signal: normalizeSignal(signal)
+		if (!Nr(e) || !Pr(e, Dr) || !U(e, "rootDirectory") || !U(e, "selection")) return H();
+		let n = W(e, "rootDirectory"), r = W(e, "selection"), i = U(e, "limits") ? W(e, "limits") : void 0, a = U(e, "signal") ? W(e, "signal") : void 0;
+		if (!Er(n)) return H();
+		t = {
+			limits: zr(i),
+			rootDirectory: n,
+			selection: Lr(r),
+			signal: Br(a)
 		};
-	} catch (cause) {
-		if (cause instanceof RepositoryPathException) throw cause;
-		return throwInvalidSourceData();
+	} catch (e) {
+		if (e instanceof Oe) throw e;
+		return H();
 	}
-	if (normalizedOptions.selection.kind === "paths") {
-		for (const selectedPath of normalizedOptions.selection.paths) if (selectedPath.slice(1).split("/").includes(".git")) return throwInvalidSourceData(selectedPath);
+	if (t.selection.kind === "paths") {
+		for (let e of t.selection.paths) if (e.slice(1).split("/").includes(".git")) return H(e);
 	}
-	return Object.freeze(normalizedOptions);
-};
-var decoder$1 = new TextDecoder$1("utf-8", {
-	fatal: true,
-	ignoreBOM: true
-});
-var MAX_CURSOR_BYTES = 65536;
-var DIRECTORY_CURSOR_KEYS = new Set([
+	return Object.freeze(t);
+}, Hr = new Me("utf-8", {
+	fatal: !0,
+	ignoreBOM: !0
+}), Ur = 65536, Wr = new Set([
 	"frames",
 	"kind",
 	"prefix",
 	"snapshotId",
 	"version"
-]);
-var CURSOR_FRAME_KEYS = new Set([
+]), Gr = new Set([
 	"lastName",
 	"namesIdentity",
 	"path",
 	"pathIdentity"
-]);
-var PATH_CURSOR_KEYS = new Set([
+]), Kr = new Set([
 	"kind",
 	"lastPath",
 	"prefix",
 	"snapshotId",
 	"version"
-]);
-var hasOnlyKeys = (record, keys) => Reflect.ownKeys(record).every((key) => typeof key === "string" && keys.has(key));
-var hashParts = (parts) => {
-	const hash = createHash("sha256");
-	for (const part of parts) {
-		hash.update(part);
-		hash.update("\0");
-	}
-	return `sha256:${hash.digest("hex")}`;
-};
-var getErrorCode = (cause) => {
-	if (typeof cause !== "object" || cause === null || !("code" in cause)) return;
-	const code = cause.code;
-	return typeof code === "string" ? code : void 0;
-};
-var throwSource = (code, operation, logicalPath, retryable, cause, resource) => {
-	throw new RepositorySourceException({
-		cause,
-		code,
-		operation,
-		path: logicalPath,
-		...resource === void 0 ? {} : { resource },
-		retryable
+]), qr = (e, t) => Reflect.ownKeys(e).every((e) => typeof e == "string" && t.has(e)), Jr = (e) => {
+	let t = Ne("sha256");
+	for (let n of e) t.update(n), t.update("\0");
+	return `sha256:${t.digest("hex")}`;
+}, Yr = (e) => {
+	if (typeof e != "object" || !e || !("code" in e)) return;
+	let t = e.code;
+	return typeof t == "string" ? t : void 0;
+}, G = (e, t, n, r, i, a) => {
+	throw new w({
+		cause: i,
+		code: e,
+		operation: t,
+		path: n,
+		...a === void 0 ? {} : { resource: a },
+		retryable: r
 	});
-};
-var throwMappedHostError = (cause, operation, logicalPath) => {
-	const code = getErrorCode(cause);
-	if (code === "EACCES" || code === "EPERM") return throwSource("ACCESS_DENIED", operation, logicalPath, true, cause);
-	if (operation !== "create-reader" && (code === "ENOENT" || code === "ENOTDIR" || code === "ELOOP")) return throwSource("SNAPSHOT_CHANGED", operation, logicalPath, true, cause);
-	if (operation === "create-reader" && (code === "ENOENT" || code === "ENOTDIR")) return throwSource("ENTRY_NOT_FOUND", operation, logicalPath, true, cause);
-	return throwSource("SOURCE_UNAVAILABLE", operation, logicalPath, true, cause);
-};
-var throwIfAborted$1 = (signal, operation, logicalPath) => {
-	if (signal?.aborted) throwSource("ABORTED", operation, logicalPath, false, signal.reason);
-};
-var getStatisticsIdentity = (statistics, type) => {
-	return hashParts([
-		type,
-		statistics.dev.toString(),
-		statistics.ino.toString(),
-		statistics.mode.toString(),
-		statistics.size.toString(),
-		statistics.mtimeNs.toString(),
-		statistics.ctimeNs.toString()
-	]);
-};
-var classifyStatistics = (statistics, operation, logicalPath) => {
-	if (statistics.isFile()) return "file";
-	if (statistics.isDirectory()) return "directory";
-	if (statistics.isSymbolicLink()) return "symlink";
-	return throwSource("INVALID_SOURCE_DATA", operation, logicalPath, false);
-};
-var decodeName = (encodedName, operation, parentPath) => {
+}, K = (e, t, n) => {
+	let r = Yr(e);
+	return G(r === "EACCES" || r === "EPERM" ? "ACCESS_DENIED" : t !== "create-reader" && (r === "ENOENT" || r === "ENOTDIR" || r === "ELOOP") ? "SNAPSHOT_CHANGED" : t === "create-reader" && (r === "ENOENT" || r === "ENOTDIR") ? "ENTRY_NOT_FOUND" : "SOURCE_UNAVAILABLE", t, n, !0, e);
+}, q = (e, t, n) => {
+	e?.aborted && G("ABORTED", t, n, !1, e.reason);
+}, J = (e, t) => Jr([
+	t,
+	e.dev.toString(),
+	e.ino.toString(),
+	e.mode.toString(),
+	e.size.toString(),
+	e.mtimeNs.toString(),
+	e.ctimeNs.toString()
+]), Xr = (e, t, n) => e.isFile() ? "file" : e.isDirectory() ? "directory" : e.isSymbolicLink() ? "symlink" : G("INVALID_SOURCE_DATA", t, n, !1), Zr = (e, t, n) => {
 	try {
-		const name = decoder$1.decode(encodedName);
-		parseRepositoryPath(parentPath === REPOSITORY_ROOT ? `/${name}` : `${parentPath}/${name}`);
-		return name;
-	} catch (cause) {
-		return throwSource("INVALID_SOURCE_DATA", operation, parentPath, false, cause);
+		let t = Hr.decode(e);
+		return T(n === E ? `/${t}` : `${n}/${t}`), t;
+	} catch (e) {
+		return G("INVALID_SOURCE_DATA", t, n, !1, e);
 	}
-};
-var openBufferDirectory = async (hostPath) => {
-	return await opendir(hostPath, { encoding: "buffer" });
-};
-var getParentPaths = (logicalPath) => {
-	const segments = logicalPath.slice(1).split("/");
-	const parents = [REPOSITORY_ROOT];
-	for (let index = 1; index < segments.length; index += 1) parents.push(parseRepositoryPath(`/${segments.slice(0, index).join("/")}`));
-	return parents;
-};
-var findFirstPathAfter = (paths, logicalPath) => {
-	let lowerIndex = 0;
-	let upperIndex = paths.length;
-	while (lowerIndex < upperIndex) {
-		const middleIndex = lowerIndex + Math.floor((upperIndex - lowerIndex) / 2);
-		const middlePath = paths[middleIndex];
-		if (middlePath !== void 0 && compareRepositoryPaths$1(middlePath, logicalPath) <= 0) lowerIndex = middleIndex + 1;
-		else upperIndex = middleIndex;
+}, Qr = async (e) => await Re(e, { encoding: "buffer" }), $r = (e) => {
+	let t = e.slice(1).split("/"), n = [E];
+	for (let e = 1; e < t.length; e += 1) n.push(T(`/${t.slice(0, e).join("/")}`));
+	return n;
+}, ei = (e, t) => {
+	let n = 0, r = e.length;
+	for (; n < r;) {
+		let i = n + Math.floor((r - n) / 2), a = e[i];
+		a !== void 0 && Te(a, t) <= 0 ? n = i + 1 : r = i;
 	}
-	return lowerIndex;
-};
-var findSortedName = (names, target) => {
-	let lowerIndex = 0;
-	let upperIndex = names.length;
-	while (lowerIndex < upperIndex) {
-		const middleIndex = lowerIndex + Math.floor((upperIndex - lowerIndex) / 2);
-		const middleName = names[middleIndex];
-		if (middleName !== void 0 && middleName < target) lowerIndex = middleIndex + 1;
-		else upperIndex = middleIndex;
+	return n;
+}, ti = (e, t) => {
+	let n = 0, r = e.length;
+	for (; n < r;) {
+		let i = n + Math.floor((r - n) / 2), a = e[i];
+		a !== void 0 && a < t ? n = i + 1 : r = i;
 	}
-	return names[lowerIndex] === target ? lowerIndex : -1;
-};
-var FilesystemRepositoryReader = class {
+	return e[n] === t ? n : -1;
+}, ni = class {
 	snapshot;
-	#cache;
-	#cursorKey = randomBytes(32);
-	#coordinator;
-	#limits;
-	#observations = new Map();
-	#rootDirectory;
-	#selection;
-	#selectedPaths;
-	#selectedPathSet;
-	#explicitSelectedPaths;
-	#selectedNamesByParent = new Map();
-	#selectedDirectoryProofs = new Map();
-	constructor(options, rootDirectory, rootIdentity) {
-		this.#limits = options.limits;
-		this.#rootDirectory = rootDirectory;
-		this.#selection = options.selection;
-		this.#cache = createByteCache({
-			maxBytes: options.limits.maxCachedBytes,
+	#e;
+	#t = Fe(32);
+	#n;
+	#r;
+	#i = new Map();
+	#a;
+	#o;
+	#s;
+	#c;
+	#l;
+	#u = new Map();
+	#d = new Map();
+	constructor(e, t, n) {
+		this.#r = e.limits, this.#a = t, this.#o = e.selection, this.#e = Ge({
+			maxBytes: e.limits.maxCachedBytes,
 			maxEntries: 4096
-		});
-		this.#coordinator = createRequestCoordinator({
-			maxConcurrent: options.limits.maxConcurrentOperations,
-			maxQueued: options.limits.maxQueuedOperations
-		});
-		this.snapshot = Object.freeze({
-			id: hashParts([rootIdentity, randomBytes(32)]),
+		}), this.#n = Ye({
+			maxConcurrent: e.limits.maxConcurrentOperations,
+			maxQueued: e.limits.maxQueuedOperations
+		}), this.snapshot = Object.freeze({
+			id: Jr([n, Fe(32)]),
 			sourceKind: "filesystem"
-		});
-		this.#observations.set(REPOSITORY_ROOT, rootIdentity);
-		this.#selectedPaths = options.selection.kind === "paths" ? this.#createVisibleSelectedPaths(options.selection.paths) : [];
-		this.#selectedPathSet = new Set(this.#selectedPaths);
-		this.#explicitSelectedPaths = new Set(options.selection.kind === "paths" ? options.selection.paths : []);
-		for (const logicalPath of this.#selectedPaths) {
-			if (logicalPath === REPOSITORY_ROOT) continue;
-			const separatorIndex = logicalPath.lastIndexOf("/");
-			const parentPath = parseRepositoryPath(logicalPath.slice(0, separatorIndex) || "/");
-			const names = this.#selectedNamesByParent.get(parentPath) ?? new Set();
-			names.add(logicalPath.slice(separatorIndex + 1));
-			this.#selectedNamesByParent.set(parentPath, names);
+		}), this.#i.set(E, n), this.#s = e.selection.kind === "paths" ? this.#p(e.selection.paths) : [], this.#c = new Set(this.#s), this.#l = new Set(e.selection.kind === "paths" ? e.selection.paths : []);
+		for (let e of this.#s) {
+			if (e === E) continue;
+			let t = e.lastIndexOf("/"), n = T(e.slice(0, t) || "/"), r = this.#u.get(n) ?? new Set();
+			r.add(e.slice(t + 1)), this.#u.set(n, r);
 		}
 	}
-	async initialize(signal) {
-		if (this.#selection.kind !== "paths") return;
-		for (const logicalPath of this.#selectedPaths) {
-			throwIfAborted$1(signal, "create-reader", logicalPath);
-			const entry = await this.#observeEntry(logicalPath, "create-reader", void 0, signal);
-			if (entry === null) return throwSource("ENTRY_NOT_FOUND", "create-reader", logicalPath, true);
-			if (logicalPath !== REPOSITORY_ROOT && !this.#explicitSelectedPaths.has(logicalPath) && entry.type !== "directory") throwSource("ENTRY_NOT_DIRECTORY", "create-reader", logicalPath, false);
+	async initialize(e) {
+		if (this.#o.kind === "paths") for (let t of this.#s) {
+			q(e, "create-reader", t);
+			let n = await this.#O(t, "create-reader", void 0, e);
+			if (n === null) return G("ENTRY_NOT_FOUND", "create-reader", t, !0);
+			t !== E && !this.#l.has(t) && n.type !== "directory" && G("ENTRY_NOT_DIRECTORY", "create-reader", t, !1);
 		}
 	}
-	async compare(candidate, options) {
-		return createRepositoryComparison(this, candidate, options);
+	async compare(e, t) {
+		return De(this, e, t);
 	}
-	async getEntry(logicalPath, options) {
-		const parsedPath = parseRepositoryPath(logicalPath);
-		if (!this.#isVisible(parsedPath)) return null;
-		return this.#run("get-entry", parsedPath, options?.signal, () => this.#observeEntry(parsedPath, "get-entry", void 0, options?.signal));
+	async getEntry(e, t) {
+		let n = T(e);
+		return this.#_(n) ? this.#A("get-entry", n, t?.signal, () => this.#O(n, "get-entry", void 0, t?.signal)) : null;
 	}
-	async listEntriesPage(options) {
-		const prefix = options.prefix === void 0 ? REPOSITORY_ROOT : parseRepositoryPath(options.prefix);
-		return this.#run("list-entries-page", prefix, options.signal, async () => {
-			const maxEntries = this.#parseBoundedPositiveInteger(options.maxEntries, this.#limits.maxPageEntries, "pageEntries", "list-entries-page", prefix);
-			const prefixEntry = await this.#observeEntry(prefix, "list-entries-page", void 0, options.signal);
-			if (prefixEntry === null || !this.#isVisible(prefix)) return throwSource("ENTRY_NOT_FOUND", "list-entries-page", prefix, false);
-			if (prefixEntry.type !== "directory") throwSource("ENTRY_NOT_DIRECTORY", "list-entries-page", prefix, false);
-			return this.#selection.kind === "paths" ? this.#listSelectedEntries(prefix, maxEntries, options.cursor, options.signal) : this.#listDirectoryEntries(prefix, maxEntries, options.cursor, options.signal);
+	async listEntriesPage(e) {
+		let t = e.prefix === void 0 ? E : T(e.prefix);
+		return this.#A("list-entries-page", t, e.signal, async () => {
+			let n = this.#b(e.maxEntries, this.#r.maxPageEntries, "pageEntries", "list-entries-page", t), r = await this.#O(t, "list-entries-page", void 0, e.signal);
+			return r === null || !this.#_(t) ? G("ENTRY_NOT_FOUND", "list-entries-page", t, !1) : (r.type !== "directory" && G("ENTRY_NOT_DIRECTORY", "list-entries-page", t, !1), this.#o.kind === "paths" ? this.#y(t, n, e.cursor, e.signal) : this.#v(t, n, e.cursor, e.signal));
 		});
 	}
-	async readFilePage(logicalPath, options) {
-		const parsedPath = parseRepositoryPath(logicalPath);
-		return this.#run("read-file-page", parsedPath, options.signal, async () => {
-			const offset = this.#parseOffset(options.offset, parsedPath);
-			const maxBytes = this.#parseBoundedPositiveInteger(options.maxBytes, this.#limits.maxReadBytes, "readBytes", "read-file-page", parsedPath);
-			if (!this.#isVisible(parsedPath)) throwSource("ENTRY_NOT_FOUND", "read-file-page", parsedPath, false);
-			const entry = await this.#observeEntry(parsedPath, "read-file-page", void 0, options.signal);
-			if (entry === null) return throwSource("ENTRY_NOT_FOUND", "read-file-page", parsedPath, false);
-			if (entry.type !== "file" || entry.byteLength === null) return throwSource("ENTRY_NOT_FILE", "read-file-page", parsedPath, false);
-			const entryIdentity = this.#observations.get(parsedPath);
-			if (entryIdentity === void 0) return throwSource("INVALID_SOURCE_DATA", "read-file-page", parsedPath, false);
-			if (offset > entry.byteLength) throwSource("INVALID_PAGE_REQUEST", "read-file-page", parsedPath, false);
-			const bytesToRead = Math.min(maxBytes, entry.byteLength - offset);
-			const cacheKey = `${parsedPath}\0${entryIdentity}\0${offset}\0${bytesToRead}`;
-			const cached = this.#cache.get(cacheKey);
-			if (cached !== void 0) return this.#createFilePage(cached, entry.byteLength, offset);
-			const bytes = await this.#readExactRange(parsedPath, entryIdentity, offset, bytesToRead, options.signal);
-			if (bytes.byteLength > 0) this.#cache.set(cacheKey, bytes);
-			return this.#createFilePage(bytes, entry.byteLength, offset);
+	async readFilePage(e, t) {
+		let n = T(e);
+		return this.#A("read-file-page", n, t.signal, async () => {
+			let e = this.#x(t.offset, n), r = this.#b(t.maxBytes, this.#r.maxReadBytes, "readBytes", "read-file-page", n);
+			this.#_(n) || G("ENTRY_NOT_FOUND", "read-file-page", n, !1);
+			let i = await this.#O(n, "read-file-page", void 0, t.signal);
+			if (i === null) return G("ENTRY_NOT_FOUND", "read-file-page", n, !1);
+			if (i.type !== "file" || i.byteLength === null) return G("ENTRY_NOT_FILE", "read-file-page", n, !1);
+			let a = this.#i.get(n);
+			if (a === void 0) return G("INVALID_SOURCE_DATA", "read-file-page", n, !1);
+			e > i.byteLength && G("INVALID_PAGE_REQUEST", "read-file-page", n, !1);
+			let o = Math.min(r, i.byteLength - e), s = `${n}\0${a}\0${e}\0${o}`, c = this.#e.get(s);
+			if (c !== void 0) return this.#f(c, i.byteLength, e);
+			let l = await this.#k(n, a, e, o, t.signal);
+			return l.byteLength > 0 && this.#e.set(s, l), this.#f(l, i.byteLength, e);
 		});
 	}
-	async readLinkText(logicalPath, options) {
-		const parsedPath = parseRepositoryPath(logicalPath);
-		return this.#run("read-link-text", parsedPath, options?.signal, async () => {
-			if (!this.#isVisible(parsedPath)) return throwSource("ENTRY_NOT_FOUND", "read-link-text", parsedPath, false);
-			const entry = await this.#observeEntry(parsedPath, "read-link-text", void 0, options?.signal);
-			if (entry === null) return throwSource("ENTRY_NOT_FOUND", "read-link-text", parsedPath, false);
-			if (entry.type !== "symlink") return throwSource("ENTRY_NOT_LINK", "read-link-text", parsedPath, false);
-			let text;
+	async readLinkText(e, t) {
+		let n = T(e);
+		return this.#A("read-link-text", n, t?.signal, async () => {
+			if (!this.#_(n)) return G("ENTRY_NOT_FOUND", "read-link-text", n, !1);
+			let e = await this.#O(n, "read-link-text", void 0, t?.signal);
+			if (e === null) return G("ENTRY_NOT_FOUND", "read-link-text", n, !1);
+			if (e.type !== "symlink") return G("ENTRY_NOT_LINK", "read-link-text", n, !1);
+			let r;
 			try {
-				text = await readlink(this.#getHostPath(parsedPath), { encoding: "buffer" });
-			} catch (cause) {
-				return throwMappedHostError(cause, "read-link-text", parsedPath);
+				r = await Be(this.#g(n), { encoding: "buffer" });
+			} catch (e) {
+				return K(e, "read-link-text", n);
 			}
-			await this.#observeEntry(parsedPath, "read-link-text", void 0, options?.signal);
-			if (text.byteLength > 4096) return null;
-			let decodedText;
+			if (await this.#O(n, "read-link-text", void 0, t?.signal), r.byteLength > 4096) return null;
+			let i;
 			try {
-				decodedText = decoder$1.decode(text);
+				i = Hr.decode(r);
 			} catch {
 				return null;
 			}
-			return process.platform === "win32" ? decodedText.replaceAll("\\", "/") : decodedText;
+			return process.platform === "win32" ? i.replaceAll("\\", "/") : i;
 		});
 	}
-	#createFilePage(bytes, totalBytes, offset) {
-		const nextOffset = offset + bytes.byteLength;
-		const isComplete = nextOffset === totalBytes;
+	#f(e, t, n) {
+		let r = n + e.byteLength, i = r === t;
 		return {
-			bytes,
-			isComplete,
-			nextOffset: isComplete ? null : nextOffset,
-			offset,
+			bytes: e,
+			isComplete: i,
+			nextOffset: i ? null : r,
+			offset: n,
 			snapshot: this.snapshot,
-			totalBytes
+			totalBytes: t
 		};
 	}
-	#createVisibleSelectedPaths(selectedPaths) {
-		const visiblePaths = new Set([REPOSITORY_ROOT]);
-		for (const selectedPath of selectedPaths) {
-			visiblePaths.add(selectedPath);
-			for (const parentPath of getParentPaths(selectedPath)) visiblePaths.add(parentPath);
+	#p(e) {
+		let t = new Set([E]);
+		for (let n of e) {
+			t.add(n);
+			for (let e of $r(n)) t.add(e);
 		}
-		if (visiblePaths.size - 1 > this.#limits.maxEntries) throwSource("RESOURCE_LIMIT_EXCEEDED", "create-reader", null, false, void 0, {
+		return t.size - 1 > this.#r.maxEntries && G("RESOURCE_LIMIT_EXCEEDED", "create-reader", null, !1, void 0, {
 			dimension: "selectedEntries",
-			limit: this.#limits.maxEntries,
-			observed: visiblePaths.size - 1
-		});
-		return Object.freeze([...visiblePaths].sort(compareRepositoryPaths$1));
+			limit: this.#r.maxEntries,
+			observed: t.size - 1
+		}), Object.freeze([...t].sort(Te));
 	}
-	#decodeCursor(cursor, prefix) {
+	#m(e, t) {
 		try {
-			if (Buffer.byteLength(cursor, "utf8") > MAX_CURSOR_BYTES) throw new Error("cursor exceeds the encoded limit");
-			const separatorIndex = cursor.lastIndexOf(".");
-			if (separatorIndex <= 0) throw new Error("cursor signature is missing");
-			const encodedPayload = cursor.slice(0, separatorIndex);
-			if (!verifyHmac(encodedPayload, cursor.slice(separatorIndex + 1), this.#cursorKey)) throw new Error("cursor signature does not match");
-			const parsed = JSON.parse(Buffer.from(encodedPayload, "base64url").toString("utf8"));
-			if (!isObjectValid(parsed, true) || parsed["version"] !== 1 || parsed["snapshotId"] !== this.snapshot.id || parsed["prefix"] !== prefix) throw new Error("cursor belongs to another snapshot or prefix");
-			if (parsed["kind"] === "paths" && hasOnlyKeys(parsed, PATH_CURSOR_KEYS)) {
-				const lastPath = parseRepositoryPath(parsed["lastPath"]);
-				const descendantPrefix = prefix === REPOSITORY_ROOT ? REPOSITORY_ROOT : `${prefix}/`;
-				if (lastPath === prefix || !lastPath.startsWith(descendantPrefix)) throw new Error("cursor path is outside the requested prefix");
+			if (Buffer.byteLength(e, "utf8") > Ur) throw Error("cursor exceeds the encoded limit");
+			let n = e.lastIndexOf(".");
+			if (n <= 0) throw Error("cursor signature is missing");
+			let r = e.slice(0, n);
+			if (!at(r, e.slice(n + 1), this.#t)) throw Error("cursor signature does not match");
+			let i = JSON.parse(Buffer.from(r, "base64url").toString("utf8"));
+			if (!s(i, !0) || i.version !== 1 || i.snapshotId !== this.snapshot.id || i.prefix !== t) throw Error("cursor belongs to another snapshot or prefix");
+			if (i.kind === "paths" && qr(i, Kr)) {
+				let e = T(i.lastPath), n = t === E ? E : `${t}/`;
+				if (e === t || !e.startsWith(n)) throw Error("cursor path is outside the requested prefix");
 				return {
 					kind: "paths",
-					lastPath,
-					prefix,
+					lastPath: e,
+					prefix: t,
 					snapshotId: this.snapshot.id,
 					version: 1
 				};
 			}
-			if (parsed["kind"] === "directory" && hasOnlyKeys(parsed, DIRECTORY_CURSOR_KEYS) && Array.isArray(parsed["frames"])) return {
-				frames: parsed["frames"].map((candidate) => {
-					if (!isObjectValid(candidate, true)) throw new Error("cursor frame is invalid");
-					const frame = candidate;
-					if (!hasOnlyKeys(frame, CURSOR_FRAME_KEYS) || typeof frame["lastName"] !== "string" && frame["lastName"] !== null || typeof frame["namesIdentity"] !== "string" || typeof frame["path"] !== "string" || typeof frame["pathIdentity"] !== "string") throw new Error("cursor frame is invalid");
+			if (i.kind === "directory" && qr(i, Wr) && Array.isArray(i.frames)) return {
+				frames: i.frames.map((e) => {
+					if (!s(e, !0)) throw Error("cursor frame is invalid");
+					let t = e;
+					if (!qr(t, Gr) || typeof t.lastName != "string" && t.lastName !== null || typeof t.namesIdentity != "string" || typeof t.path != "string" || typeof t.pathIdentity != "string") throw Error("cursor frame is invalid");
 					return {
-						lastName: frame["lastName"],
-						namesIdentity: frame["namesIdentity"],
-						path: parseRepositoryPath(frame["path"]),
-						pathIdentity: frame["pathIdentity"]
+						lastName: t.lastName,
+						namesIdentity: t.namesIdentity,
+						path: T(t.path),
+						pathIdentity: t.pathIdentity
 					};
 				}),
 				kind: "directory",
-				prefix,
+				prefix: t,
 				snapshotId: this.snapshot.id,
 				version: 1
 			};
-			throw new Error("cursor payload is invalid");
-		} catch (cause) {
-			return throwSource("INVALID_PAGE_REQUEST", "list-entries-page", prefix, false, cause);
+			throw Error("cursor payload is invalid");
+		} catch (e) {
+			return G("INVALID_PAGE_REQUEST", "list-entries-page", t, !1, e);
 		}
 	}
-	#encodeCursor(cursor) {
-		const encodedPayload = Buffer.from(JSON.stringify(cursor), "utf8").toString("base64url");
-		const encodedCursor = `${encodedPayload}.${signHmac(encodedPayload, this.#cursorKey)}`;
-		if (Buffer.byteLength(encodedCursor, "utf8") > MAX_CURSOR_BYTES) throwSource("RESOURCE_LIMIT_EXCEEDED", "list-entries-page", cursor.prefix, false, void 0, {
+	#h(e) {
+		let t = Buffer.from(JSON.stringify(e), "utf8").toString("base64url"), n = `${t}.${it(t, this.#t)}`;
+		return Buffer.byteLength(n, "utf8") > Ur && G("RESOURCE_LIMIT_EXCEEDED", "list-entries-page", e.prefix, !1, void 0, {
 			dimension: "cursorBytes",
-			limit: MAX_CURSOR_BYTES,
-			observed: Buffer.byteLength(encodedCursor, "utf8")
-		});
-		return encodedCursor;
+			limit: Ur,
+			observed: Buffer.byteLength(n, "utf8")
+		}), n;
 	}
-	#getHostPath(logicalPath) {
-		if (logicalPath === REPOSITORY_ROOT) return this.#rootDirectory;
-		const hostPath = path.resolve(this.#rootDirectory, ...logicalPath.slice(1).split("/"));
-		const relativePath = path.relative(this.#rootDirectory, hostPath);
-		if (relativePath === "" || relativePath === ".." || relativePath.startsWith(`..${path.sep}`) || path.isAbsolute(relativePath)) throwSource("INVALID_SOURCE_DATA", "get-entry", logicalPath, false);
-		return hostPath;
+	#g(e) {
+		if (e === E) return this.#a;
+		let t = D.resolve(this.#a, ...e.slice(1).split("/")), n = D.relative(this.#a, t);
+		return (n === "" || n === ".." || n.startsWith(`..${D.sep}`) || D.isAbsolute(n)) && G("INVALID_SOURCE_DATA", "get-entry", e, !1), t;
 	}
-	#isVisible(logicalPath) {
-		return this.#selection.kind === "directory" || this.#selectedPathSet.has(logicalPath);
+	#_(e) {
+		return this.#o.kind === "directory" || this.#c.has(e);
 	}
-	async #listDirectoryEntries(prefix, maxEntries, encodedCursor, signal) {
-		let frames;
-		const directoryFrames = new Map();
-		if (encodedCursor === void 0) {
-			const initialFrame = await this.#createDirectoryFrame(prefix, null, "list-entries-page", directoryFrames, signal);
-			frames = [initialFrame];
-			directoryFrames.set(prefix, initialFrame);
+	async #v(e, t, n, r) {
+		let i, a = new Map();
+		if (n === void 0) {
+			let t = await this.#S(e, null, "list-entries-page", a, r);
+			i = [t], a.set(e, t);
 		} else {
-			const cursor = this.#decodeCursor(encodedCursor, prefix);
-			if (cursor.kind !== "directory" || cursor.frames.length === 0) return throwSource("INVALID_PAGE_REQUEST", "list-entries-page", prefix, false);
-			frames = [];
-			for (const frame of cursor.frames) {
-				const restored = await this.#restoreDirectoryFrame(frame, directoryFrames, signal);
-				frames.push(restored);
-				directoryFrames.set(restored.path, restored);
+			let t = this.#m(n, e);
+			if (t.kind !== "directory" || t.frames.length === 0) return G("INVALID_PAGE_REQUEST", "list-entries-page", e, !1);
+			i = [];
+			for (let e of t.frames) {
+				let t = await this.#C(e, a, r);
+				i.push(t), a.set(t.path, t);
 			}
 		}
-		const entries = [];
-		while (frames.length > 0 && entries.length < maxEntries) {
-			throwIfAborted$1(signal, "list-entries-page", prefix);
-			const frame = frames.at(-1);
-			if (frame === void 0) break;
-			if (frame.nextIndex >= frame.names.length) {
-				frames.pop();
-				directoryFrames.delete(frame.path);
+		let o = [];
+		for (; i.length > 0 && o.length < t;) {
+			q(r, "list-entries-page", e);
+			let t = i.at(-1);
+			if (t === void 0) break;
+			if (t.nextIndex >= t.names.length) {
+				i.pop(), a.delete(t.path);
 				continue;
 			}
-			const name = frame.names[frame.nextIndex];
-			if (name === void 0) return throwSource("INVALID_SOURCE_DATA", "list-entries-page", frame.path, false);
-			frames[frames.length - 1] = {
-				...frame,
-				lastName: name,
-				nextIndex: frame.nextIndex + 1
+			let n = t.names[t.nextIndex];
+			if (n === void 0) return G("INVALID_SOURCE_DATA", "list-entries-page", t.path, !1);
+			i[i.length - 1] = {
+				...t,
+				lastName: n,
+				nextIndex: t.nextIndex + 1
 			};
-			const childPath = parseRepositoryPath(frame.path === REPOSITORY_ROOT ? `/${name}` : `${frame.path}/${name}`);
-			const entry = await this.#observeEntry(childPath, "list-entries-page", directoryFrames, signal);
-			if (entry === null) return throwSource("SNAPSHOT_CHANGED", "list-entries-page", childPath, true);
-			entries.push(entry);
-			if (entry.type === "directory") {
-				const childFrame = await this.#createDirectoryFrame(childPath, null, "list-entries-page", directoryFrames, signal);
-				frames.push(childFrame);
-				directoryFrames.set(childPath, childFrame);
+			let s = T(t.path === E ? `/${n}` : `${t.path}/${n}`), c = await this.#O(s, "list-entries-page", a, r);
+			if (c === null) return G("SNAPSHOT_CHANGED", "list-entries-page", s, !0);
+			if (o.push(c), c.type === "directory") {
+				let e = await this.#S(s, null, "list-entries-page", a, r);
+				i.push(e), a.set(s, e);
 			}
 		}
-		const isComplete = frames.length === 0;
+		let s = i.length === 0;
 		return {
-			entries,
-			isComplete,
-			nextCursor: isComplete ? null : this.#encodeCursor({
-				frames: frames.map(({ lastName, namesIdentity, path: framePath, pathIdentity }) => ({
-					lastName,
-					namesIdentity,
-					path: framePath,
-					pathIdentity
+			entries: o,
+			isComplete: s,
+			nextCursor: s ? null : this.#h({
+				frames: i.map(({ lastName: e, namesIdentity: t, path: n, pathIdentity: r }) => ({
+					lastName: e,
+					namesIdentity: t,
+					path: n,
+					pathIdentity: r
 				})),
 				kind: "directory",
-				prefix,
+				prefix: e,
 				snapshotId: this.snapshot.id,
 				version: 1
 			}),
 			snapshot: this.snapshot
 		};
 	}
-	async #listSelectedEntries(prefix, maxEntries, encodedCursor, signal) {
-		let lastPath = null;
-		if (encodedCursor !== void 0) {
-			const cursor = this.#decodeCursor(encodedCursor, prefix);
-			if (cursor.kind !== "paths" || !this.#selectedPathSet.has(cursor.lastPath)) return throwSource("INVALID_PAGE_REQUEST", "list-entries-page", prefix, false);
-			lastPath = cursor.lastPath;
+	async #y(e, t, n, r) {
+		let i = null;
+		if (n !== void 0) {
+			let t = this.#m(n, e);
+			if (t.kind !== "paths" || !this.#c.has(t.lastPath)) return G("INVALID_PAGE_REQUEST", "list-entries-page", e, !1);
+			i = t.lastPath;
 		}
-		const descendantPrefix = prefix === REPOSITORY_ROOT ? REPOSITORY_ROOT : `${prefix}/`;
-		let pathIndex = findFirstPathAfter(this.#selectedPaths, lastPath ?? prefix);
-		const entries = [];
-		while (entries.length < maxEntries) {
-			throwIfAborted$1(signal, "list-entries-page", prefix);
-			const logicalPath = this.#selectedPaths[pathIndex];
-			if (logicalPath === void 0 || !logicalPath.startsWith(descendantPrefix)) break;
-			const entry = await this.#observeEntry(logicalPath, "list-entries-page", void 0, signal);
-			if (entry === null) return throwSource("SNAPSHOT_CHANGED", "list-entries-page", logicalPath, true);
-			entries.push(entry);
-			pathIndex += 1;
+		let a = e === E ? E : `${e}/`, o = ei(this.#s, i ?? e), s = [];
+		for (; s.length < t;) {
+			q(r, "list-entries-page", e);
+			let t = this.#s[o];
+			if (t === void 0 || !t.startsWith(a)) break;
+			let n = await this.#O(t, "list-entries-page", void 0, r);
+			if (n === null) return G("SNAPSHOT_CHANGED", "list-entries-page", t, !0);
+			s.push(n), o += 1;
 		}
-		const nextPath = this.#selectedPaths[pathIndex];
-		const isComplete = nextPath === void 0 || !nextPath.startsWith(descendantPrefix);
-		const finalEntry = entries.at(-1);
-		if (!isComplete && finalEntry === void 0) return throwSource("INVALID_SOURCE_DATA", "list-entries-page", prefix, false);
-		return {
-			entries,
-			isComplete,
-			nextCursor: isComplete ? null : this.#encodeCursor({
+		let c = this.#s[o], l = c === void 0 || !c.startsWith(a), u = s.at(-1);
+		return !l && u === void 0 ? G("INVALID_SOURCE_DATA", "list-entries-page", e, !1) : {
+			entries: s,
+			isComplete: l,
+			nextCursor: l ? null : this.#h({
 				kind: "paths",
-				lastPath: finalEntry?.path ?? prefix,
-				prefix,
+				lastPath: u?.path ?? e,
+				prefix: e,
 				snapshotId: this.snapshot.id,
 				version: 1
 			}),
 			snapshot: this.snapshot
 		};
 	}
-	#parseBoundedPositiveInteger(candidate, limit, dimension, operation, logicalPath) {
-		if (!Number.isSafeInteger(candidate) || candidate <= 0) throwSource("INVALID_PAGE_REQUEST", operation, logicalPath, false);
-		if (candidate > limit) throwSource("RESOURCE_LIMIT_EXCEEDED", operation, logicalPath, false, void 0, {
-			dimension,
-			limit,
-			observed: candidate
-		});
-		return candidate;
+	#b(e, t, n, r, i) {
+		return (!Number.isSafeInteger(e) || e <= 0) && G("INVALID_PAGE_REQUEST", r, i, !1), e > t && G("RESOURCE_LIMIT_EXCEEDED", r, i, !1, void 0, {
+			dimension: n,
+			limit: t,
+			observed: e
+		}), e;
 	}
-	#parseOffset(candidate, logicalPath) {
-		if (!Number.isSafeInteger(candidate) || candidate < 0) throwSource("INVALID_PAGE_REQUEST", "read-file-page", logicalPath, false);
-		return candidate;
+	#x(e, t) {
+		return (!Number.isSafeInteger(e) || e < 0) && G("INVALID_PAGE_REQUEST", "read-file-page", t, !1), e;
 	}
-	async #createDirectoryFrame(logicalPath, lastName, operation, directoryFrames, signal) {
-		const entry = await this.#observeEntry(logicalPath, operation, directoryFrames, signal);
-		if (entry === null || entry.type !== "directory") throwSource("SNAPSHOT_CHANGED", operation, logicalPath, true);
-		const names = await this.#readDirectoryNames(logicalPath, operation, directoryFrames, signal);
-		const nextIndex = lastName === null ? 0 : findSortedName(names, lastName) + 1;
-		if (nextIndex === 0 && lastName !== null) throwSource("SNAPSHOT_CHANGED", operation, logicalPath, true);
-		return {
-			lastName,
-			names,
-			namesIdentity: hashParts(names),
-			nextIndex,
-			path: logicalPath,
-			pathIdentity: this.#observations.get(logicalPath) ?? ""
+	async #S(e, t, n, r, i) {
+		let a = await this.#O(e, n, r, i);
+		(a === null || a.type !== "directory") && G("SNAPSHOT_CHANGED", n, e, !0);
+		let o = await this.#w(e, n, r, i), s = t === null ? 0 : ti(o, t) + 1;
+		return s === 0 && t !== null && G("SNAPSHOT_CHANGED", n, e, !0), {
+			lastName: t,
+			names: o,
+			namesIdentity: Jr(o),
+			nextIndex: s,
+			path: e,
+			pathIdentity: this.#i.get(e) ?? ""
 		};
 	}
-	async #restoreDirectoryFrame(frame, directoryFrames, signal) {
-		const restored = await this.#createDirectoryFrame(parseRepositoryPath(frame.path), frame.lastName, "list-entries-page", directoryFrames, signal);
-		if (restored.pathIdentity !== frame.pathIdentity || restored.namesIdentity !== frame.namesIdentity) throwSource("SNAPSHOT_CHANGED", "list-entries-page", frame.path, true);
-		return restored;
+	async #C(e, t, n) {
+		let r = await this.#S(T(e.path), e.lastName, "list-entries-page", t, n);
+		return (r.pathIdentity !== e.pathIdentity || r.namesIdentity !== e.namesIdentity) && G("SNAPSHOT_CHANGED", "list-entries-page", e.path, !0), r;
 	}
-	async #readDirectoryNames(logicalPath, operation, directoryFrames, signal) {
+	async #w(e, t, n, r) {
 		try {
-			const directory = await openBufferDirectory(this.#getHostPath(logicalPath));
-			const names = [];
-			let observedEntries = 0;
-			for await (const directoryEntry of directory) {
-				throwIfAborted$1(signal, operation, logicalPath);
-				observedEntries += 1;
-				if (observedEntries > this.#limits.maxDirectoryEntries) throwSource("RESOURCE_LIMIT_EXCEEDED", operation, logicalPath, false, void 0, {
+			let i = await Qr(this.#g(e)), a = [], o = 0;
+			for await (let n of i) {
+				q(r, t, e), o += 1, o > this.#r.maxDirectoryEntries && G("RESOURCE_LIMIT_EXCEEDED", t, e, !1, void 0, {
 					dimension: "directoryEntries",
-					limit: this.#limits.maxDirectoryEntries,
-					observed: observedEntries
+					limit: this.#r.maxDirectoryEntries,
+					observed: o
 				});
-				const name = decodeName(directoryEntry.name, operation, logicalPath);
-				if (name !== ".git") names.push(name);
+				let i = Zr(n.name, t, e);
+				i !== ".git" && a.push(i);
 			}
-			await this.#observeEntry(logicalPath, operation, directoryFrames, signal);
-			return names.sort();
-		} catch (cause) {
-			if (cause instanceof RepositorySourceException) throw cause;
-			return throwMappedHostError(cause, operation, logicalPath);
+			return await this.#O(e, t, n, r), a.sort();
+		} catch (n) {
+			if (n instanceof w) throw n;
+			return K(n, t, e);
 		}
 	}
-	async #hasExactChildName(logicalPath, targetName, operation, parentIdentity, directoryFrames, signal) {
-		const frame = directoryFrames?.get(logicalPath);
-		if (frame !== void 0) {
-			if (frame.pathIdentity !== parentIdentity) throwSource("SNAPSHOT_CHANGED", operation, logicalPath, true);
-			return findSortedName(frame.names, targetName) >= 0;
-		}
-		const selectedNames = this.#selectedNamesByParent.get(logicalPath);
-		const isSelectedName = selectedNames?.has(targetName) === true;
-		const proof = isSelectedName ? this.#selectedDirectoryProofs.get(logicalPath) : void 0;
-		if (proof !== void 0) {
-			if (proof.identity !== parentIdentity) throwSource("SNAPSHOT_CHANGED", operation, logicalPath, true);
-			throwIfAborted$1(signal, operation, logicalPath);
-			return proof.names.has(targetName);
-		}
+	async #T(e, t, n, r, i, a) {
+		let o = i?.get(e);
+		if (o !== void 0) return o.pathIdentity !== r && G("SNAPSHOT_CHANGED", n, e, !0), ti(o.names, t) >= 0;
+		let s = this.#u.get(e), c = s?.has(t) === !0, l = c ? this.#d.get(e) : void 0;
+		if (l !== void 0) return l.identity !== r && G("SNAPSHOT_CHANGED", n, e, !0), q(a, n, e), l.names.has(t);
 		try {
-			const directory = await openBufferDirectory(this.#getHostPath(logicalPath));
-			const targets = isSelectedName && selectedNames !== void 0 ? selectedNames : new Set([targetName]);
-			const names = new Set();
-			let observedEntries = 0;
-			for await (const directoryEntry of directory) {
-				throwIfAborted$1(signal, operation, logicalPath);
-				observedEntries += 1;
-				if (observedEntries > this.#limits.maxDirectoryEntries) throwSource("RESOURCE_LIMIT_EXCEEDED", operation, logicalPath, false, void 0, {
+			let i = await Qr(this.#g(e)), o = c && s !== void 0 ? s : new Set([t]), l = new Set(), u = 0;
+			for await (let t of i) {
+				q(a, n, e), u += 1, u > this.#r.maxDirectoryEntries && G("RESOURCE_LIMIT_EXCEEDED", n, e, !1, void 0, {
 					dimension: "directoryEntries",
-					limit: this.#limits.maxDirectoryEntries,
-					observed: observedEntries
+					limit: this.#r.maxDirectoryEntries,
+					observed: u
 				});
-				let name;
+				let r;
 				try {
-					name = decodeName(directoryEntry.name, operation, logicalPath);
-				} catch (cause) {
-					if (cause instanceof RepositorySourceException && cause.code === "INVALID_SOURCE_DATA") continue;
-					throw cause;
+					r = Zr(t.name, n, e);
+				} catch (e) {
+					if (e instanceof w && e.code === "INVALID_SOURCE_DATA") continue;
+					throw e;
 				}
-				if (name !== ".git" && targets.has(name)) {
-					names.add(name);
-					if (names.size === targets.size) break;
-				}
+				if (r !== ".git" && o.has(r) && (l.add(r), l.size === o.size)) break;
 			}
-			if (isSelectedName) {
-				const statistics = await lstat(this.#getHostPath(logicalPath), { bigint: true });
-				if (!statistics.isDirectory() || getStatisticsIdentity(statistics, "directory") !== parentIdentity) throwSource("SNAPSHOT_CHANGED", operation, logicalPath, true);
-				this.#selectedDirectoryProofs.set(logicalPath, {
-					identity: parentIdentity,
-					names
+			if (c) {
+				let t = await k(this.#g(e), { bigint: !0 });
+				(!t.isDirectory() || J(t, "directory") !== r) && G("SNAPSHOT_CHANGED", n, e, !0), this.#d.set(e, {
+					identity: r,
+					names: l
 				});
 			}
-			throwIfAborted$1(signal, operation, logicalPath);
-			return names.has(targetName);
-		} catch (cause) {
-			if (cause instanceof RepositorySourceException) throw cause;
-			return throwMappedHostError(cause, operation, logicalPath);
+			return q(a, n, e), l.has(t);
+		} catch (t) {
+			if (t instanceof w) throw t;
+			return K(t, n, e);
 		}
 	}
-	async #readExactEntryStatistics(logicalPath, operation, directoryFrames, signal) {
-		const rootStatistics = await this.#assertRootUnchanged(operation, logicalPath);
-		if (logicalPath === REPOSITORY_ROOT) return rootStatistics;
-		const segments = logicalPath.slice(1).split("/");
-		let currentPath = REPOSITORY_ROOT;
-		let statistics = null;
-		const parentIdentities = [];
-		for (const [index, segment] of segments.entries()) {
-			throwIfAborted$1(signal, operation, logicalPath);
-			const parentIdentity = getStatisticsIdentity(statistics ?? rootStatistics, "directory");
-			if (!await this.#hasExactChildName(currentPath, segment, operation, parentIdentity, directoryFrames, signal)) return null;
-			currentPath = parseRepositoryPath(currentPath === REPOSITORY_ROOT ? `/${segment}` : `${currentPath}/${segment}`);
+	async #E(e, t, n, r) {
+		let i = await this.#D(t, e);
+		if (e === E) return i;
+		let a = e.slice(1).split("/"), o = E, s = null, c = [];
+		for (let [l, u] of a.entries()) {
+			q(r, t, e);
+			let d = J(s ?? i, "directory");
+			if (!await this.#T(o, u, t, d, n, r)) return null;
+			o = T(o === E ? `/${u}` : `${o}/${u}`);
 			try {
-				statistics = await lstat(this.#getHostPath(currentPath), { bigint: true });
-			} catch (cause) {
-				return throwMappedHostError(cause, operation, currentPath);
+				s = await k(this.#g(o), { bigint: !0 });
+			} catch (e) {
+				return K(e, t, o);
 			}
-			if (index < segments.length - 1 && !statistics.isDirectory()) return null;
-			if (index < segments.length - 1) parentIdentities.push({
-				identity: getStatisticsIdentity(statistics, "directory"),
-				path: currentPath
+			if (l < a.length - 1 && !s.isDirectory()) return null;
+			l < a.length - 1 && c.push({
+				identity: J(s, "directory"),
+				path: o
 			});
 		}
-		for (const parent of parentIdentities) {
-			throwIfAborted$1(signal, operation, logicalPath);
-			let currentStatistics;
+		for (let n of c) {
+			q(r, t, e);
+			let i;
 			try {
-				currentStatistics = await lstat(this.#getHostPath(parent.path), { bigint: true });
-			} catch (cause) {
-				return throwMappedHostError(cause, operation, parent.path);
+				i = await k(this.#g(n.path), { bigint: !0 });
+			} catch (e) {
+				return K(e, t, n.path);
 			}
-			if (!currentStatistics.isDirectory() || getStatisticsIdentity(currentStatistics, "directory") !== parent.identity) return throwSource("SNAPSHOT_CHANGED", operation, parent.path, true);
+			if (!i.isDirectory() || J(i, "directory") !== n.identity) return G("SNAPSHOT_CHANGED", t, n.path, !0);
 		}
-		await this.#assertRootUnchanged(operation, logicalPath);
-		return statistics;
+		return await this.#D(t, e), s;
 	}
-	async #assertRootUnchanged(operation, logicalPath) {
+	async #D(e, t) {
 		try {
-			const statistics = await lstat(this.#rootDirectory, { bigint: true });
-			const rootIdentity = this.#observations.get(REPOSITORY_ROOT);
-			if (!statistics.isDirectory() || rootIdentity === void 0 || getStatisticsIdentity(statistics, "directory") !== rootIdentity) return throwSource("SNAPSHOT_CHANGED", operation, logicalPath, true);
-			return statistics;
-		} catch (cause) {
-			if (cause instanceof RepositorySourceException) throw cause;
-			return throwMappedHostError(cause, operation, logicalPath);
+			let n = await k(this.#a, { bigint: !0 }), r = this.#i.get(E);
+			return !n.isDirectory() || r === void 0 || J(n, "directory") !== r ? G("SNAPSHOT_CHANGED", e, t, !0) : n;
+		} catch (n) {
+			if (n instanceof w) throw n;
+			return K(n, e, t);
 		}
 	}
-	async #observeEntry(logicalPath, operation, directoryFrames, signal) {
-		const statistics = await this.#readExactEntryStatistics(logicalPath, operation, directoryFrames, signal);
-		throwIfAborted$1(signal, operation, logicalPath);
-		if (statistics === null) return this.#observations.has(logicalPath) ? throwSource("SNAPSHOT_CHANGED", operation, logicalPath, true) : null;
-		const type = classifyStatistics(statistics, operation, logicalPath);
-		const identity = getStatisticsIdentity(statistics, type);
-		const previousIdentity = this.#observations.get(logicalPath);
-		if (previousIdentity !== void 0 && previousIdentity !== identity) throwSource("SNAPSHOT_CHANGED", operation, logicalPath, true);
-		if (previousIdentity === void 0) {
-			if (this.#observations.size - 1 >= this.#limits.maxEntries) throwSource("RESOURCE_LIMIT_EXCEEDED", operation, logicalPath, false, void 0, {
-				dimension: "observedEntries",
-				limit: this.#limits.maxEntries,
-				observed: this.#observations.size
-			});
-			this.#observations.set(logicalPath, identity);
-		}
-		return {
-			byteLength: type === "file" ? Number(statistics.size) : null,
+	async #O(e, t, n, r) {
+		let i = await this.#E(e, t, n, r);
+		if (q(r, t, e), i === null) return this.#i.has(e) ? G("SNAPSHOT_CHANGED", t, e, !0) : null;
+		let a = Xr(i, t, e), o = J(i, a), s = this.#i.get(e);
+		return s !== void 0 && s !== o && G("SNAPSHOT_CHANGED", t, e, !0), s === void 0 && (this.#i.size - 1 >= this.#r.maxEntries && G("RESOURCE_LIMIT_EXCEEDED", t, e, !1, void 0, {
+			dimension: "observedEntries",
+			limit: this.#r.maxEntries,
+			observed: this.#i.size
+		}), this.#i.set(e, o)), {
+			byteLength: a === "file" ? Number(i.size) : null,
 			contentIdentity: null,
-			path: logicalPath,
-			type
+			path: e,
+			type: a
 		};
 	}
-	async #readExactRange(logicalPath, entryIdentity, offset, bytesToRead, signal) {
-		let handle;
+	async #k(e, t, n, r, i) {
+		let a;
 		try {
-			const noFollow = "O_NOFOLLOW" in constants ? constants.O_NOFOLLOW : 0;
-			handle = await open(this.#getHostPath(logicalPath), constants.O_RDONLY | noFollow);
-			const before = await handle.stat({ bigint: true });
-			if (getStatisticsIdentity(before, classifyStatistics(before, "read-file-page", logicalPath)) !== entryIdentity) throwSource("SNAPSHOT_CHANGED", "read-file-page", logicalPath, true);
-			const bytes = new Uint8Array(bytesToRead);
-			let totalRead = 0;
-			while (totalRead < bytesToRead) {
-				throwIfAborted$1(signal, "read-file-page", logicalPath);
-				const result = await handle.read(bytes, totalRead, bytesToRead - totalRead, offset + totalRead);
-				if (result.bytesRead === 0) throwSource("SNAPSHOT_CHANGED", "read-file-page", logicalPath, true);
-				totalRead += result.bytesRead;
+			let o = "O_NOFOLLOW" in Ae ? Ae.O_NOFOLLOW : 0;
+			a = await Le(this.#g(e), Ae.O_RDONLY | o);
+			let s = await a.stat({ bigint: !0 });
+			J(s, Xr(s, "read-file-page", e)) !== t && G("SNAPSHOT_CHANGED", "read-file-page", e, !0);
+			let c = new Uint8Array(r), l = 0;
+			for (; l < r;) {
+				q(i, "read-file-page", e);
+				let t = await a.read(c, l, r - l, n + l);
+				t.bytesRead === 0 && G("SNAPSHOT_CHANGED", "read-file-page", e, !0), l += t.bytesRead;
 			}
-			const after = await handle.stat({ bigint: true });
-			if (getStatisticsIdentity(after, classifyStatistics(after, "read-file-page", logicalPath)) !== entryIdentity) throwSource("SNAPSHOT_CHANGED", "read-file-page", logicalPath, true);
-			await this.#observeEntry(logicalPath, "read-file-page");
-			return bytes;
-		} catch (cause) {
-			if (cause instanceof RepositorySourceException) throw cause;
-			return throwMappedHostError(cause, "read-file-page", logicalPath);
+			let u = await a.stat({ bigint: !0 });
+			return J(u, Xr(u, "read-file-page", e)) !== t && G("SNAPSHOT_CHANGED", "read-file-page", e, !0), await this.#O(e, "read-file-page"), c;
+		} catch (t) {
+			if (t instanceof w) throw t;
+			return K(t, "read-file-page", e);
 		} finally {
-			await handle?.close().catch(() => void 0);
+			await a?.close().catch(() => void 0);
 		}
 	}
-	async #run(operation, logicalPath, signal, callback) {
-		let isStarted = false;
+	async #A(e, n, r, i) {
+		let a = !1;
 		try {
-			return await this.#coordinator.run(async () => {
-				isStarted = true;
-				throwIfAborted$1(signal, operation, logicalPath);
-				return callback();
-			}, signal === void 0 ? {} : { signal });
-		} catch (cause) {
-			if (isStarted) throw cause;
-			if (getErrorCode(cause) === ERRORS.REQUEST_QUEUE_FULL) return throwSource("RESOURCE_LIMIT_EXCEEDED", operation, logicalPath, true, void 0, {
+			return await this.#n.run(async () => (a = !0, q(r, e, n), i()), r === void 0 ? {} : { signal: r });
+		} catch (r) {
+			if (a) throw r;
+			return Yr(r) === t.REQUEST_QUEUE_FULL ? G("RESOURCE_LIMIT_EXCEEDED", e, n, !0, void 0, {
 				dimension: "queuedOperations",
-				limit: this.#limits.maxQueuedOperations,
-				observed: this.#limits.maxQueuedOperations + 1
-			});
-			return throwSource("ABORTED", operation, logicalPath, false, cause);
+				limit: this.#r.maxQueuedOperations,
+				observed: this.#r.maxQueuedOperations + 1
+			}) : G("ABORTED", e, n, !1, r);
 		}
 	}
-};
-var prepareRoot = async (options) => {
-	throwIfAborted$1(options.signal, "create-reader", null);
+}, ri = async (e) => {
+	q(e.signal, "create-reader", null);
 	try {
-		const rootDirectory = await realpath(options.rootDirectory);
-		const statistics = await lstat(rootDirectory, { bigint: true });
-		if (!statistics.isDirectory()) throwSource("ENTRY_NOT_DIRECTORY", "create-reader", null, false);
-		return {
-			identity: getStatisticsIdentity(statistics, "directory"),
-			rootDirectory
+		let t = await Ve(e.rootDirectory), n = await k(t, { bigint: !0 });
+		return n.isDirectory() || G("ENTRY_NOT_DIRECTORY", "create-reader", null, !1), {
+			identity: J(n, "directory"),
+			rootDirectory: t
 		};
-	} catch (cause) {
-		if (cause instanceof RepositorySourceException) throw cause;
-		return throwMappedHostError(cause, "create-reader", null);
+	} catch (e) {
+		if (e instanceof w) throw e;
+		return K(e, "create-reader", null);
 	}
-};
-var createFilesystemRepositoryReader = async (rawOptions) => {
-	const options = normalizeFilesystemRepositoryOptions(rawOptions);
-	const root = await prepareRoot(options);
-	const reader = new FilesystemRepositoryReader(options, root.rootDirectory, root.identity);
-	await reader.initialize(options.signal);
-	throwIfAborted$1(options.signal, "create-reader", null);
-	return Object.freeze(reader);
-};
-//#endregion
-//#region src/repository-symlink-overlay/reader.ts
-var decoder = new TextDecoder("utf-8", {
-	fatal: true,
-	ignoreBOM: true
-});
-var throwIfAborted = (signal, operation, path) => {
-	if (!signal?.aborted) return;
-	throw new RepositorySourceException({
-		cause: signal.reason,
+}, ii = async (e) => {
+	let t = Vr(e), n = await ri(t), r = new ni(t, n.rootDirectory, n.identity);
+	return await r.initialize(t.signal), q(t.signal, "create-reader", null), Object.freeze(r);
+}, ai = new TextDecoder("utf-8", {
+	fatal: !0,
+	ignoreBOM: !0
+}), Y = (e, t, n) => {
+	if (e?.aborted) throw new w({
+		cause: e.reason,
 		code: "ABORTED",
-		operation,
-		path,
-		retryable: false
+		operation: t,
+		path: n,
+		retryable: !1
 	});
-};
-var createInvalidOverlayException = (operation, path) => new RepositorySourceException({
+}, oi = (e, t) => new w({
 	code: "INVALID_SOURCE_DATA",
-	operation,
-	path,
-	retryable: false
-});
-var validateOverlayEntry = (entry, operation, path) => {
-	if (entry?.type !== "file" || entry.path !== path) throw createInvalidOverlayException(operation, path);
-};
-var overlayEntry = (entry, operation, path) => {
-	validateOverlayEntry(entry, operation, path);
-	return Object.freeze({
-		byteLength: null,
-		contentIdentity: null,
-		path,
-		type: "symlink"
-	});
-};
-var GitSymlinkOverlayRepositoryReader = class {
+	operation: e,
+	path: t,
+	retryable: !1
+}), si = (e, t, n) => {
+	if (e?.type !== "file" || e.path !== n) throw oi(t, n);
+}, ci = (e, t, n) => (si(e, t, n), Object.freeze({
+	byteLength: null,
+	contentIdentity: null,
+	path: n,
+	type: "symlink"
+})), li = class {
 	snapshot;
-	#overlayPaths;
-	#reader;
-	constructor(reader, overlayPaths) {
-		this.#reader = reader;
-		this.#overlayPaths = overlayPaths;
-		this.snapshot = reader.snapshot;
+	#e;
+	#t;
+	constructor(e, t) {
+		this.#t = e, this.#e = t, this.snapshot = e.snapshot;
 	}
-	compare(candidate, options) {
-		return createRepositoryComparison(this, candidate, options);
+	compare(e, t) {
+		return De(this, e, t);
 	}
-	async getEntry(path, options) {
-		const entry = await this.#reader.getEntry(path, options);
-		if (!this.#overlayPaths.has(path)) return entry;
-		return overlayEntry(entry, "get-entry", path);
+	async getEntry(e, t) {
+		let n = await this.#t.getEntry(e, t);
+		return this.#e.has(e) ? ci(n, "get-entry", e) : n;
 	}
-	async readFilePage(path, options) {
-		const parsedPath = parseRepositoryPath(path);
-		if (!this.#overlayPaths.has(parsedPath)) return this.#reader.readFilePage(parsedPath, options);
-		throwIfAborted(options.signal, "read-file-page", parsedPath);
-		validateOverlayEntry(await this.#reader.getEntry(parsedPath, options), "read-file-page", parsedPath);
-		throwIfAborted(options.signal, "read-file-page", parsedPath);
-		throw new RepositorySourceException({
+	async readFilePage(e, t) {
+		let n = T(e);
+		if (!this.#e.has(n)) return this.#t.readFilePage(n, t);
+		throw Y(t.signal, "read-file-page", n), si(await this.#t.getEntry(n, t), "read-file-page", n), Y(t.signal, "read-file-page", n), new w({
 			code: "ENTRY_NOT_FILE",
 			operation: "read-file-page",
-			path: parsedPath,
-			retryable: false
+			path: n,
+			retryable: !1
 		});
 	}
-	async readLinkText(path, options) {
-		const parsedPath = parseRepositoryPath(path);
-		if (!this.#overlayPaths.has(parsedPath)) return this.#reader.readLinkText(parsedPath, options);
-		throwIfAborted(options?.signal, "read-link-text", parsedPath);
-		const entry = await this.#reader.getEntry(parsedPath, options);
-		validateOverlayEntry(entry, "read-link-text", parsedPath);
-		throwIfAborted(options?.signal, "read-link-text", parsedPath);
-		const byteLength = entry?.byteLength ?? null;
-		if (byteLength === null) throw createInvalidOverlayException("read-link-text", parsedPath);
-		if (byteLength > 4096) return null;
-		if (byteLength === 0) return "";
-		const page = await this.#reader.readFilePage(parsedPath, {
-			maxBytes: byteLength,
+	async readLinkText(e, t) {
+		let n = T(e);
+		if (!this.#e.has(n)) return this.#t.readLinkText(n, t);
+		Y(t?.signal, "read-link-text", n);
+		let r = await this.#t.getEntry(n, t);
+		si(r, "read-link-text", n), Y(t?.signal, "read-link-text", n);
+		let i = r?.byteLength ?? null;
+		if (i === null) throw oi("read-link-text", n);
+		if (i > 4096) return null;
+		if (i === 0) return "";
+		let a = await this.#t.readFilePage(n, {
+			maxBytes: i,
 			offset: 0,
-			...options?.signal === void 0 ? {} : { signal: options.signal }
+			...t?.signal === void 0 ? {} : { signal: t.signal }
 		});
-		throwIfAborted(options?.signal, "read-link-text", parsedPath);
-		if (!page.isComplete || page.totalBytes !== byteLength || page.bytes.byteLength !== byteLength) throw createInvalidOverlayException("read-link-text", parsedPath);
+		if (Y(t?.signal, "read-link-text", n), !a.isComplete || a.totalBytes !== i || a.bytes.byteLength !== i) throw oi("read-link-text", n);
 		try {
-			return decoder.decode(page.bytes);
+			return ai.decode(a.bytes);
 		} catch {
 			return null;
 		}
 	}
-	async listEntriesPage(options) {
-		const prefix = options.prefix === void 0 ? REPOSITORY_ROOT : parseRepositoryPath(options.prefix);
-		if (this.#overlayPaths.has(prefix)) {
-			throwIfAborted(options.signal, "list-entries-page", prefix);
-			const operationOptions = options.signal === void 0 ? void 0 : { signal: options.signal };
-			validateOverlayEntry(await this.#reader.getEntry(prefix, operationOptions), "list-entries-page", prefix);
-			throwIfAborted(options.signal, "list-entries-page", prefix);
-			throw new RepositorySourceException({
+	async listEntriesPage(e) {
+		let t = e.prefix === void 0 ? E : T(e.prefix);
+		if (this.#e.has(t)) {
+			Y(e.signal, "list-entries-page", t);
+			let n = e.signal === void 0 ? void 0 : { signal: e.signal };
+			throw si(await this.#t.getEntry(t, n), "list-entries-page", t), Y(e.signal, "list-entries-page", t), new w({
 				code: "ENTRY_NOT_DIRECTORY",
 				operation: "list-entries-page",
-				path: prefix,
-				retryable: false
+				path: t,
+				retryable: !1
 			});
 		}
-		const page = await this.#reader.listEntriesPage(options);
-		const entries = page.entries.map((entry) => this.#overlayPaths.has(entry.path) ? overlayEntry(entry, "list-entries-page", entry.path) : entry);
+		let n = await this.#t.listEntriesPage(e), r = n.entries.map((e) => this.#e.has(e.path) ? ci(e, "list-entries-page", e.path) : e);
 		return Object.freeze({
-			entries: Object.freeze(entries),
-			isComplete: page.isComplete,
-			nextCursor: page.nextCursor,
+			entries: Object.freeze(r),
+			isComplete: n.isComplete,
+			nextCursor: n.nextCursor,
 			snapshot: this.snapshot
 		});
 	}
-};
-var createGitSymlinkOverlayRepositoryReader = (reader, symlinkPaths) => {
-	const overlayPaths = new Set();
-	for (const symlinkPath of symlinkPaths) {
-		const parsedPath = parseRepositoryPath(symlinkPath);
-		if (parsedPath === REPOSITORY_ROOT) throw new RepositorySourceException({
+}, ui = (e, t) => {
+	let n = new Set();
+	for (let e of t) {
+		let t = T(e);
+		if (t === E) throw new w({
 			code: "INVALID_SOURCE_DATA",
 			operation: "create-reader",
-			path: parsedPath,
-			retryable: false
+			path: t,
+			retryable: !1
 		});
-		overlayPaths.add(parsedPath);
+		n.add(t);
 	}
-	return Object.freeze(new GitSymlinkOverlayRepositoryReader(reader, overlayPaths));
-};
-//#endregion
-//#region src/repository-reader/factory.ts
-var composeWorkingTreeReader = async (input, filesystemReaderFactory, symlinkOverlayFactory, contentTransformationGuardFactory) => {
-	const selectedPaths = Object.freeze(input.entries.map((entry) => entry.path));
-	const symlinkOverlayPaths = Object.freeze(input.entries.reduce((paths, entry) => {
-		if (entry.requiresSymlinkOverlay) paths.push(entry.path);
-		return paths;
-	}, []));
-	const guardedPaths = Object.freeze(input.entries.reduce((paths, entry) => {
-		if (entry.contentTransformation.isGuarded) paths.push(entry.path);
-		return paths;
-	}, []));
-	return contentTransformationGuardFactory(symlinkOverlayFactory(await filesystemReaderFactory({
+	return Object.freeze(new li(e, n));
+}, di = async (e, t, n, r) => {
+	let i = Object.freeze(e.entries.map((e) => e.path)), a = Object.freeze(e.entries.reduce((e, t) => (t.requiresSymlinkOverlay && e.push(t.path), e), [])), o = Object.freeze(e.entries.reduce((e, t) => (t.contentTransformation.isGuarded && e.push(t.path), e), []));
+	return r(n(await t({
 		limits: Object.freeze({
-			maxCachedBytes: input.resourceLimits.maxTotalBytes,
-			maxDirectoryEntries: input.resourceLimits.maxEntries,
-			maxEntries: input.resourceLimits.maxEntries,
-			maxPageEntries: Math.min(4096, input.resourceLimits.maxEntries),
-			maxReadBytes: input.resourceLimits.maxFileBytes
+			maxCachedBytes: e.resourceLimits.maxTotalBytes,
+			maxDirectoryEntries: e.resourceLimits.maxEntries,
+			maxEntries: e.resourceLimits.maxEntries,
+			maxPageEntries: Math.min(4096, e.resourceLimits.maxEntries),
+			maxReadBytes: e.resourceLimits.maxFileBytes
 		}),
-		rootDirectory: input.repositoryRoot,
+		rootDirectory: e.repositoryRoot,
 		selection: Object.freeze({
 			kind: "paths",
-			paths: selectedPaths
+			paths: i
 		}),
-		...input.signal === void 0 ? {} : { signal: input.signal }
-	}), symlinkOverlayPaths), guardedPaths);
-};
-var createWorkingTreeRepositoryReaderFactory = (filesystemReaderFactory = createFilesystemRepositoryReader, symlinkOverlayFactory = createGitSymlinkOverlayRepositoryReader, contentTransformationGuardFactory = createGitContentTransformationGuardRepositoryReader) => (input) => composeWorkingTreeReader(input, filesystemReaderFactory, symlinkOverlayFactory, contentTransformationGuardFactory);
-var createWorkingTreeRepositoryReader = createWorkingTreeRepositoryReaderFactory();
-var createWorkingTreeInstructionSourceFactory = (filesystemReaderFactory = createFilesystemRepositoryReader, symlinkOverlayFactory = createGitSymlinkOverlayRepositoryReader, contentTransformationGuardFactory = createGitContentTransformationGuardRepositoryReader) => (input) => composeWorkingTreeReader(input, filesystemReaderFactory, symlinkOverlayFactory, contentTransformationGuardFactory);
-var createWorkingTreeInstructionSource = createWorkingTreeInstructionSourceFactory();
-//#endregion
-//#region src/working-tree-snapshot/executor.ts
-var createSnapshotFailure = (errorCode, subcommand) => Object.freeze({
-	errorCode,
+		...e.signal === void 0 ? {} : { signal: e.signal }
+	}), a), o);
+}, fi = ((e = ii, t = ui, n = Xt) => (r) => di(r, e, t, n))(), pi = ((e = ii, t = ui, n = Xt) => (r) => di(r, e, t, n))(), X = (e, t) => Object.freeze({
+	errorCode: e,
 	kind: "failed",
-	...subcommand === void 0 ? {} : { subcommand }
-});
-var isSnapshotChanged = (error) => error instanceof RepositorySourceException && error.code === "SNAPSHOT_CHANGED";
-var isCreationInventoryRace = (error) => error instanceof RepositorySourceException && error.operation === "create-reader" && (error.code === "ENTRY_NOT_FOUND" || error.code === "ENTRY_NOT_DIRECTORY");
-var isPinnedIdentityUnavailable = (errorCode) => errorCode === "GIT_REPOSITORY_NOT_FOUND" || errorCode === "GIT_WORK_TREE_REQUIRED";
-var createWorkingTreeSnapshotExecutor = (identityInspector = inspectGitWorkingTreeIdentity, inventoryProbe = probeGitInventory, repositoryReaderFactory = createWorkingTreeRepositoryReader, compareInventories = areGitInventoriesEqual, instructionSourceFactory = createWorkingTreeInstructionSource) => {
-	const executeSnapshot = async (input) => {
-		if (input.signal?.aborted) return createSnapshotFailure("GIT_OPERATION_ABORTED");
-		const repositoryRoot = input.repositoryRoot;
-		const resourceLimits = Object.freeze({ ...input.resourceLimits });
-		const pinnedIdentityResult = await identityInspector({
-			repositoryRoot,
-			...input.signal === void 0 ? {} : { signal: input.signal }
+	...t === void 0 ? {} : { subcommand: t }
+}), mi = (e) => e instanceof w && e.code === "SNAPSHOT_CHANGED", hi = (e) => e instanceof w && e.operation === "create-reader" && (e.code === "ENTRY_NOT_FOUND" || e.code === "ENTRY_NOT_DIRECTORY"), gi = (e) => e === "GIT_REPOSITORY_NOT_FOUND" || e === "GIT_WORK_TREE_REQUIRED", _i = ((e = Ot, t = xr, n = fi, r = Tr, i = pi) => async (a) => {
+	if (a.signal?.aborted) return X("GIT_OPERATION_ABORTED");
+	let o = a.repositoryRoot, s = Object.freeze({ ...a.resourceLimits }), c = await e({
+		repositoryRoot: o,
+		...a.signal === void 0 ? {} : { signal: a.signal }
+	});
+	if (a.signal?.aborted) return X("GIT_OPERATION_ABORTED");
+	if (c.kind === "failed") return X(c.errorCode);
+	if (c.kind === "mismatched") return X("GIT_OUTPUT_INVALID");
+	let l = c.identity, u = async () => {
+		let e = await t({
+			maxEntries: s.maxEntries,
+			maxMetadataBytes: s.maxTotalBytes,
+			repositoryRoot: o,
+			...a.selectionPaths === void 0 ? {} : { selectionPaths: a.selectionPaths },
+			...a.signal === void 0 ? {} : { signal: a.signal }
 		});
-		if (input.signal?.aborted) return createSnapshotFailure("GIT_OPERATION_ABORTED");
-		if (pinnedIdentityResult.kind === "failed") return createSnapshotFailure(pinnedIdentityResult.errorCode);
-		if (pinnedIdentityResult.kind === "mismatched") return createSnapshotFailure("GIT_OUTPUT_INVALID");
-		const pinnedIdentity = pinnedIdentityResult.identity;
-		const probeInventory = async () => {
-			const result = await inventoryProbe({
-				maxEntries: resourceLimits.maxEntries,
-				maxMetadataBytes: resourceLimits.maxTotalBytes,
-				repositoryRoot,
-				...input.selectionPaths === void 0 ? {} : { selectionPaths: input.selectionPaths },
-				...input.signal === void 0 ? {} : { signal: input.signal }
-			});
-			return result.kind === "failed" ? createSnapshotFailure(result.errorCode, result.subcommand) : result;
-		};
-		const probeInstructions = async () => {
-			if (input.includeInstructions !== true) return null;
-			const result = await inventoryProbe({
-				includeIgnored: true,
-				maxEntries: resourceLimits.maxEntries,
-				maxMetadataBytes: resourceLimits.maxTotalBytes,
-				repositoryRoot,
-				selectionPaths: INSTRUCTION_PATHS,
-				...input.signal === void 0 ? {} : { signal: input.signal }
-			});
-			return result.kind === "failed" ? createSnapshotFailure(result.errorCode, result.subcommand) : result;
-		};
-		for (let attempt = 0; attempt < 3; attempt += 1) {
-			if (input.signal?.aborted) return createSnapshotFailure("GIT_OPERATION_ABORTED");
-			const currentIdentityResult = await identityInspector({
-				repositoryRoot,
-				...input.signal === void 0 ? {} : { signal: input.signal }
-			});
-			if (input.signal?.aborted) return createSnapshotFailure("GIT_OPERATION_ABORTED");
-			if (currentIdentityResult.kind === "failed") return createSnapshotFailure(isPinnedIdentityUnavailable(currentIdentityResult.errorCode) ? "WORKING_TREE_UNSTABLE" : currentIdentityResult.errorCode);
-			if (currentIdentityResult.kind === "mismatched" || !areGitWorkingTreeIdentitiesEqual(pinnedIdentity, currentIdentityResult.identity)) return createSnapshotFailure("WORKING_TREE_UNSTABLE");
-			const firstInventoryResult = await probeInventory();
-			if (input.signal?.aborted) return createSnapshotFailure("GIT_OPERATION_ABORTED");
-			if (firstInventoryResult.kind === "failed") return firstInventoryResult;
-			const firstInstructionResult = await probeInstructions();
-			if (input.signal?.aborted) return createSnapshotFailure("GIT_OPERATION_ABORTED");
-			if (firstInstructionResult?.kind === "failed") return firstInstructionResult;
-			let reader;
-			let instructions;
-			try {
-				reader = await repositoryReaderFactory({
-					entries: firstInventoryResult.entries,
-					repositoryRoot,
-					resourceLimits,
-					...input.signal === void 0 ? {} : { signal: input.signal }
-				});
-				instructions = firstInstructionResult === null ? void 0 : await instructionSourceFactory({
-					entries: firstInstructionResult.entries,
-					repositoryRoot,
-					resourceLimits,
-					...input.signal === void 0 ? {} : { signal: input.signal }
-				});
-			} catch (error) {
-				if (input.signal?.aborted) return createSnapshotFailure("GIT_OPERATION_ABORTED");
-				if (isSnapshotChanged(error)) continue;
-				if (!isCreationInventoryRace(error)) throw error;
-				const freshInventoryResult = await probeInventory();
-				if (input.signal?.aborted) return createSnapshotFailure("GIT_OPERATION_ABORTED");
-				if (freshInventoryResult.kind === "failed") return freshInventoryResult;
-				const freshInstructionResult = await probeInstructions();
-				if (input.signal?.aborted) return createSnapshotFailure("GIT_OPERATION_ABORTED");
-				if (freshInstructionResult?.kind === "failed") return freshInstructionResult;
-				if (!compareInventories(firstInventoryResult.entries, freshInventoryResult.entries) || firstInstructionResult !== null && freshInstructionResult !== null && !compareInventories(firstInstructionResult.entries, freshInstructionResult.entries)) continue;
-				throw error;
-			}
-			const secondInventoryResult = await probeInventory();
-			if (input.signal?.aborted) return createSnapshotFailure("GIT_OPERATION_ABORTED");
-			if (secondInventoryResult.kind === "failed") return secondInventoryResult;
-			if (!compareInventories(firstInventoryResult.entries, secondInventoryResult.entries)) continue;
-			const secondInstructionResult = await probeInstructions();
-			if (input.signal?.aborted) return createSnapshotFailure("GIT_OPERATION_ABORTED");
-			if (secondInstructionResult?.kind === "failed") return secondInstructionResult;
-			if (firstInstructionResult !== null && secondInstructionResult !== null && !compareInventories(firstInstructionResult.entries, secondInstructionResult.entries)) continue;
-			try {
-				if (input.signal?.aborted) return createSnapshotFailure("GIT_OPERATION_ABORTED");
-				const result = instructions !== void 0 ? await input.operation(reader, input.signal, instructions) : input.signal === void 0 ? await input.operation(reader) : await input.operation(reader, input.signal);
-				if (input.signal?.aborted) return createSnapshotFailure("GIT_OPERATION_ABORTED");
-				return Object.freeze({
-					kind: "completed",
-					result
-				});
-			} catch (error) {
-				if (input.signal?.aborted) return createSnapshotFailure("GIT_OPERATION_ABORTED");
-				if (!isSnapshotChanged(error)) throw error;
-			}
-		}
-		return createSnapshotFailure("WORKING_TREE_UNSTABLE");
+		return e.kind === "failed" ? X(e.errorCode, e.subcommand) : e;
+	}, d = async () => {
+		if (a.includeInstructions !== !0) return null;
+		let e = await t({
+			includeIgnored: !0,
+			maxEntries: s.maxEntries,
+			maxMetadataBytes: s.maxTotalBytes,
+			repositoryRoot: o,
+			selectionPaths: on,
+			...a.signal === void 0 ? {} : { signal: a.signal }
+		});
+		return e.kind === "failed" ? X(e.errorCode, e.subcommand) : e;
 	};
-	return executeSnapshot;
-};
-var executeWorkingTreeSnapshot = createWorkingTreeSnapshotExecutor();
-//#endregion
-//#region src/cli-execution/results.ts
-var measureOutput = (output) => Buffer.byteLength(output, "utf8");
-var measurePagedOutput = (page, serializedRecordsUtf8Bytes, isJson, formatJson, formatHuman) => {
-	if (!isJson) return measureOutput(formatHuman(page));
-	return measureOutput(formatJson(Object.freeze({
-		cursor: page.cursor,
-		records: Object.freeze([])
-	}))) - 2 + serializedRecordsUtf8Bytes;
-};
-var createMoldeaCliCompositionExecutionResult = (result, cliVersion, isJson) => Object.freeze({
-	exitCode: MOLDEA_CLI_EXIT_CODES.Success,
-	stderr: "",
-	stdout: isJson ? formatMoldeaCliJsonCompositionResult(result, cliVersion) : formatMoldeaCliHumanCompositionResult(result, cliVersion)
-});
-var createMoldeaCliErrorResult = (error, command, cliVersion, isJson, exitCode) => Object.freeze(isJson ? {
-	exitCode,
-	stderr: "",
-	stdout: formatMoldeaCliJsonError(error, command, cliVersion)
-} : {
-	exitCode,
-	stderr: formatMoldeaCliHumanError(error),
-	stdout: ""
-});
-var createMoldeaCliValidateExecutionResult = (inspection, cliVersion, isJson, cursor, maxOutputBytes) => {
-	const projection = createMoldeaCliValidateProjection(inspection);
-	const createResult = (page) => ({
-		diagnosticCount: projection.diagnosticCount,
-		acceptedWarningCount: projection.acceptedWarningCount,
-		errorCount: projection.errorCount,
-		formatVersion: projection.formatVersion,
-		page,
-		snapshotDigest: projection.snapshotDigest,
-		source: projection.source,
-		coverageCounts: projection.coverageCounts,
-		valid: projection.valid,
-		warningCount: projection.warningCount
-	});
-	const page = createMoldeaCliOutputPage({
-		command: "validate",
-		cursor,
-		filters: {},
-		maxOutputBytes,
-		measure: (candidate, serializedRecordsUtf8Bytes) => measurePagedOutput(candidate, serializedRecordsUtf8Bytes, isJson, (page) => formatMoldeaCliJsonValidateResult(createResult(page), cliVersion), (page) => formatMoldeaCliHumanValidateResult(createResult(page))),
-		records: projection.records,
-		snapshotDigest: projection.snapshotDigest
-	});
-	const result = Object.freeze(createResult(page));
-	assertMoldeaCliJsonResultIsContentFree(result);
-	return Object.freeze({
-		exitCode: result.valid ? MOLDEA_CLI_EXIT_CODES.Success : MOLDEA_CLI_EXIT_CODES.StructuralInvalid,
-		stderr: "",
-		stdout: isJson ? formatMoldeaCliJsonValidateResult(result, cliVersion) : formatMoldeaCliHumanValidateResult(result)
-	});
-};
-var createMoldeaCliInspectExecutionResult = (inspection, cliVersion, isJson, cursor, maxOutputBytes) => {
-	const projection = createMoldeaCliInspectProjection(inspection);
-	const createResult = (page) => ({
-		counts: projection.counts,
-		formatVersion: projection.formatVersion,
-		page,
-		project: projection.project,
-		snapshotDigest: projection.snapshotDigest,
-		source: projection.source,
-		coverageCounts: projection.coverageCounts,
-		valid: projection.valid,
-		view: projection.view
-	});
-	const page = createMoldeaCliOutputPage({
-		command: "inspect",
-		cursor,
-		filters: {},
-		maxOutputBytes,
-		measure: (candidate, serializedRecordsUtf8Bytes) => measurePagedOutput(candidate, serializedRecordsUtf8Bytes, isJson, (page) => formatMoldeaCliJsonInspectResult(createResult(page), cliVersion), (page) => formatMoldeaCliHumanInspectResult(createResult(page))),
-		records: projection.records,
-		sourceCursorForRecord: projection.getSourceCursor,
-		snapshotDigest: projection.snapshotDigest
-	});
-	const result = Object.freeze(createResult(page));
-	assertMoldeaCliJsonResultIsContentFree(result);
-	return Object.freeze({
-		exitCode: inspection.valid ? MOLDEA_CLI_EXIT_CODES.Success : MOLDEA_CLI_EXIT_CODES.StructuralInvalid,
-		stderr: "",
-		stdout: isJson ? formatMoldeaCliJsonInspectResult(result, cliVersion) : formatMoldeaCliHumanInspectResult(result)
-	});
-};
-var createMoldeaCliScopeExecutionResult = (execution, cliVersion, isJson, cursor, maxOutputBytes) => {
-	const projection = createMoldeaCliScopeProjection(execution);
-	const createResult = (page) => ({
-		counts: projection.counts,
-		inputDigest: projection.inputDigest,
-		manifestDigest: projection.manifestDigest,
-		page,
-		relevant: projection.relevant,
-		snapshotDigest: projection.snapshotDigest,
-		source: MOLDEA_CLI_GIT_WORKING_TREE_SOURCE,
-		valid: projection.valid
-	});
-	const page = createMoldeaCliOutputPage({
-		command: "scope",
-		cursor,
-		filters: { inputDigest: projection.inputDigest },
-		maxOutputBytes,
-		measure: (candidate, serializedRecordsUtf8Bytes) => measurePagedOutput(candidate, serializedRecordsUtf8Bytes, isJson, (page) => formatMoldeaCliJsonScopeResult(createResult(page), cliVersion), (page) => formatMoldeaCliHumanScopeResult(createResult(page))),
-		records: projection.records,
-		snapshotDigest: projection.snapshotDigest
-	});
-	const result = Object.freeze(createResult(page));
-	assertMoldeaCliJsonResultIsContentFree(result, projection.canonicalBodies);
-	return Object.freeze({
-		exitCode: projection.valid ? MOLDEA_CLI_EXIT_CODES.Success : MOLDEA_CLI_EXIT_CODES.StructuralInvalid,
-		stderr: "",
-		stdout: isJson ? formatMoldeaCliJsonScopeResult(result, cliVersion) : formatMoldeaCliHumanScopeResult(result)
-	});
-};
-var createMoldeaCliContentExecutionResult = (pageResult, cliVersion, isJson, cursor, maxOutputBytes) => {
-	const result = createMoldeaCliContentPage({
-		cursor,
-		maxOutputBytes,
-		measure: (candidate) => measureOutput(isJson ? formatMoldeaCliJsonContentResult(candidate, cliVersion) : formatMoldeaCliHumanContentResult(candidate)),
-		page: pageResult
-	});
-	return Object.freeze({
-		exitCode: MOLDEA_CLI_EXIT_CODES.Success,
-		stderr: "",
-		stdout: isJson ? formatMoldeaCliJsonContentResult(result, cliVersion) : formatMoldeaCliHumanContentResult(result)
-	});
-};
-//#endregion
-//#region src/cli-execution/command-executor.ts
-var executeLazyCoreInspection = async (input) => {
-	const { executeMoldeaCliCoreInspection } = await import("./chunk-c13db66a.mjs");
-	return executeMoldeaCliCoreInspection(input);
-};
-var loadInstalledComposition = async (input) => {
-	const { resolveInstalledMoldeaCliComposition } = await import("./chunk-90403e67.mjs");
-	return resolveInstalledMoldeaCliComposition(input);
-};
-var createOperationalErrorResult = (code, input, details) => createMoldeaCliErrorResult(createMoldeaCliOwnedError(code, details), input.invocation.command, input.packageMetadata.version, input.invocation.options.isJson, MOLDEA_CLI_EXIT_CODES.OperationalError);
-var createMoldeaCliCommandExecutor = (workingTreeDiscovery = discoverGitWorkingTree, workingTreeSnapshotExecutor = executeWorkingTreeSnapshot, coreInspectionExecutor = executeLazyCoreInspection, compositionLoader = loadInstalledComposition, projectScopeExecutor = executeMoldeaCliProjectScope, projectContentExecutor = executeMoldeaCliProjectContent) => {
-	return async (input) => {
-		const command = input.invocation.command;
-		const options = input.invocation.options;
+	for (let t = 0; t < 3; t += 1) {
+		if (a.signal?.aborted) return X("GIT_OPERATION_ABORTED");
+		let t = await e({
+			repositoryRoot: o,
+			...a.signal === void 0 ? {} : { signal: a.signal }
+		});
+		if (a.signal?.aborted) return X("GIT_OPERATION_ABORTED");
+		if (t.kind === "failed") return X(gi(t.errorCode) ? "WORKING_TREE_UNSTABLE" : t.errorCode);
+		if (t.kind === "mismatched" || !xt(l, t.identity)) return X("WORKING_TREE_UNSTABLE");
+		let c = await u();
+		if (a.signal?.aborted) return X("GIT_OPERATION_ABORTED");
+		if (c.kind === "failed") return c;
+		let f = await d();
+		if (a.signal?.aborted) return X("GIT_OPERATION_ABORTED");
+		if (f?.kind === "failed") return f;
+		let p, m;
 		try {
-			if (command === MOLDEA_CLI_COMMANDS.Composition || command === MOLDEA_CLI_COMMANDS.Inspect || command === MOLDEA_CLI_COMMANDS.Validate) {
-				const compositionResolution = await compositionLoader({
-					packageMetadata: input.packageMetadata,
-					...input.signal === void 0 ? {} : { signal: input.signal }
-				});
-				if (compositionResolution.kind === "invalid") return createOperationalErrorResult("COMPOSITION_STATE_INVALID", input);
-				if (command === MOLDEA_CLI_COMMANDS.Composition) return createMoldeaCliCompositionExecutionResult(compositionResolution.result, input.packageMetadata.version, options.isJson);
-			}
-			let scopePaths = null;
-			let contentPath = null;
-			let contentOffset = 0;
-			const inspectionCursor = command === MOLDEA_CLI_COMMANDS.Inspect && options.cursor !== null ? decodeMoldeaCliCursor({
-				command: "inspect",
-				cursor: options.cursor,
-				filters: {}
-			}).sourceCursor : null;
-			if (command === MOLDEA_CLI_COMMANDS.Scope) {
-				if (options.pathsInput === "path" && options.path !== null) scopePaths = Object.freeze([options.path]);
-				else if (options.pathsInput === "stdin" && input.stdin !== void 0) {
-					if (input.stdin.byteLength > options.resourceLimits.maxTotalBytes) return createOperationalErrorResult("RESOURCE_LIMIT_EXCEEDED", input);
-					scopePaths = parseMoldeaCliScopePathBytes(input.stdin, options.resourceLimits.maxEntries);
-				} else return createOperationalErrorResult("PATH_INPUT_INVALID", input);
-				if (scopePaths.some((path) => !isRepositoryPath(path))) return createOperationalErrorResult("PATH_INPUT_INVALID", input);
-			}
-			if (command === MOLDEA_CLI_COMMANDS.Content) {
-				if (options.path === null) return createOperationalErrorResult("CONTENT_PATH_INVALID", input);
-				contentPath = parseMoldeaCliCanonicalContentPath(options.path);
-				if (options.cursor !== null) {
-					const sourceCursor = decodeMoldeaCliCursor({
-						command: "content",
-						cursor: options.cursor,
-						filters: { path: contentPath }
-					}).sourceCursor;
-					const match = sourceCursor === null ? null : /^byte:(0|[1-9][0-9]*)$/u.exec(sourceCursor);
-					if (match === null) throw new MoldeaCliOutputPageException("CURSOR_INVALID");
-					contentOffset = Number(match[1]);
-					if (!Number.isSafeInteger(contentOffset)) throw new MoldeaCliOutputPageException("CURSOR_INVALID");
-				}
-			}
-			const discoveryResult = await workingTreeDiscovery({
-				invocationDirectory: input.invocationDirectory,
-				repositoryDirectory: options.repositoryDirectory,
-				...input.signal === void 0 ? {} : { signal: input.signal }
+			p = await n({
+				entries: c.entries,
+				repositoryRoot: o,
+				resourceLimits: s,
+				...a.signal === void 0 ? {} : { signal: a.signal }
+			}), m = f === null ? void 0 : await i({
+				entries: f.entries,
+				repositoryRoot: o,
+				resourceLimits: s,
+				...a.signal === void 0 ? {} : { signal: a.signal }
 			});
-			if (discoveryResult.kind === "failed") return createOperationalErrorResult(discoveryResult.errorCode, input);
-			const resourceLimits = options.resourceLimits;
-			const snapshotResult = await workingTreeSnapshotExecutor({
-				operation: async (repository, signal, instructions) => {
-					if (command === MOLDEA_CLI_COMMANDS.Scope && scopePaths !== null) return projectScopeExecutor({
-						paths: scopePaths,
-						repository,
-						resourceLimits,
-						...signal === void 0 ? {} : { signal }
-					});
-					if (command === MOLDEA_CLI_COMMANDS.Content && contentPath !== null) return projectContentExecutor({
-						maxBytes: Math.min(resourceLimits.maxFileBytes, resourceLimits.maxTotalBytes, Math.max(1, Math.floor(options.maxOutputBytes / 2))),
-						offset: contentOffset,
-						path: contentPath,
-						repository,
-						resourceLimits,
-						...signal === void 0 ? {} : { signal }
-					});
-					return coreInspectionExecutor({
-						packageMetadata: input.packageMetadata,
-						command: command === MOLDEA_CLI_COMMANDS.Inspect ? "inspect" : "validate",
-						...inspectionCursor === null ? {} : { cursor: inspectionCursor },
-						...instructions === void 0 ? {} : { instructions },
-						repository,
-						resourceLimits,
-						...signal === void 0 ? {} : { signal }
-					});
-				},
-				repositoryRoot: discoveryResult.repositoryRoot,
-				resourceLimits,
-				...command === MOLDEA_CLI_COMMANDS.Validate || command === MOLDEA_CLI_COMMANDS.Inspect ? { includeInstructions: true } : {},
-				...command === MOLDEA_CLI_COMMANDS.Scope ? { selectionPaths: [MOLDEA_MANIFEST_PATH] } : contentPath === null ? {} : { selectionPaths: [contentPath] },
-				...input.signal === void 0 ? {} : { signal: input.signal }
-			});
-			if (snapshotResult.kind === "failed") return createOperationalErrorResult(snapshotResult.errorCode, input, snapshotResult.subcommand === void 0 ? void 0 : { subcommand: snapshotResult.subcommand });
-			if (command === MOLDEA_CLI_COMMANDS.Validate) return createMoldeaCliValidateExecutionResult(snapshotResult.result, input.packageMetadata.version, options.isJson, options.cursor, options.maxOutputBytes);
-			if (command === MOLDEA_CLI_COMMANDS.Inspect) return createMoldeaCliInspectExecutionResult(snapshotResult.result, input.packageMetadata.version, options.isJson, options.cursor, options.maxOutputBytes);
-			if (command === MOLDEA_CLI_COMMANDS.Scope) return createMoldeaCliScopeExecutionResult(snapshotResult.result, input.packageMetadata.version, options.isJson, options.cursor, options.maxOutputBytes);
-			return createMoldeaCliContentExecutionResult(snapshotResult.result, input.packageMetadata.version, options.isJson, options.cursor, options.maxOutputBytes);
-		} catch (error) {
-			return createMoldeaCliErrorResult(mapMoldeaCliOperationalError(error), command, input.packageMetadata.version, options.isJson, MOLDEA_CLI_EXIT_CODES.OperationalError);
+		} catch (e) {
+			if (a.signal?.aborted) return X("GIT_OPERATION_ABORTED");
+			if (mi(e)) continue;
+			if (!hi(e)) throw e;
+			let t = await u();
+			if (a.signal?.aborted) return X("GIT_OPERATION_ABORTED");
+			if (t.kind === "failed") return t;
+			let n = await d();
+			if (a.signal?.aborted) return X("GIT_OPERATION_ABORTED");
+			if (n?.kind === "failed") return n;
+			if (!r(c.entries, t.entries) || f !== null && n !== null && !r(f.entries, n.entries)) continue;
+			throw e;
 		}
-	};
-};
-var executeMoldeaCliCommand = createMoldeaCliCommandExecutor();
-//#endregion
-//#region src/cli-execution/runner.ts
-var runMoldeaCli = async (options) => {
-	const parseResult = parseMoldeaCliArguments(options.commandLineArguments);
-	if (parseResult.kind === "help") return {
-		exitCode: MOLDEA_CLI_EXIT_CODES.Success,
+		let h = await u();
+		if (a.signal?.aborted) return X("GIT_OPERATION_ABORTED");
+		if (h.kind === "failed") return h;
+		if (!r(c.entries, h.entries)) continue;
+		let g = await d();
+		if (a.signal?.aborted) return X("GIT_OPERATION_ABORTED");
+		if (g?.kind === "failed") return g;
+		if (!(f !== null && g !== null && !r(f.entries, g.entries))) try {
+			if (a.signal?.aborted) return X("GIT_OPERATION_ABORTED");
+			let e = m === void 0 ? a.signal === void 0 ? await a.operation(p) : await a.operation(p, a.signal) : await a.operation(p, a.signal, m);
+			return a.signal?.aborted ? X("GIT_OPERATION_ABORTED") : Object.freeze({
+				kind: "completed",
+				result: e
+			});
+		} catch (e) {
+			if (a.signal?.aborted) return X("GIT_OPERATION_ABORTED");
+			if (!mi(e)) throw e;
+		}
+	}
+	return X("WORKING_TREE_UNSTABLE");
+})(), vi = (e) => Buffer.byteLength(e, "utf8"), yi = (e, t, n, r, i) => n ? vi(r(Object.freeze({
+	cursor: e.cursor,
+	records: Object.freeze([])
+}))) - 2 + t : vi(i(e)), bi = (e, t, n) => Object.freeze({
+	exitCode: A.Success,
+	stderr: "",
+	stdout: n ? f(e, t) : ae(e, t)
+}), Z = (e, t, n, r, i) => Object.freeze(r ? {
+	exitCode: i,
+	stderr: "",
+	stdout: ee(e, t, n)
+} : {
+	exitCode: i,
+	stderr: te(e),
+	stdout: ""
+}), xi = (e, t, n, r, i) => {
+	let a = ve(e), o = (e) => ({
+		diagnosticCount: a.diagnosticCount,
+		acceptedWarningCount: a.acceptedWarningCount,
+		errorCount: a.errorCount,
+		formatVersion: a.formatVersion,
+		page: e,
+		snapshotDigest: a.snapshotDigest,
+		source: a.source,
+		coverageCounts: a.coverageCounts,
+		valid: a.valid,
+		warningCount: a.warningCount
+	}), s = h({
+		command: "validate",
+		cursor: r,
+		filters: {},
+		maxOutputBytes: i,
+		measure: (e, r) => yi(e, r, n, (e) => de(o(e), t), (e) => ne(o(e))),
+		records: a.records,
+		snapshotDigest: a.snapshotDigest
+	}), c = Object.freeze(o(s));
+	return ot(c), Object.freeze({
+		exitCode: c.valid ? A.Success : A.StructuralInvalid,
 		stderr: "",
-		stdout: formatMoldeaCliHelp(parseResult.command)
-	};
-	if (parseResult.kind === "version") return {
-		exitCode: MOLDEA_CLI_EXIT_CODES.Success,
+		stdout: n ? de(c, t) : ne(c)
+	});
+}, Si = (e, t, n, r, i) => {
+	let a = re(e), o = (e) => ({
+		counts: a.counts,
+		formatVersion: a.formatVersion,
+		page: e,
+		project: a.project,
+		snapshotDigest: a.snapshotDigest,
+		source: a.source,
+		coverageCounts: a.coverageCounts,
+		valid: a.valid,
+		view: a.view
+	}), s = h({
+		command: "inspect",
+		cursor: r,
+		filters: {},
+		maxOutputBytes: i,
+		measure: (e, r) => yi(e, r, n, (e) => fe(o(e), t), (e) => u(o(e))),
+		records: a.records,
+		sourceCursorForRecord: a.getSourceCursor,
+		snapshotDigest: a.snapshotDigest
+	}), c = Object.freeze(o(s));
+	return ot(c), Object.freeze({
+		exitCode: e.valid ? A.Success : A.StructuralInvalid,
 		stderr: "",
-		stdout: `${options.packageMetadata.version}\n`
-	};
-	if (parseResult.kind === "error") return createMoldeaCliErrorResult(createMoldeaCliOwnedError(parseResult.code), parseResult.command, options.packageMetadata.version, parseResult.isJson, MOLDEA_CLI_EXIT_CODES.UsageError);
-	const executeCommand = options.executeCommand ?? executeMoldeaCliCommand;
+		stdout: n ? fe(c, t) : u(c)
+	});
+}, Ci = (e, t, n, r, i) => {
+	let a = Gt(e), o = (e) => ({
+		counts: a.counts,
+		inputDigest: a.inputDigest,
+		manifestDigest: a.manifestDigest,
+		page: e,
+		relevant: a.relevant,
+		snapshotDigest: a.snapshotDigest,
+		source: v,
+		valid: a.valid
+	}), s = h({
+		command: "scope",
+		cursor: r,
+		filters: { inputDigest: a.inputDigest },
+		maxOutputBytes: i,
+		measure: (e, r) => yi(e, r, n, (e) => c(o(e), t), (e) => ye(o(e))),
+		records: a.records,
+		snapshotDigest: a.snapshotDigest
+	}), l = Object.freeze(o(s));
+	return ot(l, a.canonicalBodies), Object.freeze({
+		exitCode: a.valid ? A.Success : A.StructuralInvalid,
+		stderr: "",
+		stdout: n ? c(l, t) : ye(l)
+	});
+}, wi = (e, t, n, r, i) => {
+	let a = Rt({
+		cursor: r,
+		maxOutputBytes: i,
+		measure: (e) => vi(n ? d(e, t) : be(e)),
+		page: e
+	});
+	return Object.freeze({
+		exitCode: A.Success,
+		stderr: "",
+		stdout: n ? d(a, t) : be(a)
+	});
+}, Ti = async (e) => {
+	let { executeMoldeaCliCoreInspection: t } = await import("./chunk-d9e49acd.mjs");
+	return t(e);
+}, Ei = async (e) => {
+	let { resolveInstalledMoldeaCliComposition: t } = await import("./chunk-517c6bfb.mjs");
+	return t(e);
+}, Q = (e, t, n) => Z(_(e, n), t.invocation.command, t.packageMetadata.version, t.invocation.options.isJson, A.OperationalError), Di = ((e = _t, t = _i, n = Ti, r = Ei, i = Ht, a = Ft) => async (o) => {
+	let s = o.invocation.command, c = o.invocation.options;
 	try {
-		let stdin;
-		if (parseResult.invocation.options.pathsInput === "stdin") {
-			if (options.readStdin === void 0) return createMoldeaCliErrorResult(createMoldeaCliOwnedError("PATH_INPUT_INVALID"), parseResult.invocation.command, options.packageMetadata.version, parseResult.invocation.options.isJson, MOLDEA_CLI_EXIT_CODES.UsageError);
-			const stdinResult = await options.readStdin(parseResult.invocation.options.resourceLimits.maxTotalBytes, options.signal);
-			if (stdinResult.kind === "limit-exceeded") return createMoldeaCliErrorResult(createMoldeaCliOwnedError("RESOURCE_LIMIT_EXCEEDED"), parseResult.invocation.command, options.packageMetadata.version, parseResult.invocation.options.isJson, MOLDEA_CLI_EXIT_CODES.OperationalError);
-			stdin = stdinResult.bytes;
+		if (s === m.Composition || s === m.Inspect || s === m.Validate) {
+			let e = await r({
+				packageMetadata: o.packageMetadata,
+				...o.signal === void 0 ? {} : { signal: o.signal }
+			});
+			if (e.kind === "invalid") return Q("COMPOSITION_STATE_INVALID", o);
+			if (s === m.Composition) return bi(e.result, o.packageMetadata.version, c.isJson);
 		}
-		return await executeCommand({
-			invocationDirectory: options.invocationDirectory,
-			invocation: parseResult.invocation,
-			packageMetadata: options.packageMetadata,
-			...options.signal === void 0 ? {} : { signal: options.signal },
-			...stdin === void 0 ? {} : { stdin }
+		let l = null, u = null, d = 0, f = s === m.Inspect && c.cursor !== null ? b({
+			command: "inspect",
+			cursor: c.cursor,
+			filters: {}
+		}).sourceCursor : null;
+		if (s === m.Scope) {
+			if (c.pathsInput === "path" && c.path !== null) l = Object.freeze([c.path]);
+			else if (c.pathsInput === "stdin" && o.stdin !== void 0) {
+				if (o.stdin.byteLength > c.resourceLimits.maxTotalBytes) return Q("RESOURCE_LIMIT_EXCEEDED", o);
+				l = Bt(o.stdin, c.resourceLimits.maxEntries);
+			} else return Q("PATH_INPUT_INVALID", o);
+			if (l.some((e) => !Ee(e))) return Q("PATH_INPUT_INVALID", o);
+		}
+		if (s === m.Content) {
+			if (c.path === null) return Q("CONTENT_PATH_INVALID", o);
+			if (u = Pt(c.path), c.cursor !== null) {
+				let e = b({
+					command: "content",
+					cursor: c.cursor,
+					filters: { path: u }
+				}).sourceCursor, t = e === null ? null : /^byte:(0|[1-9][0-9]*)$/u.exec(e);
+				if (t === null || (d = Number(t[1]), !Number.isSafeInteger(d))) throw new S("CURSOR_INVALID");
+			}
+		}
+		let p = await e({
+			invocationDirectory: o.invocationDirectory,
+			repositoryDirectory: c.repositoryDirectory,
+			...o.signal === void 0 ? {} : { signal: o.signal }
+		});
+		if (p.kind === "failed") return Q(p.errorCode, o);
+		let h = c.resourceLimits, g = await t({
+			operation: async (e, t, r) => s === m.Scope && l !== null ? i({
+				paths: l,
+				repository: e,
+				resourceLimits: h,
+				...t === void 0 ? {} : { signal: t }
+			}) : s === m.Content && u !== null ? a({
+				maxBytes: Math.min(h.maxFileBytes, h.maxTotalBytes, Math.max(1, Math.floor(c.maxOutputBytes / 2))),
+				offset: d,
+				path: u,
+				repository: e,
+				resourceLimits: h,
+				...t === void 0 ? {} : { signal: t }
+			}) : n({
+				packageMetadata: o.packageMetadata,
+				command: s === m.Inspect ? "inspect" : "validate",
+				...f === null ? {} : { cursor: f },
+				...r === void 0 ? {} : { instructions: r },
+				repository: e,
+				resourceLimits: h,
+				...t === void 0 ? {} : { signal: t }
+			}),
+			repositoryRoot: p.repositoryRoot,
+			resourceLimits: h,
+			...s === m.Validate || s === m.Inspect ? { includeInstructions: !0 } : {},
+			...s === m.Scope ? { selectionPaths: [P] } : u === null ? {} : { selectionPaths: [u] },
+			...o.signal === void 0 ? {} : { signal: o.signal }
+		});
+		return g.kind === "failed" ? Q(g.errorCode, o, g.subcommand === void 0 ? void 0 : { subcommand: g.subcommand }) : s === m.Validate ? xi(g.result, o.packageMetadata.version, c.isJson, c.cursor, c.maxOutputBytes) : s === m.Inspect ? Si(g.result, o.packageMetadata.version, c.isJson, c.cursor, c.maxOutputBytes) : s === m.Scope ? Ci(g.result, o.packageMetadata.version, c.isJson, c.cursor, c.maxOutputBytes) : wi(g.result, o.packageMetadata.version, c.isJson, c.cursor, c.maxOutputBytes);
+	} catch (e) {
+		return Z(nn(e), s, o.packageMetadata.version, c.isJson, A.OperationalError);
+	}
+})(), Oi = async (e) => {
+	let t = y(e.commandLineArguments);
+	if (t.kind === "help") return {
+		exitCode: A.Success,
+		stderr: "",
+		stdout: xe(t.command)
+	};
+	if (t.kind === "version") return {
+		exitCode: A.Success,
+		stderr: "",
+		stdout: `${e.packageMetadata.version}\n`
+	};
+	if (t.kind === "error") return Z(_(t.code), t.command, e.packageMetadata.version, t.isJson, A.UsageError);
+	let n = e.executeCommand ?? Di;
+	try {
+		let r;
+		if (t.invocation.options.pathsInput === "stdin") {
+			if (e.readStdin === void 0) return Z(_("PATH_INPUT_INVALID"), t.invocation.command, e.packageMetadata.version, t.invocation.options.isJson, A.UsageError);
+			let n = await e.readStdin(t.invocation.options.resourceLimits.maxTotalBytes, e.signal);
+			if (n.kind === "limit-exceeded") return Z(_("RESOURCE_LIMIT_EXCEEDED"), t.invocation.command, e.packageMetadata.version, t.invocation.options.isJson, A.OperationalError);
+			r = n.bytes;
+		}
+		return await n({
+			invocationDirectory: e.invocationDirectory,
+			invocation: t.invocation,
+			packageMetadata: e.packageMetadata,
+			...e.signal === void 0 ? {} : { signal: e.signal },
+			...r === void 0 ? {} : { stdin: r }
 		});
 	} catch {
-		return createMoldeaCliErrorResult(createMoldeaCliOwnedError("INTERNAL_ERROR"), parseResult.invocation.command, options.packageMetadata.version, parseResult.invocation.options.isJson, MOLDEA_CLI_EXIT_CODES.OperationalError);
+		return Z(_("INTERNAL_ERROR"), t.invocation.command, e.packageMetadata.version, t.invocation.options.isJson, A.OperationalError);
 	}
 };
-require_semver();
+ie();
 //#endregion
 //#region src/bin/index.ts
-var executableDirectory = path.dirname(fileURLToPath(import.meta.url));
-path.resolve(executableDirectory, "..", "package.json");
-var shutdown = createShutdownSignal({ setExitCode: false });
-var readProcessStdin = async (maxBytes, signal) => {
+var ki = D.dirname(ke(import.meta.url));
+D.resolve(ki, "..", "package.json");
+var $ = et({ setExitCode: !1 }), Ai = async (e, t) => {
 	try {
 		return {
-			bytes: await readStdin({
-				maxBytes,
-				signal
+			bytes: await tt({
+				maxBytes: e,
+				signal: t
 			}),
 			kind: "completed"
 		};
-	} catch (error) {
-		if (hasErrorCode(error, ERRORS$1.STDIN_TOO_LARGE)) return { kind: "limit-exceeded" };
-		if (signal?.aborted === true) return {
+	} catch (e) {
+		if (i(e, x.STDIN_TOO_LARGE)) return { kind: "limit-exceeded" };
+		if (t?.aborted === !0) return {
 			bytes: new Uint8Array(),
 			kind: "completed"
 		};
-		throw error;
+		throw e;
 	}
-};
-var writeProcessOutput = async (outputStream, output) => {
-	if (output.length === 0) return;
-	await new Promise((resolve, reject) => {
-		outputStream.write(output, (error) => {
-			if (error) {
-				reject(error);
+}, ji = async (e, t) => {
+	t.length !== 0 && await new Promise((n, r) => {
+		e.write(t, (e) => {
+			if (e) {
+				r(e);
 				return;
 			}
-			resolve();
+			n();
 		});
 	});
 };
 try {
-	const invocationDirectory = process$1.cwd();
-	const executionResult = await runMoldeaCli({
-		commandLineArguments: process$1.argv.slice(2),
-		invocationDirectory,
+	let e = O.cwd(), t = await Oi({
+		commandLineArguments: O.argv.slice(2),
+		invocationDirectory: e,
 		packageMetadata: {
-			"dependencies": {
+			dependencies: {
 				"@moldea.ai/core": "workspace:^10.0.0",
 				"@moldea.ai/repository": "workspace:^4.0.0",
 				"@moldea.ai/repository-fs": "workspace:^4.0.0",
@@ -3500,30 +2632,25 @@ try {
 				"jg-git-commands": "0.4.0",
 				"jg-process": "1.6.2",
 				"jg-utilities": "1.7.2",
-				"semver": "7.8.5"
+				semver: "7.8.5"
 			},
-			"installedPackageVersions": {
+			installedPackageVersions: {
 				"@moldea.ai/core": "10.0.0",
 				"@moldea.ai/repository": "4.0.1",
 				"@moldea.ai/repository-fs": "4.0.1"
 			},
-			"supportedNodeRange": ">=22.17.0",
-			"version": "14.0.0"
+			supportedNodeRange: ">=22.17.0",
+			version: "14.0.1"
 		},
-		readStdin: readProcessStdin,
-		signal: shutdown.signal
+		readStdin: Ai,
+		signal: $.signal
 	});
-	if (shutdown.receivedSignal() === null) {
-		await writeProcessOutput(process$1.stdout, executionResult.stdout);
-		if (shutdown.receivedSignal() === null) await writeProcessOutput(process$1.stderr, executionResult.stderr);
-	}
-	process$1.exitCode = shutdown.exitCode() ?? executionResult.exitCode;
+	$.receivedSignal() === null && (await ji(O.stdout, t.stdout), $.receivedSignal() === null && await ji(O.stderr, t.stderr)), O.exitCode = $.exitCode() ?? t.exitCode;
 } catch {
-	const signalExitCode = shutdown.exitCode();
-	if (signalExitCode === null) await writeProcessOutput(process$1.stderr, formatMoldeaCliHumanError(createMoldeaCliOwnedError("INTERNAL_ERROR"))).catch(() => void 0);
-	process$1.exitCode = signalExitCode ?? 3;
+	let e = $.exitCode();
+	e === null && await ji(O.stderr, te(_("INTERNAL_ERROR"))).catch(() => void 0), O.exitCode = e ?? 3;
 } finally {
-	shutdown.dispose();
+	$.dispose();
 }
 //#endregion
 export {};

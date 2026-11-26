@@ -1,146 +1,117 @@
-import { n as CoreOperationException } from "./chunk-728df961.mjs";
-import { a as createInspectionProcessFailure, c as encodeInspectionMessage, l as serializeInspectionFailure, n as NODE_INSPECTION_LIFETIME_MS, o as decodeInspectionMessage } from "./chunk-ec3f49d3.mjs";
-import { n as createInspectionSender } from "./chunk-94b5ac22.mjs";
-import process from "node:process";
-import { Worker } from "node:worker_threads";
+import { n as e } from "./chunk-2cc3bf5c.mjs";
+import { a as t, c as n, l as r, n as i, o as a } from "./chunk-24ea7c23.mjs";
+import { n as o } from "./chunk-cea1378f.mjs";
+import s from "node:process";
+import { Worker as c } from "node:worker_threads";
 //#region ../core/dist/node-runner.js
-var worker;
-var attemptId;
-var heapMaximum;
-var deadlineTimer;
-var isClosing = false;
-var hasRun = false;
-var readerRequests = new Set();
-var send = createInspectionSender((frame, callback) => {
-	if (process.send === void 0 || !process.connected) throw createInspectionProcessFailure();
-	process.send(frame, callback);
-});
-var close = async (failure) => {
-	if (isClosing) return;
-	isClosing = true;
-	clearTimeout(deadlineTimer);
-	const termination = worker?.terminate();
-	if (failure !== void 0 && attemptId !== void 0 && process.connected) try {
-		await send({
-			attemptId,
+var l, u, d, f, p = !1, m = !1, h = new Set(), g = o((e, n) => {
+	if (s.send === void 0 || !s.connected) throw t();
+	s.send(e, n);
+}), _ = async (e) => {
+	if (p) return;
+	p = !0, clearTimeout(f);
+	let t = l?.terminate();
+	if (e !== void 0 && u !== void 0 && s.connected) try {
+		await g({
+			attemptId: u,
 			kind: "failure",
-			failure: serializeInspectionFailure(failure)
+			failure: r(e)
 		});
 	} catch {}
-	await termination;
-	readerRequests.clear();
-	process.removeListener("message", handleParentMessage);
-	process.removeListener("disconnect", handleDisconnect);
-	if (process.connected) process.disconnect();
-};
-var handleDisconnect = () => {
-	close();
-};
-var handleWorkerMessage = (frame) => {
+	await t, h.clear(), s.removeListener("message", x), s.removeListener("disconnect", v), s.connected && s.disconnect();
+}, v = () => {
+	_();
+}, y = (e) => {
 	try {
-		const message = decodeInspectionMessage(frame);
-		if (isClosing) return;
-		if (message.attemptId !== attemptId) throw createInspectionProcessFailure();
-		if (message.kind === "ready") {
-			if (heapMaximum !== void 0 || hasRun) throw createInspectionProcessFailure();
-			heapMaximum = message.maxAnalysisHeapBytes;
-		} else if (message.kind === "reader-request") {
-			if (!hasRun || readerRequests.has(message.requestId) || readerRequests.size >= 4) throw createInspectionProcessFailure();
-			readerRequests.add(message.requestId);
-		} else if (message.kind === "failure" && message.failure.options["limit"] === "maxAnalysisHeapBytes") throw createInspectionProcessFailure();
+		let n = a(e);
+		if (p) return;
+		if (n.attemptId !== u) throw t();
+		if (n.kind === "ready") {
+			if (d !== void 0 || m) throw t();
+			d = n.maxAnalysisHeapBytes;
+		} else if (n.kind === "reader-request") {
+			if (!m || h.has(n.requestId) || h.size >= 4) throw t();
+			h.add(n.requestId);
+		} else if (n.kind === "failure" && n.failure.options.limit === "maxAnalysisHeapBytes") throw t();
 		else if (![
 			"prepared",
 			"page",
 			"failure"
-		].includes(message.kind)) throw createInspectionProcessFailure();
-		send(message).catch((cause) => close(cause));
-	} catch (cause) {
-		close(cause);
+		].includes(n.kind)) throw t();
+		g(n).catch((e) => _(e));
+	} catch (e) {
+		_(e);
 	}
-};
-var start = (message) => {
-	if (attemptId !== void 0 || isClosing) throw createInspectionProcessFailure();
-	attemptId = message.attemptId;
-	clearTimeout(deadlineTimer);
-	const remaining = Math.min(NODE_INSPECTION_LIFETIME_MS, message.deadline - Date.now());
-	if (remaining <= 0) {
-		close(new CoreOperationException({
+}, b = (r) => {
+	if (u !== void 0 || p) throw t();
+	u = r.attemptId, clearTimeout(f);
+	let a = Math.min(i, r.deadline - Date.now());
+	if (a <= 0) {
+		_(new e({
 			code: "INSPECTION_TIMEOUT",
 			operation: "create-project-inspection"
 		}));
 		return;
 	}
-	deadlineTimer = setTimeout(() => {
-		close(new CoreOperationException({
+	f = setTimeout(() => {
+		_(new e({
 			code: "INSPECTION_TIMEOUT",
 			operation: "create-project-inspection"
 		}));
-	}, remaining);
-	worker = new Worker(new URL(new URL("./analysis-worker.mjs", import.meta.url).href), {
+	}, a), l = new c(new URL(new URL("./analysis-worker.mjs", import.meta.url).href), {
 		execArgv: [],
-		env: process.env,
-		stdout: true,
-		stderr: true,
+		env: s.env,
+		stdout: !0,
+		stderr: !0,
 		resourceLimits: {
 			maxOldGenerationSizeMb: 512,
 			maxYoungGenerationSizeMb: 24
 		},
-		workerData: encodeInspectionMessage(message)
+		workerData: n(r)
 	});
-	let stdioBytes = 0;
-	const consumeStdio = (chunk) => {
-		stdioBytes += chunk.byteLength;
-		if (stdioBytes > 32768) close(createInspectionProcessFailure());
+	let o = 0, m = (e) => {
+		o += e.byteLength, o > 32768 && _(t());
 	};
-	worker.stdout.on("data", consumeStdio);
-	worker.stderr.on("data", consumeStdio);
-	worker.on("message", handleWorkerMessage);
-	worker.on("messageerror", (cause) => {
-		close(createInspectionProcessFailure(cause));
-	});
-	worker.once("error", (error) => {
-		close(error.code === "ERR_WORKER_OUT_OF_MEMORY" && heapMaximum !== void 0 ? new CoreOperationException({
+	l.stdout.on("data", m), l.stderr.on("data", m), l.on("message", y), l.on("messageerror", (e) => {
+		_(t(e));
+	}), l.once("error", (n) => {
+		_(n.code === "ERR_WORKER_OUT_OF_MEMORY" && d !== void 0 ? new e({
 			code: "RESOURCE_LIMIT_EXCEEDED",
 			operation: "create-project-inspection",
 			limit: "maxAnalysisHeapBytes",
-			limitMaximum: heapMaximum,
+			limitMaximum: d,
 			observedUsage: null,
 			nextAction: "review-inspection-capacity"
-		}) : createInspectionProcessFailure(error));
+		}) : t(n));
+	}), l.once("exit", () => {
+		p || _(t());
 	});
-	worker.once("exit", () => {
-		if (!isClosing) close(createInspectionProcessFailure());
-	});
-};
-var handleParentMessage = (frame) => {
+}, x = (e) => {
 	try {
-		const message = decodeInspectionMessage(frame);
-		if (isClosing) return;
-		if (message.kind === "start") {
-			start(message);
+		let r = a(e);
+		if (p) return;
+		if (r.kind === "start") {
+			b(r);
 			return;
 		}
-		if (message.attemptId !== attemptId || worker === void 0) throw createInspectionProcessFailure();
-		if (message.kind === "dispose") {
-			close();
+		if (r.attemptId !== u || l === void 0) throw t();
+		if (r.kind === "dispose") {
+			_();
 			return;
 		}
-		if (message.kind === "run") {
-			if (heapMaximum === void 0 || hasRun) throw createInspectionProcessFailure();
-			hasRun = true;
-		} else if (message.kind === "reader-response" || message.kind === "reader-failure") {
-			if (!readerRequests.delete(message.requestId)) throw createInspectionProcessFailure();
-		} else if (message.kind !== "read-page" || !hasRun) throw createInspectionProcessFailure();
-		worker.postMessage(encodeInspectionMessage(message));
-	} catch (cause) {
-		close(cause);
+		if (r.kind === "run") {
+			if (d === void 0 || m) throw t();
+			m = !0;
+		} else if (r.kind === "reader-response" || r.kind === "reader-failure") {
+			if (!h.delete(r.requestId)) throw t();
+		} else if (r.kind !== "read-page" || !m) throw t();
+		l.postMessage(n(r));
+	} catch (e) {
+		_(e);
 	}
 };
-process.on("disconnect", handleDisconnect);
-process.on("message", handleParentMessage);
-deadlineTimer = setTimeout(() => {
-	close();
-}, NODE_INSPECTION_LIFETIME_MS);
-if (process.send === void 0 || !process.connected) close();
+s.on("disconnect", v), s.on("message", x), f = setTimeout(() => {
+	_();
+}, i), (s.send === void 0 || !s.connected) && _();
 //#endregion
 export {};

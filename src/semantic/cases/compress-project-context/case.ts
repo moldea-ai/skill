@@ -70,7 +70,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'synchronize-compression-consumers',
       criterion:
-        'The resulting manifest and context index remain coherent. Workspace changes update them when compression removes or moves a path or changes an ownership reference; unchanged consumers do not require no-op edits.',
+        'The resulting enforcement relationships, project routing and context index remain coherent. Workspace changes update the affected declarations and links when compression removes or moves an owner.',
     },
     {
       label: 'verify-compressed-project-context',

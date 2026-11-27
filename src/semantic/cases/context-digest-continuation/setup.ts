@@ -13,6 +13,10 @@ export const setupDigestContinuation: ISemanticCaseSetup = async (context) => {
   );
   await mkdir(join(context.repositoryPath, 'moldea/context'), { recursive: true });
   await writeFile(
+    join(context.repositoryPath, 'moldea/project.md'),
+    '# Shop\n\n## Routing\n\n- [Returns policy](context/returns.md) governs the return window.\n',
+  );
+  await writeFile(
     join(context.repositoryPath, 'moldea/context/returns.md'),
     '# Returns policy\n\nThe approved returns window is 30 days.\n',
   );

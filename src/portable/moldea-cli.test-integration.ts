@@ -39,17 +39,56 @@ test('the shipped CLI validates and inspects a project without a package manifes
       expect(invocation.stderr).toBe('');
       expect(invocation.status, invocation.stdout).toBe(exitCode);
       const envelope = JSON.parse(invocation.stdout) as { result: unknown };
-      expect(envelope).toMatchObject({ command: args[0], schemaVersion: 8, status });
+      expect(envelope).toMatchObject({
+        cliVersion: '15.0.0',
+        command: args[0],
+        schemaVersion: 9,
+        status,
+      });
       return envelope.result;
     };
 
     const composition = run(['composition'], 0, 'valid') as { packages: unknown[] };
-    expect(composition.packages).toContainEqual({ name: '@moldea.ai/core', version: '10.0.0' });
-    run(['validate'], 0, 'valid');
-    expect(run(['inspect'], 0, 'valid')).toMatchObject({
-      coverageCounts: { exportsPassed: 1 },
+    expect(composition).toMatchObject({
+      minimumGitVersion: '2.32.0',
+      repositoryFormatVersions: [1],
+      supportedNodeRange: '>=22.17.0',
     });
-    expect(run(['scope', '--path', '/src/agent.ts'], 0, 'valid')).toMatchObject({ relevant: true });
+    expect(composition.packages).toContainEqual({ name: '@moldea.ai/core', version: '10.0.1' });
+    expect(run(['validate'], 0, 'valid')).toMatchObject({
+      coverageCounts: { exportsPassed: 1 },
+      page: {
+        records: [{ kind: 'diagnostic', code: 'MOLDEA_INTEGRATION_BLOCK_MISSING' }],
+      },
+    });
+    const inspection = run(['inspect'], 0, 'valid') as {
+      page: { records: { path: string | null }[] };
+    };
+    expect(inspection).toMatchObject({
+      counts: { agents: 1, coverage: 1, metadata: 4 },
+    });
+    expect(
+      inspection.page.records.find(({ path }) => path === '/moldea/agents/support/instruction.md'),
+    ).toMatchObject({
+      kind: 'metadata',
+      metadataKind: 'agent-instruction',
+      agentId: 'support',
+      byteLength: Buffer.byteLength(files['moldea/agents/support/instruction.md']),
+    });
+    expect(inspection).not.toHaveProperty('coverageCounts');
+    expect(run(['scope', '--path', '/src/agent.ts'], 0, 'valid')).toMatchObject({
+      relevant: true,
+      page: {
+        records: [
+          {
+            kind: 'match',
+            ownerKind: 'agent',
+            path: '/moldea/agents/support/instruction.md',
+            relationships: [{ field: 'runtimeAgent', path: '/src/agent.ts' }],
+          },
+        ],
+      },
+    });
     expect(run(['content', '--path', '/moldea/project.md'], 0, 'valid')).toMatchObject({
       chunk: { content: files['moldea/project.md'] },
     });

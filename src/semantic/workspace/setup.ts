@@ -121,6 +121,13 @@ const writeScenarioFile = async (
   await writeFile(absolutePath, content, 'utf8');
 };
 
+/** Adds scenario-specific routes to the seeded project entry point. */
+const appendScenarioRouting = async (repositoryPath: string, routes: string[]): Promise<void> => {
+  const projectPath = join(repositoryPath, 'moldea/project.md');
+  const project = await readFile(projectPath, 'utf8');
+  await writeFile(projectPath, `${project}\n## Routing\n\n${routes.join('\n')}\n`, 'utf8');
+};
+
 /** Prepares scenario tools and an inert mountpoint for the host's final Git wrapper. */
 const prepareSemanticActorToolDirectory = async (
   sandboxHome: string,
@@ -204,6 +211,10 @@ const seedContinuationOwners = async (
     repositoryPath,
     'moldea/moldea.yaml',
     `version: 1\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n${declarations.join('\n')}\n`,
+  );
+  await appendScenarioRouting(
+    repositoryPath,
+    ownerIds.map((id) => `- [Owner ${id.toUpperCase()}](context/${id}.md) governs source ${id}.`),
   );
 };
 
@@ -814,7 +825,7 @@ const seedContextMaintenanceScenario = async (
     await writeScenarioFile(
       repositoryPath,
       'docs/operations-policy.md',
-      '# Operations policy\n\nSupport owns escalation. Legal approves retention exceptions.\n',
+      '# Retention exception approvals\n\nLegal approves retention exceptions.\n',
     );
     await writeScenarioFile(
       repositoryPath,
@@ -824,17 +835,26 @@ const seedContextMaintenanceScenario = async (
     await writeScenarioFile(
       repositoryPath,
       'moldea/moldea.yaml',
-      'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n  /moldea/context/operations.md:\n    affectedBy:\n      - /docs/operations-policy.md\n  /moldea/context/architecture.md:\n    affectedBy:\n      - /docs/architecture.md\n',
+      'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n  /moldea/context/operations.md:\n    affectedBy:\n      - /src/operations/escalation.js\n',
+    );
+    await appendScenarioRouting(repositoryPath, [
+      '- [Operations](context/operations.md) covers escalation and links to retention approvals.',
+      '- [Architecture](context/architecture.md) routes to the application design.',
+    ]);
+    await writeScenarioFile(
+      repositoryPath,
+      'src/operations/escalation.js',
+      'export const mayDirectEscalation = (team, responsibleTeam) => team === responsibleTeam;\n',
     );
     await writeScenarioFile(
       repositoryPath,
       'moldea/context/operations.md',
-      '# Operations\n\nSupport owns the escalation policy. Legal approves retention exceptions.\n',
+      '# Operations\n\nSupport owns the escalation policy. Only the responsible team can direct an escalation. See the [retention exception approval policy](../../docs/operations-policy.md).\n',
     );
     await writeScenarioFile(
       repositoryPath,
       'moldea/context/architecture.md',
-      '# Architecture\n\nThe application uses a modular monolith and a PostgreSQL database.\n',
+      '# Architecture\n\nSee the [application architecture](../../docs/architecture.md).\n',
     );
     return;
   }
@@ -843,12 +863,26 @@ const seedContextMaintenanceScenario = async (
     await writeScenarioFile(
       repositoryPath,
       'docs/operations-policy.md',
-      '# Operations policy\n\nCustomer Operations owns escalation. Legal approves retention exceptions. The after-hours owner remains unresolved.\n',
+      '# Operations guide\n\nFollow the [retention policy](../moldea/context/operations.md) and [escalation policy](../moldea/context/escalations.md).\n',
     );
     await writeScenarioFile(
       repositoryPath,
       'moldea/moldea.yaml',
-      'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n  /moldea/context/operations.md:\n    affectedBy:\n      - /docs/operations-policy.md\n  /moldea/context/escalations.md:\n    affectedBy:\n      - /docs/operations-policy.md\n',
+      'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n  /moldea/context/operations.md:\n    affectedBy:\n      - /src/operations/retention.js\n  /moldea/context/escalations.md:\n    affectedBy:\n      - /src/operations/escalation.js\n',
+    );
+    await appendScenarioRouting(repositoryPath, [
+      '- [Operations](context/operations.md) covers retention exceptions.',
+      '- [Escalations](context/escalations.md) covers escalation authority.',
+    ]);
+    await writeScenarioFile(
+      repositoryPath,
+      'src/operations/retention.js',
+      'export const mayApproveRetentionException = (team) => team === "legal";\n',
+    );
+    await writeScenarioFile(
+      repositoryPath,
+      'src/operations/escalation.js',
+      'export const mayDirectEscalation = (team) => team === "customer-operations";\n',
     );
     await writeScenarioFile(
       repositoryPath,
@@ -872,27 +906,36 @@ const seedContextMaintenanceScenario = async (
     await writeScenarioFile(
       repositoryPath,
       'docs/finance-policy.md',
-      '# Finance policy\n\nFinance owns escalation approval.\n',
+      '# Finance guide\n\nUse the case identifier to open an escalation.\n',
     );
     await writeScenarioFile(
       repositoryPath,
       'docs/customer-policy.md',
-      '# Customer policy\n\nCustomer Operations owns escalation approval.\n',
+      '# Customer Operations guide\n\nUse the case identifier to open an escalation.\n',
     );
     await writeScenarioFile(
       repositoryPath,
       'moldea/moldea.yaml',
-      'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n  /moldea/context/finance-operations.md:\n    affectedBy:\n      - /docs/finance-policy.md\n  /moldea/context/customer-operations.md:\n    affectedBy:\n      - /docs/customer-policy.md\n',
+      'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n  /moldea/context/finance-operations.md:\n    affectedBy:\n      - /src/operations/escalation.js\n  /moldea/context/customer-operations.md:\n    affectedBy:\n      - /src/operations/escalation.js\n',
+    );
+    await appendScenarioRouting(repositoryPath, [
+      '- [Finance operations](context/finance-operations.md) addresses escalation approval.',
+      '- [Customer operations](context/customer-operations.md) addresses escalation approval.',
+    ]);
+    await writeScenarioFile(
+      repositoryPath,
+      'src/operations/escalation.js',
+      'export const mayApproveEscalation = (team, assignedTeam) => team === assignedTeam;\n',
     );
     await writeScenarioFile(
       repositoryPath,
       'moldea/context/finance-operations.md',
-      '# Finance operations\n\nFinance owns escalation approval.\n',
+      '# Finance operations\n\nFinance owns escalation approval. See the [finance case guide](../../docs/finance-policy.md).\n',
     );
     await writeScenarioFile(
       repositoryPath,
       'moldea/context/customer-operations.md',
-      '# Customer operations\n\nCustomer Operations owns escalation approval.\n',
+      '# Customer operations\n\nCustomer Operations owns escalation approval. See the [customer case guide](../../docs/customer-policy.md).\n',
     );
     return;
   }
@@ -902,6 +945,9 @@ const seedContextMaintenanceScenario = async (
 
 /** Seeds accurate refund context with one linked caller and one unlinked governing policy. */
 const seedAssessedOwnerScenario = async (repositoryPath: string): Promise<void> => {
+  await appendScenarioRouting(repositoryPath, [
+    '- [Refund approval](context/refunds.md) governs refund request amounts and approval.',
+  ]);
   await writeScenarioFile(
     repositoryPath,
     'moldea/moldea.yaml',
@@ -931,6 +977,9 @@ const seedAssessedOwnerScenario = async (repositoryPath: string): Promise<void> 
 
 /** Seeds the fixed-interval scheduler and its declared architecture owner. */
 const seedCleanupArchitecture = async (repositoryPath: string): Promise<void> => {
+  await appendScenarioRouting(repositoryPath, [
+    '- [Cleanup scheduling](context/architecture.md) governs the document cleanup interval.',
+  ]);
   await writeScenarioFile(
     repositoryPath,
     'moldea/moldea.yaml',
@@ -969,6 +1018,12 @@ const seedActivationMaintenanceScenario = async (
       caseId === 'scope-expansion-unbound-only';
     await seedRefundWorkflow(repositoryPath, { checkout: hasCheckout, formatter: hasFormatter });
     if (caseId !== 'scope-expansion-unbound-only') {
+      await appendScenarioRouting(repositoryPath, [
+        '- [Refund rules](context/refunds.md) governs refund approval.',
+        ...(caseId === 'scope-expansion-second-owner'
+          ? ['- [Refund labels](context/refund-display.md) governs refund labels.']
+          : []),
+      ]);
       await writeScenarioFile(
         repositoryPath,
         'moldea/moldea.yaml',
@@ -985,7 +1040,7 @@ const seedActivationMaintenanceScenario = async (
         await writeScenarioFile(
           repositoryPath,
           'moldea/context/refund-display.md',
-          '# Refund display\n\nRefund labels show the amount without a unit suffix.\n',
+          '# Refund display\n\nRefund labels show the amount without a unit suffix. The [refund label formatter](../../src/refund-label.js) is the only place that determines the label text.\n',
         );
       }
     }
@@ -1018,6 +1073,9 @@ const seedConversationalContext = async (
 ): Promise<void> => {
   await writeScenarioFile(repositoryPath, 'moldea/moldea.yaml', 'version: 1\n');
   await writeScenarioFile(repositoryPath, 'moldea/project.md', projectContent);
+  await appendScenarioRouting(repositoryPath, [
+    '- [Operations](context/operations.md) governs service availability reports.',
+  ]);
   await writeScenarioFile(
     repositoryPath,
     'moldea/context/operations.md',
@@ -1029,7 +1087,7 @@ const seedConversationalContext = async (
 const seedEditorialContext = async (repositoryPath: string): Promise<void> => {
   await seedConversationalContext(
     repositoryPath,
-    '# Editorial project\n\nThis project produces commercial editorial content. Editorial policy lives in /moldea/context/editorial-policy.md.\n',
+    '# Editorial project\n\nThis project produces commercial editorial content. [Editorial policy](context/editorial-policy.md) governs its claims and disclosures.\n',
   );
   await writeScenarioFile(
     repositoryPath,
@@ -1191,7 +1249,12 @@ const seedScenarioRepository = async (
       await writeScenarioFile(
         repositoryPath,
         'moldea/moldea.yaml',
-        'version: 1\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /deployment/**\n',
+        'version: 1\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/fraud-review/**\n',
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/project.md',
+        '# Order processing\n\nThe fraud review service sends flagged orders to a human reviewer before fulfillment. Its implementation in this checkout is reserved for /src/fraud-review/**.\n',
       );
       break;
     case 'integration-block-missing-handoff':
@@ -1356,6 +1419,9 @@ const seedScenarioRepository = async (
       );
       break;
     case 'maintain-relationship-after-move':
+      await appendScenarioRouting(repositoryPath, [
+        '- [Invoice extraction](context/invoice.md) governs extracted fields.',
+      ]);
       await writeScenarioFile(
         repositoryPath,
         'moldea/moldea.yaml',
@@ -1373,6 +1439,9 @@ const seedScenarioRepository = async (
       );
       break;
     case 'maintain-shared-module-boundary':
+      await appendScenarioRouting(repositoryPath, [
+        '- [Order tracking](context/tracking.md) governs order status transitions.',
+      ]);
       await writeScenarioFile(
         repositoryPath,
         'moldea/moldea.yaml',
@@ -1475,6 +1544,9 @@ const seedScenarioRepository = async (
       await seedActivationMaintenanceScenario(repositoryPath, caseDefinition.id);
       break;
     case 'context-instruction-injection':
+      await appendScenarioRouting(repositoryPath, [
+        '- [Refund policy](context/refunds.md) governs approval thresholds.',
+      ]);
       await writeScenarioFile(
         repositoryPath,
         'moldea/moldea.yaml',
@@ -1497,6 +1569,9 @@ const seedScenarioRepository = async (
       );
       break;
     case 'repair-conflicting-policy':
+      await appendScenarioRouting(repositoryPath, [
+        '- [Refund policy](context/refunds.md) governs approval thresholds.',
+      ]);
       await writeScenarioFile(
         repositoryPath,
         'moldea/moldea.yaml',
@@ -1514,15 +1589,23 @@ const seedScenarioRepository = async (
       );
       break;
     case 'repair-ambiguous-foundation':
+      await appendScenarioRouting(repositoryPath, [
+        '- [Approval policy](context/approval-policy.md) governs refund review.',
+      ]);
       await writeScenarioFile(
         repositoryPath,
         'moldea/moldea.yaml',
-        'version: 1\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n  /moldea/context/legacy-policy.md:\n    affectedBy:\n      - /src/project-state.js\n',
+        'version: 1\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n  /moldea/context/approval-policy.md:\n    affectedBy:\n      - /src/refund-review.js\n',
       );
       await writeScenarioFile(
         repositoryPath,
-        'moldea/context/legacy-policy.md',
-        '# Legacy policy\n\nHistorical policy is not proof of the currently intended declarations.\n',
+        'moldea/context/approval-policy.md',
+        '# Approval policy\n\nRefunds require a reviewer to approve them.\n',
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'src/refund-review.js',
+        'export const requiresReviewerApproval = () => true;\n',
       );
       break;
     case 'compress-conflicting-project-context':
@@ -1839,18 +1922,25 @@ const seedScenarioRepository = async (
       break;
     case 'large-context-bounded-evaluation': {
       const contextDeclarations = [];
+      const routes = [];
       for (let index = 1; index <= 256; index += 1) {
         const id = String(index).padStart(3, '0');
         const canonicalPath = `/moldea/context/section-${id}.md`;
-        contextDeclarations.push(
-          `  ${canonicalPath}:\n    affectedBy:\n      - /src/project-state.js`,
-        );
+        const sourcePath = `src/sections/section-${id}.js`;
+        contextDeclarations.push(`  ${canonicalPath}:\n    affectedBy:\n      - /${sourcePath}`);
+        routes.push(`- [Section ${id}](context/section-${id}.md) governs component ${id}.`);
         await writeScenarioFile(
           repositoryPath,
           canonicalPath.slice(1),
-          `# Context section ${id}\n\n${'Bounded canonical context. '.repeat(160)}\n`,
+          `# Context section ${id}\n\nComponent ${id} is available to operators.\n\n${'Bounded canonical context. '.repeat(160)}\n`,
+        );
+        await writeScenarioFile(
+          repositoryPath,
+          sourcePath,
+          'export const isAvailableToOperators = () => true;\n',
         );
       }
+      await appendScenarioRouting(repositoryPath, routes);
       await writeScenarioFile(
         repositoryPath,
         'moldea/moldea.yaml',

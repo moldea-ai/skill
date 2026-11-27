@@ -75,7 +75,7 @@ var y = v.attemptId, b = g().heap_size_limit, x, S = !1, C = !1, w = 0, T = new 
 		retryable: !1
 	}))
 }), k = O("repository", v.snapshot), A = v.instructions === null ? null : O("instructions", v.instructions.snapshot), j = async () => {
-	let { createCore: e } = await import("./chunk-1306b995.mjs").then((e) => e.t);
+	let { createCore: e } = await import("./chunk-b1f86976.mjs").then((e) => e.t);
 	x = await e(t({ limits: {
 		...v.limits,
 		maxRetainedBytes: v.limits.maxRetainedBytes - a

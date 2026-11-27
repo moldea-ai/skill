@@ -5,6 +5,7 @@ import {
   mkdir,
   mkdtemp,
   readFile,
+  readlink,
   readdir,
   realpath,
   rm,
@@ -199,6 +200,40 @@ test('writes a linked AGENTS.md through its resolved target and refuses links ot
     ]);
     expect(opened.ino).toBe(target.ino);
     expect(await readFile(linkPath, 'utf8')).toBe(`# Rules\n\n${BLOCK}`);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test('refuses a link to a Git-ignored instruction target without changing either path', async () => {
+  const root = await realpath(await mkdtemp(join(tmpdir(), 'moldea-ignored-link-')));
+  const linkPath = join(root, 'AGENTS.md');
+  const targetName = 'CLAUDE.local.md';
+  const targetPath = join(root, targetName);
+  const content = '# Local instructions\n';
+  const git = (...args: string[]) => {
+    const result = spawnSync('git', args, { cwd: root, encoding: 'utf8', timeout: 10_000 });
+    expect(result.status, result.stderr).toBe(0);
+    return result.stdout;
+  };
+
+  try {
+    git('init', '--quiet');
+    await writeFile(join(root, '.gitignore'), `/${targetName}\n`);
+    await writeFile(targetPath, content);
+    await symlink(targetName, linkPath, process.platform === 'win32' ? 'file' : undefined);
+    git('add', '--', 'AGENTS.md');
+    expect(git('ls-files', '--others', '--ignored', '--exclude-standard', '--', targetName)).toBe(
+      `${targetName}\n`,
+    );
+
+    await expect(
+      updateManagedFile(root, BLOCK, 'AGENTS.md', () =>
+        resolveInstructionWriteTarget(root, 'AGENTS.md'),
+      ),
+    ).rejects.toThrow(/AGENTS\.md links to a file missing from the repository view/u);
+    expect(await readlink(linkPath)).toBe(targetName);
+    expect(await readFile(targetPath, 'utf8')).toBe(content);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

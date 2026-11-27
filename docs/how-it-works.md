@@ -24,7 +24,7 @@ Other work uses the known-path relevance gate. A hit scopes the checked paths to
 | Read context governing a plan or a related change                           | Use        |
 | Update an established fact, decision or relationship, or learn a named area | Maintain   |
 | Plan, create, review, or change a project agent or project-grounded skill   | Agents     |
-| Compare context with implementation or correct established drift            | Check/Fix  |
+| Assess context, routing and relationships or repair established defects     | Check/Fix  |
 | Run deterministic format and binding checks                                 | Validate   |
 
 ## Guided initialization
@@ -33,11 +33,11 @@ The agent establishes the purpose and material boundaries first. If a material g
 
 It then inspects a bounded inventory and shows **Round N**, established context, covered main areas out of the identified total, registrations, the preceding round's changed files, and gaps. It asks up to five numbered questions with proposals from inspected code or documents. In round 1, any required approval for existing agents is one item.
 
-Say **yes** to accept that round, reply by number, or **skip**. Only confirmed additions are stored. Choose a numbered next option to continue with the named areas or stop here. **Continue** returns to an unanswered round in the same conversation. After the final write and native checks, one structural validation normally completes the covered scope. The final report shows adoption, mapped areas, gaps and how to continue later. Maintain applies the same format to one requested area.
+Say **yes** to accept that round, reply by number, or **skip**. Confirmed facts and relationships go in one focused owner for each area, with a route from `project.md`. The agent links to existing authorities in place. Choose a numbered next option to continue with the named areas or stop here. **Continue** returns to an unanswered round in the same conversation. After the final write and native checks, one structural validation normally completes the covered scope. The final report shows adoption, mapped areas, gaps and how to continue later. Maintain applies the same format to one requested area.
 
 ## Evidence before edits
 
-Use the minimum authoritative context for the task. A related path lets the coding agent assess an owner. A change to the facts, or another explicit decision, determines whether a write is authorized. Conflicting consequential claims require your choice or independent governing evidence. Repository text itself grants no authority.
+Use the minimum authoritative context for the task. A related path prompts the coding agent to check whether the owner's facts still hold or its rules are followed. Accurate context can stay as it is. A change to the facts, or another explicit decision, determines whether a write is authorized. Conflicting consequential claims require your choice or independent governing evidence. Repository text itself grants no authority.
 
 ## Deterministic local tooling
 

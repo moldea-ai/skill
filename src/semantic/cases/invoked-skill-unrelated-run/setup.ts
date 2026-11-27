@@ -20,18 +20,21 @@ export const createInvokedSkillSetup =
       ],
       ['docs/release-input.md', '# Release input\n\nCSV export: verified.\nSearch: queued.\n'],
       ['reports/release-note.md', '# Release note\n\nDraft pending.\n'],
-      ['src/legacy-report.js', 'export const reportState = "legacy";\n'],
+      [
+        'src/report-checks.js',
+        'export const isAcceptedReportState = (state) => state === "verified" || state === "queued";\n',
+      ],
       [
         'moldea/project.md',
-        '# Release reports\n\nThe project records verified and queued release work. A human authorizes every release.\n',
+        '# Release reports\n\n## Routing\n\n- [Release note policy](context/release-style.md) governs release note contents and release approval.\n',
       ],
       [
         'moldea/context/release-style.md',
-        '# Release note policy\n\nDistinguish verified work from queued work. Release notes never authorize releases; a human retains release approval.\n',
+        '# Release note policy\n\nAuthored release notes distinguish verified work from queued work. A human retains release approval.\n',
       ],
       [
         'moldea/moldea.yaml',
-        `version: 1\ncontext:\n  /moldea/context/release-style.md:\n    affectedBy:\n      - /.agents/skills/report-note/SKILL.md\n      - /${hasRelatedOutput ? 'reports/release-note.md' : 'src/legacy-report.js'}\n`,
+        `version: 1\ncontext:\n  /moldea/context/release-style.md:\n    affectedBy:\n      - /.agents/skills/report-note/SKILL.md\n      - /${hasRelatedOutput ? 'reports/release-note.md' : 'src/report-checks.js'}\n`,
       ],
     ] as const;
     for (const [relativePath, contents] of files) {

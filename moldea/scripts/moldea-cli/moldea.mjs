@@ -1,7 +1,7 @@
 import { c as e, d as t, f as n, l as r, m as i, n as a, t as o, u as s } from "./chunk-2cc3bf5c.mjs";
-import { A as c, B as l, C as u, D as d, E as f, F as p, H as m, I as h, L as g, M as _, N as v, O as ee, P as y, R as b, S as te, T as ne, U as x, V as S, _ as re, a as ie, b as ae, c as oe, d as se, f as ce, g as le, h as ue, j as de, k as fe, l as pe, m as me, o as he, p as ge, s as _e, u as C, v as ve, w as ye, x as be, y as xe, z as Se } from "./chunk-43b8574a.mjs";
+import { A as c, B as l, C as u, D as d, E as f, F as p, H as m, I as h, L as g, M as _, N as v, O as ee, P as y, R as b, S as te, T as ne, U as x, V as S, _ as re, a as ie, b as ae, c as oe, d as se, f as ce, g as le, h as ue, j as de, k as fe, l as pe, m as me, o as he, p as ge, s as _e, u as C, v as ve, w as ye, x as be, y as xe, z as Se } from "./chunk-ad32cb41.mjs";
 import { g as Ce } from "./chunk-8f198616.mjs";
-import { n as we } from "./chunk-9e42770a.mjs";
+import { n as we } from "./chunk-d372f5e0.mjs";
 import { a as Te, c as Ee, i as w, l as T, n as E, o as De, r as Oe } from "./chunk-98d84174.mjs";
 import D from "node:path";
 import O from "node:process";
@@ -286,7 +286,7 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 		kind: "failed"
 	});
 }, pt = ((e = He) => async (t) => {
-	if (!D.isAbsolute(t.invocationDirectory) || t.invocationDirectory.includes("\0") || !t.invocationDirectory.isWellFormed() || t.repositoryDirectory !== null && !p(t.repositoryDirectory)) return Object.freeze({
+	if (!D.isAbsolute(t.invocationDirectory) || t.invocationDirectory.includes("\0") || !t.invocationDirectory.isWellFormed() || t.repositoryDirectory !== null && !y(t.repositoryDirectory)) return Object.freeze({
 		errorCode: "GIT_REPOSITORY_NOT_FOUND",
 		kind: "failed"
 	});
@@ -589,40 +589,51 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 		manifestContent: new TextDecoder("utf-8").decode(n),
 		scope: r
 	});
-})(), Ut = (e, t) => e.key < t.key ? -1 : +(e.key > t.key), Wt = (e) => JSON.stringify([
-	"match",
-	e.owner.kind,
-	e.owner.agentId,
-	e.owner.id,
-	e.field,
-	e.declaration.kind === "exact" ? e.declaration.path : e.declaration.pattern,
-	e.inputPath,
-	e.pointer
-]), Gt = (e) => {
-	let t = [...e.scope.diagnostics.map((e, t) => le(e, t)), ...e.scope.matches.map((e) => ({
-		key: Wt(e),
+})(), F = (e, t) => e < t ? -1 : +(e > t), Ut = ({ kind: e, id: t, agentId: n }) => e === "context" || e === "decision" ? t : `/moldea/agents/${n ?? t}/instruction.md`, Wt = (e) => {
+	let { scope: t } = e, n = new Map();
+	for (let { owner: e, field: r, declaration: i } of t.matches) {
+		let t = JSON.stringify([
+			e.kind,
+			e.agentId,
+			e.id
+		]), a = n.get(t);
+		a === void 0 && (a = {
+			owner: e,
+			path: Ut(e),
+			relationships: new Map()
+		}, n.set(t, a));
+		let o = i.kind === "exact" ? i.path : i.pattern, s = JSON.stringify([r, o]);
+		a.relationships.has(s) || a.relationships.set(s, {
+			field: r,
+			path: o
+		});
+	}
+	let r = t.diagnostics.map(le), i = [...n.values()].sort((e, t) => F(e.path, t.path) || F(e.owner.kind, t.owner.kind) || F(e.owner.id, t.owner.id)).map(({ owner: e, path: t, relationships: n }, i) => ({
+		key: h(r.length + i),
 		kind: "match",
-		match: e
-	}))].sort(Ut), n = g({
-		inputDigest: e.scope.inputDigest,
-		manifestDigest: e.scope.manifestDigest,
-		records: t,
-		valid: e.scope.valid
+		path: t,
+		ownerKind: e.kind,
+		...e.kind === "tool" || e.kind === "skill" ? { capabilityId: e.id } : {},
+		relationships: [...n.values()].sort((e, t) => F(e.field, t.field) || F(e.path, t.path))
+	})), a = Object.freeze([...r, ...i]), o = g({
+		inputDigest: t.inputDigest,
+		manifestDigest: t.manifestDigest,
+		records: a,
+		valid: t.valid
 	});
 	return Object.freeze({
 		canonicalBodies: Object.freeze([e.manifestContent]),
 		counts: Object.freeze({
-			...e.scope.counts,
-			diagnostics: e.scope.diagnostics.length
+			...t.counts,
+			diagnostics: t.diagnostics.length
 		}),
-		inputDigest: e.scope.inputDigest,
-		manifestDigest: e.scope.manifestDigest,
-		records: Object.freeze(t),
-		relevant: e.scope.relevant,
-		snapshotDigest: n,
-		valid: e.scope.valid
+		inputDigest: t.inputDigest,
+		records: a,
+		relevant: t.relevant,
+		snapshotDigest: o,
+		valid: t.valid
 	});
-}, Kt = class extends w {
+}, Gt = class extends w {
 	constructor(e) {
 		super({
 			code: "SOURCE_UNAVAILABLE",
@@ -631,7 +642,7 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 			retryable: !1
 		}), this.name = "GitContentTransformUnsupportedException";
 	}
-}, qt = (e, t) => {
+}, Kt = (e, t) => {
 	if (e?.aborted) throw new w({
 		cause: e.reason,
 		code: "ABORTED",
@@ -639,12 +650,12 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 		path: t,
 		retryable: !1
 	});
-}, Jt = (e) => new w({
+}, qt = (e) => new w({
 	code: "INVALID_SOURCE_DATA",
 	operation: "read-file-page",
 	path: e,
 	retryable: !1
-}), Yt = class {
+}), Jt = class {
 	snapshot;
 	#e;
 	#t;
@@ -660,11 +671,11 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 	async readFilePage(e, t) {
 		let n = T(e);
 		if (!this.#e.has(n)) return this.#t.readFilePage(n, t);
-		qt(t?.signal, n);
+		Kt(t?.signal, n);
 		let r = await this.#t.getEntry(n, t);
-		if (qt(t?.signal, n), r !== null && (r.path !== n || r.type !== "file" && r.type !== "directory" && r.type !== "symlink")) throw Jt(n);
+		if (Kt(t?.signal, n), r !== null && (r.path !== n || r.type !== "file" && r.type !== "directory" && r.type !== "symlink")) throw qt(n);
 		if (r?.type !== "file") return this.#t.readFilePage(n, t);
-		throw new Kt(n);
+		throw new Gt(n);
 	}
 	readLinkText(e, t) {
 		return this.#t.readLinkText(e, t);
@@ -672,7 +683,7 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 	listEntriesPage(e) {
 		return this.#t.listEntriesPage(e);
 	}
-}, Xt = (e, t) => {
+}, Yt = (e, t) => {
 	let n = new Set();
 	for (let e of t) {
 		let t = T(e);
@@ -684,8 +695,8 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 		});
 		n.add(t);
 	}
-	return Object.freeze(new Yt(e, n));
-}, Zt = Object.freeze({
+	return Object.freeze(new Jt(e, n));
+}, Xt = Object.freeze({
 	ABORTED: "The repository operation was aborted.",
 	ACCESS_DENIED: "Access to the repository source was denied.",
 	ENTRY_NOT_DIRECTORY: "The requested repository entry is not a directory.",
@@ -698,7 +709,7 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 	RESOURCE_LIMIT_EXCEEDED: "A repository reading resource limit was exceeded.",
 	SNAPSHOT_CHANGED: "The repository snapshot changed during the operation.",
 	SOURCE_UNAVAILABLE: "The repository source is unavailable."
-}), Qt = Object.freeze({ INVALID_RESOURCE_LIMIT: "A Core resource limit is invalid." }), $t = Object.freeze({
+}), Zt = Object.freeze({ INVALID_RESOURCE_LIMIT: "A Core resource limit is invalid." }), Qt = Object.freeze({
 	ABORTED: "The Core operation was aborted.",
 	CONTENT_INVALID: "The requested canonical content is invalid.",
 	INVALID_ARGUMENT: "The Core operation received an invalid argument.",
@@ -706,34 +717,34 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 	INSPECTION_TIMEOUT: "The isolated project inspection timed out.",
 	INSPECTION_PROCESS_FAILED: "The isolated project inspection failed.",
 	RESOURCE_LIMIT_EXCEEDED: "A Core resource limit was exceeded."
-}), en = Object.freeze({}), tn = (e) => {
+}), $t = Object.freeze({}), en = (e) => {
 	let t = { operation: e.operation };
 	return e instanceof a && (e.limit !== null && (t.limit = e.limit), e.limitMaximum !== null && (t.limitMaximum = e.limitMaximum), e.nextAction !== null && (t.nextAction = e.nextAction), (e.observedUsage !== null || e.nextAction === "review-inspection-capacity") && (t.observedUsage = e.observedUsage)), Object.freeze(t);
-}, nn = (e) => e instanceof he || e instanceof S || e instanceof kt || e instanceof zt ? _(e.code) : e instanceof Kt ? Object.freeze({
+}, tn = (e) => e instanceof he || e instanceof S || e instanceof kt || e instanceof zt ? _(e.code) : e instanceof Gt ? Object.freeze({
 	..._("GIT_CONTENT_TRANSFORM_UNSUPPORTED"),
 	path: Ee(e.path) ? e.path : null
 }) : e instanceof w ? Object.freeze({
 	code: e.code,
-	details: en,
-	message: Zt[e.code],
+	details: $t,
+	message: Xt[e.code],
 	path: e.path !== null && Ee(e.path) ? e.path : null,
 	retryable: e.retryable,
 	source: "repository"
 }) : e instanceof o ? Object.freeze({
 	code: e.code,
-	details: tn(e),
-	message: Qt[e.code],
+	details: en(e),
+	message: Zt[e.code],
 	path: null,
 	retryable: !1,
 	source: "core"
 }) : e instanceof a ? Object.freeze({
 	code: e.code,
-	details: tn(e),
-	message: $t[e.code],
+	details: en(e),
+	message: Qt[e.code],
 	path: null,
 	retryable: e.retryable,
 	source: "core"
-}) : _("INTERNAL_ERROR"), rn = [
+}) : _("INTERNAL_ERROR"), nn = [
 	"ls-files",
 	"--others",
 	"--ignored",
@@ -742,30 +753,30 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 	"--no-recurse-submodules",
 	"-z",
 	"--"
-], an = "ls-files", on = Object.freeze([
+], rn = "ls-files", an = Object.freeze([
 	"/AGENTS.md",
 	"/CLAUDE.md",
 	"/.claude/CLAUDE.md",
 	"/CLAUDE.local.md"
-].map((e) => T(e))), sn = [
+].map((e) => T(e))), on = [
 	"100644",
 	"100755",
 	"120000",
 	"160000"
-], cn = [
+], sn = [
 	"filter",
 	"working-tree-encoding",
 	"ident"
-], ln = [
+], cn = [
 	"check-attr",
 	"--stdin",
 	"-z",
-	...cn
-], un = (e, t) => {
+	...sn
+], ln = (e, t) => {
 	let n = new Uint8Array(t), r = 0;
 	for (let t of e) n.set(t, r), r += t.byteLength;
 	return n;
-}, dn = (e) => {
+}, un = (e) => {
 	try {
 		return new TextDecoder("utf-8", {
 			fatal: !0,
@@ -774,10 +785,10 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 	} catch {
 		return null;
 	}
-}, fn = (e) => cn.find((t) => t === e) ?? null, pn = (e, t, n) => {
+}, dn = (e) => sn.find((t) => t === e) ?? null, fn = (e, t, n) => {
 	let r = t === "working-tree-encoding" ? "workingTreeEncoding" : t;
 	return !Object.hasOwn(e, r) && (e[r] = n, !0);
-}, mn = (e) => Object.hasOwn(e, "filter") && Object.hasOwn(e, "ident") && Object.hasOwn(e, "workingTreeEncoding"), hn = (e) => {
+}, pn = (e) => Object.hasOwn(e, "filter") && Object.hasOwn(e, "ident") && Object.hasOwn(e, "workingTreeEncoding"), mn = (e) => {
 	let t = [...e.paths], n = new Map(), r = [], i = !1, a = 0, o = [];
 	for (let e of t) {
 		if (e.length === 0 || e.includes("\0") || n.has(e)) {
@@ -788,15 +799,15 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 	}
 	let s = () => {
 		if (i || r.length !== 3) return;
-		let e = dn(r[0] ?? new Uint8Array()), t = dn(r[1] ?? new Uint8Array()), a = dn(r[2] ?? new Uint8Array());
+		let e = un(r[0] ?? new Uint8Array()), t = un(r[1] ?? new Uint8Array()), a = un(r[2] ?? new Uint8Array());
 		if (r = [], e === null || t === null || a === null) {
 			i = !0;
 			return;
 		}
-		let o = fn(t), s = n.get(e);
-		(o === null || s === void 0 || !pn(s, o, a)) && (i = !0);
+		let o = dn(t), s = n.get(e);
+		(o === null || s === void 0 || !fn(s, o, a)) && (i = !0);
 	}, c = () => {
-		i || (r.push(un(o, a)), a = 0, o = [], r.length === 3 && s());
+		i || (r.push(ln(o, a)), a = 0, o = [], r.length === 3 && s());
 	};
 	return {
 		consume: (e) => {
@@ -816,7 +827,7 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 			let e = [];
 			for (let r of t) {
 				let t = n.get(r);
-				if (t === void 0 || !mn(t)) return Object.freeze({ kind: "failed" });
+				if (t === void 0 || !pn(t)) return Object.freeze({ kind: "failed" });
 				e.push(Object.freeze({
 					filter: t.filter,
 					ident: t.ident,
@@ -830,11 +841,11 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 			});
 		}
 	};
-}, F = (e, t) => Object.freeze({
+}, I = (e, t) => Object.freeze({
 	errorCode: e,
 	kind: "failed",
 	...t === void 0 ? {} : { subcommand: t }
-}), gn = (e) => {
+}), hn = (e) => {
 	switch (e) {
 		case "aborted": return "GIT_OPERATION_ABORTED";
 		case "not-found": return "GIT_NOT_FOUND";
@@ -844,7 +855,7 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 		case "output-invalid": return "GIT_OUTPUT_INVALID";
 		case "command-failed": return "GIT_COMMAND_FAILED";
 	}
-}, _n = (e) => e !== "unset" && e !== "unspecified", vn = (e) => {
+}, gn = (e) => e !== "unset" && e !== "unspecified", _n = (e) => {
 	let t = new TextEncoder(), n = [], r = 0;
 	for (let i of e) {
 		if (i.length === 0 || i.includes("\0")) return null;
@@ -855,64 +866,64 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 	let i = new Uint8Array(r), a = 0;
 	for (let e of n) i.set(e, a), a += e.byteLength + 1;
 	return i;
-}, yn = (e, t, n) => Object.freeze({
+}, vn = (e, t, n) => Object.freeze({
 	filter: e,
 	ident: t,
-	isGuarded: _n(e) || _n(t) || _n(n),
+	isGuarded: gn(e) || gn(t) || gn(n),
 	workingTreeEncoding: n
-}), bn = (e = mt) => async (t) => {
-	if (t.signal?.aborted) return F("GIT_OPERATION_ABORTED");
-	if (!Number.isSafeInteger(t.maxMetadataBytes) || t.maxMetadataBytes < 0) return F("RESOURCE_LIMIT_EXCEEDED");
+}), yn = (e = mt) => async (t) => {
+	if (t.signal?.aborted) return I("GIT_OPERATION_ABORTED");
+	if (!Number.isSafeInteger(t.maxMetadataBytes) || t.maxMetadataBytes < 0) return I("RESOURCE_LIMIT_EXCEEDED");
 	if (t.entries.length === 0) return Object.freeze({
 		entries: Object.freeze([]),
 		gitMetadataBytes: 0,
 		kind: "classified"
 	});
-	let n = t.entries.map((e) => e.path), r = vn(n);
-	if (r === null) return F("GIT_OUTPUT_INVALID");
-	let i = await e(ln, {
+	let n = t.entries.map((e) => e.path), r = _n(n);
+	if (r === null) return I("GIT_OUTPUT_INVALID");
+	let i = await e(cn, {
 		cwd: t.repositoryRoot,
 		input: r,
 		maxOutputBytes: Math.max(t.maxMetadataBytes, 1),
 		...t.signal === void 0 ? {} : { signal: t.signal }
 	});
-	if (i.kind === "failed") return F(gn(i.reason), i.subcommand);
-	if (i.value.byteLength > t.maxMetadataBytes) return F("RESOURCE_LIMIT_EXCEEDED");
-	let a = hn({ paths: n });
+	if (i.kind === "failed") return I(hn(i.reason), i.subcommand);
+	if (i.value.byteLength > t.maxMetadataBytes) return I("RESOURCE_LIMIT_EXCEEDED");
+	let a = mn({ paths: n });
 	a.consume(i.value);
 	let o = a.finish();
-	if (o.kind === "failed" || o.attributes.length !== t.entries.length) return F("GIT_OUTPUT_INVALID");
+	if (o.kind === "failed" || o.attributes.length !== t.entries.length) return I("GIT_OUTPUT_INVALID");
 	let s = t.entries.map((e, t) => {
 		let n = o.attributes[t];
 		return n === void 0 || n.path !== e.path ? null : Object.freeze({
 			...e,
-			contentTransformation: yn(n.filter, n.ident, n.workingTreeEncoding)
+			contentTransformation: vn(n.filter, n.ident, n.workingTreeEncoding)
 		});
 	});
-	return s.some((e) => e === null) ? F("GIT_OUTPUT_INVALID") : Object.freeze({
+	return s.some((e) => e === null) ? I("GIT_OUTPUT_INVALID") : Object.freeze({
 		entries: Object.freeze(s.filter((e) => e !== null)),
 		gitMetadataBytes: i.value.byteLength,
 		kind: "classified"
 	});
-}, I = () => Object.freeze({ kind: "failed" }), xn = (e) => {
+}, L = () => Object.freeze({ kind: "failed" }), bn = (e) => {
 	let t = new Map();
 	for (let n of e) {
 		let e = t.get(n.path);
 		if (n.kind === "untracked") {
-			if (e !== void 0) return I();
+			if (e !== void 0) return L();
 			t.set(n.path, {
 				kind: "untracked",
 				path: n.path
 			});
 			continue;
 		}
-		if (n.mode === "160000" || e?.kind === "untracked") return I();
+		if (n.mode === "160000" || e?.kind === "untracked") return L();
 		let r = e ?? {
 			indexEntriesByStage: new Map(),
 			kind: "tracked",
 			path: n.path
 		};
-		if (r.indexEntriesByStage.has(n.stage)) return I();
+		if (r.indexEntriesByStage.has(n.stage)) return L();
 		r.indexEntriesByStage.set(n.stage, Object.freeze({
 			mode: n.mode,
 			stage: n.stage
@@ -924,9 +935,9 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 			n.push(Object.freeze(e));
 			continue;
 		}
-		if (e.indexEntriesByStage.has(0) && e.indexEntriesByStage.size !== 1) return I();
+		if (e.indexEntriesByStage.has(0) && e.indexEntriesByStage.size !== 1) return L();
 		let t = [...e.indexEntriesByStage.values()].sort((e, t) => e.stage - t.stage);
-		if (t.length === 0) return I();
+		if (t.length === 0) return L();
 		n.push(Object.freeze({
 			indexEntries: Object.freeze(t),
 			kind: "tracked",
@@ -937,18 +948,18 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 		candidates: Object.freeze(n),
 		kind: "collapsed"
 	});
-}, Sn = (e) => Object.freeze({
+}, xn = (e) => Object.freeze({
 	errorCode: e,
 	kind: "failed"
-}), Cn = (e) => {
+}), Sn = (e) => {
 	let t = e?.code?.toUpperCase();
-	return t === "ENOENT" || t === "ENOTDIR" ? null : Sn(t === "EACCES" || t === "EPERM" ? "GIT_ACCESS_DENIED" : t === "ELOOP" ? "GIT_OUTPUT_INVALID" : "GIT_COMMAND_FAILED");
-}, wn = async (e) => k(e), Tn = ((e = wn) => async (t, n) => {
+	return t === "ENOENT" || t === "ENOTDIR" ? null : xn(t === "EACCES" || t === "EPERM" ? "GIT_ACCESS_DENIED" : t === "ELOOP" ? "GIT_OUTPUT_INVALID" : "GIT_COMMAND_FAILED");
+}, Cn = async (e) => k(e), wn = ((e = Cn) => async (t, n) => {
 	let r;
 	try {
 		r = await e(D.join(t, n));
 	} catch (e) {
-		return Cn(e) ?? Object.freeze({ kind: "missing" });
+		return Sn(e) ?? Object.freeze({ kind: "missing" });
 	}
 	return r.isSymbolicLink() ? Object.freeze({
 		entryType: "symlink",
@@ -960,11 +971,11 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 		entryType: "unsupported",
 		kind: "inspected"
 	});
-})(), En = "config", Dn = (e, t) => Object.freeze({
+})(), Tn = "config", En = (e, t) => Object.freeze({
 	errorCode: e,
 	kind: "failed",
 	...t === void 0 ? {} : { subcommand: t }
-}), On = (e) => {
+}), Dn = (e) => {
 	switch (e) {
 		case "aborted": return "GIT_OPERATION_ABORTED";
 		case "not-found": return "GIT_NOT_FOUND";
@@ -974,37 +985,37 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 		case "output-invalid": return "GIT_OUTPUT_INVALID";
 		case "command-failed": return "GIT_COMMAND_FAILED";
 	}
-}, kn = (e = ce) => async (t) => {
-	if (t.signal?.aborted) return Dn("GIT_OPERATION_ABORTED");
-	if (!Number.isSafeInteger(t.maxMetadataBytes) || t.maxMetadataBytes < 0) return Dn("RESOURCE_LIMIT_EXCEEDED");
+}, On = (e = ce) => async (t) => {
+	if (t.signal?.aborted) return En("GIT_OPERATION_ABORTED");
+	if (!Number.isSafeInteger(t.maxMetadataBytes) || t.maxMetadataBytes < 0) return En("RESOURCE_LIMIT_EXCEEDED");
 	let n = await C(() => e(t.repositoryRoot, "core.symlinks", !0, {
 		maxOutputBytes: Math.max(t.maxMetadataBytes, 1),
 		timeoutSeconds: 300,
 		...t.signal === void 0 ? {} : { signal: t.signal }
-	}), t.signal, En);
-	if (n.kind === "failed") return Dn(On(n.reason), n.subcommand);
+	}), t.signal, Tn);
+	if (n.kind === "failed") return En(Dn(n.reason), n.subcommand);
 	let r = n.value ? 5 : 6;
-	return r > t.maxMetadataBytes ? Dn("RESOURCE_LIMIT_EXCEEDED") : Object.freeze({
+	return r > t.maxMetadataBytes ? En("RESOURCE_LIMIT_EXCEEDED") : Object.freeze({
 		gitMetadataBytes: r,
 		isEnabled: n.value,
 		kind: "resolved"
 	});
-}, An = kn(), L = (e) => Object.freeze({
+}, kn = On(), R = (e) => Object.freeze({
 	errorCode: e,
 	kind: "failed"
-}), jn = (e) => e.indexEntries.some(({ mode: e }) => e === "120000"), Mn = (e) => e.indexEntries.some(({ mode: e }) => e === "100644" || e === "100755"), Nn = (e = Tn, t = An) => async (n) => {
-	if (n.signal?.aborted) return L("GIT_OPERATION_ABORTED");
-	if (!Number.isSafeInteger(n.maxMetadataBytes) || n.maxMetadataBytes < 0) return L("RESOURCE_LIMIT_EXCEEDED");
-	let r = xn(n.candidates);
-	if (r.kind === "failed") return L("GIT_OUTPUT_INVALID");
+}), An = (e) => e.indexEntries.some(({ mode: e }) => e === "120000"), jn = (e) => e.indexEntries.some(({ mode: e }) => e === "100644" || e === "100755"), Mn = (e = wn, t = kn) => async (n) => {
+	if (n.signal?.aborted) return R("GIT_OPERATION_ABORTED");
+	if (!Number.isSafeInteger(n.maxMetadataBytes) || n.maxMetadataBytes < 0) return R("RESOURCE_LIMIT_EXCEEDED");
+	let r = bn(n.candidates);
+	if (r.kind === "failed") return R("GIT_OUTPUT_INVALID");
 	let i = [], a = null;
 	for (let o of r.candidates) {
-		if (n.signal?.aborted) return L("GIT_OPERATION_ABORTED");
+		if (n.signal?.aborted) return R("GIT_OPERATION_ABORTED");
 		let r = await e(n.repositoryRoot, o.path);
-		if (n.signal?.aborted) return L("GIT_OPERATION_ABORTED");
+		if (n.signal?.aborted) return R("GIT_OPERATION_ABORTED");
 		if (r.kind === "failed") return r;
 		if (r.kind === "missing") continue;
-		if (r.entryType === "unsupported") return L("GIT_OUTPUT_INVALID");
+		if (r.entryType === "unsupported") return R("GIT_OUTPUT_INVALID");
 		if (o.kind === "untracked") {
 			i.push(Object.freeze({
 				entryType: r.entryType,
@@ -1014,7 +1025,7 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 			}));
 			continue;
 		}
-		if (r.entryType === "symlink" || !jn(o)) {
+		if (r.entryType === "symlink" || !An(o)) {
 			i.push(Object.freeze({
 				entryType: r.entryType,
 				indexEntries: o.indexEntries,
@@ -1029,7 +1040,7 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 			repositoryRoot: n.repositoryRoot,
 			...n.signal === void 0 ? {} : { signal: n.signal }
 		}), a.kind === "failed") return a;
-		if (!Number.isSafeInteger(a.gitMetadataBytes) || a.gitMetadataBytes < 0 || a.gitMetadataBytes > n.maxMetadataBytes || !a.isEnabled && Mn(o)) return L("GIT_OUTPUT_INVALID");
+		if (!Number.isSafeInteger(a.gitMetadataBytes) || a.gitMetadataBytes < 0 || a.gitMetadataBytes > n.maxMetadataBytes || !a.isEnabled && jn(o)) return R("GIT_OUTPUT_INVALID");
 		let s = !a.isEnabled;
 		i.push(Object.freeze({
 			entryType: s ? "symlink" : "file",
@@ -1044,19 +1055,19 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 		gitMetadataBytes: a?.kind === "resolved" ? a.gitMetadataBytes : 0,
 		kind: "normalized"
 	});
-}, Pn = () => Object.freeze({
+}, Nn = () => Object.freeze({
 	errorCode: "GIT_OPERATION_ABORTED",
 	kind: "failed"
-}), Fn = (e) => {
+}), Pn = (e) => {
 	let t = e.replace(/\/$/u, "").split("/");
 	return t.slice(0, -1).map((e, n) => t.slice(0, n + 1).join("/"));
-}, In = (e, t) => Fn(e).some((e) => t.has(e)), Ln = ((e = Tn) => async (t) => {
-	if (t.signal?.aborted) return Pn();
-	let n = [...new Set(t.candidates.flatMap(({ path: e }) => Fn(e)))].sort((e, t) => e.split("/").length - t.split("/").length), r = new Set();
+}, Fn = (e, t) => Pn(e).some((e) => t.has(e)), In = ((e = wn) => async (t) => {
+	if (t.signal?.aborted) return Nn();
+	let n = [...new Set(t.candidates.flatMap(({ path: e }) => Pn(e)))].sort((e, t) => e.split("/").length - t.split("/").length), r = new Set();
 	for (let i of n) {
-		if (In(i, r)) continue;
+		if (Fn(i, r)) continue;
 		let n = await e(t.repositoryRoot, i);
-		if (t.signal?.aborted) return Pn();
+		if (t.signal?.aborted) return Nn();
 		if (n.kind === "failed") return n;
 		n.kind === "inspected" && n.entryType === "symlink" && r.add(i);
 	}
@@ -1064,7 +1075,7 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 		candidates: t.candidates,
 		kind: "shadowed"
 	});
-	let i = t.candidates.filter(({ path: e }) => !In(e, r)), a = new Set(i.map(({ path: e }) => e)), o = [...r].filter((e) => !a.has(e)).map((e) => Object.freeze({
+	let i = t.candidates.filter(({ path: e }) => !Fn(e, r)), a = new Set(i.map(({ path: e }) => e)), o = [...r].filter((e) => !a.has(e)).map((e) => Object.freeze({
 		kind: "untracked",
 		path: e
 	}));
@@ -1072,13 +1083,13 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 		candidates: Object.freeze([...i, ...o]),
 		kind: "shadowed"
 	});
-})(), Rn = () => Object.freeze({
+})(), Ln = () => Object.freeze({
 	errorCode: "GIT_OUTPUT_INVALID",
 	kind: "failed"
-}), zn = (e) => {
+}), Rn = (e) => {
 	let t = `/${e}`;
 	return t !== "/" && Ee(t) ? t : null;
-}, Bn = (e) => zn(e.kind === "untracked" && e.path.endsWith("/") ? e.path.slice(0, -1) : e.path), Vn = (e, t) => {
+}, zn = (e) => Rn(e.kind === "untracked" && e.path.endsWith("/") ? e.path.slice(0, -1) : e.path), Bn = (e, t) => {
 	let n = e[Symbol.iterator](), r = t[Symbol.iterator]();
 	for (;;) {
 		let e = n.next(), t = r.next();
@@ -1087,11 +1098,11 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 		let i = e.value.codePointAt(0) ?? 0, a = t.value.codePointAt(0) ?? 0;
 		if (i !== a) return i < a ? -1 : 1;
 	}
-}, Hn = (e) => {
+}, Vn = (e) => {
 	let t = [];
 	for (let n of e.candidates) {
-		if (Bn(n) === null) {
-			if (n.path === "moldea" || n.path.startsWith("moldea/")) return Rn();
+		if (zn(n) === null) {
+			if (n.path === "moldea" || n.path.startsWith("moldea/")) return Ln();
 			continue;
 		}
 		t.push(n);
@@ -1100,21 +1111,21 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 		candidates: Object.freeze(t),
 		kind: "filtered"
 	});
-}, Un = (e) => {
+}, Hn = (e) => {
 	let t = [], n = new Set();
 	for (let r of e.entries) {
-		let e = zn(r.path);
-		if (e === null || n.has(e)) return Rn();
+		let e = Rn(r.path);
+		if (e === null || n.has(e)) return Ln();
 		n.add(e), t.push(Object.freeze({
 			...r,
 			path: e
 		}));
 	}
-	return t.sort((e, t) => Vn(e.path, t.path)), Object.freeze({
+	return t.sort((e, t) => Bn(e.path, t.path)), Object.freeze({
 		entries: Object.freeze(t),
 		kind: "normalized"
 	});
-}, Wn = (e) => {
+}, Un = (e) => {
 	if (e.byteLength === 0) return null;
 	try {
 		return new TextDecoder("utf-8", {
@@ -1124,24 +1135,24 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 	} catch {
 		return null;
 	}
-}, Gn = (e, t) => {
+}, Wn = (e, t) => {
 	let n = new Uint8Array(t), r = 0;
 	for (let t of e) n.set(t, r), r += t.byteLength;
 	return n;
-}, Kn = (e) => {
-	let t = Wn(e);
+}, Gn = (e) => {
+	let t = Un(e);
 	return t === null || !t.isWellFormed() ? null : Object.freeze({
 		kind: "untracked",
 		path: t
 	});
-}, qn = (e, t) => {
+}, Kn = (e, t) => {
 	let n = [], r = null, i = 0, a = [], o = () => {
 		if (r !== null) return;
 		if (n.length >= e) {
 			r = "entry-limit-exceeded", i = 0, a = [];
 			return;
 		}
-		let o = t(Gn(a, i));
+		let o = t(Wn(a, i));
 		if (i = 0, a = [], o === null) {
 			r = "invalid";
 			return;
@@ -1169,13 +1180,13 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 			reason: r
 		}))
 	};
-}, Jn = (e) => qn(e, Kn), Yn = ".git", Xn = 6, Zn = (e) => "kind" in e, R = (e) => Object.freeze({
+}, qn = (e) => Kn(e, Gn), Jn = ".git", Yn = 6, Xn = (e) => "kind" in e, z = (e) => Object.freeze({
 	errorCode: e,
 	kind: "failed"
-}), Qn = (e) => {
+}), Zn = (e) => {
 	let t = e?.code?.toUpperCase();
 	return t === "EACCES" || t === "EPERM" ? "GIT_ACCESS_DENIED" : t === "ENOENT" || t === "ENOTDIR" || t === "ELOOP" ? "GIT_OUTPUT_INVALID" : "GIT_COMMAND_FAILED";
-}, $n = (e) => {
+}, Qn = (e) => {
 	switch (e) {
 		case "aborted": return "GIT_OPERATION_ABORTED";
 		case "not-found": return "GIT_NOT_FOUND";
@@ -1185,7 +1196,7 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 		case "output-invalid": return "GIT_OUTPUT_INVALID";
 		case "command-failed": return "GIT_COMMAND_FAILED";
 	}
-}, er = async (e, t) => {
+}, $n = async (e, t) => {
 	try {
 		let n = await t(e);
 		return Object.freeze({
@@ -1193,30 +1204,30 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 			kind: "read"
 		});
 	} catch (e) {
-		return R(Qn(e));
+		return z(Zn(e));
 	}
-}, z = async (e, t) => {
+}, er = async (e, t) => {
 	try {
 		return Object.freeze({
 			kind: "inspected",
 			statistics: await t(e)
 		});
 	} catch (e) {
-		return R(Qn(e));
+		return z(Zn(e));
 	}
 }, tr = (e, t) => e.has(Ue.from(t, "utf8").toString("hex")), nr = (e, t) => e.isDirectory() && !e.isSymbolicLink() && t.isDirectory() && !t.isSymbolicLink() && e.dev === t.dev && e.ino === t.ino, rr = async (e, t, n, r, i, a, o) => {
-	if (o?.aborted) return R("GIT_OPERATION_ABORTED");
-	if (!Number.isSafeInteger(r) || r < 0) return R("RESOURCE_LIMIT_EXCEEDED");
+	if (o?.aborted) return z("GIT_OPERATION_ABORTED");
+	if (!Number.isSafeInteger(r) || r < 0) return z("RESOURCE_LIMIT_EXCEEDED");
 	let s = await C(() => i(e, {
 		maxOutputBytes: Math.max(r, 1),
 		timeoutSeconds: 300,
 		...o === void 0 ? {} : { signal: o }
 	}), o);
-	if (s.kind === "failed") return R($n(s.reason));
-	if (s.value === null) return R("GIT_COMMAND_FAILED");
-	let c = s.value, l = Xn + Ce(c);
-	if (l > r) return R("RESOURCE_LIMIT_EXCEEDED");
-	if (!D.isAbsolute(c)) return R("GIT_OUTPUT_INVALID");
+	if (s.kind === "failed") return z(Qn(s.reason));
+	if (s.value === null) return z("GIT_COMMAND_FAILED");
+	let c = s.value, l = Yn + Ce(c);
+	if (l > r) return z("RESOURCE_LIMIT_EXCEEDED");
+	if (!D.isAbsolute(c)) return z("GIT_OUTPUT_INVALID");
 	if (vt(c, e)) return Object.freeze({
 		gitMetadataBytes: l,
 		kind: "validated",
@@ -1227,33 +1238,33 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 		kind: "validated",
 		ownership: "selected-repository"
 	});
-	let u = await z(c, a);
-	if (o?.aborted) return R("GIT_OPERATION_ABORTED");
+	let u = await er(c, a);
+	if (o?.aborted) return z("GIT_OPERATION_ABORTED");
 	if (u.kind === "failed") return u;
-	if (!u.statistics.isDirectory() || u.statistics.isSymbolicLink()) return R("GIT_OUTPUT_INVALID");
+	if (!u.statistics.isDirectory() || u.statistics.isSymbolicLink()) return z("GIT_OUTPUT_INVALID");
 	if (yt(u.statistics, n)) return Object.freeze({
 		gitMetadataBytes: l,
 		kind: "validated",
 		ownership: "nested-repository"
 	});
-	let d = await z(t, a);
-	return o?.aborted ? R("GIT_OPERATION_ABORTED") : d.kind === "failed" ? d : d.statistics.isDirectory() && !d.statistics.isSymbolicLink() && yt(u.statistics, d.statistics) ? Object.freeze({
+	let d = await er(t, a);
+	return o?.aborted ? z("GIT_OPERATION_ABORTED") : d.kind === "failed" ? d : d.statistics.isDirectory() && !d.statistics.isSymbolicLink() && yt(u.statistics, d.statistics) ? Object.freeze({
 		gitMetadataBytes: l,
 		kind: "validated",
 		ownership: "selected-repository"
-	}) : R("GIT_OUTPUT_INVALID");
+	}) : z("GIT_OUTPUT_INVALID");
 }, ir = async (e) => k(e, { bigint: !0 }), ar = async (e) => ze(e, { encoding: "buffer" }), or = (e = me, t = ir, n = ar) => async (r) => {
-	if (r.signal?.aborted) return R("GIT_OPERATION_ABORTED");
+	if (r.signal?.aborted) return z("GIT_OPERATION_ABORTED");
 	let i = new Map(), a = [], o = 0, s = null, c = async () => {
-		if (r.signal?.aborted) return R("GIT_OPERATION_ABORTED");
+		if (r.signal?.aborted) return z("GIT_OPERATION_ABORTED");
 		if (s !== null) return Object.freeze({
 			encodedNameKeys: s,
 			kind: "read"
 		});
-		let e = await er(r.repositoryRoot, n);
-		return r.signal?.aborted ? R("GIT_OPERATION_ABORTED") : (e.kind === "read" && (s = e.encodedNameKeys), e);
+		let e = await $n(r.repositoryRoot, n);
+		return r.signal?.aborted ? z("GIT_OPERATION_ABORTED") : (e.kind === "read" && (s = e.encodedNameKeys), e);
 	}, l = async (a, s, l) => {
-		if (r.signal?.aborted) return R("GIT_OPERATION_ABORTED");
+		if (r.signal?.aborted) return z("GIT_OPERATION_ABORTED");
 		let u = s.length === 0 ? l : `${s}/${l}`, d = i.get(u);
 		if (d !== void 0) return d;
 		let f = a === null ? await c() : Object.freeze({
@@ -1261,32 +1272,32 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 			kind: "read"
 		});
 		if (f.kind === "failed") return f;
-		if (!tr(f.encodedNameKeys, l)) return R("GIT_OUTPUT_INVALID");
-		let p = a?.hostPath ?? r.repositoryRoot, m = D.join(p, l), h = await z(m, t);
-		if (r.signal?.aborted) return R("GIT_OPERATION_ABORTED");
+		if (!tr(f.encodedNameKeys, l)) return z("GIT_OUTPUT_INVALID");
+		let p = a?.hostPath ?? r.repositoryRoot, m = D.join(p, l), h = await er(m, t);
+		if (r.signal?.aborted) return z("GIT_OPERATION_ABORTED");
 		if (h.kind === "failed") return h;
-		if (!h.statistics.isDirectory() || h.statistics.isSymbolicLink()) return R("GIT_OUTPUT_INVALID");
-		let g = await er(m, n);
-		if (r.signal?.aborted) return R("GIT_OPERATION_ABORTED");
+		if (!h.statistics.isDirectory() || h.statistics.isSymbolicLink()) return z("GIT_OUTPUT_INVALID");
+		let g = await $n(m, n);
+		if (r.signal?.aborted) return z("GIT_OPERATION_ABORTED");
 		if (g.kind === "failed") return g;
-		let _ = await z(m, t);
-		if (r.signal?.aborted) return R("GIT_OPERATION_ABORTED");
+		let _ = await er(m, t);
+		if (r.signal?.aborted) return z("GIT_OPERATION_ABORTED");
 		if (_.kind === "failed") return _;
-		if (!nr(h.statistics, _.statistics)) return R("GIT_OUTPUT_INVALID");
-		let v = D.join(m, Yn), ee = tr(g.encodedNameKeys, Yn), y = "selected-repository";
+		if (!nr(h.statistics, _.statistics)) return z("GIT_OUTPUT_INVALID");
+		let v = D.join(m, Jn), ee = tr(g.encodedNameKeys, Jn), y = "selected-repository";
 		if (ee) {
-			let n = await z(v, t);
-			if (r.signal?.aborted) return R("GIT_OPERATION_ABORTED");
+			let n = await er(v, t);
+			if (r.signal?.aborted) return z("GIT_OPERATION_ABORTED");
 			if (n.kind === "failed") return n;
-			if (n.statistics.isSymbolicLink() || !n.statistics.isDirectory() && !n.statistics.isFile()) return R("GIT_OUTPUT_INVALID");
+			if (n.statistics.isSymbolicLink() || !n.statistics.isDirectory() && !n.statistics.isFile()) return z("GIT_OUTPUT_INVALID");
 			let i = await rr(m, r.repositoryRoot, _.statistics, r.maxMetadataBytes - o, e, t, r.signal);
 			if (i.kind === "failed") return i;
 			o += i.gitMetadataBytes, y = i.ownership;
 		} else try {
-			return await t(v), r.signal?.aborted ? R("GIT_OPERATION_ABORTED") : R("GIT_OUTPUT_INVALID");
+			return await t(v), r.signal?.aborted ? z("GIT_OPERATION_ABORTED") : z("GIT_OUTPUT_INVALID");
 		} catch (e) {
 			let t = e?.code?.toUpperCase();
-			if (t !== "ENOENT" && t !== "ENOTDIR") return R(Qn(e));
+			if (t !== "ENOENT" && t !== "ENOTDIR") return z(Zn(e));
 		}
 		let b = Object.freeze({
 			encodedNameKeys: g.encodedNameKeys,
@@ -1296,18 +1307,18 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 		return i.set(u, b), b;
 	};
 	for (let e of r.plans) {
-		if (r.signal?.aborted) return R("GIT_OPERATION_ABORTED");
+		if (r.signal?.aborted) return z("GIT_OPERATION_ABORTED");
 		let t = "selected-repository", n = null, i = "";
 		for (let a of e.directorySegments) {
-			if (r.signal?.aborted) return R("GIT_OPERATION_ABORTED");
+			if (r.signal?.aborted) return z("GIT_OPERATION_ABORTED");
 			let e = await l(n, i, a);
-			if (Zn(e)) return e;
+			if (Xn(e)) return e;
 			if (n = e, i = i.length === 0 ? a : `${i}/${a}`, e.ownership === "nested-repository") {
 				t = "nested-repository";
 				break;
 			}
 		}
-		if (e.isDirectoryRecord && t !== "nested-repository") return R("GIT_OUTPUT_INVALID");
+		if (e.isDirectoryRecord && t !== "nested-repository") return z("GIT_OUTPUT_INVALID");
 		a.push(t);
 	}
 	return Object.freeze({
@@ -1417,7 +1428,7 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 		case "output-limit-exceeded": return "RESOURCE_LIMIT_EXCEEDED";
 		case "command-failed": return "GIT_COMMAND_FAILED";
 	}
-}, hr = (e) => sn.includes(e), gr = (e) => {
+}, hr = (e) => on.includes(e), gr = (e) => {
 	let t = [];
 	for (let { mode: n, path: r, stage: i } of e) {
 		if (!hr(n)) return null;
@@ -1433,19 +1444,19 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 	errorCode: e,
 	kind: "failed",
 	...t === void 0 ? {} : { subcommand: t }
-}), yr = (e) => e.kind === "completed" ? e.candidates : B(e.reason === "entry-limit-exceeded" ? "RESOURCE_LIMIT_EXCEEDED" : "GIT_OUTPUT_INVALID"), br = (e) => !Array.isArray(e), xr = ((e = pr, t = fr(or()), n = Nn(Tn, kn()), r = bn(), i = Un, a = Ln) => async (o) => {
+}), yr = (e) => e.kind === "completed" ? e.candidates : B(e.reason === "entry-limit-exceeded" ? "RESOURCE_LIMIT_EXCEEDED" : "GIT_OUTPUT_INVALID"), br = (e) => !Array.isArray(e), xr = ((e = pr, t = fr(or()), n = Mn(wn, On()), r = yn(), i = Hn, a = In) => async (o) => {
 	if (o.signal?.aborted) return B("GIT_OPERATION_ABORTED");
 	let s = (o.selectionPaths ?? []).map((e) => e.slice(1)), c = o.maxMetadataBytes, l = () => ({
 		maxOutputBytes: Math.max(c, 1),
 		timeoutSeconds: 300,
 		...s.length === 0 ? {} : { paths: s },
 		...o.signal === void 0 ? {} : { signal: o.signal }
-	}), u = await C(() => e.readIndexEntries(o.repositoryRoot, l()), o.signal, an);
+	}), u = await C(() => e.readIndexEntries(o.repositoryRoot, l()), o.signal, rn);
 	if (u.kind === "failed") return B(mr(u.reason), u.subcommand);
 	if (c -= _r(u.value), u.value.length > o.maxEntries || c < 0) return B("RESOURCE_LIMIT_EXCEEDED");
 	let d = gr(u.value);
 	if (d === null) return B("GIT_OUTPUT_INVALID");
-	let f = await C(() => e.listUntrackedFiles(o.repositoryRoot, l()), o.signal, an);
+	let f = await C(() => e.listUntrackedFiles(o.repositoryRoot, l()), o.signal, rn);
 	if (f.kind === "failed") return B(mr(f.reason), f.subcommand);
 	if (c -= vr(f.value), d.length + f.value.length > o.maxEntries || c < 0) return B("RESOURCE_LIMIT_EXCEEDED");
 	if (f.value.some((e) => e.length === 0)) return B("GIT_OUTPUT_INVALID");
@@ -1454,21 +1465,21 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 		path: e
 	}))), m = [];
 	if (o.includeIgnored === !0 && s.length > 0) {
-		let t = await e.runGit([...rn, ...s], {
+		let t = await e.runGit([...nn, ...s], {
 			cwd: o.repositoryRoot,
 			maxOutputBytes: Math.max(c, 1),
 			...o.signal === void 0 ? {} : { signal: o.signal }
 		});
 		if (t.kind === "failed") return B(mr(t.reason), t.subcommand);
 		if (c -= t.value.byteLength, c < 0) return B("RESOURCE_LIMIT_EXCEEDED");
-		let n = Jn(o.maxEntries - d.length - p.length);
+		let n = qn(o.maxEntries - d.length - p.length);
 		n.consume(t.value);
 		let r = yr(n.finish());
 		if (br(r)) return r;
 		let i = new Set(p.map((e) => e.path));
 		m = r.filter((e) => !i.has(e.path));
 	}
-	let h = Hn({ candidates: Object.freeze([
+	let h = Vn({ candidates: Object.freeze([
 		...d,
 		...p,
 		...m
@@ -2275,7 +2286,7 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 		}),
 		...e.signal === void 0 ? {} : { signal: e.signal }
 	}), a), o);
-}, fi = ((e = ii, t = ui, n = Xt) => (r) => di(r, e, t, n))(), pi = ((e = ii, t = ui, n = Xt) => (r) => di(r, e, t, n))(), X = (e, t) => Object.freeze({
+}, fi = ((e = ii, t = ui, n = Yt) => (r) => di(r, e, t, n))(), pi = ((e = ii, t = ui, n = Yt) => (r) => di(r, e, t, n))(), X = (e, t) => Object.freeze({
 	errorCode: e,
 	kind: "failed",
 	...t === void 0 ? {} : { subcommand: t }
@@ -2304,7 +2315,7 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 			maxEntries: s.maxEntries,
 			maxMetadataBytes: s.maxTotalBytes,
 			repositoryRoot: o,
-			selectionPaths: on,
+			selectionPaths: an,
 			...a.signal === void 0 ? {} : { signal: a.signal }
 		});
 		return e.kind === "failed" ? X(e.errorCode, e.subcommand) : e;
@@ -2392,12 +2403,10 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 		errorCount: a.errorCount,
 		formatVersion: a.formatVersion,
 		page: e,
-		snapshotDigest: a.snapshotDigest,
-		source: a.source,
 		coverageCounts: a.coverageCounts,
 		valid: a.valid,
 		warningCount: a.warningCount
-	}), s = h({
+	}), s = p({
 		command: "validate",
 		cursor: r,
 		filters: {},
@@ -2416,13 +2425,9 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 		counts: a.counts,
 		formatVersion: a.formatVersion,
 		page: e,
-		project: a.project,
-		snapshotDigest: a.snapshotDigest,
-		source: a.source,
 		coverageCounts: a.coverageCounts,
-		valid: a.valid,
-		view: a.view
-	}), s = h({
+		valid: a.valid
+	}), s = p({
 		command: "inspect",
 		cursor: r,
 		filters: {},
@@ -2438,16 +2443,12 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 		stdout: n ? fe(c, t) : u(c)
 	});
 }, Ci = (e, t, n, r, i) => {
-	let a = Gt(e), o = (e) => ({
+	let a = Wt(e), o = (e) => ({
 		counts: a.counts,
-		inputDigest: a.inputDigest,
-		manifestDigest: a.manifestDigest,
 		page: e,
 		relevant: a.relevant,
-		snapshotDigest: a.snapshotDigest,
-		source: v,
 		valid: a.valid
-	}), s = h({
+	}), s = p({
 		command: "scope",
 		cursor: r,
 		filters: { inputDigest: a.inputDigest },
@@ -2474,10 +2475,10 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 		stdout: n ? d(a, t) : be(a)
 	});
 }, Ti = async (e) => {
-	let { executeMoldeaCliCoreInspection: t } = await import("./chunk-d9e49acd.mjs");
+	let { executeMoldeaCliCoreInspection: t } = await import("./chunk-afb0cf51.mjs");
 	return t(e);
 }, Ei = async (e) => {
-	let { resolveInstalledMoldeaCliComposition: t } = await import("./chunk-517c6bfb.mjs");
+	let { resolveInstalledMoldeaCliComposition: t } = await import("./chunk-cb0442cc.mjs");
 	return t(e);
 }, Q = (e, t, n) => Z(_(e, n), t.invocation.command, t.packageMetadata.version, t.invocation.options.isJson, A.OperationalError), Di = ((e = _t, t = _i, n = Ti, r = Ei, i = Ht, a = Ft) => async (o) => {
 	let s = o.invocation.command, c = o.invocation.options;
@@ -2494,7 +2495,7 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 			command: "inspect",
 			cursor: c.cursor,
 			filters: {}
-		}).sourceCursor : null;
+		}) : null;
 		if (s === m.Scope) {
 			if (c.pathsInput === "path" && c.path !== null) l = Object.freeze([c.path]);
 			else if (c.pathsInput === "stdin" && o.stdin !== void 0) {
@@ -2550,10 +2551,10 @@ var We = (e) => new Uint8Array(e), Ge = ({ maxBytes: r, maxEntries: i }) => {
 		});
 		return g.kind === "failed" ? Q(g.errorCode, o, g.subcommand === void 0 ? void 0 : { subcommand: g.subcommand }) : s === m.Validate ? xi(g.result, o.packageMetadata.version, c.isJson, c.cursor, c.maxOutputBytes) : s === m.Inspect ? Si(g.result, o.packageMetadata.version, c.isJson, c.cursor, c.maxOutputBytes) : s === m.Scope ? Ci(g.result, o.packageMetadata.version, c.isJson, c.cursor, c.maxOutputBytes) : wi(g.result, o.packageMetadata.version, c.isJson, c.cursor, c.maxOutputBytes);
 	} catch (e) {
-		return Z(nn(e), s, o.packageMetadata.version, c.isJson, A.OperationalError);
+		return Z(tn(e), s, o.packageMetadata.version, c.isJson, A.OperationalError);
 	}
 })(), Oi = async (e) => {
-	let t = y(e.commandLineArguments);
+	let t = v(e.commandLineArguments);
 	if (t.kind === "help") return {
 		exitCode: A.Success,
 		stderr: "",
@@ -2624,7 +2625,7 @@ try {
 		invocationDirectory: e,
 		packageMetadata: {
 			dependencies: {
-				"@moldea.ai/core": "workspace:^10.0.0",
+				"@moldea.ai/core": "workspace:^10.0.1",
 				"@moldea.ai/repository": "workspace:^4.0.0",
 				"@moldea.ai/repository-fs": "workspace:^4.0.0",
 				"jg-crypto": "0.3.0",
@@ -2635,12 +2636,12 @@ try {
 				semver: "7.8.5"
 			},
 			installedPackageVersions: {
-				"@moldea.ai/core": "10.0.0",
+				"@moldea.ai/core": "10.0.1",
 				"@moldea.ai/repository": "4.0.1",
 				"@moldea.ai/repository-fs": "4.0.1"
 			},
 			supportedNodeRange: ">=22.17.0",
-			version: "14.0.1"
+			version: "15.0.0"
 		},
 		readStdin: Ai,
 		signal: $.signal

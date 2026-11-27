@@ -125,20 +125,21 @@ test('ignored integration with cosmetic differences validates and its bundled wr
   });
 });
 
-test('upgraded templates preserve the old bridge until an exact idempotent refresh', async () => {
+test('refreshes a mismatched managed region exactly and idempotently', async () => {
   await withInstallation(async (root, run) => {
     const validate = await prepareValidation(root);
-    // the frozen 10.0.1 bridge is independent of the new template and generator.
-    const oldBlock =
-      '<!-- moldea:start -->\n\nWhen installed in this repository, moldea provides project context. Explicit moldea operations, planning, creating, reviewing, or changing agents or skills, changes to what an in-app model decides or says (including inline calls), and project-context work use only the exact <repo-root>/.agents/skills/moldea/SKILL.md. If it is missing, continue without moldea and without searching for another copy, installing, or initializing; for an explicit moldea operation, report the unavailable installation. Otherwise, first read it unless its complete unchanged instructions are available, then follow its routing before repository checks. For other repository planning, implementation, or review, once you know the involved files, check only the exact files <repo-root>/.agents/skills/moldea/SKILL.md and <repo-root>/.agents/skills/moldea/scripts/relevance-gate.mjs. If either is missing, skip this section silently without searching for another copy, installing, or initializing moldea. Otherwise, before editing or giving conclusions, run:\n\nnode "<repo-root>/.agents/skills/moldea/scripts/relevance-gate.mjs" --repository "<repo-root>" --path "<file>" [--path "<file>" ...]\n\n<repo-root> is the absolute repository root. Pass file paths relative to that root, even from a subdirectory. Use only already-known paths; do not scan or run Git for this. With no known paths, skip this precheck.\n\n- Output 1: read <repo-root>/.agents/skills/moldea/SKILL.md unless its complete unchanged instructions are already available; retain the checked paths and result.\n- Output 0 or an error: continue without moldea and do not mention it.\n\nIf the task involves new files later, check only that new batch once before acting. Reuse unchanged results.\n<!-- moldea:end -->\n';
+    const installed = run(['--print']);
+    expect(installed.status).toBe(0);
+    const mismatched = installed.stdout.replace(
+      '<!-- moldea:end -->',
+      'Check the selected files again before committing.\n<!-- moldea:end -->',
+    );
+    expect(mismatched).not.toBe(installed.stdout);
     const target = join(root, 'AGENTS.md');
     const prefix = '\uFEFF# Host instructions\r\n\r\n';
     const suffix = '\r\nKeep these rules.\r\n';
-    await writeFile(target, prefix + oldBlock.replaceAll('\n', '\r\n') + suffix);
+    await writeFile(target, prefix + mismatched.replaceAll('\n', '\r\n') + suffix);
     const before = await readFile(target);
-    const installedAsset = join(root, '.agents/skills/moldea/assets/managed-agents-block.md');
-    await copyFile(join(SOURCE, 'assets/managed-agents-block.md'), installedAsset);
-    expect(await readFile(target)).toStrictEqual(before);
     const stale = validate();
     expect(stale).toMatchObject({ result: { warningCount: 1 } });
     expect(stale).toHaveProperty(
@@ -153,6 +154,7 @@ test('upgraded templates preserve the old bridge until an exact idempotent refre
     );
     const printed = run(['--print']);
     expect(printed.status).toBe(0);
+    expect(printed.stdout).toBe(installed.stdout);
     expect(await readFile(target)).toStrictEqual(before);
     expect(run().stdout).toBe('updated\n');
     const refreshed = await readFile(target);

@@ -55,7 +55,7 @@ test('walks through the requirements and four setup steps in order', async ({ pa
     'Add the Skill to your repository.',
     'Map the areas that matter.',
     'Keep working as usual.',
-    'Ask for a fix when something seems off.',
+    'Keep project context in order with Fix.',
     'Review pull requests with the same context.',
   ]);
 
@@ -147,7 +147,8 @@ test('walks through the requirements and four setup steps in order', async ({ pa
   );
 
   const fix = page.locator('#fix');
-  await expect(fix.getByText('After you update the Skill', { exact: false })).toBeVisible();
+  await expect(fix.getByText('routinely and after large changes', { exact: false })).toBeVisible();
+  await expect(fix.getByText('against the installed template', { exact: false })).toBeVisible();
   await expect(fix.locator('[data-repair-report] dt')).toHaveText([
     'Checked',
     'Fixed',
@@ -159,7 +160,7 @@ test('walks through the requirements and four setup steps in order', async ({ pa
     'href',
     toPublicPath('/docs/check-fix-validate/#fix-a-project'),
   );
-  await expect(fix.getByRole('link', { name: 'Update the Skill' })).toHaveAttribute(
+  await expect(fix.getByRole('link', { name: 'Manage the Skill installation' })).toHaveAttribute(
     'href',
     toPublicPath('/docs/getting-started/#update-or-remove-the-skill'),
   );

@@ -22,7 +22,7 @@ export const semanticCase = defineSemanticCase({
       },
       {
         claim:
-          'The operations context currently assigns escalation ownership to Support and retention-exception approval to Legal.',
+          'The operations context currently assigns escalation ownership to Support and links to the separate retention-exception policy.',
         source: {
           kind: 'workspace-path',
           path: 'moldea/context/operations.md',
@@ -30,8 +30,7 @@ export const semanticCase = defineSemanticCase({
         },
       },
       {
-        claim:
-          'docs/operations-policy.md is the existing declared policy source for the registered operations context. The fixture already states Support escalation ownership and Legal retention-exception approval in both existing files.',
+        claim: 'docs/operations-policy.md owns the Legal approval rule for retention exceptions.',
         source: {
           kind: 'workspace-path',
           path: 'docs/operations-policy.md',
@@ -60,12 +59,12 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'update-established-context-owner',
       criterion:
-        'The registered operations context either states that Customer Operations owns escalation policy and Legal continues to approve retention exceptions, or links to the existing docs/operations-policy.md authority containing those corrected facts. Both representations satisfy this criterion.',
+        'The existing operations context states that Customer Operations owns escalation policy and that the responsible team directs escalation. The link to the Legal retention-exception approval remains accurate.',
     },
     {
       label: 'avoid-duplicate-current-truth',
       criterion:
-        'The registered operations context remains the sole focused canonical owner, and project.md does not repeat the detailed responsibilities; a navigation link is acceptable but not required. Updating the existing canonical owner and its existing declared policy source consistently is permitted controlled repetition; a link to the corrected source is also acceptable. Similar wording in that existing pair alone does not prove duplication. The actor creates no additional responsibility owner or copy in another canonical asset.',
+        'The operations context remains the sole owner of escalation authority, and project.md continues routing to it without copying its rule. Legal approval remains in the linked policy document, which the workspace leaves unchanged. The manifest retains the escalation enforcement path.',
     },
     {
       label: 'preserve-unrelated-context',
@@ -82,7 +81,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'create-parallel-responsibility-context',
       criterion:
-        'The workspace changes create an additional responsibility-context file or copy the policy into another canonical asset outside its established owner. In-place corrections to the existing operations context and its existing declared policy source do not establish this forbidden behavior.',
+        'The workspace changes create an additional responsibility-context file, copy either policy into another asset, or add a relationship to the retention policy document.',
     },
     {
       label: 'compress-unrelated-context',

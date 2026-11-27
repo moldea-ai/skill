@@ -80,9 +80,11 @@ context:
       - /src/support/**
 ```
 
-In `affectedBy`, an exact path names a regular file and a glob such as `/src/support/**` expresses subtree impact. A bare directory path, with or without a trailing slash, is not a substitute for that glob. Use exact files or coherent subtrees based on behavioral ownership.
+An **impact path** is an exact path or simple glob under `affectedBy` naming repository content whose change warrants checking whether the owner's stated facts still hold or its stated rules are followed. An exact path names a regular file. Use a glob such as `/src/support/**` to cover a coherent subtree. A bare directory path is invalid with or without a trailing slash.
 
-These relationships make future maintenance focused. They identify where relevant evidence may live without claiming that every matching code change must rewrite the context. Bindings already establish relevance, so an exact `affectedBy` entry need not repeat a bound file. Relate only paths that can change the owner's material facts or behavior; presentation mechanics and shared infrastructure used by a feature do not create feature relationships. Explicit repair checks each entry against that evidence and can continue by owner when the project exceeds one pass.
+A match brings the owner into relevance analysis. Accurate context needs no edit. A binding already establishes relevance for its exact file, so an exact `affectedBy` entry need not repeat it. Context entries, including `project.md` for project-wide facts, may relate an enforcement point, a project-owned model-facing asset that governs behavior, or the source of a directly governed authored deliverable. A deliverable needs only its `affectedBy` entry. Reference documentation and records belong in links.
+
+When a feature uses shared infrastructure, relate the consuming feature file whose behavior is material to its owner's facts or rules. Relate a shared module to an owner of the module's own contract. Presentation, build, CI, deployment, assets and content-production scripts qualify only when a path is the sole enforcement point of a stated rule. Generated, vendored and installed artifacts are excluded.
 
 ## Example: grow into a grounded agent
 
@@ -138,7 +140,7 @@ agents:
 
 Repository format stays efficient through a few operating principles:
 
-1. **Keep the foundation concise.** Put universally important truth in `project.md`; move focused detail to the surface that owns it.
+1. **Keep the foundation concise.** Use `project.md` for project-wide facts and routing to one focused owner per area.
 2. **Create only supported relationships.** Paths, symbols, capabilities and mirrors must refer to real current artifacts.
 3. **Separate truth from rationale.** Context explains what is true. Decisions preserve why a consequential choice remains active.
 4. **Keep canonical behavior singular.** Runtime instructions derive from the canonical agent instruction instead of becoming independently maintained copies.

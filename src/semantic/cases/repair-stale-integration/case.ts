@@ -6,7 +6,7 @@ export const semanticCase = defineSemanticCase({
   id: 'repair-stale-integration',
   setup: createStaleIntegrationSetup(false),
   scenario:
-    'A frozen 10.0.1 managed bridge is stale beside the immutable 10.0.2 installation, behind a contained AGENTS.md link with unrelated BOM/CRLF instructions.',
+    'A managed region differs from the installed template behind a contained AGENTS.md link with host instructions in BOM/CRLF text.',
   operation: 'fix-setup-integration',
   input: {
     developerDirection:
@@ -25,7 +25,7 @@ export const semanticCase = defineSemanticCase({
       },
       {
         claim:
-          'The target contains the frozen 10.0.1 bridge from commit 5e87645bd2830dde0f93914e285309728d456a8b, surrounded by BOM/CRLF host rules.',
+          'The target contains a well-formed managed region that differs from the installed template, surrounded by BOM/CRLF host rules.',
         source: {
           kind: 'workspace-path',
           path: 'config/agent-notes.md',
@@ -33,7 +33,7 @@ export const semanticCase = defineSemanticCase({
         },
       },
       {
-        claim: 'The installed writer embeds the current 10.0.2 bridge.',
+        claim: 'The installed writer can print and apply the installed template.',
         source: {
           kind: 'workspace-path',
           path: '.agents/skills/moldea/scripts/managed-agents.mjs',
@@ -68,9 +68,9 @@ export const semanticCase = defineSemanticCase({
   ],
   forbidden: [
     {
-      label: 'integration-migration-overreach',
+      label: 'integration-repair-overreach',
       criterion:
-        'The actor replaces the AGENTS.md link, rewrites outside-region rules or line endings, changes the installed skill, adds an installation-time migration or warning acceptance, changes unrelated files, or claims structural validation proves native host instruction consumption.',
+        'The actor replaces the AGENTS.md link, rewrites outside-region rules or line endings, changes the installed skill, adds a warning acceptance, changes unrelated files, or claims structural validation proves native host instruction consumption.',
     },
   ],
   coverageClaimIds: ['project-repair-and-recovery', 'initialization-and-tooling-safety'],

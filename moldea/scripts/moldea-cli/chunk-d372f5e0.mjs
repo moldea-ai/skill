@@ -1,67 +1,67 @@
 import { d as e, f as t, m as n, n as r, u as i } from "./chunk-2cc3bf5c.mjs";
 import { a, c as o, d as s, f as c, g as l, h as u, i as d, l as f, o as p, p as m, r as h, s as g, t as _, u as v } from "./chunk-8f198616.mjs";
-import { a as y, c as b, i as x, l as S, n as C, s as w, u as T } from "./chunk-98d84174.mjs";
+import { a as y, c as b, i as x, l as S, n as C, s as w, u as ee } from "./chunk-98d84174.mjs";
 //#region ../../node_modules/.pnpm/jg-utilities@1.7.2/node_modules/jg-utilities/dist/utils/marked-region.js
-var ee = "﻿", E = (n) => {
+var te = "﻿", T = (n) => {
 	throw new t(n, { code: e.INVALID_MARKED_REGION });
-}, te = ({ start: e, end: t }) => {
-	for (let n of [e, t]) (typeof n != "string" || n === "" || /[\r\n]/.test(n)) && E("Each region marker must be a non-empty single line.");
-	(e.includes(t) || t.includes(e)) && E("Neither region marker may contain the other.");
-}, ne = (e, t) => {
-	te(t);
+}, ne = ({ start: e, end: t }) => {
+	for (let n of [e, t]) (typeof n != "string" || n === "" || /[\r\n]/.test(n)) && T("Each region marker must be a non-empty single line.");
+	(e.includes(t) || t.includes(e)) && T("Neither region marker may contain the other.");
+}, re = (e, t) => {
+	ne(t);
 	let n, r, i = 0;
 	for (; i < e.length;) {
-		let a = e.indexOf("\n", i), o = a === -1 ? e.length : a + 1, s = a > i && e[a - 1] === "\r", c = a === -1 ? e.length : a - +!!s, l = i === 0 && e.startsWith(ee) ? 1 : i, u = e.slice(l, c);
-		for (let e of ["start", "end"]) u.includes(t[e]) && (u !== t[e] && E(`The ${e} marker must fill its whole line.`), e === "start" ? ((n !== void 0 || r !== void 0) && E("The document must hold one start marker, before one end marker."), n = {
+		let a = e.indexOf("\n", i), o = a === -1 ? e.length : a + 1, s = a > i && e[a - 1] === "\r", c = a === -1 ? e.length : a - +!!s, l = i === 0 && e.startsWith(te) ? 1 : i, u = e.slice(l, c);
+		for (let e of ["start", "end"]) u.includes(t[e]) && (u !== t[e] && T(`The ${e} marker must fill its whole line.`), e === "start" ? ((n !== void 0 || r !== void 0) && T("The document must hold one start marker, before one end marker."), n = {
 			offset: l,
 			lineEnding: s ? "\r\n" : "\n"
-		}) : (r !== void 0 && E("The document must hold one end marker."), r = o));
+		}) : (r !== void 0 && T("The document must hold one end marker."), r = o));
 		i = o;
 	}
-	return n === void 0 && r === void 0 ? null : n === void 0 || r === void 0 ? E("The document must hold both region markers, or neither.") : {
+	return n === void 0 && r === void 0 ? null : n === void 0 || r === void 0 ? T("The document must hold both region markers, or neither.") : {
 		start: n.offset,
 		end: r,
 		lineEnding: n.lineEnding
 	};
-}, re = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u, ie = /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])$/u, ae = [
+}, ie = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u, ae = /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])$/u, oe = [
 	"\n",
 	"\r",
 	"",
 	"\u2028",
 	"\u2029"
-], oe = /[!?[\]{}]/u, se = (e) => ae.some((t) => e.includes(t)), D = (e) => e >= 9 && e <= 13 || e === 32 || e === 133 || e === 160 || e === 5760 || e >= 8192 && e <= 8202 || e === 8232 || e === 8233 || e === 8239 || e === 8287 || e === 12288, O = (e) => {
+], se = /[!?[\]{}]/u, ce = (e) => oe.some((t) => e.includes(t)), E = (e) => e >= 9 && e <= 13 || e === 32 || e === 133 || e === 160 || e === 5760 || e >= 8192 && e <= 8202 || e === 8232 || e === 8233 || e === 8239 || e === 8287 || e === 12288, D = (e) => {
 	let t = e[Symbol.iterator](), n = 0;
 	for (; t.next().done !== !0;) n += 1;
 	return n;
-}, k = (e) => {
-	for (let t of e) if (!D(t.codePointAt(0) ?? 0)) return !0;
+}, O = (e) => {
+	for (let t of e) if (!E(t.codePointAt(0) ?? 0)) return !0;
 	return !1;
-}, ce = (e) => {
-	let t = e.codePointAt(0), n = e.codePointAt(e.length - 1);
-	return t !== void 0 && D(t) || n !== void 0 && D(n);
 }, le = (e) => {
+	let t = e.codePointAt(0), n = e.codePointAt(e.length - 1);
+	return t !== void 0 && E(t) || n !== void 0 && E(n);
+}, ue = (e) => {
 	let t = 0, n = e.length;
 	for (; t < n;) {
 		let n = e.codePointAt(t);
-		if (n === void 0 || !D(n)) break;
+		if (n === void 0 || !E(n)) break;
 		t += n > 65535 ? 2 : 1;
 	}
 	for (; n > t;) {
 		let t = e.codePointAt(n - 1);
-		if (t === void 0 || !D(t)) break;
+		if (t === void 0 || !E(t)) break;
 		--n;
 	}
 	return e.slice(t, n);
-}, ue = (e) => e.length > 0 && !se(e), de = (e) => e.length <= 64 && re.test(e), fe = (e) => ie.test(e), pe = (e) => {
-	let t = O(e);
-	return t >= 1 && t <= 1e3 && !ce(e) && !se(e) && !e.includes("\0");
-}, A = (e) => e !== "/" && b(e) ? S(e) : null, me = (e) => e === "/moldea/moldea.yaml", j = (e) => {
+}, de = (e) => e.length > 0 && !ce(e), fe = (e) => e.length <= 64 && ie.test(e), pe = (e) => ae.test(e), me = (e) => {
+	let t = D(e);
+	return t >= 1 && t <= 1e3 && !le(e) && !ce(e) && !e.includes("\0");
+}, k = (e) => e !== "/" && b(e) ? S(e) : null, he = (e) => e === "/moldea/moldea.yaml", A = (e) => {
 	let t = /^\/moldea\/decisions\/(\d{13})-([a-z0-9]+(?:-[a-z0-9]+)*)\.md$/u.exec(e), n = t?.[1], r = t?.[2];
-	return n !== void 0 && r !== void 0 && de(r) ? n : null;
-}, he = (e, t) => t && e === "/moldea/project.md" ? !0 : e.startsWith("/moldea/context/") && e.endsWith(".md"), ge = (e) => j(e) !== null, _e = (e) => e !== "/moldea" && !e.startsWith("/moldea/"), ve = (e) => oe.test(e), ye = (e) => ve(e) || e.includes("***") || e.slice(1).split("/").some((e) => e.includes("**") && e !== "**") ? !1 : e.includes("*") && b(e.replaceAll("*", "x")), be = (e) => ue(e) && !e.includes("\0"), xe = (e) => e === "/moldea" || e.startsWith("/moldea/"), Se = new TextEncoder(), Ce = new TextDecoder("utf-8", {
+	return n !== void 0 && r !== void 0 && fe(r) ? n : null;
+}, ge = (e, t) => t && e === "/moldea/project.md" ? !0 : e.startsWith("/moldea/context/") && e.endsWith(".md"), _e = (e) => A(e) !== null, ve = (e) => e !== "/moldea" && !e.startsWith("/moldea/"), ye = (e) => se.test(e), be = (e) => ye(e) || e.includes("***") || e.slice(1).split("/").some((e) => e.includes("**") && e !== "**") ? !1 : e.includes("*") && b(e.replaceAll("*", "x")), xe = (e) => de(e) && !e.includes("\0"), Se = (e) => e === "/moldea" || e.startsWith("/moldea/"), Ce = new TextEncoder(), we = new TextDecoder("utf-8", {
 	fatal: !0,
 	ignoreBOM: !0
-}), we = (e, t, n) => {
+}), Te = (e, t, n) => {
 	let r = 1, i = 1, a = 0;
 	for (let o of e) o === "\0" && n.add({
 		code: "MOLDEA_TEXT_NUL_FORBIDDEN",
@@ -79,12 +79,12 @@ var ee = "﻿", E = (n) => {
 			}
 		}
 	}), o === "\n" ? (r = 1, i += 1) : r += 1, a += 1;
-}, Te = (e) => {
+}, Ee = (e) => {
 	throw new r({
 		code: "INVALID_ARGUMENT",
 		operation: e
 	});
-}, Ee = (e, t, n, i) => {
+}, De = (e, t, n, i) => {
 	if (!(e <= t[i])) throw new r({
 		code: "RESOURCE_LIMIT_EXCEEDED",
 		limit: i,
@@ -93,42 +93,42 @@ var ee = "﻿", E = (n) => {
 		observedUsage: e,
 		operation: n
 	});
-}, De = (e) => m({
+}, Oe = (e) => m({
 	diagnostics: [...e],
 	text: null,
 	valid: !1
-}), Oe = (e, t, n, r, a) => {
-	if (!i(e, !0)) return Te(n);
+}), ke = (e, t, n, r, a) => {
+	if (!i(e, !0)) return Ee(n);
 	let o = e.path, s = e.content;
-	if (typeof o != "string" || typeof s != "string" && !(s instanceof Uint8Array)) return Te(n);
+	if (typeof o != "string" || typeof s != "string" && !(s instanceof Uint8Array)) return Ee(n);
 	let c = S(o);
-	if (typeof s == "string") return Ee(l(s, t[r]), t, n, r), s.isWellFormed() ? {
+	if (typeof s == "string") return De(l(s, t[r]), t, n, r), s.isWellFormed() ? {
 		path: c,
 		value: s
 	} : (a.add({
 		code: "MOLDEA_TEXT_INVALID_UNICODE",
 		path: c
-	}), De(a.finalize()));
-	Ee(s.byteLength, t, n, r);
+	}), Oe(a.finalize()));
+	De(s.byteLength, t, n, r);
 	let u = new Uint8Array(s);
 	try {
 		return {
 			path: c,
-			value: Ce.decode(u)
+			value: we.decode(u)
 		};
 	} catch {
 		return a.add({
 			code: "MOLDEA_TEXT_INVALID_UTF8",
 			path: c
-		}), De(a.finalize());
+		}), Oe(a.finalize());
 	}
-}, M = (e, t, n, r = "maxFileBytes") => {
-	let i = d(t, n), a = Oe(e, t, n, r, i);
+}, j = (e, t, n, r = "maxFileBytes") => {
+	let i = d(t, n), a = ke(e, t, n, r, i);
 	if ("valid" in a) return a;
 	let o = (a.value.startsWith("﻿") ? a.value.slice(1) : a.value).replace(/\r\n?/gu, "\n");
-	if (we(o, a.path, i), i.size > 0) return De(i.finalize());
+	if (Te(o, a.path, i), i.size > 0) return Oe(i.finalize());
 	let s = m({
-		scalarLength: O(o),
+		scalarLength: D(o),
 		utf8ByteLength: l(o),
 		value: o
 	});
@@ -137,29 +137,29 @@ var ee = "﻿", E = (n) => {
 		text: s,
 		valid: !0
 	});
-}, ke = (e) => {
+}, Ae = (e) => {
 	let t = "";
 	for (let n of e) t += n.toString(16).padStart(2, "0");
 	return t;
-}, N = async (e) => {
-	let t = Se.encode(e.value);
-	return `sha256:${ke(new Uint8Array(await globalThis.crypto.subtle.digest("SHA-256", t)))}`;
-}, Ae = async (e, t) => {
-	let n = M(e, t, "calculate-content-digest");
+}, M = async (e) => {
+	let t = Ce.encode(e.value);
+	return `sha256:${Ae(new Uint8Array(await globalThis.crypto.subtle.digest("SHA-256", t)))}`;
+}, je = async (e, t) => {
+	let n = j(e, t, "calculate-content-digest");
 	if (!n.valid || n.text === null) return m({
 		diagnostics: n.diagnostics,
 		digest: null,
 		text: null,
 		valid: !1
 	});
-	let r = await N(n.text);
+	let r = await M(n.text);
 	return m({
 		diagnostics: [],
 		digest: r,
 		text: n.text,
 		valid: !0
 	});
-}, je = (e, t) => {
+}, Me = (e, t) => {
 	let n = 0, r = 0, i = -1, a = -1;
 	for (; r < t.length;) {
 		if (e[n] === t[r]) {
@@ -175,7 +175,7 @@ var ee = "﻿", E = (n) => {
 	}
 	for (; e[n] === "*";) n += 1;
 	return n === e.length;
-}, Me = (e, t) => {
+}, Ne = (e, t) => {
 	let n = t.slice(1).split("/"), r = new Uint8Array(n.length + 1);
 	r[0] = 1;
 	for (let t of e) {
@@ -183,15 +183,15 @@ var ee = "﻿", E = (n) => {
 		if (t === "**") {
 			let t = !1;
 			for (let n = 0; n < r.length; n += 1) t ||= r[n] === 1, e[n] = +!!t;
-		} else for (let i = 0; i < n.length; i += 1) r[i] === 1 && je(t, n[i] ?? "") && (e[i + 1] = 1);
+		} else for (let i = 0; i < n.length; i += 1) r[i] === 1 && Me(t, n[i] ?? "") && (e[i + 1] = 1);
 		r = e;
 	}
 	return r[n.length] === 1;
-}, P = (e, t) => `${e}/${g(t)}`, Ne = (e, t, n = null) => ({
+}, N = (e, t) => `${e}/${g(t)}`, Pe = (e, t, n = null) => ({
 	agentId: n,
 	id: t,
 	kind: e
-}), Pe = (e, t) => u(e.kind, t.kind) || u(e.agentId ?? "", t.agentId ?? "") || u(e.id, t.id), Fe = (e) => e.kind === "exact" ? e.path : e.pattern, Ie = (e, t) => Pe(e.owner, t.owner) || u(e.field, t.field) || u(Fe(e.declaration), Fe(t.declaration)) || u(e.pointer, t.pointer), F = (e, t, n, r, i) => {
+}), Fe = (e, t) => u(e.kind, t.kind) || u(e.agentId ?? "", t.agentId ?? "") || u(e.id, t.id), Ie = (e) => e.kind === "exact" ? e.path : e.pattern, Le = (e, t) => Fe(e.owner, t.owner) || u(e.field, t.field) || u(Ie(e.declaration), Ie(t.declaration)) || u(e.pointer, t.pointer), P = (e, t, n, r, i) => {
 	e.push({
 		declaration: typeof i == "string" ? {
 			kind: "exact",
@@ -206,9 +206,9 @@ var ee = "﻿", E = (n) => {
 		owner: t,
 		pointer: r
 	});
-}, Le = (e, t, n, r, i) => {
-	for (let [a, o] of (t ?? []).entries()) F(e, n, r, P(i, String(a)), o);
-}, Re = (e, t, n, r) => {
+}, Re = (e, t, n, r, i) => {
+	for (let [a, o] of (t ?? []).entries()) P(e, n, r, N(i, String(a)), o);
+}, ze = (e, t, n, r) => {
 	for (let [i, a] of (t ?? []).entries()) e.push({
 		declaration: a.includes("*") ? {
 			kind: "glob",
@@ -220,17 +220,17 @@ var ee = "﻿", E = (n) => {
 		},
 		field: "affectedBy",
 		owner: n,
-		pointer: P(r, String(i))
+		pointer: N(r, String(i))
 	});
-}, ze = (e, t, n, r, i) => {
-	let a = Ne(n.kind, t, r);
-	if (F(e, a, "implementation", P(i, "implementation"), n.value.implementation), n.value.registration !== void 0 && F(e, a, "registration", P(i, "registration"), n.value.registration), n.kind === "tool") for (let t of ["inputSchema", "outputSchema"]) {
+}, Be = (e, t, n, r, i) => {
+	let a = Pe(n.kind, t, r);
+	if (P(e, a, "implementation", N(i, "implementation"), n.value.implementation), n.value.registration !== void 0 && P(e, a, "registration", N(i, "registration"), n.value.registration), n.kind === "tool") for (let t of ["inputSchema", "outputSchema"]) {
 		let r = n.value[t];
-		r !== void 0 && F(e, a, t, P(i, t), r);
+		r !== void 0 && P(e, a, t, N(i, t), r);
 	}
-	Re(e, n.value.affectedBy, a, P(i, "affectedBy"));
-}, Be = (e, t, n) => {
-	let r = P("/agents", t), i = Ne("agent", t, t), a = P(r, "bindings");
+	ze(e, n.value.affectedBy, a, N(i, "affectedBy"));
+}, Ve = (e, t, n) => {
+	let r = N("/agents", t), i = Pe("agent", t, t), a = N(r, "bindings");
 	for (let t of [
 		"runtimeAgent",
 		"inputSchema",
@@ -238,42 +238,42 @@ var ee = "﻿", E = (n) => {
 		"instructionLoader"
 	]) {
 		let r = n.bindings?.[t];
-		r !== void 0 && F(e, i, t, P(a, t), r);
+		r !== void 0 && P(e, i, t, N(a, t), r);
 	}
-	Re(e, n.affectedBy, i, P(r, "affectedBy"));
+	ze(e, n.affectedBy, i, N(r, "affectedBy"));
 	for (let i of Object.keys(n.tools ?? {}).sort(u)) {
 		let a = n.tools?.[i];
-		a !== void 0 && ze(e, i, {
+		a !== void 0 && Be(e, i, {
 			kind: "tool",
 			value: a
-		}, t, P(P(r, "tools"), i));
+		}, t, N(N(r, "tools"), i));
 	}
 	for (let i of Object.keys(n.skills ?? {}).sort(u)) {
 		let a = n.skills?.[i];
-		a !== void 0 && ze(e, i, {
+		a !== void 0 && Be(e, i, {
 			kind: "skill",
 			value: a
-		}, t, P(P(r, "skills"), i));
+		}, t, N(N(r, "skills"), i));
 	}
-	for (let [t, a] of (n.mirrors ?? []).entries()) F(e, i, "mirrors", P(P(r, "mirrors"), String(t)), a);
-}, Ve = (e) => {
+	for (let [t, a] of (n.mirrors ?? []).entries()) P(e, i, "mirrors", N(N(r, "mirrors"), String(t)), a);
+}, He = (e) => {
 	let t = [];
 	for (let n of ["context", "decision"]) {
 		let r = n === "context" ? e.context : e.decisions;
 		for (let e of Object.keys(r ?? {}).sort(u)) {
 			let i = r?.[e];
 			if (i === void 0) continue;
-			let a = Ne(n, e), o = P(n === "context" ? "/context" : "/decisions", e);
-			Le(t, i.bindings, a, "bindings", P(o, "bindings")), Re(t, i.affectedBy, a, P(o, "affectedBy"));
+			let a = Pe(n, e), o = N(n === "context" ? "/context" : "/decisions", e);
+			Re(t, i.bindings, a, "bindings", N(o, "bindings")), ze(t, i.affectedBy, a, N(o, "affectedBy"));
 		}
 	}
 	for (let n of Object.keys(e.agents ?? {}).sort(u)) {
 		let r = e.agents?.[n];
-		r !== void 0 && Be(t, n, r);
+		r !== void 0 && Ve(t, n, r);
 	}
-	return t.sort(Ie);
-}, He = (e, t) => {
-	let n = Ve(e);
+	return t.sort(Le);
+}, Ue = (e, t) => {
+	let n = He(e);
 	if (n.length > t.maxEntries) throw new r({
 		code: "RESOURCE_LIMIT_EXCEEDED",
 		limit: "maxEntries",
@@ -305,13 +305,13 @@ var ee = "﻿", E = (n) => {
 		globalGlobs: a,
 		globsByFirstSegment: o
 	};
-}, Ue = (e, t) => Pe(e.owner, t.owner) || u(e.field, t.field) || u(Fe(e.declaration), Fe(t.declaration)) || u(e.inputPath, t.inputPath) || u(e.pointer, t.pointer), We = (e, t) => ({
+}, We = (e, t) => Fe(e.owner, t.owner) || u(e.field, t.field) || u(Ie(e.declaration), Ie(t.declaration)) || u(e.inputPath, t.inputPath) || u(e.pointer, t.pointer), Ge = (e, t) => ({
 	declaration: t.declaration,
 	field: t.field,
 	inputPath: e,
 	owner: t.owner,
 	pointer: t.pointer
-}), Ge = (e, t, n, i) => {
+}), Ke = (e, t, n, i) => {
 	if (e.length >= i.maxEntries) throw new r({
 		code: "RESOURCE_LIMIT_EXCEEDED",
 		limit: "maxEntries",
@@ -320,24 +320,24 @@ var ee = "﻿", E = (n) => {
 		observedUsage: e.length + 1,
 		operation: "match-manifest-scope"
 	});
-	e.push(We(t, n));
-}, Ke = (e, t, n, r) => {
-	for (let i of n) Me(i.segments, t) && Ge(e, t, i.declaration, r);
-}, qe = async (e) => {
+	e.push(Ge(t, n));
+}, qe = (e, t, n, r) => {
+	for (let i of n) Ne(i.segments, t) && Ke(e, t, i.declaration, r);
+}, Je = async (e) => {
 	let t = e.join("\0");
-	return N({
-		scalarLength: O(t),
+	return M({
+		scalarLength: D(t),
 		utf8ByteLength: l(t),
 		value: t
 	});
-}, Je = (e, t, n) => {
-	let r = He(e, n), i = [], a = new Set(), o = new Set();
+}, Ye = (e, t, n) => {
+	let r = Ue(e, n), i = [], a = new Set(), o = new Set();
 	for (let e of t) {
 		let t = e.slice(1).split("/", 1)[0] ?? "", a = r.exact.get(e) ?? [];
-		for (let t of a) Ge(i, e, t, n);
-		Ke(i, e, r.globalGlobs, n), Ke(i, e, r.globsByFirstSegment.get(t) ?? [], n);
+		for (let t of a) Ke(i, e, t, n);
+		qe(i, e, r.globalGlobs, n), qe(i, e, r.globsByFirstSegment.get(t) ?? [], n);
 	}
-	i.sort(Ue);
+	i.sort(We);
 	for (let e of i) a.add(`${e.owner.kind}\0${e.owner.agentId ?? ""}\0${e.owner.id}`), o.add(e.inputPath);
 	return m({
 		counts: {
@@ -349,7 +349,7 @@ var ee = "﻿", E = (n) => {
 		},
 		matches: i
 	});
-}, I = (e, t) => `${e}/${g(t)}`, L = (e, t, n, r, i = null) => {
+}, F = (e, t) => `${e}/${g(t)}`, I = (e, t, n, r, i = null) => {
 	e.diagnostics.add({
 		code: "MOLDEA_MANIFEST_VALUE_INVALID",
 		details: { reason: r },
@@ -358,12 +358,12 @@ var ee = "﻿", E = (n) => {
 		pointer: t,
 		range: n
 	});
-}, R = (e, t, n, r, i = null) => {
-	if (e.kind !== "mapping") return L(r, t, e.range, "mapping-required", i), null;
+}, L = (e, t, n, r, i = null) => {
+	if (e.kind !== "mapping") return I(r, t, e.range, "mapping-required", i), null;
 	let a = new Map();
 	for (let o of e.entries) {
 		if (o.key.kind !== "scalar" || typeof o.key.value != "string") {
-			L(r, t, o.key.range, "string-key-required", i);
+			I(r, t, o.key.range, "string-key-required", i);
 			continue;
 		}
 		let e = o.key.value;
@@ -372,7 +372,7 @@ var ee = "﻿", E = (n) => {
 				code: "MOLDEA_MANIFEST_PROPERTY_UNKNOWN",
 				entity: i,
 				path: r.path,
-				pointer: I(t, e),
+				pointer: F(t, e),
 				range: o.key.range
 			});
 			continue;
@@ -383,12 +383,12 @@ var ee = "﻿", E = (n) => {
 		});
 	}
 	return a;
-}, Ye = (e, t, n, r = {}) => {
-	if (e === void 0) return r.required === !0 && L(n, t, null, "required", r.entity ?? null), null;
-	if (e.value.kind !== "scalar" || typeof e.value.value != "string") return L(n, t, e.value.range, "string-required", r.entity ?? null), null;
+}, Xe = (e, t, n, r = {}) => {
+	if (e === void 0) return r.required === !0 && I(n, t, null, "required", r.entity ?? null), null;
+	if (e.value.kind !== "scalar" || typeof e.value.value != "string") return I(n, t, e.value.range, "string-required", r.entity ?? null), null;
 	let i = e.value.value;
-	return !k(i) || r.singleLine === !0 && !ue(i) ? (L(n, t, e.value.range, "string-invalid", r.entity ?? null), null) : i;
-}, Xe = (e, t, n, r, i = null) => de(e) ? !fe(e) || (r.diagnostics.add({
+	return !O(i) || r.singleLine === !0 && !de(i) ? (I(n, t, e.value.range, "string-invalid", r.entity ?? null), null) : i;
+}, Ze = (e, t, n, r, i = null) => fe(e) ? !pe(e) || (r.diagnostics.add({
 	code: "MOLDEA_ID_RESERVED",
 	entity: i,
 	path: r.path,
@@ -400,8 +400,8 @@ var ee = "﻿", E = (n) => {
 	path: r.path,
 	pointer: n,
 	range: t
-}), !1), Ze = (e, t, n, r = null) => {
-	let i = R(e, t, new Set(["path", "symbol"]), n, r);
+}), !1), Qe = (e, t, n, r = null) => {
+	let i = L(e, t, new Set(["path", "symbol"]), n, r);
 	if (i === null) return null;
 	let a = i.get("path");
 	if (a?.value.kind !== "scalar" || typeof a.value.value != "string") return n.diagnostics.add({
@@ -409,39 +409,39 @@ var ee = "﻿", E = (n) => {
 		details: { reason: a === void 0 ? "missing" : "type" },
 		entity: r,
 		path: n.path,
-		pointer: I(t, "path"),
+		pointer: F(t, "path"),
 		range: a?.value.range ?? null
 	}), null;
-	let o = A(a.value.value);
+	let o = k(a.value.value);
 	if (o === null) return n.diagnostics.add({
 		code: "MOLDEA_PATH_INVALID",
 		entity: r,
 		path: n.path,
-		pointer: I(t, "path"),
+		pointer: F(t, "path"),
 		range: a.value.range
 	}), null;
 	let s = i.get("symbol");
-	return s === void 0 ? { path: o } : s.value.kind !== "scalar" || typeof s.value.value != "string" || !be(s.value.value) ? (n.diagnostics.add({
+	return s === void 0 ? { path: o } : s.value.kind !== "scalar" || typeof s.value.value != "string" || !xe(s.value.value) ? (n.diagnostics.add({
 		code: "MOLDEA_SYMBOL_INVALID",
 		entity: r,
 		path: n.path,
-		pointer: I(t, "symbol"),
+		pointer: F(t, "symbol"),
 		range: s.value.range
-	}), null) : xe(o) ? (n.diagnostics.add({
+	}), null) : Se(o) ? (n.diagnostics.add({
 		code: "MOLDEA_SYMBOL_FORBIDDEN",
 		entity: r,
 		path: n.path,
-		pointer: I(t, "symbol"),
+		pointer: F(t, "symbol"),
 		range: s.value.range
 	}), null) : {
 		path: o,
 		symbol: s.value.value
 	};
-}, Qe = (e, t, n, r = null) => {
-	if (e.kind !== "sequence" || e.items.length === 0) return L(n, t, e.range, "non-empty-sequence-required", r), [];
+}, $e = (e, t, n, r = null) => {
+	if (e.kind !== "sequence" || e.items.length === 0) return I(n, t, e.range, "non-empty-sequence-required", r), [];
 	let i = [], a = new Set();
 	return e.items.forEach((e, o) => {
-		let s = Ze(e, I(t, String(o)), n, r);
+		let s = Qe(e, F(t, String(o)), n, r);
 		if (s === null) return;
 		let c = `${s.path}\0${s.symbol ?? ""}`;
 		if (a.has(c)) {
@@ -449,24 +449,24 @@ var ee = "﻿", E = (n) => {
 				code: "MOLDEA_PATH_DUPLICATE",
 				entity: r,
 				path: n.path,
-				pointer: I(t, String(o)),
+				pointer: F(t, String(o)),
 				range: e.range
 			});
 			return;
 		}
 		a.add(c), i.push(s);
 	}), i;
-}, $e = (e, t, n, r = null) => {
-	if (e.kind !== "sequence" || e.items.length === 0) return L(n, t, e.range, "non-empty-sequence-required", r), [];
+}, et = (e, t, n, r = null) => {
+	if (e.kind !== "sequence" || e.items.length === 0) return I(n, t, e.range, "non-empty-sequence-required", r), [];
 	let i = [], a = new Set();
 	return e.items.forEach((e, o) => {
-		let s = I(t, String(o));
+		let s = F(t, String(o));
 		if (e.kind !== "scalar" || typeof e.value != "string") {
-			L(n, s, e.range, "string-required", r);
+			I(n, s, e.range, "string-required", r);
 			return;
 		}
-		let c = e.value.includes("*") || ve(e.value);
-		if (!(c ? ye(e.value) : A(e.value) !== null)) {
+		let c = e.value.includes("*") || ye(e.value);
+		if (!(c ? be(e.value) : k(e.value) !== null)) {
 			n.diagnostics.add({
 				code: c ? "MOLDEA_GLOB_INVALID" : "MOLDEA_PATH_INVALID",
 				entity: r,
@@ -488,8 +488,8 @@ var ee = "﻿", E = (n) => {
 		}
 		a.add(e.value), i.push(e.value);
 	}), i;
-}, et = (e, t, n) => {
-	let r = R(e, t, new Set(["affectedBy", "bindings"]), n);
+}, tt = (e, t, n) => {
+	let r = L(e, t, new Set(["affectedBy", "bindings"]), n);
 	if (r === null) return null;
 	let i = r.get("bindings"), a = r.get("affectedBy");
 	return i === void 0 && a === void 0 && n.diagnostics.add({
@@ -498,40 +498,40 @@ var ee = "﻿", E = (n) => {
 		pointer: t,
 		range: e.range
 	}), {
-		...i === void 0 ? {} : { bindings: Qe(i.value, I(t, "bindings"), n) },
-		...a === void 0 ? {} : { affectedBy: $e(a.value, I(t, "affectedBy"), n) }
+		...i === void 0 ? {} : { bindings: $e(i.value, F(t, "bindings"), n) },
+		...a === void 0 ? {} : { affectedBy: et(a.value, F(t, "affectedBy"), n) }
 	};
-}, tt = (e, t, n, r) => {
-	let i = R(e, t, null, r);
+}, nt = (e, t, n, r) => {
+	let i = L(e, t, null, r);
 	if (i === null) return null;
 	let a = [];
 	for (let [e, o] of [...i].sort(([e], [t]) => u(e, t))) {
-		let i = A(e);
-		if (!(i !== null && (n === "context" ? he(i, !0) : ge(i)))) {
+		let i = k(e);
+		if (!(i !== null && (n === "context" ? ge(i, !0) : _e(i)))) {
 			r.diagnostics.add({
 				code: n === "context" ? "MOLDEA_CONTEXT_PATH_INVALID" : "MOLDEA_DECISION_FILENAME_INVALID",
 				path: r.path,
-				pointer: I(t, e),
+				pointer: F(t, e),
 				range: o.key.range
 			});
 			continue;
 		}
-		let s = et(o.value, I(t, e), r);
+		let s = tt(o.value, F(t, e), r);
 		s !== null && a.push([e, s]);
 	}
 	return p(a);
-}, nt = (e, t, n, r, i) => {
-	if (e.kind !== "sequence") return L(r, t, e.range, "sequence-required", i), [];
+}, rt = (e, t, n, r, i) => {
+	if (e.kind !== "sequence") return I(r, t, e.range, "sequence-required", i), [];
 	let a = [], o = new Set();
 	return e.items.forEach((e, s) => {
-		let c = I(t, String(s));
+		let c = F(t, String(s));
 		if (e.kind !== "scalar" || typeof e.value != "string") {
-			L(r, c, e.range, "string-required", i);
+			I(r, c, e.range, "string-required", i);
 			return;
 		}
-		let l = A(e.value);
-		if (!(l !== null && (n === "context" ? he(l, !1) : n === "decision" ? ge(l) : _e(l))) || l === null) {
-			let t = n === "context" ? "MOLDEA_CONTEXT_PATH_INVALID" : n === "decision" ? "MOLDEA_DECISION_FILENAME_INVALID" : l !== null && !_e(l) ? "MOLDEA_MIRROR_PATH_INSIDE_MOLDEA" : "MOLDEA_MIRROR_PATH_INVALID";
+		let l = k(e.value);
+		if (!(l !== null && (n === "context" ? ge(l, !1) : n === "decision" ? _e(l) : ve(l))) || l === null) {
+			let t = n === "context" ? "MOLDEA_CONTEXT_PATH_INVALID" : n === "decision" ? "MOLDEA_DECISION_FILENAME_INVALID" : l !== null && !ve(l) ? "MOLDEA_MIRROR_PATH_INSIDE_MOLDEA" : "MOLDEA_MIRROR_PATH_INVALID";
 			r.diagnostics.add({
 				code: t,
 				entity: i,
@@ -563,8 +563,8 @@ var ee = "﻿", E = (n) => {
 		}
 		o.add(l), n === "mirror" && r.mirrorPaths.add(l), a.push(l);
 	}), a;
-}, rt = (e, t, n, r) => {
-	let i = { agentId: r }, a = R(e, t, new Set([
+}, it = (e, t, n, r) => {
+	let i = { agentId: r }, a = L(e, t, new Set([
 		"inputSchema",
 		"instructionLoader",
 		"outputSchema",
@@ -573,7 +573,7 @@ var ee = "﻿", E = (n) => {
 	if (a === null) return null;
 	let o = (e) => {
 		let r = a.get(e);
-		return r === void 0 ? null : Ze(r.value, I(t, e), n, i);
+		return r === void 0 ? null : Qe(r.value, F(t, e), n, i);
 	}, s = o("inputSchema"), c = o("instructionLoader"), l = o("outputSchema"), u = o("runtimeAgent");
 	return {
 		...u === null ? {} : { runtimeAgent: u },
@@ -581,12 +581,12 @@ var ee = "﻿", E = (n) => {
 		...l === null ? {} : { outputSchema: l },
 		...c === null ? {} : { instructionLoader: c }
 	};
-}, it = (e, t, n, r, i, a) => {
+}, at = (e, t, n, r, i, a) => {
 	let o = {
 		agentId: r,
 		capabilityId: i,
 		capabilityKind: a
-	}, s = R(e, t, a === "tool" ? new Set([
+	}, s = L(e, t, a === "tool" ? new Set([
 		"affectedBy",
 		"description",
 		"implementation",
@@ -602,7 +602,7 @@ var ee = "﻿", E = (n) => {
 		"registration"
 	]), n, o);
 	if (s === null) return null;
-	let c = Ye(s.get("name"), I(t, "name"), n, {
+	let c = Xe(s.get("name"), F(t, "name"), n, {
 		entity: o,
 		required: !0,
 		singleLine: !0
@@ -611,12 +611,12 @@ var ee = "﻿", E = (n) => {
 		code: "MOLDEA_CAPABILITY_DESCRIPTION_MISSING",
 		entity: o,
 		path: n.path,
-		pointer: I(t, "description")
-	}) : l.value.kind !== "scalar" || typeof l.value.value != "string" || !pe(l.value.value) ? n.diagnostics.add({
+		pointer: F(t, "description")
+	}) : l.value.kind !== "scalar" || typeof l.value.value != "string" || !me(l.value.value) ? n.diagnostics.add({
 		code: "MOLDEA_CAPABILITY_DESCRIPTION_INVALID",
 		entity: o,
 		path: n.path,
-		pointer: I(t, "description"),
+		pointer: F(t, "description"),
 		range: l.value.range
 	}) : u = l.value.value;
 	let d = s.get("implementation"), f = null;
@@ -624,12 +624,12 @@ var ee = "﻿", E = (n) => {
 		code: a === "tool" ? "MOLDEA_TOOL_IMPLEMENTATION_MISSING" : "MOLDEA_SKILL_IMPLEMENTATION_MISSING",
 		entity: o,
 		path: n.path,
-		pointer: I(t, "implementation")
-	}) : f = Ze(d.value, I(t, "implementation"), n, o);
+		pointer: F(t, "implementation")
+	}) : f = Qe(d.value, F(t, "implementation"), n, o);
 	let p = (e) => {
 		let r = s.get(e);
-		return r === void 0 ? null : Ze(r.value, I(t, e), n, o);
-	}, m = p("registration"), h = a === "tool" ? p("inputSchema") : null, g = a === "tool" ? p("outputSchema") : null, _ = s.get("affectedBy"), v = _ === void 0 ? null : $e(_.value, I(t, "affectedBy"), n, o);
+		return r === void 0 ? null : Qe(r.value, F(t, e), n, o);
+	}, m = p("registration"), h = a === "tool" ? p("inputSchema") : null, g = a === "tool" ? p("outputSchema") : null, _ = s.get("affectedBy"), v = _ === void 0 ? null : et(_.value, F(t, "affectedBy"), n, o);
 	return c === null || u === null || f === null ? null : {
 		name: c,
 		description: u,
@@ -639,8 +639,8 @@ var ee = "﻿", E = (n) => {
 		...g === null ? {} : { outputSchema: g },
 		...v === null ? {} : { affectedBy: v }
 	};
-}, at = (e, t, n, r, i) => {
-	let a = R(e, t, null, n, { agentId: r });
+}, ot = (e, t, n, r, i) => {
+	let a = L(e, t, null, n, { agentId: r });
 	if (a === null) return null;
 	let o = [];
 	for (let [e, s] of [...a].sort(([e], [t]) => u(e, t))) {
@@ -648,34 +648,34 @@ var ee = "﻿", E = (n) => {
 			agentId: r,
 			capabilityId: e,
 			capabilityKind: i
-		}, c = I(t, e);
-		Xe(e, s.key.range, c, n, a);
-		let l = it(s.value, c, n, r, e, i);
+		}, c = F(t, e);
+		Ze(e, s.key.range, c, n, a);
+		let l = at(s.value, c, n, r, e, i);
 		l !== null && o.push([e, l]);
 	}
 	return p(o);
-}, ot = (e, t) => {
+}, st = (e, t) => {
 	if (e.kind !== "mapping") return null;
 	for (let n of e.entries) if (n.key.kind === "scalar" && n.key.value === t) return n.value;
 	return null;
-}, st = (e) => {
+}, ct = (e) => {
 	if (e.kind !== "mapping") return null;
-	let t = ot(e, "version");
+	let t = st(e, "version");
 	return t?.kind === "scalar" && t.value === 1n ? 1 : null;
-}, ct = (e, t, n, r) => {
+}, lt = (e, t, n, r) => {
 	let i = new Set();
 	for (let a of ["tools", "skills"]) {
-		let o = ot(e, a);
+		let o = st(e, a);
 		if (o?.kind === "mapping") for (let e of o.entries) e.key.kind === "scalar" && typeof e.key.value == "string" && (i.has(e.key.value) && n.diagnostics.add({
 			code: "MOLDEA_ID_DUPLICATE",
 			entity: { agentId: r },
 			path: n.path,
-			pointer: I(I(t, a), e.key.value),
+			pointer: F(F(t, a), e.key.value),
 			range: e.key.range
 		}), i.add(e.key.value));
 	}
-}, lt = (e, t, n, r) => {
-	let i = { agentId: r }, a = R(e, t, new Set([
+}, ut = (e, t, n, r) => {
+	let i = { agentId: r }, a = L(e, t, new Set([
 		"affectedBy",
 		"bindings",
 		"context",
@@ -685,8 +685,8 @@ var ee = "﻿", E = (n) => {
 		"tools"
 	]), n, i);
 	if (a === null) return null;
-	ct(e, t, n, r);
-	let o = a.get("bindings"), s = o === void 0 ? null : rt(o.value, I(t, "bindings"), n, r), c = a.get("context"), l = c === void 0 ? null : nt(c.value, I(t, "context"), "context", n, i), u = a.get("decisions"), d = u === void 0 ? null : nt(u.value, I(t, "decisions"), "decision", n, i), f = a.get("tools"), p = f === void 0 ? null : at(f.value, I(t, "tools"), n, r, "tool"), m = a.get("skills"), h = m === void 0 ? null : at(m.value, I(t, "skills"), n, r, "skill"), g = a.get("affectedBy"), _ = g === void 0 ? null : $e(g.value, I(t, "affectedBy"), n, i), v = a.get("mirrors"), y = v === void 0 ? null : nt(v.value, I(t, "mirrors"), "mirror", n, i);
+	lt(e, t, n, r);
+	let o = a.get("bindings"), s = o === void 0 ? null : it(o.value, F(t, "bindings"), n, r), c = a.get("context"), l = c === void 0 ? null : rt(c.value, F(t, "context"), "context", n, i), u = a.get("decisions"), d = u === void 0 ? null : rt(u.value, F(t, "decisions"), "decision", n, i), f = a.get("tools"), p = f === void 0 ? null : ot(f.value, F(t, "tools"), n, r, "tool"), m = a.get("skills"), h = m === void 0 ? null : ot(m.value, F(t, "skills"), n, r, "skill"), g = a.get("affectedBy"), _ = g === void 0 ? null : et(g.value, F(t, "affectedBy"), n, i), v = a.get("mirrors"), y = v === void 0 ? null : rt(v.value, F(t, "mirrors"), "mirror", n, i);
 	return {
 		...l === null ? {} : { context: l },
 		...d === null ? {} : { decisions: d },
@@ -696,18 +696,18 @@ var ee = "﻿", E = (n) => {
 		..._ === null ? {} : { affectedBy: _ },
 		...y === null ? {} : { mirrors: y }
 	};
-}, ut = (e, t, n) => {
-	let r = R(e, t, null, n);
+}, dt = (e, t, n) => {
+	let r = L(e, t, null, n);
 	if (r === null) return null;
 	let i = [];
 	for (let [e, a] of [...r].sort(([e], [t]) => u(e, t))) {
-		let r = I(t, e);
-		Xe(e, a.key.range, r, n, { agentId: e });
-		let o = lt(a.value, r, n, e);
+		let r = F(t, e);
+		Ze(e, a.key.range, r, n, { agentId: e });
+		let o = ut(a.value, r, n, e);
 		o !== null && i.push([e, o]);
 	}
 	return p(i);
-}, dt = (e, t) => {
+}, ft = (e, t) => {
 	let n = (e, n, r, i) => {
 		t.diagnostics.add({
 			code: "MOLDEA_MANIFEST_VALUE_INVALID",
@@ -745,11 +745,11 @@ var ee = "﻿", E = (n) => {
 		].includes(i.key.value) ? (n(t, i.key.kind === "scalar" && typeof i.key.value == "string" ? i.key.value : "key", i.key.range, "unknown-field"), o = !1) : e.set(i.key.value, i.value);
 		let s = (i) => {
 			let a = e.get(i);
-			return a?.kind !== "scalar" || typeof a.value != "string" || !k(a.value) ? (n(t, i, a?.range ?? r.range, a === void 0 ? "required" : "non-empty-string-required"), o = !1, null) : a.value;
-		}, c = s("code"), l = s("subject"), u = s("reason"), d = l === null ? null : A(l), f = e.get("qualifier"), p = null;
-		f !== void 0 && (f.kind !== "scalar" || f.value !== null) && (p = s("qualifier"), p !== null && !ue(p) && (n(t, "qualifier", f.range, "single-line-required"), o = !1));
+			return a?.kind !== "scalar" || typeof a.value != "string" || !O(a.value) ? (n(t, i, a?.range ?? r.range, a === void 0 ? "required" : "non-empty-string-required"), o = !1, null) : a.value;
+		}, c = s("code"), l = s("subject"), u = s("reason"), d = l === null ? null : k(l), f = e.get("qualifier"), p = null;
+		f !== void 0 && (f.kind !== "scalar" || f.value !== null) && (p = s("qualifier"), p !== null && !de(p) && (n(t, "qualifier", f.range, "single-line-required"), o = !1));
 		let m = _.find((e) => e === c);
-		if (c !== null && m === void 0 && (n(t, "code", e.get("code").range, "code-not-acceptable"), o = !1), l !== null && d === null && (n(t, "subject", e.get("subject").range, "repository-path-required"), o = !1), u !== null && O(u) > 256 && (n(t, "reason", e.get("reason").range, "maximum-256-characters"), o = !1), !o || m === void 0 || d === null || u === null) continue;
+		if (c !== null && m === void 0 && (n(t, "code", e.get("code").range, "code-not-acceptable"), o = !1), l !== null && d === null && (n(t, "subject", e.get("subject").range, "repository-path-required"), o = !1), u !== null && D(u) > 256 && (n(t, "reason", e.get("reason").range, "maximum-256-characters"), o = !1), !o || m === void 0 || d === null || u === null) continue;
 		let h = JSON.stringify([
 			m,
 			d,
@@ -767,7 +767,7 @@ var ee = "﻿", E = (n) => {
 		});
 	}
 	return i;
-}, ft = (e, t, n, r, i) => {
+}, pt = (e, t, n, r, i) => {
 	let a = {
 		diagnostics: n,
 		operation: i,
@@ -780,7 +780,7 @@ var ee = "﻿", E = (n) => {
 		path: t,
 		range: e.range
 	}), null;
-	let o = ot(e, "version");
+	let o = st(e, "version");
 	if (o === null) return n.add({
 		code: "MOLDEA_MANIFEST_VERSION_MISSING",
 		path: t,
@@ -798,7 +798,7 @@ var ee = "﻿", E = (n) => {
 		pointer: "/version",
 		range: o.range
 	}), null;
-	let s = R(e, "", new Set([
+	let s = L(e, "", new Set([
 		"acceptedWarnings",
 		"agents",
 		"context",
@@ -806,7 +806,7 @@ var ee = "﻿", E = (n) => {
 		"version"
 	]), a);
 	if (s === null) return null;
-	let c = s.get("acceptedWarnings"), l = c === void 0 ? null : dt(c.value, a), u = s.get("context"), d = u === void 0 ? null : tt(u.value, "/context", "context", a), f = s.get("decisions"), p = f === void 0 ? null : tt(f.value, "/decisions", "decision", a), m = s.get("agents"), h = m === void 0 ? null : ut(m.value, "/agents", a);
+	let c = s.get("acceptedWarnings"), l = c === void 0 ? null : ft(c.value, a), u = s.get("context"), d = u === void 0 ? null : nt(u.value, "/context", "context", a), f = s.get("decisions"), p = f === void 0 ? null : nt(f.value, "/decisions", "decision", a), m = s.get("agents"), h = m === void 0 ? null : dt(m.value, "/agents", a);
 	return {
 		version: 1,
 		...l === null ? {} : { acceptedWarnings: l },
@@ -814,14 +814,14 @@ var ee = "﻿", E = (n) => {
 		...p === null ? {} : { decisions: p },
 		...h === null ? {} : { agents: h }
 	};
-}, pt = (e, t) => {
+}, mt = (e, t) => {
 	let n = 0, r = e.length - 1;
 	for (; n < r;) {
 		let i = Math.ceil((n + r) / 2);
 		(e[i] ?? 0) <= t ? n = i : r = i - 1;
 	}
 	return n;
-}, mt = (e) => {
+}, ht = (e) => {
 	let t = new Uint32Array(e.length + 1), n = [0], r = 0;
 	for (let i = 0; i < e.length;) {
 		let a = e.codePointAt(i), o = a !== void 0 && a > 65535 ? 2 : 1;
@@ -830,7 +830,7 @@ var ee = "﻿", E = (n) => {
 		i += o, r += 1, t[i] = r, a === 10 && n.push(i);
 	}
 	let i = (r) => {
-		let i = Math.max(0, Math.min(e.length, r)), a = pt(n, i), o = n[a] ?? 0, s = t[i] ?? 0;
+		let i = Math.max(0, Math.min(e.length, r)), a = mt(n, i), o = n[a] ?? 0, s = t[i] ?? 0;
 		return {
 			column: s - (t[o] ?? 0) + 1,
 			line: a + 1,
@@ -841,10 +841,10 @@ var ee = "﻿", E = (n) => {
 		end: i(t),
 		start: i(e)
 	}) });
-}, ht = async (e, t, n = "parse-manifest") => {
+}, gt = async (e, t, n = "parse-manifest") => {
 	t = a(t);
-	let r = M(e, t.limits, n, "maxManifestBytes"), i = S(e.path), s = d(t.limits, n);
-	me(i) || s.add({
+	let r = j(e, t.limits, n, "maxManifestBytes"), i = S(e.path), s = d(t.limits, n);
+	he(i) || s.add({
 		code: "MOLDEA_MANIFEST_PATH_INVALID",
 		path: i
 	});
@@ -857,7 +857,7 @@ var ee = "﻿", E = (n) => {
 		valid: !1,
 		yamlRoot: null
 	});
-	let l = mt(r.text.value), u = c(r.text.value, i, l, s), f = u.value === null ? null : st(u.value), p = u.valid && u.value !== null ? ft(u.value, i, s, t.limits, n) : null, h = o(s.finalize(), new Map(u.value === null ? [] : [[i, u.value]]));
+	let l = ht(r.text.value), u = c(r.text.value, i, l, s), f = u.value === null ? null : ct(u.value), p = u.valid && u.value !== null ? pt(u.value, i, s, t.limits, n) : null, h = o(s.finalize(), new Map(u.value === null ? [] : [[i, u.value]]));
 	if (p === null || s.size > 0) return m({
 		asset: null,
 		diagnostics: h,
@@ -866,7 +866,7 @@ var ee = "﻿", E = (n) => {
 		valid: !1,
 		yamlRoot: u.value
 	});
-	let g = await N(r.text), _ = {
+	let g = await M(r.text), _ = {
 		content: r.text.value,
 		digest: g,
 		path: i,
@@ -881,20 +881,20 @@ var ee = "﻿", E = (n) => {
 		valid: !0,
 		yamlRoot: u.value
 	});
-}, gt = async (e, t, n = "parse-manifest") => {
-	let r = await ht(e, t, n);
+}, _t = async (e, t, n = "parse-manifest") => {
+	let r = await gt(e, t, n);
 	return m({
 		asset: r.asset,
 		diagnostics: r.diagnostics,
 		manifest: r.manifest,
 		valid: r.valid
 	});
-}, _t = () => {
+}, vt = () => {
 	throw new r({
 		code: "INVALID_ARGUMENT",
 		operation: "match-manifest-scope"
 	});
-}, vt = (e, t, n) => {
+}, yt = (e, t, n) => {
 	throw new r({
 		code: "RESOURCE_LIMIT_EXCEEDED",
 		limit: e,
@@ -903,24 +903,24 @@ var ee = "﻿", E = (n) => {
 		observedUsage: n,
 		operation: "match-manifest-scope"
 	});
-}, yt = (e, t) => {
-	if (!i(e, !0)) return _t();
+}, bt = (e, t) => {
+	if (!i(e, !0)) return vt();
 	let n = e.manifest, r = e.paths;
-	if (!i(n, !0) || !Array.isArray(r)) return _t();
-	if (r.length > t.maxEntries) return vt("maxEntries", t.maxEntries, r.length);
+	if (!i(n, !0) || !Array.isArray(r)) return vt();
+	if (r.length > t.maxEntries) return yt("maxEntries", t.maxEntries, r.length);
 	let a = new Set(), o = 0;
 	for (let [e, n] of r.entries()) {
-		if (typeof n != "string") return _t();
+		if (typeof n != "string") return vt();
 		let r = S(n);
-		if (o += l(r) + (e === 0 ? 0 : 1), o > t.maxTotalBytesRead) return vt("maxTotalBytesRead", t.maxTotalBytesRead, o);
+		if (o += l(r) + (e === 0 ? 0 : 1), o > t.maxTotalBytesRead) return yt("maxTotalBytesRead", t.maxTotalBytesRead, o);
 		a.add(r);
 	}
 	return {
 		manifest: n,
 		paths: [...a].sort(u)
 	};
-}, bt = async (e, t) => {
-	let n = yt(e, t.limits), r = await qe(n.paths), i = await gt(n.manifest, t, "match-manifest-scope");
+}, xt = async (e, t) => {
+	let n = bt(e, t.limits), r = await Je(n.paths), i = await _t(n.manifest, t, "match-manifest-scope");
 	if (!i.valid || i.asset === null || i.manifest === null) return m({
 		counts: {
 			declarations: 0,
@@ -936,7 +936,7 @@ var ee = "﻿", E = (n) => {
 		relevant: !1,
 		valid: !1
 	});
-	let a = Je(i.manifest, n.paths, t.limits);
+	let a = Ye(i.manifest, n.paths, t.limits);
 	return m({
 		counts: a.counts,
 		diagnostics: [],
@@ -946,27 +946,27 @@ var ee = "﻿", E = (n) => {
 		relevant: a.matches.length > 0,
 		valid: !0
 	});
-}, xt = Object.defineProperty, St = (e, t) => {
+}, St = Object.defineProperty, Ct = (e, t) => {
 	let n = {};
-	for (var r in e) xt(n, r, {
+	for (var r in e) St(n, r, {
 		get: e[r],
 		enumerable: !0
 	});
-	return t || xt(n, Symbol.toStringTag, { value: "Module" }), n;
-}, Ct = new TextDecoder("utf-8", {
+	return t || St(n, Symbol.toStringTag, { value: "Module" }), n;
+}, wt = new TextDecoder("utf-8", {
 	fatal: !0,
 	ignoreBOM: !0
-}), z = () => {
+}), R = () => {
 	throw new r({
 		code: "INVALID_ARGUMENT",
 		operation: "read-canonical-content-page"
 	});
-}, wt = () => {
+}, Tt = () => {
 	throw new r({
 		code: "CONTENT_INVALID",
 		operation: "read-canonical-content-page"
 	});
-}, Tt = (e) => typeof e == "object" && !!e && typeof e.getEntry == "function" && typeof e.readFilePage == "function", Et = async (e, t, n, r, i) => {
+}, Et = (e) => typeof e == "object" && !!e && typeof e.getEntry == "function" && typeof e.readFilePage == "function", Dt = async (e, t, n, r, i) => {
 	let a = [], o = 0, s = n, c = null, l = null;
 	for (; o < r;) {
 		let n = await e.readFilePage(t, {
@@ -989,25 +989,25 @@ var ee = "﻿", E = (n) => {
 		});
 		s = n.nextOffset;
 	}
-	if (c === null) return z();
+	if (c === null) return R();
 	let u = new Uint8Array(o), d = 0;
 	for (let e of a) u.set(e, d), d += e.byteLength;
 	return {
 		bytes: u,
 		lastPage: c
 	};
-}, Dt = (e, t) => {
+}, Ot = (e, t) => {
 	let n = Math.max(0, t - 3);
 	for (let r = t; r >= n; --r) try {
-		let t = Ct.decode(e.subarray(0, r));
+		let t = wt.decode(e.subarray(0, r));
 		if (r === 0 && e.byteLength > 0) continue;
 		return [t, r];
 	} catch {}
-	return wt();
-}, Ot = async (e, t) => {
-	if (typeof e != "object" || !e || Reflect.ownKeys(e).some((e) => e !== "maxBytes" && e !== "offset" && e !== "path" && e !== "repository" && e !== "signal") || !Tt(e.repository) || !Number.isSafeInteger(e.maxBytes) || e.maxBytes < 1 || e.maxBytes > t.limits.maxFileBytes || !Number.isSafeInteger(e.offset) || e.offset < 0) return z();
+	return Tt();
+}, kt = async (e, t) => {
+	if (typeof e != "object" || !e || Reflect.ownKeys(e).some((e) => e !== "maxBytes" && e !== "offset" && e !== "path" && e !== "repository" && e !== "signal") || !Et(e.repository) || !Number.isSafeInteger(e.maxBytes) || e.maxBytes < 1 || e.maxBytes > t.limits.maxFileBytes || !Number.isSafeInteger(e.offset) || e.offset < 0) return R();
 	let n = S(e.path);
-	if (!n.startsWith("/moldea/")) return z();
+	if (!n.startsWith("/moldea/")) return R();
 	let i = e.signal === void 0 ? void 0 : { signal: e.signal }, a = await e.repository.getEntry(n, i);
 	if (a === null) throw new x({
 		code: "ENTRY_NOT_FOUND",
@@ -1029,7 +1029,7 @@ var ee = "﻿", E = (n) => {
 		observedUsage: a.byteLength,
 		operation: "read-canonical-content-page"
 	});
-	if (e.offset > a.byteLength) return z();
+	if (e.offset > a.byteLength) return R();
 	if (e.offset === a.byteLength) return m({
 		byteEnd: e.offset,
 		byteStart: e.offset,
@@ -1041,9 +1041,9 @@ var ee = "﻿", E = (n) => {
 		source: e.repository.snapshot,
 		totalBytes: a.byteLength
 	});
-	let o = Math.min(a.byteLength - e.offset, e.maxBytes + 3), { bytes: s, lastPage: c } = await Et(e.repository, n, e.offset, o, e.signal);
-	if (c.totalBytes !== a.byteLength || (s[0] & 192) == 128) return z();
-	let [l, u] = Dt(s, Math.min(e.maxBytes, s.byteLength)), d = e.offset + u, f = d === a.byteLength;
+	let o = Math.min(a.byteLength - e.offset, e.maxBytes + 3), { bytes: s, lastPage: c } = await Dt(e.repository, n, e.offset, o, e.signal);
+	if (c.totalBytes !== a.byteLength || (s[0] & 192) == 128) return R();
+	let [l, u] = Ot(s, Math.min(e.maxBytes, s.byteLength)), d = e.offset + u, f = d === a.byteLength;
 	return m({
 		byteEnd: d,
 		byteStart: e.offset,
@@ -1055,37 +1055,37 @@ var ee = "﻿", E = (n) => {
 		source: e.repository.snapshot,
 		totalBytes: a.byteLength
 	});
-}, kt = new Set([
+}, At = new Set([
 	"accepted",
 	"proposed",
 	"rejected",
 	"superseded"
-]), At = /^\d{13}$/u, jt = /^\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d\.\d{3}Z$/u, B = (e) => e === null ? null : { decisionId: e }, Mt = (e, t, n, r = null) => {
+]), jt = /^\d{13}$/u, Mt = /^\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d\.\d{3}Z$/u, z = (e) => e === null ? null : { decisionId: e }, Nt = (e, t, n, r = null) => {
 	e.diagnostics.add({
 		code: "MOLDEA_DECISION_FRONTMATTER_INVALID",
 		details: { reason: n },
-		entity: B(e.decisionId),
+		entity: z(e.decisionId),
 		path: e.path,
 		pointer: r,
 		range: t
 	});
-}, Nt = (e) => {
-	if (!jt.test(e)) return !1;
+}, Pt = (e) => {
+	if (!Mt.test(e)) return !1;
 	let t = Date.parse(e);
 	return Number.isFinite(t) && new Date(t).toISOString() === e;
-}, Pt = (e, t) => {
-	if (e.kind !== "mapping") return Mt(t, e.range, "mapping-required"), null;
+}, Ft = (e, t) => {
+	if (e.kind !== "mapping") return Nt(t, e.range, "mapping-required"), null;
 	let n = new Map();
 	for (let r of e.entries) {
 		if (r.key.kind !== "scalar" || typeof r.key.value != "string") {
-			Mt(t, r.key.range, "string-key-required");
+			Nt(t, r.key.range, "string-key-required");
 			continue;
 		}
 		let e = r.key.value;
 		if (e !== "status" && e !== "createdAt" && e !== "supersedes") {
 			t.diagnostics.add({
 				code: "MOLDEA_DECISION_PROPERTY_UNKNOWN",
-				entity: B(t.decisionId),
+				entity: z(t.decisionId),
 				path: t.path,
 				pointer: `/${g(e)}`,
 				range: r.key.range
@@ -1095,38 +1095,38 @@ var ee = "﻿", E = (n) => {
 		n.set(e, r.value);
 	}
 	return n;
-}, Ft = (e, t) => e?.kind !== "scalar" || typeof e.value != "string" || !kt.has(e.value) ? (t.diagnostics.add({
+}, It = (e, t) => e?.kind !== "scalar" || typeof e.value != "string" || !At.has(e.value) ? (t.diagnostics.add({
 	code: "MOLDEA_DECISION_STATUS_INVALID",
-	entity: B(t.decisionId),
+	entity: z(t.decisionId),
 	path: t.path,
 	pointer: "/status",
 	range: e?.range ?? null
-}), null) : e.value, It = (e, t) => e?.kind !== "scalar" || typeof e.value != "string" || !Nt(e.value) ? (t.diagnostics.add({
+}), null) : e.value, Lt = (e, t) => e?.kind !== "scalar" || typeof e.value != "string" || !Pt(e.value) ? (t.diagnostics.add({
 	code: "MOLDEA_DECISION_CREATED_AT_INVALID",
-	entity: B(t.decisionId),
+	entity: z(t.decisionId),
 	path: t.path,
 	pointer: "/createdAt",
 	range: e?.range ?? null
 }), null) : (t.decisionId !== null && Date.parse(e.value) !== Number(t.decisionId) && t.diagnostics.add({
 	code: "MOLDEA_DECISION_TIMESTAMP_MISMATCH",
-	entity: B(t.decisionId),
+	entity: z(t.decisionId),
 	path: t.path,
 	pointer: "/createdAt",
 	range: e.range
-}), e.value), Lt = (e, t) => {
+}), e.value), Rt = (e, t) => {
 	if (e === void 0) return [];
-	if (e.kind !== "sequence" || e.items.length === 0) return Mt(t, e.range, "non-empty-supersedes-sequence-required", "/supersedes"), null;
+	if (e.kind !== "sequence" || e.items.length === 0) return Nt(t, e.range, "non-empty-supersedes-sequence-required", "/supersedes"), null;
 	let n = [], r = new Set();
 	return e.items.forEach((e, i) => {
 		let a = `/supersedes/${i}`;
-		if (e.kind !== "scalar" || typeof e.value != "string" || !At.test(e.value)) {
-			Mt(t, e.range, "decision-id-string-required", a);
+		if (e.kind !== "scalar" || typeof e.value != "string" || !jt.test(e.value)) {
+			Nt(t, e.range, "decision-id-string-required", a);
 			return;
 		}
 		if (r.has(e.value)) {
 			t.diagnostics.add({
 				code: "MOLDEA_ID_DUPLICATE",
-				entity: B(t.decisionId),
+				entity: z(t.decisionId),
 				path: t.path,
 				pointer: a,
 				range: e.range
@@ -1135,17 +1135,17 @@ var ee = "﻿", E = (n) => {
 		}
 		r.add(e.value), n.push(e.value), e.value === t.decisionId && t.diagnostics.add({
 			code: "MOLDEA_DECISION_SELF_SUPERSESSION",
-			entity: B(t.decisionId),
+			entity: z(t.decisionId),
 			path: t.path,
 			pointer: a,
 			range: e.range
 		});
 	}), n.sort(u);
-}, Rt = (e, t, n) => {
+}, zt = (e, t, n) => {
 	let r = e.indexOf("\n"), i = r === -1 ? e.length : r;
 	if (e.slice(0, i) !== "---") return n.diagnostics.add({
 		code: "MOLDEA_DECISION_FRONTMATTER_MISSING",
-		entity: B(n.decisionId),
+		entity: z(n.decisionId),
 		path: n.path,
 		range: t.locateRange(0, i)
 	}), null;
@@ -1165,27 +1165,27 @@ var ee = "﻿", E = (n) => {
 	}
 	return n.diagnostics.add({
 		code: "MOLDEA_DECISION_FRONTMATTER_MISSING",
-		entity: B(n.decisionId),
+		entity: z(n.decisionId),
 		path: n.path,
 		range: t.locateRange(e.length, e.length)
 	}), null;
-}, zt = (e, t) => {
-	let n = t.diagnostics.size, r = Pt(e, t);
+}, Bt = (e, t) => {
+	let n = t.diagnostics.size, r = Ft(e, t);
 	if (r === null) return null;
-	let i = Ft(r.get("status"), t), a = It(r.get("createdAt"), t), o = Lt(r.get("supersedes"), t);
+	let i = It(r.get("status"), t), a = Lt(r.get("createdAt"), t), o = Rt(r.get("supersedes"), t);
 	return i === null || a === null || o === null || t.diagnostics.size > n ? null : {
 		createdAt: a,
 		status: i,
 		supersedes: o
 	};
-}, Bt = (e, t, n) => k(e) ? !0 : (n.diagnostics.add({
+}, Vt = (e, t, n) => O(e) ? !0 : (n.diagnostics.add({
 	code: "MOLDEA_DECISION_BODY_EMPTY",
-	entity: B(n.decisionId),
+	entity: z(n.decisionId),
 	path: n.path,
 	range: t
-}), !1), Vt = async (e, t, n = "parse-decision") => {
+}), !1), Ht = async (e, t, n = "parse-decision") => {
 	t = a(t);
-	let r = M(e, t.limits, n), i = S(e.path), s = d(t.limits, n), l = j(i);
+	let r = j(e, t.limits, n), i = S(e.path), s = d(t.limits, n), l = A(i);
 	l === null && s.add({
 		code: "MOLDEA_DECISION_FILENAME_INVALID",
 		path: i
@@ -1201,11 +1201,11 @@ var ee = "﻿", E = (n) => {
 		decisionId: l,
 		diagnostics: s,
 		path: i
-	}, f = mt(r.text.value), p = Rt(r.text.value, f, u), h = null, g = null;
+	}, f = ht(r.text.value), p = zt(r.text.value, f, u), h = null, g = null;
 	if (p !== null) {
-		Bt(p.body, p.bodyRange, u);
+		Vt(p.body, p.bodyRange, u);
 		let e = c(p.yaml, i, f, s);
-		g = e.value, e.valid && e.value !== null && (h = zt(e.value, u));
+		g = e.value, e.valid && e.value !== null && (h = Bt(e.value, u));
 	}
 	let _ = o(s.finalize(), new Map(g === null ? [] : [[i, g]]));
 	if (l === null || p === null || h === null || s.size > 0) return m({
@@ -1214,7 +1214,7 @@ var ee = "﻿", E = (n) => {
 		valid: !1,
 		yamlRoot: g
 	});
-	let v = await N(r.text), y = {
+	let v = await M(r.text), y = {
 		content: r.text.value,
 		digest: v,
 		path: i,
@@ -1235,16 +1235,16 @@ var ee = "﻿", E = (n) => {
 		valid: !0,
 		yamlRoot: g
 	});
-}, Ht = async (e, t, n = "parse-decision") => {
-	let r = await Vt(e, t, n);
+}, Ut = async (e, t, n = "parse-decision") => {
+	let r = await Ht(e, t, n);
 	return m({
 		decision: r.decision,
 		diagnostics: r.diagnostics,
 		valid: r.valid
 	});
-}, Ut = function* (e) {
+}, Wt = function* (e) {
 	for (let t of e.agents) yield { agentId: t.id };
-}, V = (e, t, n = null, r = null) => ({
+}, B = (e, t, n = null, r = null) => ({
 	agentId: n,
 	byteLength: e.utf8ByteLength,
 	canonicalDigest: null,
@@ -1253,12 +1253,12 @@ var ee = "﻿", E = (n) => {
 	kind: t,
 	path: e.path,
 	scalarLength: e.scalarLength
-}), Wt = function* (e) {
-	yield V(e.manifest.asset, "manifest"), yield V(e.project, "project");
-	for (let t of e.context) yield V(t.asset, "context");
-	for (let { decision: t } of e.decisions) yield V(t.asset, "decision", null, t.id);
+}), Gt = function* (e) {
+	yield B(e.manifest.asset, "manifest"), yield B(e.project, "project");
+	for (let t of e.context) yield B(t.asset, "context");
+	for (let { decision: t } of e.decisions) yield B(t.asset, "decision", null, t.id);
 	for (let t of e.agents) {
-		yield V(t.description.asset, "agent-description", t.id), yield V(t.instruction, "agent-instruction", t.id);
+		yield B(t.description.asset, "agent-description", t.id), yield B(t.instruction, "agent-instruction", t.id);
 		for (let e of t.mirrors) yield {
 			agentId: t.id,
 			byteLength: e.byteLength,
@@ -1270,7 +1270,7 @@ var ee = "﻿", E = (n) => {
 			scalarLength: e.scalarLength
 		};
 	}
-}, Gt = (e) => ({
+}, Kt = (e) => ({
 	counts: {
 		agents: e.agents.length,
 		context: e.context.length,
@@ -1281,48 +1281,48 @@ var ee = "﻿", E = (n) => {
 	manifestPath: e.manifest.asset.path,
 	projectDigest: e.project.digest,
 	projectPath: e.project.path
-}), Kt = (e) => ({
+}), qt = (e) => ({
 	bindings: e.length,
 	exportsPassed: e.filter((e) => e.exportCheck === "passed").length,
 	exportsFailed: e.filter((e) => e.exportCheck === "failed").length,
 	exportsNotChecked: e.filter((e) => e.exportCheck === "not-checked").length
-}), qt = new WeakMap(), Jt = (e, t) => {
-	if (qt.has(e)) throw TypeError("The inspection reader is already registered.");
-	qt.set(e, t);
-}, Yt = (e) => {
-	let t = qt.get(e);
+}), Jt = new WeakMap(), Yt = (e, t) => {
+	if (Jt.has(e)) throw TypeError("The inspection reader is already registered.");
+	Jt.set(e, t);
+}, Xt = (e) => {
+	let t = Jt.get(e);
 	if (t === void 0) throw TypeError("The inspection reader has no retained-memory ledger.");
 	return t;
-}, Xt = (e, t) => {
-	qt.get(e)?.reserve(t);
-}, Zt = S("/moldea/moldea.yaml"), Qt = new Set([
+}, Zt = (e, t) => {
+	Jt.get(e)?.reserve(t);
+}, Qt = S("/moldea/moldea.yaml"), $t = new Set([
 	"/AGENTS.md",
 	"/CLAUDE.md",
 	"/.claude/CLAUDE.md",
 	"/CLAUDE.local.md"
-].map((e) => S(e))), $t = 256, en = 65536, tn = 4, nn = 64, rn = 2, an = new TextEncoder(), H = (e, t) => {
+].map((e) => S(e))), en = 256, tn = 65536, nn = 4, rn = 64, an = 2, on = new TextEncoder(), V = (e, t) => {
 	throw new x({
 		code: "INVALID_SOURCE_DATA",
 		operation: e,
 		path: t,
 		retryable: !1
 	});
-}, on = (e, t, n, r) => {
-	if (typeof e != "object" || !e) return H(t, n);
+}, sn = (e, t, n, r) => {
+	if (typeof e != "object" || !e) return V(t, n);
 	let i = e, a = i.path, o = i.type, s = i.byteLength, c = i.contentIdentity;
-	if (typeof a != "string" || !b(a)) return H(t, n);
+	if (typeof a != "string" || !b(a)) return V(t, n);
 	let l = S(a);
-	return r !== void 0 && l !== r || o !== "file" && o !== "directory" && o !== "symlink" || (o === "file" ? !Number.isSafeInteger(s) || s < 0 || c !== null && typeof c != "string" : s !== null || c !== null) ? H(t, l) : {
+	return r !== void 0 && l !== r || o !== "file" && o !== "directory" && o !== "symlink" || (o === "file" ? !Number.isSafeInteger(s) || s < 0 || c !== null && typeof c != "string" : s !== null || c !== null) ? V(t, l) : {
 		byteLength: s,
 		contentIdentity: c,
 		path: l,
 		type: o
 	};
-}, sn = (e, t) => {
+}, cn = (e, t) => {
 	if (e === t) return !1;
 	let n = t === C ? C : `${t}/`;
 	return e.startsWith(n);
-}, U = (e, t, n) => {
+}, H = (e, t, n) => {
 	throw new r({
 		code: "RESOURCE_LIMIT_EXCEEDED",
 		limit: e,
@@ -1331,24 +1331,24 @@ var ee = "﻿", E = (n) => {
 		observedUsage: n,
 		operation: "validate-project"
 	});
-}, W = (e, t) => {
+}, U = (e, t) => {
 	let n = e === void 0 ? t : t === void 0 || t === e ? e : AbortSignal.any([e, t]);
 	return n === void 0 ? void 0 : { signal: n };
-}, cn = (e, t, n, i) => {
+}, ln = (e, t, n, i) => {
 	let a = new Set(), o = 0, s = 0, c = 0, l = 0, u = (e) => new r({
 		cause: e.reason,
 		code: "ABORTED",
 		operation: "validate-project"
 	}), d = (e) => {
-		if (!Number.isSafeInteger(e) || e < 0 || e > t.maxRetainedBytes - c) return U("maxRetainedBytes", t.maxRetainedBytes, c + e);
+		if (!Number.isSafeInteger(e) || e < 0 || e > t.maxRetainedBytes - c) return H("maxRetainedBytes", t.maxRetainedBytes, c + e);
 		c += e, s = Math.max(s, c);
 	}, f = (e) => {
-		if (!Number.isSafeInteger(e) || e < 0 || e > t.maxRetainedBytes - c) return U("maxRetainedBytes", t.maxRetainedBytes, c + e);
+		if (!Number.isSafeInteger(e) || e < 0 || e > t.maxRetainedBytes - c) return H("maxRetainedBytes", t.maxRetainedBytes, c + e);
 		s = Math.max(s, c + e);
 	}, p = (e) => {
 		if (!(e === C || a.has(e))) {
-			if (a.size >= t.maxEntries) return U("maxEntries", t.maxEntries, a.size + 1);
-			d(nn + an.encode(e).byteLength * rn), a.add(e);
+			if (a.size >= t.maxEntries) return H("maxEntries", t.maxEntries, a.size + 1);
+			d(rn + on.encode(e).byteLength * an), a.add(e);
 		}
 	}, m = (e) => {
 		let t = n?.aborted ? n : e?.aborted ? e : null;
@@ -1356,7 +1356,7 @@ var ee = "﻿", E = (n) => {
 	};
 	m();
 	let h = (e) => {
-		if (e > t.maxTotalBytesRead - l) return U("maxTotalBytesRead", t.maxTotalBytesRead, l + e);
+		if (e > t.maxTotalBytesRead - l) return H("maxTotalBytesRead", t.maxTotalBytesRead, l + e);
 		l += e;
 	}, g = {
 		readPage: (t, n) => e.readFilePage(t, n),
@@ -1364,8 +1364,8 @@ var ee = "﻿", E = (n) => {
 	}, _ = async (e, t, r) => {
 		let i = S(t);
 		m(r?.signal), p(i);
-		let a = await e.getEntry(i, W(n, r?.signal));
-		return m(r?.signal), a === null ? null : on(a, "get-entry", i, i);
+		let a = await e.getEntry(i, U(n, r?.signal));
+		return m(r?.signal), a === null ? null : sn(a, "get-entry", i, i);
 	}, v = (t, n) => _(e, t, n), b = (r) => {
 		let i = r?.prefix === void 0 ? C : S(r.prefix);
 		return { async *[Symbol.asyncIterator]() {
@@ -1375,59 +1375,59 @@ var ee = "﻿", E = (n) => {
 				m(r?.signal);
 				let c = await e.listEntriesPage({
 					...o === void 0 ? {} : { cursor: o },
-					maxEntries: Math.min($t, t.maxEntries),
+					maxEntries: Math.min(en, t.maxEntries),
 					prefix: i,
-					...W(n, r?.signal) ?? {}
+					...U(n, r?.signal) ?? {}
 				});
-				if (c.snapshot.id !== e.snapshot.id || c.entries.length === 0 && !c.isComplete) return H("list-entries-page", i);
+				if (c.snapshot.id !== e.snapshot.id || c.entries.length === 0 && !c.isComplete) return V("list-entries-page", i);
 				for (let e of c.entries) {
 					m(r?.signal);
-					let t = on(e, "list-entries-page", i);
-					if (!sn(t.path, i) || a.has(t.path) || s !== null && y(s, t.path) >= 0) return H("list-entries-page", t.path);
+					let t = sn(e, "list-entries-page", i);
+					if (!cn(t.path, i) || a.has(t.path) || s !== null && y(s, t.path) >= 0) return V("list-entries-page", t.path);
 					a.add(t.path), s = t.path, p(t.path), yield t;
 				}
-				if (c.isComplete) return c.nextCursor === null ? void 0 : H("list-entries-page", i);
-				if (c.nextCursor === null || c.nextCursor === o) return H("list-entries-page", i);
+				if (c.isComplete) return c.nextCursor === null ? void 0 : V("list-entries-page", i);
+				if (c.nextCursor === null || c.nextCursor === o) return V("list-entries-page", i);
 				o = c.nextCursor;
 			} while (!0);
 		} };
 	}, w = async (e, r, i = !1, a = g) => {
-		let s = i ? 1 : tn, l = e === Zt ? "maxManifestBytes" : "maxFileBytes", u = t.maxRetainedBytes - c;
-		if (u < 1) return U("maxRetainedBytes", t.maxRetainedBytes, c + 1);
-		let p = Math.min(en, Math.max(1, t[l]), u);
+		let s = i ? 1 : nn, l = e === Qt ? "maxManifestBytes" : "maxFileBytes", u = t.maxRetainedBytes - c;
+		if (u < 1) return H("maxRetainedBytes", t.maxRetainedBytes, c + 1);
+		let p = Math.min(tn, Math.max(1, t[l]), u);
 		f(p);
 		let _ = await a.readPage(e, {
 			maxBytes: p,
 			offset: 0,
-			...W(n, r) ?? {}
+			...U(n, r) ?? {}
 		});
-		if (m(r), _.snapshot.id !== a.snapshotId || _.offset !== 0 || !(_.bytes instanceof Uint8Array) || !Number.isSafeInteger(_.totalBytes) || _.totalBytes < 0 || _.bytes.byteLength > en || _.bytes.byteLength > _.totalBytes || _.bytes.byteLength === 0 && !_.isComplete) return H("read-file-page", e);
-		if (_.totalBytes > t[l]) return U(l, t[l], _.totalBytes);
+		if (m(r), _.snapshot.id !== a.snapshotId || _.offset !== 0 || !(_.bytes instanceof Uint8Array) || !Number.isSafeInteger(_.totalBytes) || _.totalBytes < 0 || _.bytes.byteLength > tn || _.bytes.byteLength > _.totalBytes || _.bytes.byteLength === 0 && !_.isComplete) return V("read-file-page", e);
+		if (_.totalBytes > t[l]) return H(l, t[l], _.totalBytes);
 		let v = _.bytes.byteLength, y = t.maxRetainedBytes - c - v;
 		if (y < 0 || _.totalBytes > Math.floor(y / s)) {
 			let e = c + v + _.totalBytes * s;
-			return U("maxRetainedBytes", t.maxRetainedBytes, Number.isSafeInteger(e) ? e : 2 ** 53 - 1);
+			return H("maxRetainedBytes", t.maxRetainedBytes, Number.isSafeInteger(e) ? e : 2 ** 53 - 1);
 		}
 		h(_.totalBytes);
 		let b = _.totalBytes * s;
 		f(b + v), d(b), i || (o += _.totalBytes);
 		let x = new Uint8Array(_.totalBytes), S = 0, C = _, w = !0;
 		for (; w || S < x.byteLength;) {
-			if (w = !1, C.snapshot.id !== a.snapshotId || C.offset !== S || C.totalBytes !== x.byteLength || !(C.bytes instanceof Uint8Array) || C.bytes.byteLength > en || C.bytes.byteLength > x.byteLength - S || C.bytes.byteLength === 0 && !C.isComplete) return H("read-file-page", e);
+			if (w = !1, C.snapshot.id !== a.snapshotId || C.offset !== S || C.totalBytes !== x.byteLength || !(C.bytes instanceof Uint8Array) || C.bytes.byteLength > tn || C.bytes.byteLength > x.byteLength - S || C.bytes.byteLength === 0 && !C.isComplete) return V("read-file-page", e);
 			if (x.set(C.bytes, S), S += C.bytes.byteLength, C.isComplete) {
-				if (C.nextOffset !== null || S !== x.byteLength) return H("read-file-page", e);
+				if (C.nextOffset !== null || S !== x.byteLength) return V("read-file-page", e);
 				break;
 			}
-			if (C.nextOffset !== S) return H("read-file-page", e);
+			if (C.nextOffset !== S) return V("read-file-page", e);
 			C = await a.readPage(e, {
-				maxBytes: Math.min(en, Math.max(1, x.byteLength - S)),
+				maxBytes: Math.min(tn, Math.max(1, x.byteLength - S)),
 				offset: S,
-				...W(n, r) ?? {}
+				...U(n, r) ?? {}
 			}), m(r);
 		}
 		return x;
-	}, T = async (e, t) => {
-		let r = W(n, t)?.signal;
+	}, te = async (e, t) => {
+		let r = U(n, t)?.signal;
 		return r === void 0 ? e : new Promise((t, n) => {
 			let i = () => r.removeEventListener("abort", a), a = () => {
 				i(), n(u(r));
@@ -1444,14 +1444,14 @@ var ee = "﻿", E = (n) => {
 				}));
 			});
 		});
-	}, ee = async (e, t) => {
+	}, T = async (e, t) => {
 		let n = S(e);
 		m(t?.signal), p(n);
-		let r = await T(w(n, t?.signal), t?.signal);
+		let r = await te(w(n, t?.signal), t?.signal);
 		return m(t?.signal), r.slice();
-	}, E = async (e, t) => {
+	}, ne = async (e, t) => {
 		m(), p(e);
-		let n = await T(w(e, void 0, !0, t));
+		let n = await te(w(e, void 0, !0, t));
 		m();
 		let r = !1;
 		return {
@@ -1460,40 +1460,46 @@ var ee = "﻿", E = (n) => {
 				r || (c -= n.byteLength), r = !0;
 			}
 		};
-	}, te = (t) => i !== void 0 && Qt.has(t) ? i : e, ne = (t) => {
-		let n = te(t);
+	}, re = (t) => i !== void 0 && $t.has(t) ? i : e, ie = (t) => {
+		let n = re(t);
 		return n === e ? g : {
 			readPage: (e, t) => n.readFilePage(e, t),
 			snapshotId: n.snapshot.id
 		};
-	}, re = Object.freeze({
-		getEntry: (e, t) => {
-			let n = S(e);
-			return _(te(n), n, t);
+	}, ae = async (e, t, r) => {
+		let i = S(t);
+		m(r?.signal), p(i);
+		let a = await te(e.readLinkText(i, U(n, r?.signal)), r?.signal);
+		return m(r?.signal), a !== null && (typeof a != "string" || on.encode(a).byteLength > 4096) ? V("read-link-text", i) : a;
+	}, oe = Object.freeze({
+		getEntry: (e) => {
+			let t = S(e);
+			return _(re(t), t);
 		},
-		readLinkText: async (e, t) => {
-			let r = S(e);
-			m(t?.signal), p(r);
-			let i = await T(te(r).readLinkText(r, W(n, t?.signal)), t?.signal);
-			return m(t?.signal), i !== null && (typeof i != "string" || an.encode(i).byteLength > 4096) ? H("read-link-text", r) : i;
+		resolveLink: (t) => {
+			let n = S(t), r = re(n), i = (t) => t === n ? r : e;
+			return ee({
+				getEntry: (e, t) => _(i(e), e, t),
+				readLinkText: (e, t) => ae(i(e), e, t)
+			}, n);
 		},
 		readSourceFile: (e) => {
 			let t = S(e);
-			return E(t, ne(t));
+			return ne(t, ie(t));
 		}
-	}), ie = Object.freeze({
+	}), se = Object.freeze({
 		getEntry: v,
 		iterateEntries: b,
-		readCompleteFile: ee
+		readCompleteFile: T
 	});
-	return Jt(ie, {
+	return Yt(se, {
 		reserve: d,
 		tryReserve: (e) => !Number.isSafeInteger(e) || e < 0 || e > t.maxRetainedBytes - c ? !1 : (d(e), !0),
 		release: (e) => {
 			if (!Number.isSafeInteger(e) || e < 0 || e > c) throw TypeError("The retained-memory release is invalid.");
 			c -= e;
 		},
-		readSourceFile: (e) => E(e, g)
+		readSourceFile: (e) => ne(e, g)
 	}), Object.freeze({
 		getResourceUsage: () => Object.freeze({
 			canonicalBytes: o,
@@ -1501,18 +1507,18 @@ var ee = "﻿", E = (n) => {
 			retainedBytes: c,
 			totalBytesRead: l
 		}),
-		instructions: re,
-		reader: ie,
+		instructions: oe,
+		reader: se,
 		throwIfAborted: m
 	});
-}, ln = /^#{1,6} /u, un = (e, t) => {
+}, un = /^#{1,6} /u, dn = (e, t) => {
 	for (let n = t; n < e.length; n += 1) {
 		let t = e[n];
-		if (t !== void 0 && k(t)) return n;
+		if (t !== void 0 && O(t)) return n;
 	}
 	return null;
-}, dn = (e, t, n) => {
-	let r = d(n, "validate-project"), i = le(e.content), a = O(i);
+}, fn = (e, t, n) => {
+	let r = d(n, "validate-project"), i = ue(e.content), a = D(i);
 	a === 0 && r.add({
 		code: "MOLDEA_AGENT_DESCRIPTION_INVALID",
 		details: { reason: "empty" },
@@ -1534,9 +1540,9 @@ var ee = "﻿", E = (n) => {
 		diagnostics: o,
 		valid: o.length === 0
 	});
-}, fn = (e, t, n) => {
+}, pn = (e, t, n) => {
 	let r = d(n, "validate-project");
-	if (!k(e.content)) return r.add({
+	if (!O(e.content)) return r.add({
 		code: "MOLDEA_AGENT_INSTRUCTION_EMPTY",
 		entity: { agentId: t },
 		path: e.path
@@ -1545,8 +1551,8 @@ var ee = "﻿", E = (n) => {
 		instruction: null,
 		valid: !1
 	});
-	let i = `\`${t}\``, a = e.content.split("\n"), o = un(a, 0), s = o;
-	o !== null && ln.test(a[o] ?? "") && (s = un(a, o + 1)), (s === null || !(a[s] ?? "").includes(i)) && r.add({
+	let i = `\`${t}\``, a = e.content.split("\n"), o = dn(a, 0), s = o;
+	o !== null && un.test(a[o] ?? "") && (s = dn(a, o + 1)), (s === null || !(a[s] ?? "").includes(i)) && r.add({
 		code: "MOLDEA_AGENT_IDENTITY_INVALID",
 		details: { reason: e.content.includes(i) ? "misplaced" : "missing" },
 		entity: { agentId: t },
@@ -1558,17 +1564,17 @@ var ee = "﻿", E = (n) => {
 		instruction: e,
 		valid: c.length === 0
 	});
-}, pn = (e) => {
+}, mn = (e) => {
 	throw new x({
 		code: "INVALID_SOURCE_DATA",
 		operation: "read-file-page",
 		path: e,
 		retryable: !1
 	});
-}, G = async (e, t, n, r) => {
+}, W = async (e, t, n, r) => {
 	let i = await e.readCompleteFile(t, r === void 0 ? void 0 : { signal: r });
-	if (!(i instanceof Uint8Array)) return pn(t);
-	let a = M({
+	if (!(i instanceof Uint8Array)) return mn(t);
+	let a = j({
 		content: i,
 		path: t
 	}, n, "validate-project");
@@ -1579,7 +1585,7 @@ var ee = "﻿", E = (n) => {
 	});
 	let o = {
 		content: a.text.value,
-		digest: await N(a.text),
+		digest: await M(a.text),
 		path: t,
 		scalarLength: a.text.scalarLength,
 		utf8ByteLength: a.text.utf8ByteLength
@@ -1589,9 +1595,9 @@ var ee = "﻿", E = (n) => {
 		diagnostics: [],
 		valid: !0
 	});
-}, mn = (e, t) => {
-	for (let n of t) e.merge(n);
 }, hn = (e, t) => {
+	for (let n of t) e.merge(n);
+}, gn = (e, t) => {
 	let n = e;
 	for (; n.length > 0;) {
 		if (t.has(n)) return !0;
@@ -1600,17 +1606,17 @@ var ee = "﻿", E = (n) => {
 		n = n.slice(0, e);
 	}
 	return !1;
-}, gn = async (e, t, n, r, i, a) => {
-	let o = await G(e, t, r.limits, a);
-	if (mn(i, o.diagnostics), o.asset === null) return null;
-	let s = dn(o.asset, n, r.limits);
-	return mn(i, s.diagnostics), s.description;
 }, _n = async (e, t, n, r, i, a) => {
-	let o = await G(e, t, r.limits, a);
-	if (mn(i, o.diagnostics), o.asset === null) return null;
+	let o = await W(e, t, r.limits, a);
+	if (hn(i, o.diagnostics), o.asset === null) return null;
 	let s = fn(o.asset, n, r.limits);
-	return mn(i, s.diagnostics), s.instruction;
-}, vn = async (e, t, n, r, i) => {
+	return hn(i, s.diagnostics), s.description;
+}, vn = async (e, t, n, r, i, a) => {
+	let o = await W(e, t, r.limits, a);
+	if (hn(i, o.diagnostics), o.asset === null) return null;
+	let s = pn(o.asset, n, r.limits);
+	return hn(i, s.diagnostics), s.instruction;
+}, yn = async (e, t, n, r, i) => {
 	r = a(r);
 	let o = d(r.limits, "validate-project"), s = [], c = t.agents ?? {}, l = new Set(Object.keys(c)), f = new Map(n.inventory.agents.map((e) => [e.id, e])), p = new Set(n.diagnostics.flatMap((e) => e.path === null ? [] : [e.path]));
 	for (let e of n.inventory.agents) l.has(e.id) || o.add({
@@ -1624,7 +1630,7 @@ var ee = "﻿", E = (n) => {
 		let a = f.get(t);
 		if (a === void 0) {
 			let e = S(`/moldea/agents/${t}`);
-			hn(e, p) || o.add({
+			gn(e, p) || o.add({
 				code: "MOLDEA_AGENT_DIRECTORY_MISSING",
 				entity: { agentId: t },
 				path: e
@@ -1639,20 +1645,20 @@ var ee = "﻿", E = (n) => {
 		let l = null, u = null;
 		if (a.description === null) {
 			let e = S(`${a.path}/description.md`);
-			hn(e, p) || o.add({
+			gn(e, p) || o.add({
 				code: "MOLDEA_AGENT_DESCRIPTION_MISSING",
 				entity: { agentId: t },
 				path: e
 			});
-		} else l = await gn(e, a.description, t, r, o, i);
+		} else l = await _n(e, a.description, t, r, o, i);
 		if (a.instruction === null) {
 			let e = S(`${a.path}/instruction.md`);
-			hn(e, p) || o.add({
+			gn(e, p) || o.add({
 				code: "MOLDEA_AGENT_INSTRUCTION_MISSING",
 				entity: { agentId: t },
 				path: e
 			});
-		} else u = await _n(e, a.instruction, t, r, o, i);
+		} else u = await vn(e, a.instruction, t, r, o, i);
 		s.push({
 			declaration: n,
 			description: l,
@@ -1666,7 +1672,7 @@ var ee = "﻿", E = (n) => {
 		diagnostics: h,
 		valid: h.length === 0
 	});
-}, yn = /^\/moldea\/agents\/([^/]+)\/(description|instruction)\.md$/u, bn = /^\/moldea\/agents\/([^/]+)$/u, xn = /^\/moldea\/decisions\/[^/]+\.md$/u, Sn = (e) => {
+}, bn = /^\/moldea\/agents\/([^/]+)\/(description|instruction)\.md$/u, xn = /^\/moldea\/agents\/([^/]+)$/u, Sn = /^\/moldea\/decisions\/[^/]+\.md$/u, Cn = (e) => {
 	if (e === "/moldea/moldea.yaml") return {
 		agentId: null,
 		fileKind: "manifest",
@@ -1677,17 +1683,17 @@ var ee = "﻿", E = (n) => {
 		fileKind: "project",
 		kind: "canonical-file"
 	};
-	if (he(e, !1)) return {
+	if (ge(e, !1)) return {
 		agentId: null,
 		fileKind: "context",
 		kind: "canonical-file"
 	};
-	if (xn.test(e)) return {
+	if (Sn.test(e)) return {
 		agentId: null,
 		fileKind: "decision",
 		kind: "canonical-file"
 	};
-	let t = yn.exec(e);
+	let t = bn.exec(e);
 	if (t === null) return null;
 	let n = t[1], r = t[2];
 	return n === void 0 || r === void 0 ? null : {
@@ -1695,51 +1701,51 @@ var ee = "﻿", E = (n) => {
 		fileKind: r === "description" ? "agent-description" : "agent-instruction",
 		kind: "canonical-file"
 	};
-}, Cn = (e) => bn.exec(e)?.[1] ?? null, wn = (e) => e === "/moldea" || e === "/moldea/context" || e === "/moldea/decisions" || e === "/moldea/agents", Tn = (e) => wn(e) || e.startsWith("/moldea/context/"), En = (e) => {
-	let t = Sn(e.path);
+}, wn = (e) => xn.exec(e)?.[1] ?? null, Tn = (e) => e === "/moldea" || e === "/moldea/context" || e === "/moldea/decisions" || e === "/moldea/agents", En = (e) => Tn(e) || e.startsWith("/moldea/context/"), Dn = (e) => {
+	let t = Cn(e.path);
 	if (t !== null) return e.type === "file" ? t : e.type === "symlink" ? { kind: "canonical-asset-symlink" } : {
 		expectedType: "file",
 		kind: "entry-type-invalid"
 	};
-	let n = Cn(e.path);
-	return n === null ? wn(e.path) ? e.type === "directory" ? { kind: "structural-directory" } : {
+	let n = wn(e.path);
+	return n === null ? Tn(e.path) ? e.type === "directory" ? { kind: "structural-directory" } : {
 		expectedType: "directory",
 		kind: "entry-type-invalid"
-	} : e.type === "directory" ? Tn(e.path) ? { kind: "structural-directory" } : { kind: "ignored-directory" } : { kind: "unrecognized" } : e.type === "directory" ? {
+	} : e.type === "directory" ? En(e.path) ? { kind: "structural-directory" } : { kind: "ignored-directory" } : { kind: "unrecognized" } : e.type === "directory" ? {
 		agentId: n,
 		kind: "agent-directory"
 	} : {
 		expectedType: "directory",
 		kind: "entry-type-invalid"
 	};
-}, Dn = S("/moldea"), K = S("/moldea/moldea.yaml"), q = S("/moldea/project.md"), On = () => ({
+}, On = S("/moldea"), G = S("/moldea/moldea.yaml"), K = S("/moldea/project.md"), kn = () => ({
 	agents: new Map(),
 	context: new Set(),
 	decisions: new Set(),
 	manifest: null,
 	project: null
-}), J = (e, t) => {
+}), q = (e, t) => {
 	throw new x({
 		code: "INVALID_SOURCE_DATA",
 		operation: e,
 		path: t,
 		retryable: !1
 	});
-}, kn = (e, t, n) => {
-	if (typeof e != "object" || !e) return J(t, n ?? null);
+}, An = (e, t, n) => {
+	if (typeof e != "object" || !e) return q(t, n ?? null);
 	let r = e, i = r.path, a = r.type, o = r.byteLength, s = r.contentIdentity;
-	if (typeof i != "string" || !b(i)) return J(t, n ?? null);
+	if (typeof i != "string" || !b(i)) return q(t, n ?? null);
 	let c = S(i);
-	return n !== void 0 && c !== n || a !== "file" && a !== "directory" && a !== "symlink" || (a === "file" ? !Number.isSafeInteger(o) || o < 0 || s !== null && typeof s != "string" : o !== null || s !== null) ? J(t, c) : {
+	return n !== void 0 && c !== n || a !== "file" && a !== "directory" && a !== "symlink" || (a === "file" ? !Number.isSafeInteger(o) || o < 0 || s !== null && typeof s != "string" : o !== null || s !== null) ? q(t, c) : {
 		byteLength: o,
 		contentIdentity: s,
 		path: c,
 		type: a
 	};
-}, An = async (e, t, n) => {
+}, jn = async (e, t, n) => {
 	let r = await e.getEntry(t, n === void 0 ? void 0 : { signal: n });
-	return r === null ? null : kn(r, "get-entry", t);
-}, jn = (e, t, n) => {
+	return r === null ? null : An(r, "get-entry", t);
+}, Mn = (e, t, n) => {
 	e.add({
 		code: "MOLDEA_ENTRY_TYPE_INVALID",
 		details: {
@@ -1748,7 +1754,7 @@ var ee = "﻿", E = (n) => {
 		},
 		path: t.path
 	});
-}, Mn = (e, t) => {
+}, Nn = (e, t) => {
 	let n = e.get(t);
 	if (n !== void 0) return n;
 	let r = {
@@ -1758,7 +1764,7 @@ var ee = "﻿", E = (n) => {
 		path: S(`/moldea/agents/${t}`)
 	};
 	return e.set(t, r), r;
-}, Nn = (e, t, n, r) => {
+}, Pn = (e, t, n, r) => {
 	switch (n) {
 		case "manifest":
 			e.manifest = t;
@@ -1773,10 +1779,10 @@ var ee = "﻿", E = (n) => {
 			e.decisions.add(t);
 			return;
 	}
-	if (r === null) return J("list-entries-page", t);
-	let i = Mn(e.agents, r);
+	if (r === null) return q("list-entries-page", t);
+	let i = Nn(e.agents, r);
 	n === "agent-description" ? i.description = t : i.instruction = t;
-}, Pn = (e) => {
+}, Fn = (e) => {
 	let t = (e) => [...e].sort(u), n = [...e.agents.values()].sort((e, t) => u(e.id, t.id)).map((e) => m({ ...e }));
 	return m({
 		agents: n,
@@ -1785,14 +1791,14 @@ var ee = "﻿", E = (n) => {
 		manifest: e.manifest,
 		project: e.project
 	});
-}, Fn = (e, t) => {
+}, In = (e, t) => {
 	let n = t.finalize();
 	return m({
 		diagnostics: n,
-		inventory: Pn(e),
+		inventory: Fn(e),
 		valid: n.length === 0
 	});
-}, In = (e, t, n, r, i) => {
+}, Ln = (e, t, n, r, i) => {
 	if (e === null) {
 		i.add({
 			code: n,
@@ -1801,7 +1807,7 @@ var ee = "﻿", E = (n) => {
 		return;
 	}
 	if (e.type === "file") {
-		t === K ? r.manifest = t : r.project = t;
+		t === G ? r.manifest = t : r.project = t;
 		return;
 	}
 	if (e.type === "symlink") {
@@ -1811,43 +1817,43 @@ var ee = "﻿", E = (n) => {
 		});
 		return;
 	}
-	jn(i, e, "file");
-}, Ln = (e, t) => {
-	if (t === null || t.type !== e.type) return J("list-entries-page", e.path);
-}, Rn = async (e, t, n, r) => {
-	let i = d(t, "validate-project"), a = On(), o = r === void 0 ? await An(e, Dn, n) : r.moldeaRoot;
+	Mn(i, e, "file");
+}, Rn = (e, t) => {
+	if (t === null || t.type !== e.type) return q("list-entries-page", e.path);
+}, zn = async (e, t, n, r) => {
+	let i = d(t, "validate-project"), a = kn(), o = r === void 0 ? await jn(e, On, n) : r.moldeaRoot;
 	if (o === null) return i.add({
 		code: "MOLDEA_MANIFEST_MISSING",
-		path: K
+		path: G
 	}), i.add({
 		code: "MOLDEA_PROJECT_FILE_MISSING",
-		path: q
-	}), Fn(a, i);
-	if (o.type !== "directory") return jn(i, o, "directory"), Fn(a, i);
-	let s = r === void 0 ? await An(e, K, n) : r.manifest, c = r === void 0 ? await An(e, q, n) : r.project;
-	In(s, K, "MOLDEA_MANIFEST_MISSING", a, i), In(c, q, "MOLDEA_PROJECT_FILE_MISSING", a, i);
-	let l = new Set(), u = !1, f = !1, p = n === void 0 ? { prefix: Dn } : {
-		prefix: Dn,
+		path: K
+	}), In(a, i);
+	if (o.type !== "directory") return Mn(i, o, "directory"), In(a, i);
+	let s = r === void 0 ? await jn(e, G, n) : r.manifest, c = r === void 0 ? await jn(e, K, n) : r.project;
+	Ln(s, G, "MOLDEA_MANIFEST_MISSING", a, i), Ln(c, K, "MOLDEA_PROJECT_FILE_MISSING", a, i);
+	let l = new Set(), u = !1, f = !1, p = n === void 0 ? { prefix: On } : {
+		prefix: On,
 		signal: n
 	};
 	for await (let t of e.iterateEntries(p)) {
-		let e = kn(t, "list-entries-page");
-		if (!e.path.startsWith("/moldea/") || l.has(e.path)) return J("list-entries-page", e.path);
-		if (l.add(e.path), e.path === K) {
-			Ln(e, s), u = !0;
+		let e = An(t, "list-entries-page");
+		if (!e.path.startsWith("/moldea/") || l.has(e.path)) return q("list-entries-page", e.path);
+		if (l.add(e.path), e.path === G) {
+			Rn(e, s), u = !0;
 			continue;
 		}
-		if (e.path === q) {
-			Ln(e, c), f = !0;
+		if (e.path === K) {
+			Rn(e, c), f = !0;
 			continue;
 		}
-		let n = En(e);
+		let n = Dn(e);
 		switch (n.kind) {
 			case "canonical-file":
-				Nn(a, e.path, n.fileKind, n.agentId);
+				Pn(a, e.path, n.fileKind, n.agentId);
 				break;
 			case "agent-directory":
-				Mn(a.agents, n.agentId);
+				Nn(a.agents, n.agentId);
 				break;
 			case "canonical-asset-symlink":
 				i.add({
@@ -1856,7 +1862,7 @@ var ee = "﻿", E = (n) => {
 				});
 				break;
 			case "entry-type-invalid":
-				jn(i, e, n.expectedType);
+				Mn(i, e, n.expectedType);
 				break;
 			case "unrecognized": i.add({
 				code: "MOLDEA_CANONICAL_PATH_UNRECOGNIZED",
@@ -1865,10 +1871,10 @@ var ee = "﻿", E = (n) => {
 			});
 		}
 	}
-	return s !== null === u ? c !== null === f ? Fn(a, i) : J("list-entries-page", q) : J("list-entries-page", K);
-}, zn = (e) => [...e].sort((e, t) => u(e.path, t.path)), Bn = (e) => {
+	return s !== null === u ? c !== null === f ? In(a, i) : q("list-entries-page", K) : q("list-entries-page", G);
+}, Bn = (e) => [...e].sort((e, t) => u(e.path, t.path)), Vn = (e) => {
 	let t = new Map();
-	for (let n of zn(e)) {
+	for (let n of Bn(e)) {
 		if (n.id === null) continue;
 		let e = t.get(n.id) ?? [];
 		e.push(n), t.set(n.id, e);
@@ -1894,14 +1900,14 @@ var ee = "﻿", E = (n) => {
 		edges: i,
 		nodes: r
 	};
-}, Vn = (e, t) => {
+}, Hn = (e, t) => {
 	for (let [n, r] of e.candidateGroups) if (!(r.length < 2)) for (let e of r) t.add({
 		code: "MOLDEA_DECISION_ID_DUPLICATE",
 		details: { occurrences: r.length },
 		entity: { decisionId: n },
 		path: e.path
 	});
-}, Hn = (e, t) => {
+}, Un = (e, t) => {
 	for (let n of e.nodes.values()) for (let r of n.supersedes) e.candidateGroups.has(r) || t.add({
 		code: "MOLDEA_DECISION_REFERENCE_MISSING",
 		details: { referencedDecisionId: r },
@@ -1909,7 +1915,7 @@ var ee = "﻿", E = (n) => {
 		path: n.path,
 		pointer: "/supersedes"
 	});
-}, Un = (e, t) => {
+}, Wn = (e, t) => {
 	let n = new Set();
 	for (let r of e.nodes.values()) if (r.status === "accepted" || r.status === "superseded") for (let i of e.edges.get(r.id) ?? []) {
 		let a = e.nodes.get(i);
@@ -1932,13 +1938,13 @@ var ee = "﻿", E = (n) => {
 		}
 	}
 	return n;
-}, Wn = (e, t, n) => {
+}, Gn = (e, t, n) => {
 	for (let r of e.nodes.values()) r.status === "superseded" && !t.has(r.id) && n.add({
 		code: "MOLDEA_DECISION_SUPERSEDED_ORPHAN",
 		entity: { decisionId: r.id },
 		path: r.path
 	});
-}, Gn = (e) => {
+}, Kn = (e) => {
 	let t = new Set(), n = [];
 	for (let r of e.nodes.keys()) {
 		if (t.has(r)) continue;
@@ -1961,15 +1967,15 @@ var ee = "﻿", E = (n) => {
 		}
 	}
 	return n;
-}, Kn = (e) => {
+}, qn = (e) => {
 	let t = new Map();
 	for (let n of e.nodes.keys()) t.set(n, []);
 	for (let [n, r] of e.edges) for (let e of r) t.get(e)?.push(n);
 	for (let e of t.values()) e.sort(u);
 	return t;
-}, qn = (e) => {
-	let t = Kn(e), n = new Set(), r = [];
-	for (let i of [...Gn(e)].reverse()) {
+}, Jn = (e) => {
+	let t = qn(e), n = new Set(), r = [];
+	for (let i of [...Kn(e)].reverse()) {
 		if (n.has(i)) continue;
 		let e = [], a = [i];
 		for (n.add(i); a.length > 0;) {
@@ -1981,8 +1987,8 @@ var ee = "﻿", E = (n) => {
 		r.push(e.sort(u));
 	}
 	return r.sort((e, t) => u(e[0] ?? "", t[0] ?? ""));
-}, Jn = (e, t) => {
-	for (let n of qn(e)) {
+}, Yn = (e, t) => {
+	for (let n of Jn(e)) {
 		if (n.length < 2) continue;
 		let r = n[0];
 		if (r !== void 0) for (let i of n) {
@@ -1999,23 +2005,23 @@ var ee = "﻿", E = (n) => {
 			});
 		}
 	}
-}, Yn = (e, t) => {
-	let n = d(t, "validate-project"), r = Bn(e);
-	return Vn(r, n), Hn(r, n), Jn(r, n), Wn(r, Un(r, n), n), n.finalize();
-}, Xn = (e) => {
+}, Xn = (e, t) => {
+	let n = d(t, "validate-project"), r = Vn(e);
+	return Hn(r, n), Un(r, n), Yn(r, n), Gn(r, Wn(r, n), n), n.finalize();
+}, Zn = (e) => {
 	throw new x({
 		code: "INVALID_SOURCE_DATA",
 		operation: "read-file-page",
 		path: e,
 		retryable: !1
 	});
-}, Zn = (e) => [...e].sort((e, t) => u(e.id, t.id) || u(e.path, t.path)), Qn = async (e, t, n, r, i) => {
+}, Qn = (e) => [...e].sort((e, t) => u(e.id, t.id) || u(e.path, t.path)), $n = async (e, t, n, r, i) => {
 	n = a(n);
 	let o = d(n.limits, "validate-project"), s = [], c = [], l = r === void 0 ? void 0 : { signal: r };
 	for (let r of [...t].sort(u)) {
 		let t = await e.readCompleteFile(r, l);
-		if (!(t instanceof Uint8Array)) return Xn(r);
-		let a = await Vt({
+		if (!(t instanceof Uint8Array)) return Zn(r);
+		let a = await Ht({
 			content: t.slice(),
 			path: r
 		}, n, "validate-project");
@@ -2023,24 +2029,24 @@ var ee = "﻿", E = (n) => {
 		for (let e of a.diagnostics) o.merge(e);
 		s.push({
 			decision: a.decision,
-			id: j(r),
+			id: A(r),
 			path: r
 		}), a.decision !== null && c.push(a.decision);
 	}
-	for (let e of Yn(s, n.limits)) o.merge(e);
+	for (let e of Xn(s, n.limits)) o.merge(e);
 	let f = o.finalize();
 	return m({
-		decisions: Zn(c),
+		decisions: Qn(c),
 		diagnostics: f,
 		valid: f.length === 0
 	});
-}, $n = (e, t) => {
-	let n = j(e);
+}, er = (e, t) => {
+	let n = A(e);
 	return {
 		...t === void 0 ? {} : { agentId: t },
 		...n === null ? {} : { decisionId: n }
 	};
-}, er = (e, t, n, r, i) => {
+}, tr = (e, t, n, r, i) => {
 	n.has(e) || r.blockedPaths.has(e) || r.collector.add({
 		code: "MOLDEA_REFERENCE_MISSING",
 		details: { referencedPath: e },
@@ -2048,13 +2054,13 @@ var ee = "﻿", E = (n) => {
 		path: r.manifestPath,
 		pointer: t
 	});
-}, tr = (e, t, n, r) => {
+}, nr = (e, t, n, r) => {
 	if (!n.discoveredDecisionPaths.has(e)) {
 		if (n.blockedPaths.has(e)) return;
 		n.collector.add({
 			code: "MOLDEA_DECISION_REFERENCE_MISSING",
 			details: { referencedPath: e },
-			entity: $n(e, r),
+			entity: er(e, r),
 			path: n.manifestPath,
 			pointer: t
 		});
@@ -2067,11 +2073,11 @@ var ee = "﻿", E = (n) => {
 			referencedPath: e,
 			targetStatus: i.status
 		},
-		entity: $n(e, r),
+		entity: er(e, r),
 		path: n.manifestPath,
 		pointer: t
 	});
-}, nr = (e, t, n, r, i) => {
+}, rr = (e, t, n, r, i) => {
 	let a = d(i, "validate-project"), o = new Set(n.inventory.context), s = new Set(o);
 	n.inventory.project !== null && s.add(n.inventory.project);
 	let c = {
@@ -2083,24 +2089,24 @@ var ee = "﻿", E = (n) => {
 		validAgentContextPaths: o,
 		validTopLevelContextPaths: s
 	};
-	for (let e of Object.keys(t.context ?? {}).sort(u)) er(S(e), `/context/${g(e)}`, c.validTopLevelContextPaths, c);
-	for (let e of Object.keys(t.decisions ?? {}).sort(u)) tr(S(e), `/decisions/${g(e)}`, c);
+	for (let e of Object.keys(t.context ?? {}).sort(u)) tr(S(e), `/context/${g(e)}`, c.validTopLevelContextPaths, c);
+	for (let e of Object.keys(t.decisions ?? {}).sort(u)) nr(S(e), `/decisions/${g(e)}`, c);
 	for (let e of Object.keys(t.agents ?? {}).sort(u)) {
 		let n = t.agents?.[e];
 		if (n === void 0) continue;
 		let r = g(e);
-		for (let [t, i] of (n.context ?? []).entries()) er(i, `/agents/${r}/context/${t}`, c.validAgentContextPaths, c, e);
-		for (let [t, i] of (n.decisions ?? []).entries()) tr(i, `/agents/${r}/decisions/${t}`, c, e);
+		for (let [t, i] of (n.context ?? []).entries()) tr(i, `/agents/${r}/context/${t}`, c.validAgentContextPaths, c, e);
+		for (let [t, i] of (n.decisions ?? []).entries()) nr(i, `/agents/${r}/decisions/${t}`, c, e);
 	}
 	return a.finalize();
-}, Y = {
+}, J = {
 	start: "<!-- moldea:start -->",
 	end: "<!-- moldea:end -->"
-}, rr = (t) => {
+}, ir = (t) => {
 	try {
-		let e = ne(t.replace(/(<!-- moldea:(?:start|end) -->)[ \t]+(?=\r?$)/gmu, "$1"), Y);
+		let e = re(t.replace(/(<!-- moldea:(?:start|end) -->)[ \t]+(?=\r?$)/gmu, "$1"), J);
 		if (e === null) return "block-missing";
-		let n = t.indexOf(Y.start), r = t.indexOf("\n", t.indexOf(Y.end));
+		let n = t.indexOf(J.start), r = t.indexOf("\n", t.indexOf(J.end));
 		return {
 			start: n,
 			end: r === -1 ? t.length : r + 1,
@@ -2110,15 +2116,15 @@ var ee = "﻿", E = (n) => {
 		if (n(t, e.INVALID_MARKED_REGION)) return "block-invalid";
 		throw t;
 	}
-}, ir = (e) => {
+}, ar = (e) => {
 	let t = e.replaceAll("\r\n", "\n").replace(/(<!-- moldea:(?:start|end) -->)[ \t]+(?=\n|$)/gu, "$1");
-	if (!t.startsWith(`${Y.start}\n`) || !(t.endsWith(Y.end) || t.endsWith(`${Y.end}\n`))) return t;
-	let n = Y.start.length, r = t.lastIndexOf(Y.end);
+	if (!t.startsWith(`${J.start}\n`) || !(t.endsWith(J.end) || t.endsWith(`${J.end}\n`))) return t;
+	let n = J.start.length, r = t.lastIndexOf(J.end);
 	for (; n < r && t[n] === "\n";) n++;
 	for (; r > n && t[r - 1] === "\n";) r--;
-	return `${Y.start}\n${t.slice(n, r)}\n${Y.end}`;
-}, ar = (e) => {
-	let t = rr(e);
+	return `${J.start}\n${t.slice(n, r)}\n${J.end}`;
+}, or = (e) => {
+	let t = ir(e);
 	if (typeof t == "string") return {
 		kind: "missing",
 		reason: t
@@ -2143,8 +2149,8 @@ var ee = "﻿", E = (n) => {
 		kind: "found",
 		skillPath: i
 	};
-}, or = new Set(["@AGENTS.md", "@./AGENTS.md"]), sr = new Set(["@../AGENTS.md"]), cr = (e, t) => {
-	let n = t ? sr : or, r = null;
+}, sr = new Set(["@AGENTS.md", "@./AGENTS.md"]), cr = new Set(["@../AGENTS.md"]), lr = (e, t) => {
+	let n = t ? cr : sr, r = null;
 	for (let t of e.replace(/^\uFEFF/u, "").split(/\r\n|\n|\r/u)) {
 		let e = t.replace(/^[ \t]+|[ \t]+$/gu, ""), i = /^(`{3,}|~{3,})/u.exec(e)?.[1];
 		if (r !== null) i !== void 0 && i[0] === r[0] && i.length >= r.length && (r = null);
@@ -2152,7 +2158,7 @@ var ee = "﻿", E = (n) => {
 		else if (n.has(e)) return !0;
 	}
 	return !1;
-}, lr = async (e, t) => {
+}, ur = async (e, t) => {
 	let n = await t(), r = n.bytes.byteLength * 8, i = !1;
 	try {
 		e.reserve(r), i = !0;
@@ -2171,24 +2177,24 @@ var ee = "﻿", E = (n) => {
 	} finally {
 		n.release();
 	}
-}, ur = (e) => e instanceof x ? e.code === "ENTRY_NOT_FOUND" ? "missing" : e.code === "ENTRY_NOT_FILE" ? "non-regular" : null : null, dr = S("/AGENTS.md"), fr = (e, t) => e("MOLDEA_INTEGRATION_LINK_UNRESOLVED", {
+}, dr = (e) => e instanceof x ? e.code === "ENTRY_NOT_FOUND" ? "missing" : e.code === "ENTRY_NOT_FILE" ? "non-regular" : null : null, fr = S("/AGENTS.md"), pr = (e, t) => e("MOLDEA_INTEGRATION_LINK_UNRESOLVED", {
 	entryKind: "symlink",
 	reason: t
-}, t), pr = async (e, t, n, r) => {
+}, t), mr = async (e, t, n, r) => {
 	let { ledger: i, reader: a, signal: o } = e, s;
 	try {
-		s = await lr(i, n);
+		s = await ur(i, n);
 	} catch (e) {
-		let n = ur(e);
+		let n = dr(e);
 		if (n === null) throw e;
-		return r.entryKind === "symlink" ? fr(t, n === "missing" ? "missing" : "not-file") : t("MOLDEA_INTEGRATION_BLOCK_MISSING", { entryKind: n });
+		return r.entryKind === "symlink" ? pr(t, n === "missing" ? "missing" : "not-file") : t("MOLDEA_INTEGRATION_BLOCK_MISSING", { entryKind: n });
 	}
 	try {
 		if (s.text === null) return t("MOLDEA_INTEGRATION_BLOCK_MISSING", {
 			...r,
 			reason: "invalid-utf8"
 		});
-		let e = ar(s.text);
+		let e = or(s.text);
 		if (e.kind === "missing") return t(e.reason.startsWith("block-") ? "MOLDEA_INTEGRATION_BLOCK_MISSING" : "MOLDEA_INTEGRATION_SKILL_MISSING", {
 			...r,
 			reason: e.reason
@@ -2204,9 +2210,9 @@ var ee = "﻿", E = (n) => {
 		}
 		let c = S(`/${n}/assets/managed-agents-block.md`), l;
 		try {
-			l = await lr(i, () => i.readSourceFile(c));
+			l = await ur(i, () => i.readSourceFile(c));
 		} catch (e) {
-			let r = ur(e);
+			let r = dr(e);
 			if (r !== null) return t("MOLDEA_INTEGRATION_SKILL_MISSING", {
 				referencedPath: `/${n}`,
 				missingFile: c,
@@ -2219,13 +2225,13 @@ var ee = "﻿", E = (n) => {
 				referencedPath: `/${n}`,
 				reason: "invalid-utf8-asset"
 			});
-			let e = rr(s.text), r = 0, a = 0;
+			let e = ir(s.text), r = 0, a = 0;
 			for (; (a = l.text.indexOf("{{skill-path}}", a)) !== -1;) r++, a += 14;
 			let o = (l.text.length + r * n.length) * 8;
 			i.reserve(o);
 			try {
-				let r = ir(l.text.replaceAll("{{skill-path}}", n).replace(/\r\n?/gu, "\n"));
-				if (ir(s.text.slice(e.start, e.end)) !== r) return t("MOLDEA_INTEGRATION_BLOCK_STALE", { referencedPath: `/${n}` });
+				let r = ar(l.text.replaceAll("{{skill-path}}", n).replace(/\r\n?/gu, "\n"));
+				if (ar(s.text.slice(e.start, e.end)) !== r) return t("MOLDEA_INTEGRATION_BLOCK_STALE", { referencedPath: `/${n}` });
 			} finally {
 				i.release(o);
 			}
@@ -2235,47 +2241,47 @@ var ee = "﻿", E = (n) => {
 	} finally {
 		s.release();
 	}
-}, mr = async (e) => {
-	let { instructions: t } = e, n = (t, n, r) => e.report(t, dr, n, r), r = await t.getEntry(dr);
-	if (r === null) return n("MOLDEA_INTEGRATION_BLOCK_MISSING", { entryKind: "missing" }), { kind: "missing" };
-	if (r.type === "directory") return n("MOLDEA_INTEGRATION_BLOCK_MISSING", { entryKind: "directory" }), { kind: "directory" };
-	if (r.type === "file") return await pr(e, n, () => t.readSourceFile(dr), { entryKind: "file" }), { kind: "file" };
-	let i = await T(t, dr);
-	if (i.state === "file") {
-		let { targetPath: r } = i;
-		await pr(e, n, () => t.readSourceFile(r), { entryKind: "symlink" });
-	} else fr(n, i.state);
+}, hr = async (e) => {
+	let { instructions: t, ledger: n } = e, r = (t, n, r) => e.report(t, fr, n, r), i = await t.getEntry(fr);
+	if (i === null) return r("MOLDEA_INTEGRATION_BLOCK_MISSING", { entryKind: "missing" }), { kind: "missing" };
+	if (i.type === "directory") return r("MOLDEA_INTEGRATION_BLOCK_MISSING", { entryKind: "directory" }), { kind: "directory" };
+	if (i.type === "file") return await mr(e, r, () => t.readSourceFile(fr), { entryKind: "file" }), { kind: "file" };
+	let a = await t.resolveLink(fr);
+	if (a.state === "file") {
+		let { targetPath: t } = a;
+		await mr(e, r, () => n.readSourceFile(t), { entryKind: "symlink" });
+	} else pr(r, a.state);
 	return {
 		kind: "link",
-		resolution: i
+		resolution: a
 	};
-}, hr = S("/AGENTS.md"), gr = S("/CLAUDE.md"), _r = S("/.claude/CLAUDE.md"), vr = S("/CLAUDE.local.md"), yr = (e) => e.kind === "file" ? hr : e.kind === "link" && e.resolution.state === "file" ? e.resolution.targetPath : null, br = (e, t, n) => {
-	let r = yr(n);
+}, gr = S("/AGENTS.md"), _r = S("/CLAUDE.md"), vr = S("/.claude/CLAUDE.md"), yr = S("/CLAUDE.local.md"), br = (e) => e.kind === "file" ? gr : e.kind === "link" && e.resolution.state === "file" ? e.resolution.targetPath : null, xr = (e, t, n) => {
+	let r = br(n);
 	return n.kind === "link" && r === e || t?.state === "file" && t.targetPath === r;
-}, xr = async (e, t, n) => {
+}, Sr = async (e, t, n) => {
 	let { instructions: r, ledger: i } = e, a = await r.getEntry(t);
 	if (a === null) return { kind: "absent" };
-	if (br(t, null, n)) return { kind: "loads" };
+	if (xr(t, null, n)) return { kind: "loads" };
 	if (a.type === "directory") return {
 		entryKind: "directory",
 		kind: "not-loading"
 	};
 	let o = () => r.readSourceFile(t);
 	if (a.type === "symlink") {
-		let e = await T(r, t);
-		if (br(t, e, n)) return { kind: "loads" };
+		let e = await r.resolveLink(t);
+		if (xr(t, e, n)) return { kind: "loads" };
 		if (e.state !== "file") return {
 			kind: "unresolved",
 			reason: e.state
 		};
-		let { targetPath: i } = e;
-		o = () => r.readSourceFile(i);
+		let { targetPath: a } = e;
+		o = () => i.readSourceFile(a);
 	}
 	let s;
 	try {
-		s = await lr(i, o);
+		s = await ur(i, o);
 	} catch (e) {
-		let t = ur(e);
+		let t = dr(e);
 		if (t === null) throw e;
 		return a.type === "symlink" ? {
 			kind: "unresolved",
@@ -2283,17 +2289,17 @@ var ee = "﻿", E = (n) => {
 		} : { kind: "absent" };
 	}
 	try {
-		return s.text !== null && cr(s.text, t === _r) ? { kind: "loads" } : {
+		return s.text !== null && lr(s.text, t === vr) ? { kind: "loads" } : {
 			entryKind: a.type,
 			kind: "not-loading"
 		};
 	} finally {
 		s.release();
 	}
-}, Sr = async (e, t) => {
+}, Cr = async (e, t) => {
 	let n = [];
-	for (let r of [gr, _r]) {
-		let i = await xr(e, r, t);
+	for (let r of [_r, vr]) {
+		let i = await Sr(e, r, t);
 		if (i.kind === "loads") return;
 		i.kind !== "absent" && n.push({
 			assessment: i,
@@ -2301,11 +2307,11 @@ var ee = "﻿", E = (n) => {
 		});
 	}
 	if (n.length === 0) {
-		let r = await xr(e, vr, t);
+		let r = await Sr(e, yr, t);
 		if (r.kind === "absent" || r.kind === "loads") return;
 		n.push({
 			assessment: r,
-			path: vr
+			path: yr
 		});
 	}
 	let r = n.find(({ assessment: e }) => e.kind === "unresolved");
@@ -2319,10 +2325,10 @@ var ee = "﻿", E = (n) => {
 	}
 	let i = n[0];
 	i?.assessment.kind === "not-loading" && e.report("MOLDEA_INTEGRATION_CLAUDE_IMPORT_MISSING", i.path, { entryKind: i.assessment.entryKind });
-}, Cr = async (e, t, n, r) => {
+}, wr = async (e, t, n, r) => {
 	let i = d(n, "validate-project"), a = {
 		instructions: t,
-		ledger: Yt(e),
+		ledger: Xt(e),
 		reader: e,
 		report: (e, t, n, r) => {
 			i.add({
@@ -2336,15 +2342,15 @@ var ee = "﻿", E = (n) => {
 		},
 		...r === void 0 ? {} : { signal: r }
 	};
-	return await Sr(a, await mr(a)), i.finalize();
-}, wr = (e) => {
+	return await Cr(a, await hr(a)), i.finalize();
+}, Tr = (e) => {
 	if (e.kind === "context") return {
 		subject: S(e.id),
 		entity: { contextPath: S(e.id) }
 	};
 	if (e.kind === "decision") return {
 		subject: S(e.id),
-		entity: { decisionId: j(S(e.id)) ?? e.id }
+		entity: { decisionId: A(S(e.id)) ?? e.id }
 	};
 	let t = e.agentId ?? e.id;
 	return {
@@ -2357,9 +2363,9 @@ var ee = "﻿", E = (n) => {
 			} : {}
 		}
 	};
-}, Tr = (e) => {
+}, Er = (e) => {
 	let t = new Map();
-	for (let n of Ve(e)) {
+	for (let n of He(e)) {
 		if (n.field !== "affectedBy" || n.declaration.kind !== "glob") continue;
 		let e = n.declaration.pattern, r = e.slice(1).split("/"), i = r.findIndex((e) => e.includes("*")), a = S("/" + r.slice(0, i).join("/")), o = t.get(a) ?? [];
 		o.push({
@@ -2369,17 +2375,17 @@ var ee = "﻿", E = (n) => {
 		}), t.set(a, o);
 	}
 	return t;
-}, Er = async (e, t, n, i) => {
+}, Dr = async (e, t, n, i) => {
 	let a = [];
 	try {
-		for (let [n, r] of Tr(t)) {
+		for (let [n, r] of Er(t)) {
 			let t = new Set(r);
 			if ((await e.getEntry(n, i === void 0 ? void 0 : { signal: i }))?.type === "directory") {
 				for await (let r of e.iterateEntries({
 					prefix: n,
 					...i === void 0 ? {} : { signal: i }
 				})) if (r.type === "file") {
-					for (let e of t) Me(e.segments, r.path) && t.delete(e);
+					for (let e of t) Ne(e.segments, r.path) && t.delete(e);
 					if (t.size === 0) break;
 				}
 			}
@@ -2394,7 +2400,7 @@ var ee = "﻿", E = (n) => {
 	}
 	let o = d(n, "validate-project");
 	for (let { declaration: e, pattern: t } of a) {
-		let { subject: n, entity: r } = wr(e.owner);
+		let { subject: n, entity: r } = Tr(e.owner);
 		o.add({
 			code: "MOLDEA_IMPACT_PATTERN_UNMATCHED",
 			path: S("/moldea/moldea.yaml"),
@@ -2412,17 +2418,17 @@ var ee = "﻿", E = (n) => {
 		completed: !0,
 		diagnostics: o.finalize()
 	};
-}, Dr = (e) => JSON.stringify([
+}, Or = (e) => JSON.stringify([
 	e.code,
 	e.subject,
 	e.qualifier ?? null
-]), Or = (e, t, n, r) => {
-	let i = new Map(t.map((e, t) => [Dr(e), {
+]), kr = (e, t, n, r) => {
+	let i = new Map(t.map((e, t) => [Or(e), {
 		entry: e,
 		index: t
 	}])), a = new Set(), o = e.map((e) => {
 		if (e.severity !== "warning" || !e.acceptable || !n.has(e.code)) return e;
-		let t = Dr(e), r = i.get(t);
+		let t = Or(e), r = i.get(t);
 		return r === void 0 ? e : (a.add(t), m({
 			...e,
 			accepted: !0,
@@ -2446,9 +2452,9 @@ var ee = "﻿", E = (n) => {
 		});
 	}
 	return s([...o, ...c.finalize()]);
-}, kr = (e, t) => {
+}, Ar = (e, t) => {
 	for (let n of t) e.merge(n);
-}, Ar = (e, t, n, r, i, a, o) => {
+}, jr = (e, t, n, r, i, a, o) => {
 	e.add({
 		code: t,
 		details: {
@@ -2459,20 +2465,20 @@ var ee = "﻿", E = (n) => {
 		path: n,
 		pointer: i
 	});
-}, jr = async (e, t, n, r, i, a, o, s, c, l) => {
+}, Mr = async (e, t, n, r, i, a, o, s, c, l) => {
 	let u = await e.getEntry(r, c);
-	if (u === null) return Ar(s, "MOLDEA_MIRROR_MISSING", t, r, i, a), null;
-	if (u.type === "symlink") return Ar(s, "MOLDEA_MIRROR_SYMLINK", t, r, i, a, u), null;
-	if (u.type !== "file") return Ar(s, "MOLDEA_MIRROR_NOT_FILE", t, r, i, a, u), null;
-	let d = await G(e, r, o.limits, l);
-	return kr(s, d.diagnostics), d.asset === null ? null : d.asset.content === n.content ? {
+	if (u === null) return jr(s, "MOLDEA_MIRROR_MISSING", t, r, i, a), null;
+	if (u.type === "symlink") return jr(s, "MOLDEA_MIRROR_SYMLINK", t, r, i, a, u), null;
+	if (u.type !== "file") return jr(s, "MOLDEA_MIRROR_NOT_FILE", t, r, i, a, u), null;
+	let d = await W(e, r, o.limits, l);
+	return Ar(s, d.diagnostics), d.asset === null ? null : d.asset.content === n.content ? {
 		byteLength: d.asset.utf8ByteLength,
 		canonicalDigest: n.digest,
 		digest: d.asset.digest,
 		path: r,
 		scalarLength: d.asset.scalarLength
-	} : (Ar(s, "MOLDEA_MIRROR_STALE", t, r, i, a), null);
-}, Mr = async (e, t, n, r, i) => {
+	} : (jr(s, "MOLDEA_MIRROR_STALE", t, r, i, a), null);
+}, Nr = async (e, t, n, r, i) => {
 	r = a(r);
 	let o = d(r.limits, "validate-project"), s = [], c = i === void 0 ? void 0 : { signal: i };
 	for (let a of [...n].sort((e, t) => u(e.id, t.id))) {
@@ -2480,7 +2486,7 @@ var ee = "﻿", E = (n) => {
 		if (a.instruction !== null) {
 			let s = a.declaration.mirrors ?? [];
 			for (let [l, u] of s.entries()) {
-				let s = await jr(e, t, a.instruction, u, `/agents/${g(a.id)}/mirrors/${l}`, a.id, r, o, c, i);
+				let s = await Mr(e, t, a.instruction, u, `/agents/${g(a.id)}/mirrors/${l}`, a.id, r, o, c, i);
 				s !== null && n.push(s);
 			}
 		}
@@ -2495,14 +2501,14 @@ var ee = "﻿", E = (n) => {
 		diagnostics: l,
 		valid: l.length === 0
 	});
-}, Nr = (e, t) => {
+}, Pr = (e, t) => {
 	for (let n of t) e.merge(n);
-}, Pr = async (e, t, n, r) => {
+}, Fr = async (e, t, n, r) => {
 	n = a(n);
 	let i = d(n.limits, "validate-project"), o = null;
 	if (t !== null) {
-		let a = await G(e, t, n.limits, r);
-		Nr(i, a.diagnostics), a.asset !== null && (k(a.asset.content) ? o = a.asset : i.add({
+		let a = await W(e, t, n.limits, r);
+		Pr(i, a.diagnostics), a.asset !== null && (O(a.asset.content) ? o = a.asset : i.add({
 			code: "MOLDEA_PROJECT_FILE_EMPTY",
 			path: a.asset.path
 		}));
@@ -2513,14 +2519,14 @@ var ee = "﻿", E = (n) => {
 		project: o,
 		valid: s.length === 0
 	});
-}, Fr = async (e, t, n, r, i, o) => {
+}, Ir = async (e, t, n, r, i, o) => {
 	r = a(r);
-	let s = d(r.limits, "validate-project"), c = [], l = o ?? await Pr(e, n.inventory.project, r, i);
-	Nr(s, l.diagnostics);
+	let s = d(r.limits, "validate-project"), c = [], l = o ?? await Fr(e, n.inventory.project, r, i);
+	Pr(s, l.diagnostics);
 	for (let a of [...n.inventory.context].sort(u)) {
-		let n = await G(e, a, r.limits, i);
-		if (Nr(s, n.diagnostics), n.asset !== null) {
-			if (!k(n.asset.content)) {
+		let n = await W(e, a, r.limits, i);
+		if (Pr(s, n.diagnostics), n.asset !== null) {
+			if (!O(n.asset.content)) {
 				s.add({
 					code: "MOLDEA_CONTEXT_FILE_EMPTY",
 					path: a
@@ -2540,10 +2546,10 @@ var ee = "﻿", E = (n) => {
 		project: l.project,
 		valid: f.length === 0
 	});
-}, Ir = (e, t) => [...e].sort((e, t) => u(e.id, t.id) || u(e.path, t.path)).map((e) => ({
+}, Lr = (e, t) => [...e].sort((e, t) => u(e.id, t.id) || u(e.path, t.path)).map((e) => ({
 	decision: e,
 	relationships: t.value.decisions?.[e.path] ?? null
-})), Lr = (e, t) => {
+})), Rr = (e, t) => {
 	let n = new Map(t.map((e) => [e.id, e.mirrors])), r = [];
 	if (n.size !== e.length) return null;
 	for (let t of [...e].sort((e, t) => u(e.id, t.id))) {
@@ -2560,22 +2566,22 @@ var ee = "﻿", E = (n) => {
 		});
 	}
 	return r;
-}, Rr = (e) => {
-	let t = Lr(e.agents, e.agentMirrors);
+}, zr = (e) => {
+	let t = Rr(e.agents, e.agentMirrors);
 	return t === null ? null : m({
 		agents: t,
 		context: [...e.context].sort((e, t) => u(e.asset.path, t.asset.path)),
-		decisions: Ir(e.decisions, e.manifest),
+		decisions: Lr(e.decisions, e.manifest),
 		formatVersion: 1,
 		manifest: e.manifest,
 		project: e.project
 	});
-}, zr = (e) => !/\.d\.(?:ts|tsx|mts|cts)$/.test(e) && /\.(?:ts|tsx|mts|cts|js|mjs|jsx)$/.test(e), Br = async (e, t, n, r) => {
-	if (!zr(t)) return {
+}, Br = (e) => !/\.d\.(?:ts|tsx|mts|cts)$/.test(e) && /\.(?:ts|tsx|mts|cts|js|mjs|jsx)$/.test(e), Vr = async (e, t, n, r) => {
+	if (!Br(t)) return {
 		kind: "not-checked",
 		reason: "unsupported-file-type"
 	};
-	let i = Yt(e), a = 65536 + n * 520, o = Math.max(1, n + Math.min(65536, n));
+	let i = Xt(e), a = 65536 + n * 520, o = Math.max(1, n + Math.min(65536, n));
 	if (n > r || !i.tryReserve(a + o)) return {
 		kind: "not-checked",
 		reason: "resource-limit"
@@ -2603,26 +2609,26 @@ var ee = "﻿", E = (n) => {
 	} finally {
 		i.release(a);
 	}
-}, X = (e, t) => `${e}/${g(t)}`, Vr = (e, t, n, r, i) => {
+}, Y = (e, t) => `${e}/${g(t)}`, Hr = (e, t, n, r, i) => {
 	for (let [a, o] of (t ?? []).entries()) e.push({
 		entity: r,
 		kind: "reference",
 		path: o.path,
-		pointer: X(n, String(a)),
+		pointer: Y(n, String(a)),
 		...i === void 0 ? {} : { relationship: i },
 		...o.symbol === void 0 ? {} : { symbol: o.symbol }
 	});
-}, Hr = (e, t, n, r) => {
+}, Ur = (e, t, n, r) => {
 	for (let [i, a] of (t ?? []).entries()) a.includes("*") || e.push({
 		entity: r,
 		kind: "impact",
 		path: S(a),
-		pointer: X(n, String(i))
+		pointer: Y(n, String(i))
 	});
-}, Ur = (e, t, n, r) => {
-	Vr(e, t.bindings, X(n, "bindings"), r, n.startsWith("/context/") ? "context-binding" : "decision-binding"), Hr(e, t.affectedBy, X(n, "affectedBy"), r);
-}, Wr = (e, t, n, r, i, a, o = []) => {
-	let s = X(a, r), c = {
+}, Wr = (e, t, n, r) => {
+	Hr(e, t.bindings, Y(n, "bindings"), r, n.startsWith("/context/") ? "context-binding" : "decision-binding"), Ur(e, t.affectedBy, Y(n, "affectedBy"), r);
+}, Gr = (e, t, n, r, i, a, o = []) => {
+	let s = Y(a, r), c = {
 		agentId: i,
 		capabilityId: r,
 		capabilityKind: n
@@ -2633,19 +2639,19 @@ var ee = "﻿", E = (n) => {
 		relationship: `${n}-implementation`,
 		...t.implementation.symbol === void 0 ? {} : { symbol: t.implementation.symbol },
 		path: t.implementation.path,
-		pointer: X(s, "implementation")
+		pointer: Y(s, "implementation")
 	});
 	for (let [r, i] of [["registration", t.registration], ...o]) i !== void 0 && e.push({
 		entity: c,
 		kind: "reference",
 		path: i.path,
-		pointer: X(s, r),
+		pointer: Y(s, r),
 		relationship: `${n}-${r === "inputSchema" ? "input-schema" : r === "outputSchema" ? "output-schema" : "registration"}`,
 		...i.symbol === void 0 ? {} : { symbol: i.symbol }
 	});
-	Hr(e, t.affectedBy, X(s, "affectedBy"), c);
-}, Gr = (e, t, n) => {
-	let r = `/agents/${g(t)}`, i = { agentId: t }, a = X(r, "bindings"), o = n.bindings;
+	Ur(e, t.affectedBy, Y(s, "affectedBy"), c);
+}, Kr = (e, t, n) => {
+	let r = `/agents/${g(t)}`, i = { agentId: t }, a = Y(r, "bindings"), o = n.bindings;
 	for (let t of [
 		"runtimeAgent",
 		"inputSchema",
@@ -2657,7 +2663,7 @@ var ee = "﻿", E = (n) => {
 			entity: i,
 			kind: "reference",
 			path: n.path,
-			pointer: X(a, t),
+			pointer: Y(a, t),
 			relationship: {
 				runtimeAgent: "runtime-agent",
 				inputSchema: "agent-input-schema",
@@ -2667,34 +2673,34 @@ var ee = "﻿", E = (n) => {
 			...n.symbol === void 0 ? {} : { symbol: n.symbol }
 		});
 	}
-	Hr(e, n.affectedBy, X(r, "affectedBy"), i);
-	let s = X(r, "tools");
+	Ur(e, n.affectedBy, Y(r, "affectedBy"), i);
+	let s = Y(r, "tools");
 	for (let r of Object.keys(n.tools ?? {}).sort(u)) {
 		let i = n.tools?.[r];
-		i !== void 0 && Wr(e, i, "tool", r, t, s, [["inputSchema", i.inputSchema], ["outputSchema", i.outputSchema]]);
+		i !== void 0 && Gr(e, i, "tool", r, t, s, [["inputSchema", i.inputSchema], ["outputSchema", i.outputSchema]]);
 	}
-	let c = X(r, "skills");
+	let c = Y(r, "skills");
 	for (let r of Object.keys(n.skills ?? {}).sort(u)) {
 		let i = n.skills?.[r];
-		i !== void 0 && Wr(e, i, "skill", r, t, c);
+		i !== void 0 && Gr(e, i, "skill", r, t, c);
 	}
-}, Kr = (e) => {
+}, qr = (e) => {
 	let t = [];
 	for (let n of ["context", "decisions"]) {
 		let r = e[n];
 		for (let e of Object.keys(r ?? {}).sort(u)) {
 			let i = r?.[e];
 			if (i === void 0) continue;
-			let a = X(`/${n}`, e), o = n === "decisions" ? j(S(e)) : null;
-			Ur(t, i, a, o === null ? { contextPath: S(e) } : { decisionId: o });
+			let a = Y(`/${n}`, e), o = n === "decisions" ? A(S(e)) : null;
+			Wr(t, i, a, o === null ? { contextPath: S(e) } : { decisionId: o });
 		}
 	}
 	for (let n of Object.keys(e.agents ?? {}).sort(u)) {
 		let r = e.agents?.[n];
-		r !== void 0 && Gr(t, n, r);
+		r !== void 0 && Kr(t, n, r);
 	}
 	return t.sort((e, t) => u(e.pointer, t.pointer));
-}, qr = (e, t) => {
+}, Jr = (e, t) => {
 	let n = e;
 	for (; n.length > 0;) {
 		if (t.has(n)) return !0;
@@ -2703,26 +2709,26 @@ var ee = "﻿", E = (n) => {
 		n = n.slice(0, e);
 	}
 	return !1;
-}, Jr = (e, t) => {
+}, Yr = (e, t) => {
 	let n = { [e.kind === "impact" ? "impactPath" : "referencedPath"]: e.path };
 	return t !== null && (n.actualType = t.type), (e.kind === "tool-implementation" || e.kind === "skill-implementation") && (n.reason = t === null ? "missing" : t.type === "symlink" ? "symlink" : "not-file"), n;
-}, Yr = (e, t) => t?.type === "file" ? null : e.kind === "tool-implementation" ? "MOLDEA_TOOL_IMPLEMENTATION_MISSING" : e.kind === "skill-implementation" ? "MOLDEA_SKILL_IMPLEMENTATION_MISSING" : e.kind === "impact" ? t === null ? "MOLDEA_IMPACT_PATH_MISSING" : "MOLDEA_IMPACT_PATH_NOT_FILE" : t === null ? "MOLDEA_REFERENCE_MISSING" : t.type === "symlink" ? "MOLDEA_REFERENCE_SYMLINK" : "MOLDEA_REFERENCE_NOT_FILE", Xr = (e, t, n, r) => {
-	let i = Yr(e, t);
+}, Xr = (e, t) => t?.type === "file" ? null : e.kind === "tool-implementation" ? "MOLDEA_TOOL_IMPLEMENTATION_MISSING" : e.kind === "skill-implementation" ? "MOLDEA_SKILL_IMPLEMENTATION_MISSING" : e.kind === "impact" ? t === null ? "MOLDEA_IMPACT_PATH_MISSING" : "MOLDEA_IMPACT_PATH_NOT_FILE" : t === null ? "MOLDEA_REFERENCE_MISSING" : t.type === "symlink" ? "MOLDEA_REFERENCE_SYMLINK" : "MOLDEA_REFERENCE_NOT_FILE", Zr = (e, t, n, r) => {
+	let i = Xr(e, t);
 	i !== null && r.add({
 		code: i,
-		details: Jr(e, t),
+		details: Yr(e, t),
 		entity: e.entity,
 		path: n,
 		pointer: e.pointer
 	});
-}, Zr = async (e, t, n, i, a, o, s = []) => {
+}, Qr = async (e, t, n, i, a, o, s = []) => {
 	let c = d(a, "validate-project"), l = new Set(i.diagnostics.flatMap((e) => e.path === null ? [] : [e.path])), u = new Map(), f = new Map(), p = o === void 0 ? void 0 : { signal: o };
-	for (let i of Kr(n)) {
-		if (qr(i.path, l)) continue;
+	for (let i of qr(n)) {
+		if (Jr(i.path, l)) continue;
 		let n = f.get(i.path);
 		n === void 0 && (n = e.getEntry(i.path, p), f.set(i.path, n));
 		let o = await n;
-		if (Xr(i, o, t, c), o?.type !== "file" || i.relationship === void 0) continue;
+		if (Zr(i, o, t, c), o?.type !== "file" || i.relationship === void 0) continue;
 		if (o.byteLength === null) throw TypeError("A repository file entry must declare its byte length.");
 		if (s.length >= a.maxCoverage) throw new r({
 			code: "RESOURCE_LIMIT_EXCEEDED",
@@ -2746,7 +2752,7 @@ var ee = "﻿", E = (n) => {
 		};
 		else {
 			let n = u.get(i.path);
-			n === void 0 && (n = await Br(e, i.path, o.byteLength, a.maxFileBytes), u.set(i.path, n)), n.kind === "not-checked" ? m = {
+			n === void 0 && (n = await Vr(e, i.path, o.byteLength, a.maxFileBytes), u.set(i.path, n)), n.kind === "not-checked" ? m = {
 				...d,
 				exportCheck: "not-checked",
 				exportNotCheckedReason: n.reason
@@ -2772,65 +2778,65 @@ var ee = "﻿", E = (n) => {
 				exportNotCheckedReason: "unresolved-exports"
 			};
 		}
-		Xt(e, 512 + JSON.stringify(m).length * 2), s.push(m);
+		Zt(e, 512 + JSON.stringify(m).length * 2), s.push(m);
 	}
 	return c.finalize();
-}, Qr = S("/moldea"), $r = S("/moldea/moldea.yaml"), ei = S("/moldea/project.md"), Z = (e, t) => {
+}, $r = S("/moldea"), ei = S("/moldea/moldea.yaml"), ti = S("/moldea/project.md"), X = (e, t) => {
 	for (let n of t) e.merge(n);
-}, ti = async (e, t) => {
+}, ni = async (e, t) => {
 	t = a(t);
-	let { session: n, signal: r } = e, i = [], s = d(t.limits, "validate-project"), c = r === void 0 ? void 0 : { signal: r }, l = new Map(), u = Yt(n.reader), p = 0, h = (e, t) => {
+	let { session: n, signal: r } = e, i = [], s = d(t.limits, "validate-project"), c = r === void 0 ? void 0 : { signal: r }, l = new Map(), u = Xt(n.reader), p = 0, h = (e, t) => {
 		let n = f(t);
 		u.reserve(n), p += n, l.set(e, t);
 	};
 	try {
-		let e = await n.reader.getEntry(Qr, c), a = null, u = null, d = null, f = null;
+		let e = await n.reader.getEntry($r, c), a = null, u = null, d = null, f = null;
 		if (e?.type === "directory") {
-			if (a = await n.reader.getEntry($r, c), a?.type === "file") {
-				let e = await ht({
-					content: await n.reader.readCompleteFile($r, c),
-					path: $r
+			if (a = await n.reader.getEntry(ei, c), a?.type === "file") {
+				let e = await gt({
+					content: await n.reader.readCompleteFile(ei, c),
+					path: ei
 				}, t, "validate-project");
-				e.manifest !== null && e.yamlRoot !== null && h($r, e.yamlRoot), f = e.formatVersion, Z(s, e.diagnostics), e.asset !== null && e.manifest !== null && (d = {
+				e.manifest !== null && e.yamlRoot !== null && h(ei, e.yamlRoot), f = e.formatVersion, X(s, e.diagnostics), e.asset !== null && e.manifest !== null && (d = {
 					asset: e.asset,
 					value: e.manifest
 				});
 			}
-			u = await n.reader.getEntry(ei, c);
+			u = await n.reader.getEntry(ti, c);
 		}
-		let p = await Pr(n.reader, u?.type === "file" ? ei : null, t, r);
-		Z(s, p.diagnostics);
-		let g = await Rn(n.reader, t.limits, r, {
+		let p = await Fr(n.reader, u?.type === "file" ? ti : null, t, r);
+		X(s, p.diagnostics);
+		let g = await zn(n.reader, t.limits, r, {
 			manifest: a,
 			moldeaRoot: e,
 			project: u
 		});
-		Z(s, g.diagnostics), n.throwIfAborted();
-		let _ = await Fr(n.reader, d?.value ?? null, g, t, r, p);
-		Z(s, _.diagnostics);
-		let v = await Qn(n.reader, g.inventory.decisions, t, r, h);
-		Z(s, v.diagnostics);
+		X(s, g.diagnostics), n.throwIfAborted();
+		let _ = await Ir(n.reader, d?.value ?? null, g, t, r, p);
+		X(s, _.diagnostics);
+		let v = await $n(n.reader, g.inventory.decisions, t, r, h);
+		X(s, v.diagnostics);
 		let y = [], b = [];
 		if (d !== null) {
-			let e = d.asset.path, a = await vn(n.reader, d.value, g, t, r);
-			y = a.agents, Z(s, a.diagnostics), Z(s, nr(e, d.value, g, v.decisions, t.limits)), Z(s, await Zr(n.reader, e, d.value, g, t.limits, r, i));
-			let o = await Mr(n.reader, e, y, t, r);
-			b = o.agentMirrors, Z(s, o.diagnostics);
+			let e = d.asset.path, a = await yn(n.reader, d.value, g, t, r);
+			y = a.agents, X(s, a.diagnostics), X(s, rr(e, d.value, g, v.decisions, t.limits)), X(s, await Qr(n.reader, e, d.value, g, t.limits, r, i));
+			let o = await Nr(n.reader, e, y, t, r);
+			b = o.agentMirrors, X(s, o.diagnostics);
 		}
-		n.throwIfAborted(), Z(s, await Cr(n.reader, n.instructions, t.limits, r));
+		n.throwIfAborted(), X(s, await wr(n.reader, n.instructions, t.limits, r));
 		let x = d === null ? {
 			completed: !1,
 			diagnostics: []
-		} : await Er(n.reader, d.value, t.limits, r);
-		n.throwIfAborted(), Z(s, x.diagnostics);
-		let S = o(Or(s.finalize(), d?.value.acceptedWarnings ?? [], new Set([
+		} : await Dr(n.reader, d.value, t.limits, r);
+		n.throwIfAborted(), X(s, x.diagnostics);
+		let S = o(kr(s.finalize(), d?.value.acceptedWarnings ?? [], new Set([
 			"MOLDEA_INTEGRATION_BLOCK_MISSING",
 			"MOLDEA_INTEGRATION_SKILL_MISSING",
 			"MOLDEA_INTEGRATION_BLOCK_STALE",
 			"MOLDEA_INTEGRATION_LINK_UNRESOLVED",
 			"MOLDEA_INTEGRATION_CLAUDE_IMPORT_MISSING",
 			...x.completed ? ["MOLDEA_IMPACT_PATTERN_UNMATCHED"] : []
-		]), t.limits), l), C = !S.some((e) => e.severity === "error") && d !== null && _.project !== null ? Rr({
+		]), t.limits), l), C = !S.some((e) => e.severity === "error") && d !== null && _.project !== null ? zr({
 			agentMirrors: b,
 			agents: y,
 			context: _.context,
@@ -2847,26 +2853,26 @@ var ee = "﻿", E = (n) => {
 	} finally {
 		l.clear(), u.release(p);
 	}
-}, ni = () => {
+}, ri = () => {
 	throw new r({
 		code: "INVALID_ARGUMENT",
 		operation: "validate-project"
 	});
-}, ri = (e) => i(e, !0) && i(e.snapshot, !0) && typeof e.snapshot.id == "string" && typeof e.snapshot.sourceKind == "string" && typeof e.compare == "function" && typeof e.getEntry == "function" && typeof e.listEntriesPage == "function" && typeof e.readFilePage == "function" && typeof e.readLinkText == "function", ii = (e) => i(e, !0) && typeof e.aborted == "boolean" && typeof e.addEventListener == "function" && typeof e.removeEventListener == "function", ai = (e) => {
+}, ii = (e) => i(e, !0) && i(e.snapshot, !0) && typeof e.snapshot.id == "string" && typeof e.snapshot.sourceKind == "string" && typeof e.compare == "function" && typeof e.getEntry == "function" && typeof e.listEntriesPage == "function" && typeof e.readFilePage == "function" && typeof e.readLinkText == "function", ai = (e) => i(e, !0) && typeof e.aborted == "boolean" && typeof e.addEventListener == "function" && typeof e.removeEventListener == "function", oi = (e) => {
 	try {
-		if (!i(e, !0)) return ni();
+		if (!i(e, !0)) return ri();
 		let t = e.repository, n = e.instructions, r = e.signal;
-		return Reflect.ownKeys(e).some((e) => e !== "repository" && e !== "instructions" && e !== "signal") || !ri(t) || n !== void 0 && !ri(n) || r !== void 0 && !ii(r) ? ni() : {
+		return Reflect.ownKeys(e).some((e) => e !== "repository" && e !== "instructions" && e !== "signal") || !ii(t) || n !== void 0 && !ii(n) || r !== void 0 && !ai(r) ? ri() : {
 			...n === void 0 ? {} : { instructions: n },
 			repository: t,
 			...r === void 0 ? {} : { signal: r }
 		};
 	} catch (e) {
 		if (e instanceof r) throw e;
-		return ni();
+		return ri();
 	}
-}, oi = async (e, t) => {
-	let n = ai(e), r = a(t), i = cn(n.repository, r.limits, n.signal, n.instructions), o = await ti({
+}, si = async (e, t) => {
+	let n = oi(e), r = a(t), i = ln(n.repository, r.limits, n.signal, n.instructions), o = await ni({
 		session: i,
 		...n.signal === void 0 ? {} : { signal: n.signal }
 	}, r);
@@ -2879,14 +2885,14 @@ var ee = "﻿", E = (n) => {
 			diagnostics: o.diagnostics,
 			...s,
 			coverage: o.coverage,
-			coverageCounts: Kt(o.coverage),
+			coverageCounts: qt(o.coverage),
 			formatVersion: o.formatVersion,
 			source: n.repository.snapshot,
-			summary: o.project === null ? null : Gt(o.project),
+			summary: o.project === null ? null : Kt(o.project),
 			valid: s.errorCount === 0
 		}
 	});
-}, si = async (e, t) => (await oi(e, t)).result, ci = "core7", li = 512, ui = 64, di = 2, fi = 8, pi = new TextEncoder(), Q = () => {
+}, ci = async (e, t) => (await si(e, t)).result, li = "core7", ui = 512, di = 64, fi = 2, pi = 8, Z = new TextEncoder(), Q = () => {
 	throw new r({
 		code: "INVALID_ARGUMENT",
 		operation: "create-project-inspection"
@@ -2907,7 +2913,7 @@ var ee = "﻿", E = (n) => {
 	}
 	return Array.isArray(e) ? `[${e.map((e) => $(e)).join(",")}]` : `{${Object.entries(e).filter(([, e]) => e !== void 0).sort(([e], [t]) => e < t ? -1 : +(e > t)).map(([e, t]) => `${JSON.stringify(e)}:${$(t)}`).join(",")}}`;
 }, hi = (e) => w((function* () {
-	for (let t of e) yield pi.encode(t);
+	for (let t of e) yield Z.encode(t);
 })()), gi = (e) => e.kind === "agent" ? ["3", e.agent.agentId].join("\0") : e.kind === "metadata" ? [
 	"0",
 	e.metadata.path,
@@ -2938,12 +2944,12 @@ var ee = "﻿", E = (n) => {
 	}
 	return t;
 }, vi = (e, t, n) => hi([
-	ci,
+	li,
 	e,
 	t,
 	n
 ]), yi = (e, t, n) => [
-	ci,
+	li,
 	t,
 	encodeURIComponent(n),
 	e,
@@ -2968,7 +2974,7 @@ var ee = "﻿", E = (n) => {
 	let i = n + e + t;
 	return !Number.isSafeInteger(t) || t < 0 || !Number.isSafeInteger(i) || i > r ? mi(r, Number.isSafeInteger(i) ? i : 2 ** 53 - 1) : e + t;
 }, Ci = function* (e) {
-	if (e.project !== null) for (let t of Wt(e.project)) yield {
+	if (e.project !== null) for (let t of Gt(e.project)) yield {
 		kind: "metadata",
 		metadata: t
 	};
@@ -2980,15 +2986,15 @@ var ee = "﻿", E = (n) => {
 		coverage: t,
 		kind: "coverage"
 	};
-	if (e.project !== null) for (let t of Ut(e.project)) yield {
+	if (e.project !== null) for (let t of Wt(e.project)) yield {
 		agent: t,
 		kind: "agent"
 	};
 }, wi = (e, t, n) => {
-	let r = e.resourceUsage.retainedBytes, i = Si(0, li, r, n), a = 0;
+	let r = e.resourceUsage.retainedBytes, i = Si(0, ui, r, n), a = 0;
 	for (let t of Ci(e)) {
-		let e = `${gi(t)}:0000000000`, o = pi.encode(e).byteLength + pi.encode($(t)).byteLength;
-		i = Si(i, ui + o * di + fi, r, n), t.kind === "metadata" && (a += 1);
+		let e = `${gi(t)}:0000000000`, o = Z.encode(e).byteLength + Z.encode($(t)).byteLength;
+		i = Si(i, di + o * fi + pi, r, n), t.kind === "metadata" && (a += 1);
 	}
 	let o = {
 		agents: t.agents,
@@ -3002,14 +3008,14 @@ var ee = "﻿", E = (n) => {
 		warnings: t.warnings,
 		acceptedWarnings: t.acceptedWarnings
 	};
-	return i = Si(i, pi.encode($({
+	return i = Si(i, Z.encode($({
 		counts: o,
 		formatVersion: e.result.formatVersion,
 		inspectionDigest: "sha256:0000000000000000000000000000000000000000000000000000000000000000",
 		source: e.result.source,
 		summary: e.result.summary,
 		valid: e.result.valid
-	})).byteLength * di, r, n), {
+	})).byteLength * fi, r, n), {
 		counts: o,
 		preparedBytes: i
 	};
@@ -3074,7 +3080,7 @@ var ee = "﻿", E = (n) => {
 		valid: u
 	});
 }, Oi = async (e, t) => {
-	let n = await oi(e, t), r = wi(n, {
+	let n = await si(e, t), r = wi(n, {
 		agents: n.result.summary?.counts.agents ?? 0,
 		context: n.result.summary?.counts.context ?? 0,
 		decisions: n.result.summary?.counts.decisions ?? 0,
@@ -3097,18 +3103,18 @@ var ee = "﻿", E = (n) => {
 		summary: n.result.summary,
 		valid: n.result.valid
 	});
-}, ki = St({ createCore: () => Ai }), Ai = (e) => {
+}, ki = Ct({ createCore: () => Ai }), Ai = (e) => {
 	let t = v(e);
 	return m({
-		calculateContentDigest: (e) => Ae(e, a(t).limits),
+		calculateContentDigest: (e) => je(e, a(t).limits),
 		createProjectInspection: (e) => Oi(e, a(t)),
-		validateProject: (e) => si(e, a(t)),
-		matchManifestScope: (e) => bt(e, a(t)),
-		normalizeText: (e) => M(e, a(t).limits, "normalize-text"),
-		parseDecision: (e) => Ht(e, a(t)),
-		parseManifest: (e) => gt(e, a(t)),
-		readCanonicalContentPage: (e) => Ot(e, a(t))
+		validateProject: (e) => ci(e, a(t)),
+		matchManifestScope: (e) => xt(e, a(t)),
+		normalizeText: (e) => j(e, a(t).limits, "normalize-text"),
+		parseDecision: (e) => Ut(e, a(t)),
+		parseManifest: (e) => _t(e, a(t)),
+		readCanonicalContentPage: (e) => kt(e, a(t))
 	});
 };
 //#endregion
-export { ar as i, Ai as n, zr as r, ki as t };
+export { or as i, Ai as n, Br as r, ki as t };

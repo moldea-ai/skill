@@ -3,7 +3,6 @@ import { spawnSync } from 'node:child_process';
 import { lstat, mkdir, mkdtemp, readFile, readlink, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { hashValue } from 'jg-crypto';
 import { readIndexEntries } from 'jg-git-commands';
 import { expect, test, vi } from 'vitest';
 import { z } from 'zod';
@@ -40,10 +39,9 @@ test.each([
         (entry) => entry.id === id,
       );
       if (!definition) throw new Error('Missing stale integration case');
-      const frozen = await readFile(join(import.meta.dirname, 'bridge-10.0.1.md'));
-      expect(hashValue(frozen)).toBe(
-        '6803b18c8155d9929d74801ef4857a1515a94812d5c3f4aa0f35266a6c5517b1',
-      );
+      const mismatched = (
+        await readFile(join(import.meta.dirname, 'managed-mismatch.md'), 'utf8')
+      ).replaceAll('{{skill-path}}', '.agents/skills/moldea');
       const { repositoryPath } = await createActorRepository(
         root,
         definition,
@@ -52,6 +50,7 @@ test.each([
       );
       const target = join(repositoryPath, 'config/agent-notes.md');
       const before = await readFile(target);
+      expect(before.toString('utf8')).toContain(mismatched.replaceAll('\n', '\r\n'));
       const ignoreBefore = await readFile(join(repositoryPath, '.gitignore'));
       const manifestBefore = await readFile(join(repositoryPath, 'moldea/moldea.yaml'));
       expect(manifestBefore.toString('utf8')).toBe(
@@ -102,9 +101,7 @@ test.each([
       ).replaceAll('{{skill-path}}', '.agents/skills/moldea');
       expect(printed).toBe(template);
       expect(await readFile(target)).toStrictEqual(before);
-      expect(printed).not.toBe(
-        frozen.toString('utf8').replaceAll('{{skill-path}}', '.agents/skills/moldea'),
-      );
+      expect(printed).not.toBe(mismatched);
       if (!isProtected) {
         expect(runManagedAgents([])).toBe('updated\n');
         const expected =

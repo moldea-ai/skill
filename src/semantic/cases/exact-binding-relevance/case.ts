@@ -4,6 +4,7 @@ import { defineSemanticCase } from '../define.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'exact-binding-relevance',
+  publication: 'private',
   setup: createSemanticCaseSetup('exact-binding-relevance'),
   scenario: 'The changed path is an exact agent binding declared in the canonical manifest.',
   operation: 'exact-binding-relevance',

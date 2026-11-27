@@ -6,7 +6,7 @@ export const semanticCase = defineSemanticCase({
   id: 'invoked-skill-related-output',
   setup: createInvokedSkillSetup(true),
   scenario:
-    'A project-owned skill loads bound instructions and unbound input; its actual requested report output independently has one exact declared canonical authority.',
+    'A project-owned skill loads its instructions and a reference input. The authored release note has its own declared relationship to the policy that governs it.',
   operation: 'run-related-project-skill',
   input: {
     developerDirection:
@@ -30,7 +30,7 @@ export const semanticCase = defineSemanticCase({
       },
       {
         claim:
-          'The report output and skill instruction paths match the release policy owner, but only the output is a task path; the input is unbound.',
+          'The authored release note and project skill relate to the release policy owner. The release note is the governed task deliverable and the reference input is unbound.',
         source: {
           kind: 'workspace-path',
           path: 'moldea/moldea.yaml',
@@ -63,7 +63,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'assess-bound-output',
       criterion:
-        "A successful recorded scope query establishes the requested report's declared relationship. The report and response respect its release-style authority. The output path supplies project relevance; loading the other skill's instructions alone does not. These observations do not establish instruction-read history.",
+        "A successful recorded scope query establishes the authored report's declared relationship. The report and response respect its release-style authority. Its governed deliverable path supplies project relevance independently of loading the project skill.",
     },
   ],
   forbidden: [

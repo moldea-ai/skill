@@ -17,7 +17,7 @@ import { createFilesystemRepositoryReader } from '@moldea.ai/repository-fs';
 
 import { createGitCommandOptions, isGitCommandError } from '../git-command/index.ts';
 
-import { INSTRUCTION_GIT_OUTPUT_BYTES, INSTRUCTION_PATHS } from './constants.ts';
+import { INSTRUCTION_GIT_OUTPUT_BYTES } from './constants.ts';
 
 // coding-agent instruction files the helpers may update, as repository-relative paths
 export type IInstructionPath = 'AGENTS.md' | 'CLAUDE.md' | '.claude/CLAUDE.md' | 'CLAUDE.local.md';
@@ -41,7 +41,7 @@ const REFUSALS: Record<Exclude<IRepositoryLinkResolution['state'], 'file'>, stri
   outside:
     'links outside the repository, and moldea only checks files in the repository. Replace an absolute link with a relative one, or move the instructions into the repository',
   missing:
-    "links to a file that isn't in the repository. If it exists locally, Git ignores it or it isn't committed yet: commit it, or point the link at a committed file. Otherwise fix or remove the link",
+    'links to a file missing from the repository view. Point the link at a file visible in that view, or fix or remove the link. Local checks can see non-ignored untracked files. A committed check uses its selected commit',
   loop: 'is a link loop. Fix the links',
   'not-file':
     "doesn't link straight to a file. Point the link straight at a file in the repository",
@@ -100,11 +100,16 @@ const readSymlinkSetting = (repositoryRoot: string): Promise<boolean> =>
 /**
  * Creates the link source the writer resolves through: the files validation sees, with Git links
  * checked out as plain files read as their stored text, exactly as the CLI reads them. Git is
- * asked only about visited paths, and about `core.symlinks` only once a link mode appears.
+ * asked only about visited paths, and about `core.symlinks` only once a link mode appears. Only the
+ * starting instruction path may be present locally but ignored.
  * @param repositoryRoot The canonical absolute repository root.
+ * @param startPath The instruction entry being checked, including its initial link text.
  * @returns The two reader operations `resolveRepositoryLink` needs.
  */
-const createWriterLinkSource = async (repositoryRoot: string): Promise<IRepositoryLinkSource> => {
+const createWriterLinkSource = async (
+  repositoryRoot: string,
+  startPath: IRepositoryPath,
+): Promise<IRepositoryLinkSource> => {
   const reader = await createFilesystemRepositoryReader({
     rootDirectory: repositoryRoot,
     selection: { kind: 'directory' },
@@ -118,7 +123,7 @@ const createWriterLinkSource = async (repositoryRoot: string): Promise<IReposito
       const entry = await reader.getEntry(path, options);
       if (entry?.type !== 'file' && entry?.type !== 'symlink') return entry;
       const modes = await readGitStorage(repositoryRoot, path);
-      if (modes === null) return INSTRUCTION_PATHS.has(path) ? entry : null;
+      if (modes === null) return path === startPath ? entry : null;
       if (entry.type === 'symlink' || !modes.includes('120000')) return entry;
       areSymlinksEnabled ??= await readSymlinkSetting(repositoryRoot);
       if (areSymlinksEnabled) return entry;
@@ -161,11 +166,12 @@ const resolveInstructionTarget = async (
   repositoryRoot: string,
   instructionPath: IInstructionPath,
 ): Promise<IRepositoryPath> => {
+  const startPath = parseRepositoryPath(`/${instructionPath}`);
   let resolution: IRepositoryLinkResolution;
   try {
     resolution = await resolveRepositoryLink(
-      await createWriterLinkSource(repositoryRoot),
-      parseRepositoryPath(`/${instructionPath}`),
+      await createWriterLinkSource(repositoryRoot, startPath),
+      startPath,
     );
   } catch (error) {
     if (isGitCommandError(error))

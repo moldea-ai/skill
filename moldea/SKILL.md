@@ -3,7 +3,7 @@ name: moldea
 description: >-
   Ground coding-agent work in durable project context. Initialize when asked, use governing context when planning product behavior or touching related files, maintain facts and decisions, work on project agents, project-grounded skills, and in-app model behavior, and check or fix project context. Stay silent on unrelated work.
 metadata:
-  version: '11.0.0'
+  version: '11.0.1'
 ---
 
 # moldea

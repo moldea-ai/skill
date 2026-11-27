@@ -185,8 +185,8 @@ test('refuses link and regular-file index modes for one path when links are disa
 test.each([
   ['outside', 'AGENTS.md links outside the repository'],
   ['absolute', 'Replace an absolute link with a relative one'],
-  ['missing', "AGENTS.md links to a file that isn't in the repository"],
-  ['ignored', 'commit it, or point the link at a committed file'],
+  ['missing', 'AGENTS.md links to a file missing from the repository view'],
+  ['ignored', 'Point the link at a file visible in that view'],
   ['loop', 'AGENTS.md is a link loop. Fix the links'],
   ['directory', "AGENTS.md doesn't link straight to a file"],
   ['parent after folder', "AGENTS.md doesn't link straight to a file"],
@@ -217,9 +217,8 @@ test.each([
   expect(await readFile(join(root, 'docs', 'AGENTS.md'), 'utf8')).toBe('# Rules\n');
 });
 
-test('follows a link to an ignored instruction file, as validation does', async () => {
+test('follows a link to an untracked instruction file visible to Git', async () => {
   const root = await createRepository();
-  await writeFile(join(root, '.gitignore'), 'CLAUDE.local.md\n');
   await writeFile(join(root, 'CLAUDE.local.md'), '# Mine\n');
   await link('CLAUDE.local.md', join(root, 'AGENTS.md'));
 
@@ -295,7 +294,7 @@ test('counts only Git output lines that name exactly the visited path', async ()
   await link('notes', join(root, 'AGENTS.md'));
 
   await expect(resolveInstructionWriteTarget(root, 'AGENTS.md')).rejects.toThrow(
-    "AGENTS.md links to a file that isn't in the repository",
+    'AGENTS.md links to a file missing from the repository view',
   );
 });
 
@@ -327,7 +326,7 @@ test('treats a target a global excludes file ignores as missing, as the CLI does
   await link('shared.md', join(root, 'AGENTS.md'));
 
   await expect(resolveInstructionWriteTarget(root, 'AGENTS.md')).rejects.toThrow(
-    "AGENTS.md links to a file that isn't in the repository",
+    'AGENTS.md links to a file missing from the repository view',
   );
 });
 

@@ -20,7 +20,7 @@ In an adopted repository, planning a product change reads `project.md` and selec
 
 ## Maintain and consolidate context
 
-Save durable project facts and decisions at their source of truth. Keep their links, declared relationships and mirrors aligned when behavior changes. Ask **Help moldea learn the billing area** for one evidence-backed round in the same format as Initialize. Ask to consolidate context explicitly when you need to remove proven duplication while preserving unique meaning.
+Save durable facts in the focused owner for their area. Link to facts owned elsewhere and keep decision records separate. Ask **Help moldea learn the billing area** for one evidence-backed round in the same format as Initialize. The agent proposes an owner and a routing link when the area is uncovered.
 
 ## Plan, create, or change project agents
 
@@ -28,7 +28,7 @@ Plan the minimum useful architecture with the right division between application
 
 ## Check and fix
 
-[Check](/docs/check-fix-validate/) compares a named area or explicitly requested project with its implementation and reports drift without writing. Fix makes an authorized correction and validates the result. It asks which claim governs when evidence cannot resolve a consequential conflict. Large whole-project fixes proceed in bounded rounds.
+[Check](/docs/check-fix-validate/) assesses facts, ownership, routes and relationships without writing. Run Fix routinely and after large changes to add missing relationships, remove unjustified paths with reasons and replace copied facts with links. Structure changes require approval. Large whole-project fixes proceed in bounded rounds.
 
 ## Validate structure
 

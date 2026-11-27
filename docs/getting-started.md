@@ -34,7 +34,7 @@ The agent then uses the bounded inventory and project indexes to identify main a
 
 A plain **yes** accepts all proposals for that round. You can answer by number or **skip** to leave that round's unconfirmed proposals unwritten. The first round includes one registration item when agents or inline model workflows are found. Say **Initialize moldea including my agents** when you want to authorize registration up front.
 
-Confirmed answers become focused context, narrow relationships to inspected paths, routing links in `project.md`, or decision records. After answering, choose another round on the remaining named areas or stop here. Say **continue** in the same conversation to return to an unanswered round.
+Confirmed answers give each main area with new facts a focused owner. The agent adds its routing link to `project.md`, declares evidenced relationships and records decisions in their own files. Existing authorities stay where they are and are linked. Choose another round on the remaining named areas or stop here. Say **continue** in the same conversation to return to an unanswered round.
 
 Stopping completes the covered scope. After the last write and native checks, the coding agent validates once on the normal path and reports adoption, what was covered, and what remains. Later, ask **Help moldea learn the billing area** to map it in one focused Maintain round.
 
@@ -48,9 +48,11 @@ For an adopted repository, an Initialize request reports the existing setup or r
 
 Use ordinary language, such as **Plan saved orders for repeat customers** or **Create a support agent governed by our refund policy**. Behavior planning in adopted repositories reads `project.md` and follows its focused routing. Ordinary file work uses the declared relationships as a gate. The skill stays silent when neither route applies. See the [workflow reference](/docs/how-it-works/).
 
+As part of a routine [Fix](/docs/check-fix-validate/#fix-a-project), the coding agent checks the AGENTS.md managed region against the installed template. The writer refreshes a mismatch when authorized. For a protected file, the agent provides the exact block for you to apply and then validate.
+
 ## Update or remove the skill
 
-Rerun the installation with the desired release or rerun the unpinned command to follow `main`. Then ask **Fix moldea** to check the AGENTS.md block. The writer updates only the managed region when authorized. A protected file gets the exact block for a separate instruction update. Validate after applying it. An ignored local bridge can work locally while remaining unavailable to checks of the committed tree.
+Rerun the installation with the desired release or use the unpinned command to follow `main`.
 
 Remove the local installation with:
 

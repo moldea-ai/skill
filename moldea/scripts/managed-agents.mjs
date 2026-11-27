@@ -3059,12 +3059,6 @@ var createGitCommandOptions = (repositoryRoot, configScope, maxOutputBytes) => {
 var isGitCommandError = (error) => error instanceof GitCommandError || GIT_READ_ERROR_CODES.has(getErrorCode(error) ?? "");
 
 // src/portable/instruction-link/constants.ts
-var INSTRUCTION_PATHS = /* @__PURE__ */ new Set([
-  "/AGENTS.md",
-  "/CLAUDE.md",
-  "/.claude/CLAUDE.md",
-  "/CLAUDE.local.md"
-]);
 var INSTRUCTION_GIT_OUTPUT_BYTES = 4096;
 
 // src/portable/instruction-link/instruction-link.ts
@@ -3076,7 +3070,7 @@ var LINKED_PARENT_ERROR_CODES = /* @__PURE__ */ new Set([
 var decoder2 = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
 var REFUSALS = {
   outside: "links outside the repository, and moldea only checks files in the repository. Replace an absolute link with a relative one, or move the instructions into the repository",
-  missing: "links to a file that isn't in the repository. If it exists locally, Git ignores it or it isn't committed yet: commit it, or point the link at a committed file. Otherwise fix or remove the link",
+  missing: "links to a file missing from the repository view. Point the link at a file visible in that view, or fix or remove the link. Local checks can see non-ignored untracked files. A committed check uses its selected commit",
   loop: "is a link loop. Fix the links",
   "not-file": "doesn't link straight to a file. Point the link straight at a file in the repository",
   unsupported: "doesn't link straight to a file. Point the link straight at a file in the repository"
@@ -3106,7 +3100,7 @@ var readSymlinkSetting = (repositoryRoot) => readConfigBoolean(
   true,
   createGitCommandOptions(repositoryRoot, "cli", INSTRUCTION_GIT_OUTPUT_BYTES)
 );
-var createWriterLinkSource = async (repositoryRoot) => {
+var createWriterLinkSource = async (repositoryRoot, startPath) => {
   const reader = await createFilesystemRepositoryReader({
     rootDirectory: repositoryRoot,
     selection: { kind: "directory" }
@@ -3118,7 +3112,7 @@ var createWriterLinkSource = async (repositoryRoot) => {
       const entry = await reader.getEntry(path2, options);
       if (entry?.type !== "file" && entry?.type !== "symlink") return entry;
       const modes = await readGitStorage(repositoryRoot, path2);
-      if (modes === null) return INSTRUCTION_PATHS.has(path2) ? entry : null;
+      if (modes === null) return path2 === startPath ? entry : null;
       if (entry.type === "symlink" || !modes.includes("120000")) return entry;
       areSymlinksEnabled ??= await readSymlinkSetting(repositoryRoot);
       if (areSymlinksEnabled) return entry;
@@ -3150,11 +3144,12 @@ var createWriterLinkSource = async (repositoryRoot) => {
   };
 };
 var resolveInstructionTarget = async (repositoryRoot, instructionPath) => {
+  const startPath = parseRepositoryPath(`/${instructionPath}`);
   let resolution;
   try {
     resolution = await resolveRepositoryLink(
-      await createWriterLinkSource(repositoryRoot),
-      parseRepositoryPath(`/${instructionPath}`)
+      await createWriterLinkSource(repositoryRoot, startPath),
+      startPath
     );
   } catch (error) {
     if (isGitCommandError(error))

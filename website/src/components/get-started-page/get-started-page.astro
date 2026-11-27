@@ -40,8 +40,8 @@ const stepLinks = [
 ] as const;
 // the sections an explicit repair reports, with illustrative values
 const repairReport = [
-  { term: 'Checked', detail: 'Project foundation, refund policy, and its link to the code' },
-  { term: 'Fixed', detail: 'AGENTS.md managed block refreshed' },
+  { term: 'Checked', detail: 'Project routing, refund policy, and its enforcement paths' },
+  { term: 'Fixed', detail: 'Policy record linked and AGENTS.md managed block refreshed' },
   { term: 'Verified', detail: 'Structural validation passed' },
   { term: 'Needs input', detail: 'None' },
   { term: 'Not checked', detail: 'None' },
@@ -406,16 +406,15 @@ const bandLinkClass =
             id="fix-title"
             class="section-title"
           >
-            Ask for a fix when something seems off.
+            Keep project context in order with Fix.
           </h2>
           <p class="mt-5 leading-8 text-muted-foreground">
-            Say <code class="inline-code">Fix moldea</code> when saved context looks wrong or a check
-            reports a problem. Repair checks the saved context and its connections to your code, corrects
-            what it can, and tells you what needs your input.
+            Say <code class="inline-code">Fix moldea</code> routinely and after large changes. The agent
+            checks who owns each area, adds missing relationships, and explains why it removes paths.
           </p>
           <p class="mt-4 text-sm leading-7 text-muted-foreground">
-            After you update the Skill, ask for <code class="inline-code">Fix moldea</code> once so the
-            block in <code class="inline-code">AGENTS.md</code> matches the new version.
+            The agent asks before reorganizing context and checks the managed block in
+            <code class="inline-code">AGENTS.md</code> against the installed template.
           </p>
           <div class="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3">
             <ActionLink
@@ -434,7 +433,7 @@ const bandLinkClass =
               href={withBase('/docs/getting-started/#update-or-remove-the-skill', basePath)}
               variant="link"
             >
-              Update the Skill
+              Manage the Skill installation
               <ArrowRight
                 class="size-4"
                 aria-hidden="true"
@@ -444,11 +443,11 @@ const bandLinkClass =
         </div>
         <div class="min-w-0">
           <SkillConversation ariaLabel="Developer and coding agent repair conversation">
-            <p slot="request">I just updated the Skill. Fix moldea</p>
+            <p slot="request">Fix moldea.</p>
             <p slot="response">
-              I checked the setup, refreshed the managed block in <code class="inline-code"
-                >AGENTS.md</code
-              >, and validated the result.
+              I linked the refund approval record in the refund policy and removed its impact path.
+              It records the approval. The refund code enforces the policy. I also refreshed the
+              managed block and validated the result.
             </p>
             <dl
               class="grid gap-3 rounded-xl border border-border bg-background p-4 text-sm"

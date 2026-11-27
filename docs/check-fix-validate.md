@@ -10,11 +10,11 @@ order: 80
 
 ## Check alignment
 
-Ask **Check the support agent's instruction wiring** for a read-only comparison of the canonical instruction and the actual model call. Check reports the assessed scope, confirmed drift, diagnostics and missing evidence. A valid format may coexist with a semantic mismatch. An ordinary unscoped code review does not start a full project audit.
+Ask **Check the support agent's instruction wiring** for a read-only comparison of the canonical instruction and the actual model call. Check also assesses ownership, routing and relationships in the requested scope. It reports misplaced facts, mixed responsibilities, missing routes and gaps in the evidence. A valid format may coexist with a semantic mismatch. A whole-project Check requires an explicit request.
 
 ## Fix a project
 
-Ask **Fix moldea** or name the area you want fixed. The coding agent makes the smallest authorized correction when the governing claim is established. If two meaningful claims conflict, it identifies both and stops for your choice unless independent governing evidence resolves them.
+Ask **Fix moldea** routinely and after large changes, or name one area to repair. The coding agent adds missing qualifying relationships, removes immaterial ones and gives a reason for each removal. It links to facts owned by another document and preserves each owner's distinct facts. It asks before splitting an owner, moving facts or changing routing. After approval, Maintain preserves the meaning of moved material and assigns each owner its own relationships. If two consequential claims conflict, the agent needs your choice or independent governing evidence.
 
 A whole-project Fix begins with the bundled Git checkpoint helper. It inspects safe bounded Git evidence and never writes Git state. A helper limit, including an attribute filter or unavailable commit, can leave Git-dependent verification incomplete. The agent assesses owners progressively, reports checked and remaining scope, changed paths, checks and issues needing input, and offers numbered next choices. Continue in the same conversation from the reported full commit, next owner, uncommitted paths and manifest owner entries. The agent rechecks affected work and labels any stale assessments. After authorized correction it runs native checks and validates the final state.
 

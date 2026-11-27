@@ -130,9 +130,9 @@ var p = 1048576, m = {
 }, me = (e, t) => {
 	let n = Buffer.concat(e);
 	return t === "buffer" ? n : n.toString("utf-8");
-}, he = (e) => {
+}, S = (e) => {
 	e.stdin?.destroy(), e.stdout?.destroy(), e.stderr?.destroy();
-}, ge = (e, t, n) => new Promise((r) => {
+}, he = (e, t, n) => new Promise((r) => {
 	if (t()) {
 		r(!0);
 		return;
@@ -143,13 +143,13 @@ var p = 1048576, m = {
 		e.off("close", i), r(!1);
 	}, n);
 	e.once("close", i);
-}), _e = async (e) => {
+}), ge = async (e) => {
 	try {
 		await le(e);
 	} catch (t) {
-		throw he(e), t;
+		throw S(e), t;
 	}
-}, ve = async (e) => {
+}, _e = async (e) => {
 	let { command: n, args: r, cwd: i, env: a, input: o, timeoutSeconds: s, maxOutputBytes: l = p, signal: u, encoding: d = "utf-8" } = e;
 	pe(s, l), u?.throwIfAborted();
 	let f = performance.now(), h = c(n, r, {
@@ -197,8 +197,8 @@ var p = 1048576, m = {
 			error: new t(`The process '${n}' didn't finish within ${s} seconds.`, { code: m.PROCESS_TIMED_OUT })
 		}), s * 1e3)), u?.addEventListener("abort", i, { once: !0 }), h.stdin.end(o);
 	});
-	if (b.kind === "failed") throw await _e(h), he(h), b.error;
-	if (await _e(h), !await ge(h, () => y, 5e3)) throw he(h), new t(`A process started by '${n}' kept its output open after it exited.`, { code: m.PROCESS_TREE_SURVIVED });
+	if (b.kind === "failed") throw await ge(h), S(h), b.error;
+	if (await ge(h), !await he(h, () => y, 5e3)) throw S(h), new t(`A process started by '${n}' kept its output open after it exited.`, { code: m.PROCESS_TREE_SURVIVED });
 	if (v > l) throw fe(n, l);
 	return {
 		exitCode: b.exitCode,
@@ -207,13 +207,13 @@ var p = 1048576, m = {
 		stderr: me(_, d),
 		durationMs: Math.round(performance.now() - f)
 	};
-}, S = {
+}, C = {
 	Composition: "composition",
 	Content: "content",
 	Inspect: "inspect",
 	Scope: "scope",
 	Validate: "validate"
-}, C = {
+}, w = {
 	Help: "--help",
 	Json: "--json",
 	Cursor: "--cursor",
@@ -229,19 +229,19 @@ var p = 1048576, m = {
 	PathsStdin: "--paths-stdin",
 	Repository: "--repository",
 	Version: "--version"
-}, ye = Object.freeze({
+}, ve = Object.freeze({
 	maxDiagnostics: 1e4,
 	maxEntries: 1e5,
 	maxCoverage: 1e4,
 	maxFileBytes: 8388608,
 	maxManifestBytes: 2097152,
 	maxTotalBytes: 134217728
-}), be = 65536, w = class extends Error {
+}), ye = 65536, T = class extends Error {
 	code;
-	constructor(e) {
-		super(e), this.code = e, this.name = "MoldeaCliOutputPageException";
+	constructor(e, t) {
+		super(e, t), this.code = e, this.name = "MoldeaCliOutputPageException";
 	}
-}, xe = {
+}, be = {
 	UNSUPPORTED_HASH_ALGORITHM: "UNSUPPORTED_HASH_ALGORITHM",
 	INVALID_BYTE_LENGTH: "INVALID_BYTE_LENGTH",
 	UNSUPPORTED_ENCODING: "UNSUPPORTED_ENCODING",
@@ -251,17 +251,17 @@ var p = 1048576, m = {
 	INVALID_TOTP_SECRET: "INVALID_TOTP_SECRET",
 	TOTP_INVALID: "TOTP_INVALID",
 	TOTP_ALREADY_USED: "TOTP_ALREADY_USED"
-}, Se = [
+}, xe = [
 	"sha256",
 	"sha384",
 	"sha512"
-], Ce = (e, n = "sha256") => {
-	if (!Se.includes(n)) throw new t("The hash algorithm must be sha256, sha384, or sha512.", {
-		code: xe.UNSUPPORTED_HASH_ALGORITHM,
+], Se = (e, n = "sha256") => {
+	if (!xe.includes(n)) throw new t("The hash algorithm must be sha256, sha384, or sha512.", {
+		code: be.UNSUPPORTED_HASH_ALGORITHM,
 		data: { algorithm: String(n) }
 	});
 	return u(n).update(e).digest("hex");
-}, we = /^sha256:[0-9a-f]{64}$/u, Te = /^[A-Za-z0-9_-]+$/u, Ee = Object.freeze([
+}, Ce = /^sha256:[0-9a-f]{64}$/u, we = /^[A-Za-z0-9_-]+$/u, Te = Object.freeze([
 	"checksum",
 	"command",
 	"filtersDigest",
@@ -269,71 +269,71 @@ var p = 1048576, m = {
 	"snapshotDigest",
 	"sourceCursor",
 	"version"
-]), T = (e) => `sha256:${Ce(r(e, { strict: !0 }))}`, De = (e) => T(e), Oe = (e, t) => {
+]), E = (e) => `sha256:${Se(r(e, { strict: !0 }))}`, Ee = (e) => E(e), De = (e, t) => {
 	let n = Buffer.from(e, "utf8"), r = Buffer.from(t, "utf8");
 	return n.length === r.length && d(n, r);
-}, ke = (e) => {
+}, Oe = (e) => {
 	if (typeof e != "object" || !e || Array.isArray(e)) return !1;
 	let t = e, n = Object.keys(t).sort();
-	return n.length === Ee.length && n.every((e, t) => e === Ee[t]) && t.version === 2 && (t.command === "content" || t.command === "inspect" || t.command === "scope" || t.command === "validate") && typeof t.filtersDigest == "string" && we.test(t.filtersDigest) && typeof t.lastKey == "string" && t.lastKey.length > 0 && (t.sourceCursor === null || typeof t.sourceCursor == "string") && typeof t.snapshotDigest == "string" && we.test(t.snapshotDigest) && typeof t.checksum == "string" && we.test(t.checksum);
-}, Ae = (e, t, n, i, a = null) => {
+	return n.length === Te.length && n.every((e, t) => e === Te[t]) && t.version === 3 && (t.command === "content" || t.command === "inspect" || t.command === "scope" || t.command === "validate") && typeof t.filtersDigest == "string" && Ce.test(t.filtersDigest) && typeof t.lastKey == "string" && t.lastKey.length > 0 && (t.sourceCursor === null || typeof t.sourceCursor == "string") && typeof t.snapshotDigest == "string" && Ce.test(t.snapshotDigest) && typeof t.checksum == "string" && Ce.test(t.checksum);
+}, ke = (e, t, n, i, a = null) => {
 	let o = {
 		command: e,
-		filtersDigest: T(t),
+		filtersDigest: E(t),
 		lastKey: i,
 		sourceCursor: a,
 		snapshotDigest: n,
-		version: 2
+		version: 3
 	}, s = {
 		...o,
-		checksum: De(o)
+		checksum: Ee(o)
 	};
 	return Buffer.from(r(s, { strict: !0 }), "utf8").toString("base64url");
-}, je = (e) => {
+}, Ae = (e) => {
 	let t;
 	try {
-		if (!Te.test(e.cursor)) throw TypeError("The cursor is not canonical base64url.");
+		if (!we.test(e.cursor)) throw TypeError("The cursor is not canonical base64url.");
 		let n = Buffer.from(e.cursor, "base64url");
 		if (n.toString("base64url") !== e.cursor) throw TypeError("The cursor is not canonical base64url.");
 		let r = n.toString("utf8");
 		t = JSON.parse(r);
 	} catch {
-		throw new w("CURSOR_INVALID");
+		throw new T("CURSOR_INVALID");
 	}
-	if (!ke(t)) throw new w("CURSOR_INVALID");
+	if (!Oe(t)) throw new T("CURSOR_INVALID");
 	let { checksum: n, ...r } = t;
-	if (!Oe(n, De(r)) || t.command !== e.command || t.filtersDigest !== T(e.filters)) throw new w("CURSOR_INVALID");
-	if (e.snapshotDigest !== void 0 && t.snapshotDigest !== e.snapshotDigest) throw new w("CURSOR_SNAPSHOT_CHANGED");
+	if (!De(n, Ee(r)) || t.command !== e.command || t.filtersDigest !== E(e.filters)) throw new T("CURSOR_INVALID");
+	if (e.snapshotDigest !== void 0 && t.snapshotDigest !== e.snapshotDigest) throw new T("CURSOR_SNAPSHOT_CHANGED");
 	return Object.freeze({
 		lastKey: t.lastKey,
 		snapshotDigest: t.snapshotDigest,
 		sourceCursor: t.sourceCursor
 	});
-}, Me = (e) => {
+}, D = (e) => e.toString(36).padStart(11, "0"), je = (e) => {
 	for (let t = 0; t < e.length; t += 1) {
 		let n = e[t]?.key, r = e[t - 1]?.key;
 		if (n === void 0 || n.length === 0 || r !== void 0 && n <= r) throw TypeError("Output records must have unique keys in ascending order.");
 	}
-}, Ne = (e) => {
-	Me(e.records);
-	let t = e.cursor === null ? null : je({
+}, Me = (e) => {
+	je(e.records);
+	let t = e.cursor === null ? null : Ae({
 		command: e.command,
 		cursor: e.cursor,
 		filters: e.filters,
 		snapshotDigest: e.snapshotDigest
 	}), n = t === null ? 0 : t.sourceCursor === null ? e.records.findIndex(({ key: e }) => e === t.lastKey) + 1 : 0;
-	if (t !== null && t.sourceCursor === null && n === 0) throw new w("CURSOR_INVALID");
+	if (t !== null && t.sourceCursor === null && n === 0) throw new T("CURSOR_INVALID");
 	let r = Object.freeze([]), a = Object.freeze({
 		cursor: null,
 		records: r
 	});
 	if (n === e.records.length) {
-		if (e.measure(a, 2) > e.maxOutputBytes) throw new w("OUTPUT_BUDGET_TOO_SMALL");
+		if (e.measure(a, 2) > e.maxOutputBytes) throw new T("OUTPUT_BUDGET_TOO_SMALL");
 		return a;
 	}
 	let o = (t, n) => {
 		let r = e.sourceCursorForRecord?.(t) ?? null;
-		return (e.sourceCursorForRecord === void 0 ? n < e.records.length : r !== null) ? Ae(e.command, e.filters, e.snapshotDigest, t.key, r) : null;
+		return (e.sourceCursorForRecord === void 0 ? n < e.records.length : r !== null) ? ke(e.command, e.filters, e.snapshotDigest, t.key, r) : null;
 	}, s = i(e.records.slice(n), {
 		maxBytes: e.maxOutputBytes,
 		measurePage: (t, r) => e.measure(Object.freeze({
@@ -341,98 +341,98 @@ var p = 1048576, m = {
 			records: t
 		}), r)
 	}), c = s[s.length - 1];
-	if (c === void 0) throw new w("OUTPUT_BUDGET_TOO_SMALL");
+	if (c === void 0) throw new T("OUTPUT_BUDGET_TOO_SMALL");
 	return Object.freeze({
 		cursor: o(c, n + s.length),
 		records: Object.freeze(s)
 	});
-}, Pe = /^\d+$/u, Fe = (e) => {
-	if (!Pe.test(e)) return null;
+}, Ne = /^\d+$/u, Pe = (e) => {
+	if (!Ne.test(e)) return null;
 	let t = Number(e);
 	return Number.isSafeInteger(t) && t > 0 ? t : null;
-}, Ie = (e) => {
-	let t = Fe(e);
+}, Fe = (e) => {
+	let t = Pe(e);
 	return t !== null && t >= 4096 && t <= 1048576 ? t : null;
-}, Le = (e) => e.maxManifestBytes <= e.maxFileBytes && e.maxFileBytes <= e.maxTotalBytes, E = (e) => e.length > 0 && !e.includes("\0") && e.isWellFormed(), Re = (e) => e.length > 0 && e.length <= 16384 && !e.includes("\0") && e.isWellFormed(), ze = new Set(Object.values(S)), Be = {
-	[C.MaxDiagnostics]: "maxDiagnostics",
-	[C.MaxEntries]: "maxEntries",
-	[C.MaxCoverage]: "maxCoverage",
-	[C.MaxFileBytes]: "maxFileBytes",
-	[C.MaxManifestBytes]: "maxManifestBytes",
-	[C.MaxTotalBytes]: "maxTotalBytes"
-}, D = (e, t, n) => ({
+}, Ie = (e) => e.maxManifestBytes <= e.maxFileBytes && e.maxFileBytes <= e.maxTotalBytes, O = (e) => e.length > 0 && !e.includes("\0") && e.isWellFormed(), Le = (e) => e.length > 0 && e.length <= 16384 && !e.includes("\0") && e.isWellFormed(), Re = new Set(Object.values(C)), ze = {
+	[w.MaxDiagnostics]: "maxDiagnostics",
+	[w.MaxEntries]: "maxEntries",
+	[w.MaxCoverage]: "maxCoverage",
+	[w.MaxFileBytes]: "maxFileBytes",
+	[w.MaxManifestBytes]: "maxManifestBytes",
+	[w.MaxTotalBytes]: "maxTotalBytes"
+}, k = (e, t, n) => ({
 	code: e,
 	command: t,
 	isJson: n,
 	kind: "error"
-}), Ve = (e) => e !== void 0 && ze.has(e), He = (e) => {
-	let t = e.includes(C.Json);
+}), Be = (e) => e !== void 0 && Re.has(e), Ve = (e) => {
+	let t = e.includes(w.Json);
 	if (e.length === 0) return {
 		command: null,
 		kind: "help"
 	};
 	let n = e[0];
-	if (n === C.Help) return e.length === 1 ? {
+	if (n === w.Help) return e.length === 1 ? {
 		command: null,
 		kind: "help"
-	} : D("INVALID_ARGUMENT", null, t);
-	if (n === C.Version) return e.length === 1 ? { kind: "version" } : D("INVALID_ARGUMENT", null, t);
-	let r = Ve(n) ? n : null;
-	if (r === null) return D("INVALID_ARGUMENT", null, t);
-	if (e.length === 2 && e[1] === C.Help) return {
+	} : k("INVALID_ARGUMENT", null, t);
+	if (n === w.Version) return e.length === 1 ? { kind: "version" } : k("INVALID_ARGUMENT", null, t);
+	let r = Be(n) ? n : null;
+	if (r === null) return k("INVALID_ARGUMENT", null, t);
+	if (e.length === 2 && e[1] === w.Help) return {
 		command: r,
 		kind: "help"
 	};
-	let i = new Set(), a = { ...ye }, o = !1, s = null, c = be, l = null, u = "none", d = null;
+	let i = new Set(), a = { ...ve }, o = !1, s = null, c = ye, l = null, u = "none", d = null;
 	for (let n = 1; n < e.length; n += 1) {
 		let f = e[n];
-		if (f === void 0 || i.has(f)) return D("INVALID_ARGUMENT", r, t);
-		if (i.add(f), f === C.Json) continue;
-		if (f === C.NoColor) {
+		if (f === void 0 || i.has(f)) return k("INVALID_ARGUMENT", r, t);
+		if (i.add(f), f === w.Json) continue;
+		if (f === w.NoColor) {
 			o = !0;
 			continue;
 		}
-		if (f === C.PathsStdin) {
+		if (f === w.PathsStdin) {
 			u = "stdin";
 			continue;
 		}
-		if (f === C.Help || f === C.Version) return D("INVALID_ARGUMENT", r, t);
-		let p = Be[f], m = f === C.Repository, h = f === C.Cursor, g = f === C.MaxOutputBytes, _ = f === C.Path;
-		if (p === void 0 && !m && !h && !g && !_ || r === S.Composition) return D("INVALID_ARGUMENT", r, t);
+		if (f === w.Help || f === w.Version) return k("INVALID_ARGUMENT", r, t);
+		let p = ze[f], m = f === w.Repository, h = f === w.Cursor, g = f === w.MaxOutputBytes, _ = f === w.Path;
+		if (p === void 0 && !m && !h && !g && !_ || r === C.Composition) return k("INVALID_ARGUMENT", r, t);
 		let v = e[n + 1];
-		if (v === void 0 || v.startsWith("--")) return D("INVALID_ARGUMENT", r, t);
+		if (v === void 0 || v.startsWith("--")) return k("INVALID_ARGUMENT", r, t);
 		if (n += 1, h) {
-			if (!Re(v)) return D("INVALID_ARGUMENT", r, t);
+			if (!Le(v)) return k("INVALID_ARGUMENT", r, t);
 			s = v;
 			continue;
 		}
 		if (g) {
-			let e = Ie(v);
-			if (e === null) return D("RESOURCE_LIMIT_CONFIGURATION_INVALID", r, t);
+			let e = Fe(v);
+			if (e === null) return k("RESOURCE_LIMIT_CONFIGURATION_INVALID", r, t);
 			c = e;
 			continue;
 		}
 		if (_) {
-			if (!E(v)) return D("INVALID_ARGUMENT", r, t);
+			if (!O(v)) return k("INVALID_ARGUMENT", r, t);
 			l = v, u = "path";
 			continue;
 		}
 		if (m) {
-			if (!E(v)) return D("INVALID_ARGUMENT", r, t);
+			if (!O(v)) return k("INVALID_ARGUMENT", r, t);
 			d = v;
 			continue;
 		}
-		let y = Fe(v);
-		if (y === null || p === void 0) return D("RESOURCE_LIMIT_CONFIGURATION_INVALID", r, t);
+		let y = Pe(v);
+		if (y === null || p === void 0) return k("RESOURCE_LIMIT_CONFIGURATION_INVALID", r, t);
 		a[p] = y;
 	}
-	if (!Le(a)) return D("RESOURCE_LIMIT_CONFIGURATION_INVALID", r, t);
-	let f = r === S.Scope, p = r === S.Content, m = l !== null, h = i.has(C.PathsStdin);
-	if ((m || h) && !f && !p || f && m === h || p && (!m || h) || f && i.has(C.MaxCoverage) || p && [
-		C.MaxDiagnostics,
-		C.MaxCoverage,
-		C.MaxManifestBytes
-	].some((e) => i.has(e)) || !t && (s !== null || i.has(C.MaxOutputBytes))) return D("INVALID_ARGUMENT", r, t);
+	if (!Ie(a)) return k("RESOURCE_LIMIT_CONFIGURATION_INVALID", r, t);
+	let f = r === C.Scope, p = r === C.Content, m = l !== null, h = i.has(w.PathsStdin);
+	if ((m || h) && !f && !p || f && m === h || p && (!m || h) || f && i.has(w.MaxCoverage) || p && [
+		w.MaxDiagnostics,
+		w.MaxCoverage,
+		w.MaxManifestBytes
+	].some((e) => i.has(e)) || !t && (s !== null || i.has(w.MaxOutputBytes))) return k("INVALID_ARGUMENT", r, t);
 	let g = {
 		cursor: s,
 		isColorDisabled: o,
@@ -450,7 +450,7 @@ var p = 1048576, m = {
 		}),
 		kind: "command"
 	};
-}, Ue = Object.freeze({
+}, He = Object.freeze({
 	COMPOSITION_STATE_INVALID: Object.freeze({
 		message: "The installed composition state is invalid.",
 		retryable: !1,
@@ -566,44 +566,44 @@ var p = 1048576, m = {
 		retryable: !0,
 		source: "cli"
 	})
-}), O = Object.freeze({ kind: "git-working-tree" }), We = "Usage: moldea <command> [options]\n\nCommands:\n  validate       Validate the current moldea project.\n  inspect        Inspect content-free project metadata.\n  scope          Match changed paths to declared moldea relationships.\n  content        Read one canonical moldea asset explicitly.\n  composition    Report the installed CLI composition state.\n\nGlobal options:\n  --help     Show top-level help.\n  --version  Show the CLI version.\n\nRun \"moldea <command> --help\" for command-specific options.\n", k = "  --repository <path>                Select a Git working-tree directory.\n  --json                             Emit one machine-readable JSON result.\n  --no-color                         Disable ANSI styling in human output.\n", Ge = "  --max-entries <integer>            Override the repository entry limit.\n  --max-file-bytes <integer>         Override the per-file byte limit.\n  --max-total-bytes <integer>        Override the total cached-byte limit.\n", Ke = `${Ge}  --max-manifest-bytes <integer>     Override the manifest byte limit.
+}), Ue = "Usage: moldea <command> [options]\n\nCommands:\n  validate       Validate the current moldea project.\n  inspect        Inspect content-free project metadata.\n  scope          Match changed paths to declared moldea relationships.\n  content        Read one canonical moldea asset explicitly.\n  composition    Report the installed CLI composition state.\n\nGlobal options:\n  --help     Show top-level help.\n  --version  Show the CLI version.\n\nRun \"moldea <command> --help\" for command-specific options.\n", We = "  --repository <path>                Select a Git working-tree directory.\n  --json                             Emit one machine-readable JSON result.\n  --no-color                         Disable ANSI styling in human output.\n", Ge = "  --max-entries <integer>            Override the repository entry limit.\n  --max-file-bytes <integer>         Override the per-file byte limit.\n  --max-total-bytes <integer>        Override the total cached-byte limit.\n", Ke = `${Ge}  --max-manifest-bytes <integer>     Override the manifest byte limit.
   --max-diagnostics <integer>        Override the diagnostic count limit.
-`, A = "  --max-output-bytes <integer>       Bound JSON output from 4096 to 1048576 bytes.\n  --cursor <opaque-cursor>           Continue a prior JSON result page.\n", qe = `${k}${Ke}  --max-coverage <integer>           Override the binding coverage count limit.
-${A}`, Je = `${k}${Ke}${A}`, Ye = `${k}${Ge}${A}`, Xe = {
-	[S.Composition]: "Usage: moldea composition [options]\n\nReport the installed CLI composition state.\n\nOptions:\n  --json      Emit one machine-readable JSON result.\n  --no-color  Disable ANSI styling in human output.\n  --help      Show this help.\n",
-	[S.Inspect]: `Usage: moldea inspect [options]
+`, qe = "  --max-output-bytes <integer>       Bound JSON output from 4096 to 1048576 bytes.\n  --cursor <opaque-cursor>           Continue a prior JSON result page.\n", Je = `${We}${Ke}  --max-coverage <integer>           Override the binding coverage count limit.
+${qe}`, Ye = `${We}${Ke}${qe}`, Xe = `${We}${Ge}${qe}`, Ze = {
+	[C.Composition]: "Usage: moldea composition [options]\n\nReport the installed CLI composition state.\n\nOptions:\n  --json      Emit one machine-readable JSON result.\n  --no-color  Disable ANSI styling in human output.\n  --help      Show this help.\n",
+	[C.Inspect]: `Usage: moldea inspect [options]
 
 Inspect content-free metadata for the current moldea project.
 
 Options:
-${qe}  --help                             Show this help.
+${Je}  --help                             Show this help.
 `,
-	[S.Scope]: `Usage: moldea scope (--path <logical-path> | --paths-stdin) [options]
+	[C.Scope]: `Usage: moldea scope (--path <logical-path> | --paths-stdin) [options]
 
 Match changed repository paths to declared moldea relationships. The stdin form accepts NUL-delimited UTF-8 logical paths.
 
 Options:
-${Je}  --path <logical-path>               Match one repository-logical path.
+${Ye}  --path <logical-path>               Match one repository-logical path.
   --paths-stdin                      Read NUL-delimited paths from stdin.
   --help                             Show this help.
 `,
-	[S.Content]: `Usage: moldea content --path <canonical-logical-path> [options]
+	[C.Content]: `Usage: moldea content --path <canonical-logical-path> [options]
 
 Read one canonical moldea text asset in bounded Unicode-safe chunks.
 
 Options:
-${Ye}  --path <canonical-logical-path>     Select exactly one canonical moldea file.
+${Xe}  --path <canonical-logical-path>     Select exactly one canonical moldea file.
   --help                             Show this help.
 `,
-	[S.Validate]: `Usage: moldea validate [options]
+	[C.Validate]: `Usage: moldea validate [options]
 
 Validate the current moldea project.
 
 Options:
-${qe}  --help                             Show this help.
+${Je}  --help                             Show this help.
 `
-}, Ze = Object.freeze({}), Qe = (e, t = Ze) => {
-	let n = Ue[e];
+}, Qe = Object.freeze({}), $e = (e, t = Qe) => {
+	let n = He[e];
 	return Object.freeze({
 		code: e,
 		details: Object.freeze({ ...t }),
@@ -612,60 +612,72 @@ ${qe}  --help                             Show this help.
 		retryable: n.retryable,
 		source: n.source
 	});
-}, $e = (e) => Object.freeze({
+}, et = (e) => Object.freeze({
 	cliVersion: e.cliVersion,
 	command: e.command,
 	error: e.error,
 	result: e.result,
-	schemaVersion: 8,
+	schemaVersion: 9,
 	status: e.status
-}), et = (e) => `${r($e(e), { strict: !0 })}\n`, tt = [
+}), tt = (e) => `${r(et(e), { strict: !0 })}\n`, nt = [
 	"agentId",
 	"capabilityKind",
 	"capabilityId",
 	"decisionId",
 	"contextPath",
 	"integrationPath"
-], nt = (e) => tt.flatMap((t) => {
+], rt = (e) => nt.flatMap((t) => {
 	let n = e[t];
 	return n === void 0 ? [] : [`${t}=${n}`];
-}).join(", "), rt = (e) => {
+}).join(", "), it = (e) => {
 	let t = e.path === null ? "" : e.range === null ? ` ${e.path}` : ` ${e.path}:${e.range.start.line}:${e.range.start.column}`, n = [`${e.source}:${e.code}${t} ${e.message}`];
-	return e.pointer !== null && n.push(`  pointer: ${e.pointer}`), e.entity !== null && n.push(`  entity: ${nt(e.entity)}`), e.severity === "warning" && (n.push(`  subject: ${e.subject}`), e.qualifier !== null && n.push(`  qualifier: ${e.qualifier}`)), n.join("\n");
-}, it = (e, t, n = 0) => {
+	return e.pointer !== null && n.push(`  pointer: ${e.pointer}`), e.entity !== null && n.push(`  entity: ${rt(e.entity)}`), e.severity === "warning" && (n.push(`  subject: ${e.subject}`), e.qualifier !== null && n.push(`  qualifier: ${e.qualifier}`)), n.join("\n");
+}, at = (e, t, n = 0) => {
 	let r = [`The moldea project is ${e ? n > 0 ? "valid with warnings" : "valid" : "invalid"}.`];
 	return t !== null && r.push(`Repository format: ${t}`), r;
-}, j = (e, t, n) => `${e === 1 ? t : n}: ${e}`, at = (e) => e === null ? We : Xe[e], ot = (e) => `${e.source}:${e.code} ${e.message}\n`, M = (e, t, n, r, i) => et({
+}, A = (e, t, n) => `${e === 1 ? t : n}: ${e}`, ot = (e) => e === null ? Ue : Ze[e], st = (e) => `${e.source}:${e.code} ${e.message}\n`, j = (e, t, n, r, i) => tt({
 	cliVersion: i,
 	command: e,
 	error: n,
 	result: t,
 	status: r
-}), st = (e, t, n) => M(t, null, e, "error", n), ct = (e, t) => `${[
+}), ct = (e, t, n) => j(t, null, e, "error", n), lt = (e, t) => `${[
 	"The installed CLI composition state is valid.",
 	`CLI version: ${t}`,
 	`Supported Node.js: ${e.supportedNodeRange}`,
-	"JSON output schema: 8",
+	"JSON output schema: 9",
 	`Minimum Git: ${e.minimumGitVersion}`,
 	`Repository formats: ${e.repositoryFormatVersions.join(", ")}`,
 	"Packages:",
 	...e.packages.map(({ name: e, version: t }) => `  ${e}: ${t}`)
-].join("\n")}\n`, lt = (e, t) => M(S.Composition, e, null, "valid", t), ut = (e) => `Coverage: ${e.bindings} bindings, ${e.exportsPassed} exports confirmed, ${e.exportsFailed} exports missing, ${e.exportsNotChecked} not checked`, dt = (e) => {
-	let t = it(e.valid, e.formatVersion, e.warningCount);
-	t.push(ut(e.coverageCounts));
-	for (let n of e.page.records) n.kind === "diagnostic" && !(n.severity === "warning" && n.accepted) && t.push(rt(n));
-	return t.push(j(e.diagnosticCount, "Diagnostic", "Diagnostics")), t.push(j(e.errorCount, "Error", "Errors")), t.push(j(e.warningCount, "Warning", "Warnings")), t.push(`${e.acceptedWarningCount} accepted ${e.acceptedWarningCount === 1 ? "warning" : "warnings"}`), e.page.cursor !== null && t.push("Additional records are available through JSON pagination."), `${t.join("\n")}\n`;
-}, ft = (e, t) => M(S.Validate, e, null, e.valid ? "valid" : "invalid", t), pt = (e) => {
-	let t = it(e.valid, e.formatVersion, e.counts.warnings);
-	t.push(ut(e.coverageCounts)), t.push(`${e.counts.acceptedWarnings} accepted ${e.counts.acceptedWarnings === 1 ? "warning" : "warnings"}`);
-	for (let n of e.page.records) n.kind === "diagnostic" && !(n.severity === "warning" && n.accepted) && t.push(rt(n));
+].join("\n")}\n`, ut = (e, t) => j(C.Composition, e, null, "valid", t), dt = (e) => `Coverage: ${e.bindings} bindings, ${e.exportsPassed} exports confirmed, ${e.exportsFailed} exports missing, ${e.exportsNotChecked} not checked`, ft = (e) => {
+	let t = at(e.valid, e.formatVersion, e.warningCount);
+	t.push(dt(e.coverageCounts));
+	for (let n of e.page.records) n.kind === "diagnostic" && !(n.severity === "warning" && n.accepted) && t.push(it(n));
+	return t.push(A(e.diagnosticCount, "Diagnostic", "Diagnostics")), t.push(A(e.errorCount, "Error", "Errors")), t.push(A(e.warningCount, "Warning", "Warnings")), t.push(`${e.acceptedWarningCount} accepted ${e.acceptedWarningCount === 1 ? "warning" : "warnings"}`), e.page.cursor !== null && t.push("Additional records are available through JSON pagination."), `${t.join("\n")}\n`;
+}, pt = (e, t) => j(C.Validate, {
+	valid: e.valid,
+	coverageCounts: e.coverageCounts,
+	diagnosticCount: e.diagnosticCount,
+	errorCount: e.errorCount,
+	warningCount: e.warningCount,
+	acceptedWarningCount: e.acceptedWarningCount,
+	page: e.page
+}, null, e.valid ? "valid" : "invalid", t), mt = (e) => {
+	let t = at(e.valid, e.formatVersion, e.counts.warnings);
+	t.push(dt(e.coverageCounts)), t.push(`${e.counts.acceptedWarnings} accepted ${e.counts.acceptedWarnings === 1 ? "warning" : "warnings"}`);
+	for (let n of e.page.records) n.kind === "diagnostic" && !(n.severity === "warning" && n.accepted) && t.push(it(n));
 	for (let [n, r] of Object.entries(e.counts)) t.push(`${n}: ${r}`);
 	return `${t.join("\n")}\n`;
-}, mt = (e, t) => M(S.Inspect, e, null, e.valid ? "valid" : "invalid", t), ht = (e) => `${[
+}, ht = (e, t) => j(C.Inspect, {
+	valid: e.valid,
+	counts: e.counts,
+	page: e.page
+}, null, e.valid ? "valid" : "invalid", t), gt = (e) => `${[
 	`The moldea scope result is ${e.valid ? "valid" : "invalid"}.`,
 	`Relevant: ${e.relevant ? "yes" : "no"}`,
 	...Object.entries(e.counts).map(([e, t]) => `${e}: ${t}`)
-].join("\n")}\n`, gt = (e, t) => M(S.Scope, e, null, e.valid ? "valid" : "invalid", t), _t = (e) => `${[
+].join("\n")}\n`, _t = (e, t) => j(C.Scope, e, null, e.valid ? "valid" : "invalid", t), vt = (e) => `${[
 	`Path: ${e.asset.path}`,
 	`Content identity: ${e.asset.contentIdentity ?? "unavailable"}`,
 	`Bytes: ${e.chunk.byteStart}-${e.chunk.byteEnd} of ${e.asset.totalBytes}`,
@@ -673,20 +685,15 @@ ${qe}  --help                             Show this help.
 	...e.cursor === null ? [] : ["Continue this asset by passing the cursor to a JSON content request."],
 	"",
 	e.chunk.content
-].join("\n")}\n`, vt = (e, t) => M(S.Content, e, null, "valid", t), yt = (e) => {
+].join("\n")}\n`, yt = (e, t) => j(C.Content, e, null, "valid", t), bt = (e) => {
 	let t = e.diagnostics.filter((e) => e.severity === "error").length;
 	if (!(Number.isSafeInteger(e.errorCount) && Number.isSafeInteger(e.warningCount) && e.errorCount === t && e.acceptedWarningCount === e.diagnostics.filter((e) => e.severity === "warning" && e.accepted === !0).length && e.warningCount === e.diagnostics.length - t - e.acceptedWarningCount && e.diagnosticCount === e.errorCount + e.warningCount + e.acceptedWarningCount && e.valid === (e.summary !== null && e.errorCount === 0) && (e.valid || e.errorCount > 0))) throw TypeError("The Core validation result is internally inconsistent.");
-}, N = (e, ...t) => JSON.stringify([e, ...t]), P = (e, t = 0) => {
+}, xt = (e, t) => {
 	let n = {
 		code: e.code,
 		group: e.group,
 		entity: e.entity,
-		key: N("diagnostic", e.source, e.severity, e.code, e.path, e.pointer, e.severity === "warning" ? [
-			e.subject,
-			e.qualifier,
-			e.accepted === !0,
-			e.accepted === !0 ? e.reason : null
-		] : null, t),
+		key: D(t),
 		kind: "diagnostic",
 		message: e.message,
 		path: e.path,
@@ -706,56 +713,35 @@ ${qe}  --help                             Show this help.
 		...n,
 		severity: "error"
 	});
-}, bt = (e, t, n = "coverage") => Object.freeze({
-	entity: e.entity,
-	relationship: e.relationship,
-	path: e.path,
-	symbol: e.symbol,
-	fileCheck: e.fileCheck,
-	...e.exportCheck === "not-checked" ? {
-		exportCheck: e.exportCheck,
-		exportNotCheckedReason: e.exportNotCheckedReason
-	} : { exportCheck: e.exportCheck },
-	key: N(n, "coverage", e.relationship, e.entity, e.path, e.symbol, t),
-	kind: "coverage"
-}), xt = (e, t) => {
-	let n = t.toString().padStart(6, "0");
-	if (e.kind === "agent") {
-		let t = {
-			agentId: e.agent.agentId,
-			key: N(n, "agent", e.agent.agentId),
-			kind: "agent"
-		};
-		return Object.freeze(t);
-	}
-	if (e.kind === "diagnostic") return Object.freeze({
-		...P(e.diagnostic, t),
-		key: N(n, "diagnostic", e.diagnostic.source, e.diagnostic.severity, e.diagnostic.code, P(e.diagnostic, t).key)
-	});
-	if (e.kind === "coverage") return bt(e.coverage, t, n);
-	let r = e.metadata, i = {
-		agentId: r.agentId,
-		byteLength: r.byteLength,
-		canonicalDigest: r.canonicalDigest,
-		decisionId: r.decisionId,
-		digest: r.digest,
-		key: N(n, "metadata", r.path, r.kind, r.agentId),
+}, St = (e) => e.fileCheck !== "passed" || e.exportCheck !== "passed", Ct = (e, t) => {
+	if (e.kind === "diagnostic") return xt(e.diagnostic, t);
+	let { agentId: n, byteLength: r, decisionId: i, kind: a, path: o } = e.metadata;
+	return Object.freeze({
+		agentId: n,
+		byteLength: r,
+		decisionId: i,
+		key: D(t),
 		kind: "metadata",
-		metadataKind: r.kind,
-		path: r.path,
-		scalarLength: r.scalarLength
-	};
-	return Object.freeze(i);
-}, St = (e) => {
-	yt(e);
-	let t = e.diagnostics.map((e, t) => {
-		let n = P(e, t);
-		return Object.freeze({
-			...n,
-			key: N(t.toString().padStart(6, "0"), "diagnostic", n.key)
-		});
-	}), n = Object.freeze([...t, ...e.coverage.map((e, n) => bt(e, n, (t.length + n).toString().padStart(6, "0")))]), r = T({
-		records: n,
+		metadataKind: a,
+		path: o
+	});
+}, wt = (e) => {
+	bt(e);
+	let t = e.diagnostics.map(xt), n = Object.freeze([...t, ...e.coverage.filter(St).map((e, n) => Object.freeze({
+		entity: e.entity,
+		relationship: e.relationship,
+		path: e.path,
+		symbol: e.symbol,
+		fileCheck: e.fileCheck,
+		...e.exportCheck === "not-checked" ? {
+			exportCheck: e.exportCheck,
+			exportNotCheckedReason: e.exportNotCheckedReason
+		} : { exportCheck: e.exportCheck },
+		key: D(t.length + n),
+		kind: "coverage"
+	}))]), r = E({
+		diagnostics: t,
+		coverage: e.coverage,
 		coverageCounts: e.coverageCounts,
 		acceptedWarningCount: e.acceptedWarningCount,
 		errorCount: e.errorCount,
@@ -772,51 +758,34 @@ ${qe}  --help                             Show this help.
 		errorCount: e.errorCount,
 		formatVersion: e.formatVersion,
 		snapshotDigest: r,
-		source: O,
 		valid: e.valid,
 		warningCount: e.warningCount
 	});
-}, Ct = (e) => {
-	let t = e.summary === null ? null : Object.freeze({
-		manifest: Object.freeze({
-			digest: e.summary.manifestDigest,
-			path: e.summary.manifestPath
-		}),
-		project: Object.freeze({
-			digest: e.summary.projectDigest,
-			path: e.summary.projectPath
-		})
-	}), n = Object.freeze(e.page.records.map(({ item: e }, t) => xt(e, t))), r = new Map(e.page.records.map((e, t) => {
-		let r = n[t];
-		if (r === void 0) throw TypeError("A projected inspection record is missing.");
-		return [r.key, e.nextCursor];
-	})), i = e.inspectionDigest;
+}, Tt = (e) => {
+	let t = Object.freeze(e.records.map(({ item: t }, n) => Ct(t, e.startIndex + n))), n = new Map(e.records.map(({ nextCursor: t }, n) => [D(e.startIndex + n), t]));
 	return Object.freeze({
 		counts: e.counts,
 		formatVersion: e.formatVersion,
-		getSourceCursor: (e) => r.get(e.key) ?? null,
-		project: t,
-		records: n,
-		snapshotDigest: i,
-		source: O,
+		getSourceCursor: (e) => n.get(e.key) ?? null,
+		records: t,
+		snapshotDigest: e.inspectionDigest,
 		coverageCounts: e.coverageCounts,
-		valid: e.valid,
-		view: e.view
+		valid: e.valid
 	});
-}, wt = "/dev/null", F = {
+}, Et = "/dev/null", M = {
 	GIT_NOT_FOUND: "GIT_NOT_FOUND",
 	GIT_COMMAND_FAILED: "GIT_COMMAND_FAILED",
 	GIT_INVALID_ARGUMENT: "GIT_INVALID_ARGUMENT",
 	GIT_OUTPUT_INVALID: "GIT_OUTPUT_INVALID",
 	GIT_REPOSITORY_NOT_FOUND: "GIT_REPOSITORY_NOT_FOUND",
 	GIT_ACCESS_DENIED: "GIT_ACCESS_DENIED"
-}, I = (e) => new t("An argument isn't valid.", {
-	code: F.GIT_INVALID_ARGUMENT,
+}, N = (e) => new t("An argument isn't valid.", {
+	code: M.GIT_INVALID_ARGUMENT,
 	data: { argument: e }
-}), L = (e) => new t("Git's output isn't in the expected format.", {
-	code: F.GIT_OUTPUT_INVALID,
+}), P = (e) => new t("Git's output isn't in the expected format.", {
+	code: M.GIT_OUTPUT_INVALID,
 	data: { subcommand: e }
-}), Tt = (e) => typeof e == "string" && e.length > 0 && !e.includes("\0"), Et = "ssh -o BatchMode=yes -o ConnectTimeout=10", Dt = {
+}), F = (e) => typeof e == "string" && e.length > 0 && !e.includes("\0"), Dt = "ssh -o BatchMode=yes -o ConnectTimeout=10", Ot = {
 	GIT_TERMINAL_PROMPT: "0",
 	GIT_ASKPASS: "",
 	GCM_INTERACTIVE: "never",
@@ -828,19 +797,19 @@ ${qe}  --help                             Show this help.
 	LC_ALL: "C",
 	LANG: "C",
 	LANGUAGE: "C"
-}, Ot = new Set(Object.keys(Dt)), kt = (e) => {
+}, kt = new Set(Object.keys(Ot)), At = (e) => {
 	let t = e.toUpperCase();
-	return !t.startsWith("GIT_") && !t.startsWith("SSH_ASKPASS") && !Ot.has(t);
-}, At = ({ isolateConfig: e = !1, sshCommand: t = Et, baseEnv: n = process.env } = {}) => ({
-	...Object.fromEntries(Object.entries(n).filter(([e]) => kt(e))),
-	...Dt,
+	return !t.startsWith("GIT_") && !t.startsWith("SSH_ASKPASS") && !kt.has(t);
+}, jt = ({ isolateConfig: e = !1, sshCommand: t = Dt, baseEnv: n = process.env } = {}) => ({
+	...Object.fromEntries(Object.entries(n).filter(([e]) => At(e))),
+	...Ot,
 	GIT_SSH_COMMAND: t,
 	...e ? {
 		GIT_CONFIG_NOSYSTEM: "1",
-		GIT_CONFIG_GLOBAL: wt,
+		GIT_CONFIG_GLOBAL: Et,
 		GIT_ATTR_NOSYSTEM: "1"
 	} : {}
-}), jt = 1048576, Mt = [
+}), Mt = 1048576, Nt = [
 	"-c",
 	"core.fsmonitor=",
 	"-c",
@@ -851,29 +820,29 @@ ${qe}  --help                             Show this help.
 	"color.ui=false",
 	"-c",
 	"submodule.recurse=false"
-], Nt = ["-c", "credential.helper="], Pt = /^fatal: not a git repository/mu, Ft = /^fatal: (?:detected dubious ownership in repository at |.*: Permission denied\r?$)/mu, It = async (e) => {
+], Pt = ["-c", "credential.helper="], Ft = /^fatal: not a git repository/mu, It = /^fatal: (?:detected dubious ownership in repository at |.*: Permission denied\r?$)/mu, Lt = async (e) => {
 	try {
 		return (await f(e)).isDirectory();
 	} catch {
 		return !1;
 	}
-}, Lt = (e) => Array.isArray(e) && e.every((e) => typeof e == "string" && !e.includes("\0")), Rt = (e) => {
+}, Rt = (e) => Array.isArray(e) && e.every((e) => typeof e == "string" && !e.includes("\0")), zt = (e) => {
 	let t = e.toUpperCase();
 	return t !== "GIT_ASKPASS" && t !== "GIT_TERMINAL_PROMPT" && t !== "GCM_INTERACTIVE" && !t.startsWith("SSH_ASKPASS");
-}, R = async (e, { cwd: r, timeoutSeconds: i = 30, maxOutputBytes: a = jt, input: o, signal: s, isolateConfig: c = !1, useCredentialHelpers: l = !1, env: u, encoding: d }) => {
-	if (!Lt(e)) throw I("args");
-	if (!Tt(r) || !await It(r)) throw I("cwd");
+}, I = async (e, { cwd: r, timeoutSeconds: i = 30, maxOutputBytes: a = Mt, input: o, signal: s, isolateConfig: c = !1, useCredentialHelpers: l = !1, env: u, encoding: d }) => {
+	if (!Rt(e)) throw N("args");
+	if (!F(r) || !await Lt(r)) throw N("cwd");
 	let f = {
-		...At({ isolateConfig: c }),
-		...Object.fromEntries(Object.entries(u ?? {}).filter(([e]) => Rt(e)))
+		...jt({ isolateConfig: c }),
+		...Object.fromEntries(Object.entries(u ?? {}).filter(([e]) => zt(e)))
 	};
 	try {
-		return await ve({
+		return await _e({
 			command: "git",
 			args: [
-				...Mt,
-				...c ? ["-c", `core.attributesFile=${wt}`] : [],
-				...l ? [] : Nt,
+				...Nt,
+				...c ? ["-c", `core.attributesFile=${Et}`] : [],
+				...l ? [] : Pt,
 				"--no-pager",
 				...e
 			],
@@ -887,98 +856,98 @@ ${qe}  --help                             Show this help.
 		});
 	} catch (e) {
 		let i = n(e) === m.PROCESS_START_FAILED && n(e.cause) === "ENOENT";
-		throw i && process.platform === "win32" && r.length >= 260 ? I("cwd") : i ? new t("Git isn't installed, or isn't on the PATH.", {
-			code: F.GIT_NOT_FOUND,
+		throw i && process.platform === "win32" && r.length >= 260 ? N("cwd") : i ? new t("Git isn't installed, or isn't on the PATH.", {
+			code: M.GIT_NOT_FOUND,
 			cause: e
 		}) : e;
 	}
-}, zt = (e, n) => {
+}, Bt = (e, n) => {
 	if (e.exitCode === 0) return;
 	let r = typeof e.stderr == "string" ? e.stderr : e.stderr.toString("utf8"), i = {
 		subcommand: n,
 		exitCode: e.exitCode
 	};
-	throw Pt.test(r) ? new t("The directory isn't in a Git repository.", {
-		code: F.GIT_REPOSITORY_NOT_FOUND,
+	throw Ft.test(r) ? new t("The directory isn't in a Git repository.", {
+		code: M.GIT_REPOSITORY_NOT_FOUND,
 		data: i
-	}) : Ft.test(r) ? new t("Git can't access the repository.", {
-		code: F.GIT_ACCESS_DENIED,
+	}) : It.test(r) ? new t("Git can't access the repository.", {
+		code: M.GIT_ACCESS_DENIED,
 		data: i
 	}) : new t("The git command failed.", {
-		code: F.GIT_COMMAND_FAILED,
+		code: M.GIT_COMMAND_FAILED,
 		data: i
 	});
-}, Bt = /^([0-7]{6}) [0-9a-f]{40,64} ([0-3])$/, z = (e, t) => (zt(e, t), e.stdout), Vt = (e, t) => {
-	let n = z(e, t);
-	if (e.stderr.length > 0) throw L(t);
+}, Vt = /^([0-7]{6}) [0-9a-f]{40,64} ([0-3])$/, L = (e, t) => (Bt(e, t), e.stdout), Ht = (e, t) => {
+	let n = L(e, t);
+	if (e.stderr.length > 0) throw P(t);
 	return n;
-}, Ht = (e, t) => {
+}, Ut = (e, t) => {
 	try {
 		return new TextDecoder("utf-8", {
 			fatal: !0,
 			ignoreBOM: !0
 		}).decode(e);
 	} catch {
-		throw L(t);
+		throw P(t);
 	}
-}, Ut = (e, t) => {
-	let n = Ht(e, t);
+}, Wt = (e, t) => {
+	let n = Ut(e, t);
 	if (n === "") return [];
 	let r = n.split("\0");
-	if (r.pop() !== "") throw L(t);
+	if (r.pop() !== "") throw P(t);
 	return r;
-}, Wt = (e) => e.map((e) => {
-	let t = e.indexOf("	"), n = t === -1 ? null : Bt.exec(e.slice(0, t));
-	if (n === null || t === e.length - 1) throw L("ls-files");
+}, Gt = (e) => e.map((e) => {
+	let t = e.indexOf("	"), n = t === -1 ? null : Vt.exec(e.slice(0, t));
+	if (n === null || t === e.length - 1) throw P("ls-files");
 	return {
 		mode: n[1],
 		stage: Number(n[2]),
 		path: e.slice(t + 1)
 	};
-}), Gt = /^git version (0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:[.-][0-9A-Za-z]+)*(?: \([0-9A-Za-z](?:[0-9A-Za-z ._+/-]*[0-9A-Za-z])?\))?\r?\n$/, Kt = (e) => {
+}), Kt = /^git version (0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:[.-][0-9A-Za-z]+)*(?: \([0-9A-Za-z](?:[0-9A-Za-z ._+/-]*[0-9A-Za-z])?\))?\r?\n$/, qt = (e) => {
 	if (e === void 0) return ["--"];
-	if (!Array.isArray(e) || !e.every(Tt)) throw I("paths");
+	if (!Array.isArray(e) || !e.every(F)) throw N("paths");
 	return ["--", ...e];
-}, qt = async (e, { paths: t, ...n } = {}) => Wt(Ut(Vt(await R([
+}, Jt = async (e, { paths: t, ...n } = {}) => Gt(Wt(Ht(await I([
 	"ls-files",
 	"--cached",
 	"--stage",
 	"--full-name",
 	"-z",
-	...Kt(t)
+	...qt(t)
 ], {
 	...n,
 	cwd: e,
 	encoding: "buffer"
-}), "ls-files"), "ls-files")), Jt = async (e, { paths: t, ...n } = {}) => Ut(Vt(await R([
+}), "ls-files"), "ls-files")), Yt = async (e, { paths: t, ...n } = {}) => Wt(Ht(await I([
 	"ls-files",
 	"--others",
 	"--exclude-standard",
 	"--full-name",
 	"-z",
-	...Kt(t)
+	...qt(t)
 ], {
 	...n,
 	cwd: e,
 	encoding: "buffer"
-}), "ls-files"), "ls-files"), Yt = async (e, t = {}) => {
-	let n = z(await R(["rev-parse", "--is-inside-work-tree"], {
+}), "ls-files"), "ls-files"), Xt = async (e, t = {}) => {
+	let n = L(await I(["rev-parse", "--is-inside-work-tree"], {
 		...t,
 		cwd: e
 	}), "rev-parse").trim();
 	if (n === "false") return null;
-	if (n !== "true") throw L("rev-parse");
-	let r = Ht(z(await R(["rev-parse", "--show-toplevel"], {
+	if (n !== "true") throw P("rev-parse");
+	let r = Ut(L(await I(["rev-parse", "--show-toplevel"], {
 		...t,
 		cwd: e,
 		encoding: "buffer"
 	}), "rev-parse"), "rev-parse"), i = r.endsWith("\n") ? r.slice(0, -1) : "";
-	if (i === "" || i.includes("\n")) throw L("rev-parse");
+	if (i === "" || i.includes("\n")) throw P("rev-parse");
 	return i;
-}, Xt = async (e, t, n, r = {}) => {
-	if (!Tt(t) || t.startsWith("-") || /\s/.test(t)) throw I("key");
-	if (typeof n != "boolean") throw I("defaultValue");
-	let i = z(await R([
+}, Zt = async (e, t, n, r = {}) => {
+	if (!F(t) || t.startsWith("-") || /\s/.test(t)) throw N("key");
+	if (typeof n != "boolean") throw N("defaultValue");
+	let i = L(await I([
 		"config",
 		"--type=bool",
 		`--default=${String(n)}`,
@@ -988,30 +957,30 @@ ${qe}  --help                             Show this help.
 		...r,
 		cwd: e
 	}), "config");
-	if (i !== "true\n" && i !== "false\n") throw L("config");
+	if (i !== "true\n" && i !== "false\n") throw P("config");
 	return i === "true\n";
-}, Zt = async (e, t = {}) => {
-	let n = z(await R(["version"], {
+}, Qt = async (e, t = {}) => {
+	let n = L(await I(["version"], {
 		...t,
 		cwd: e
-	}), "version"), r = Gt.exec(n), i = {
+	}), "version"), r = Kt.exec(n), i = {
 		major: Number(r?.[1]),
 		minor: Number(r?.[2]),
 		patch: Number(r?.[3])
 	};
-	if (!Object.values(i).every(Number.isSafeInteger)) throw L("version");
+	if (!Object.values(i).every(Number.isSafeInteger)) throw P("version");
 	return i;
-}, Qt = (e, t) => Object.freeze({
+}, $t = (e, t) => Object.freeze({
 	kind: "failed",
 	reason: e,
 	...t === void 0 ? {} : { subcommand: t }
-}), $t = (e, t) => {
+}), en = (e, t) => {
 	if (t?.aborted === !0) return "aborted";
 	switch (n(e)) {
-		case F.GIT_NOT_FOUND: return "not-found";
-		case F.GIT_REPOSITORY_NOT_FOUND: return "repository-not-found";
-		case F.GIT_ACCESS_DENIED: return "access-denied";
-		case F.GIT_OUTPUT_INVALID: return "output-invalid";
+		case M.GIT_NOT_FOUND: return "not-found";
+		case M.GIT_REPOSITORY_NOT_FOUND: return "repository-not-found";
+		case M.GIT_ACCESS_DENIED: return "access-denied";
+		case M.GIT_OUTPUT_INVALID: return "output-invalid";
 		case m.PROCESS_OUTPUT_TOO_LARGE: return "output-limit-exceeded";
 		case m.PROCESS_START_FAILED: {
 			let t = n(e.cause);
@@ -1019,28 +988,28 @@ ${qe}  --help                             Show this help.
 		}
 		default: return "command-failed";
 	}
-}, en = async (e, t, n) => {
+}, tn = async (e, t, n) => {
 	try {
 		return Object.freeze({
 			kind: "completed",
 			value: await e()
 		});
 	} catch (e) {
-		return Qt($t(e, t), n);
+		return $t(en(e, t), n);
 	}
-}, tn = (e, t) => {
+}, nn = (e, t) => {
 	if (e.stderr.byteLength > 4096) return "output-invalid";
 	try {
-		zt(e, t);
+		Bt(e, t);
 	} catch (e) {
-		return $t(e);
+		return en(e);
 	}
 	return e.stderr.byteLength === 0 ? null : "output-invalid";
-}, B = Object.freeze({
+}, R = Object.freeze({
 	major: 2,
 	minor: 32,
 	patch: 0
-}), nn = `${B.major}.${B.minor}.${B.patch}`, rn = 4096, an = (e) => {
+}), rn = `${R.major}.${R.minor}.${R.patch}`, an = 4096, on = (e) => {
 	switch (e) {
 		case "aborted": return "GIT_OPERATION_ABORTED";
 		case "not-found": return "GIT_NOT_FOUND";
@@ -1050,28 +1019,28 @@ ${qe}  --help                             Show this help.
 		case "repository-not-found":
 		case "command-failed": return "GIT_COMMAND_FAILED";
 	}
-}, on = (e) => e.major === B.major ? e.minor === B.minor ? e.patch >= B.patch : e.minor > B.minor : e.major > B.major, sn = (e = Zt) => async (t, n) => {
-	let r = await en(() => e(t, {
-		maxOutputBytes: rn,
+}, sn = (e) => e.major === R.major ? e.minor === R.minor ? e.patch >= R.patch : e.minor > R.minor : e.major > R.major, cn = (e = Qt) => async (t, n) => {
+	let r = await tn(() => e(t, {
+		maxOutputBytes: an,
 		timeoutSeconds: 300,
 		...n === void 0 ? {} : { signal: n }
 	}), n);
 	return r.kind === "failed" ? Object.freeze({
-		errorCode: an(r.reason),
+		errorCode: on(r.reason),
 		kind: "failed"
-	}) : on(r.value) ? Object.freeze({
+	}) : sn(r.value) ? Object.freeze({
 		kind: "supported",
 		version: Object.freeze({ ...r.value })
 	}) : Object.freeze({
 		errorCode: "GIT_VERSION_UNSUPPORTED",
 		kind: "failed"
 	});
-}, cn = class extends Error {
+}, ln = class extends Error {
 	code = "COMPOSITION_STATE_INVALID";
 	constructor() {
-		super(Qe("COMPOSITION_STATE_INVALID").message), this.name = "MoldeaCliCompositionException";
+		super($e("COMPOSITION_STATE_INVALID").message), this.name = "MoldeaCliCompositionException";
 	}
-}, V = e(((e, t) => {
+}, z = e(((e, t) => {
 	t.exports = {
 		MAX_LENGTH: 256,
 		MAX_SAFE_COMPONENT_LENGTH: 16,
@@ -1090,10 +1059,10 @@ ${qe}  --help                             Show this help.
 		FLAG_INCLUDE_PRERELEASE: 1,
 		FLAG_LOOSE: 2
 	};
-})), H = e(((e, t) => {
+})), B = e(((e, t) => {
 	t.exports = typeof process == "object" && process.env && process.env.NODE_DEBUG && /\bsemver\b/i.test(process.env.NODE_DEBUG) ? (...e) => console.error("SEMVER", ...e) : () => {};
-})), U = e(((e, t) => {
-	var { MAX_SAFE_COMPONENT_LENGTH: n, MAX_SAFE_BUILD_LENGTH: r, MAX_LENGTH: i } = V(), a = H();
+})), V = e(((e, t) => {
+	var { MAX_SAFE_COMPONENT_LENGTH: n, MAX_SAFE_BUILD_LENGTH: r, MAX_LENGTH: i } = z(), a = B();
 	e = t.exports = {};
 	var o = e.re = [], s = e.safeRe = [], c = e.src = [], l = e.safeSrc = [], u = e.t = {}, d = 0, f = "[a-zA-Z0-9-]", p = [
 		["\\s", 1],
@@ -1107,10 +1076,10 @@ ${qe}  --help                             Show this help.
 		a(e, i, t), u[e] = i, c[i] = t, l[i] = r, o[i] = new RegExp(t, n ? "g" : void 0), s[i] = new RegExp(r, n ? "g" : void 0);
 	};
 	h("NUMERICIDENTIFIER", "0|[1-9]\\d*"), h("NUMERICIDENTIFIERLOOSE", "\\d+"), h("NONNUMERICIDENTIFIER", `\\d*[a-zA-Z-]${f}*`), h("MAINVERSION", `(${c[u.NUMERICIDENTIFIER]})\\.(${c[u.NUMERICIDENTIFIER]})\\.(${c[u.NUMERICIDENTIFIER]})`), h("MAINVERSIONLOOSE", `(${c[u.NUMERICIDENTIFIERLOOSE]})\\.(${c[u.NUMERICIDENTIFIERLOOSE]})\\.(${c[u.NUMERICIDENTIFIERLOOSE]})`), h("PRERELEASEIDENTIFIER", `(?:${c[u.NONNUMERICIDENTIFIER]}|${c[u.NUMERICIDENTIFIER]})`), h("PRERELEASEIDENTIFIERLOOSE", `(?:${c[u.NONNUMERICIDENTIFIER]}|${c[u.NUMERICIDENTIFIERLOOSE]})`), h("PRERELEASE", `(?:-(${c[u.PRERELEASEIDENTIFIER]}(?:\\.${c[u.PRERELEASEIDENTIFIER]})*))`), h("PRERELEASELOOSE", `(?:-?(${c[u.PRERELEASEIDENTIFIERLOOSE]}(?:\\.${c[u.PRERELEASEIDENTIFIERLOOSE]})*))`), h("BUILDIDENTIFIER", `${f}+`), h("BUILD", `(?:\\+(${c[u.BUILDIDENTIFIER]}(?:\\.${c[u.BUILDIDENTIFIER]})*))`), h("FULLPLAIN", `v?${c[u.MAINVERSION]}${c[u.PRERELEASE]}?${c[u.BUILD]}?`), h("FULL", `^${c[u.FULLPLAIN]}$`), h("LOOSEPLAIN", `[v=\\s]*${c[u.MAINVERSIONLOOSE]}${c[u.PRERELEASELOOSE]}?${c[u.BUILD]}?`), h("LOOSE", `^${c[u.LOOSEPLAIN]}$`), h("GTLT", "((?:<|>)?=?)"), h("XRANGEIDENTIFIERLOOSE", `${c[u.NUMERICIDENTIFIERLOOSE]}|x|X|\\*`), h("XRANGEIDENTIFIER", `${c[u.NUMERICIDENTIFIER]}|x|X|\\*`), h("XRANGEPLAIN", `[v=\\s]*(${c[u.XRANGEIDENTIFIER]})(?:\\.(${c[u.XRANGEIDENTIFIER]})(?:\\.(${c[u.XRANGEIDENTIFIER]})(?:${c[u.PRERELEASE]})?${c[u.BUILD]}?)?)?`), h("XRANGEPLAINLOOSE", `[v=\\s]*(${c[u.XRANGEIDENTIFIERLOOSE]})(?:\\.(${c[u.XRANGEIDENTIFIERLOOSE]})(?:\\.(${c[u.XRANGEIDENTIFIERLOOSE]})(?:${c[u.PRERELEASELOOSE]})?${c[u.BUILD]}?)?)?`), h("XRANGE", `^${c[u.GTLT]}\\s*${c[u.XRANGEPLAIN]}$`), h("XRANGELOOSE", `^${c[u.GTLT]}\\s*${c[u.XRANGEPLAINLOOSE]}$`), h("COERCEPLAIN", `(^|[^\\d])(\\d{1,${n}})(?:\\.(\\d{1,${n}}))?(?:\\.(\\d{1,${n}}))?`), h("COERCE", `${c[u.COERCEPLAIN]}(?:$|[^\\d])`), h("COERCEFULL", c[u.COERCEPLAIN] + `(?:${c[u.PRERELEASE]})?(?:${c[u.BUILD]})?(?:$|[^\\d])`), h("COERCERTL", c[u.COERCE], !0), h("COERCERTLFULL", c[u.COERCEFULL], !0), h("LONETILDE", "(?:~>?)"), h("TILDETRIM", `(\\s*)${c[u.LONETILDE]}\\s+`, !0), e.tildeTrimReplace = "$1~", h("TILDE", `^${c[u.LONETILDE]}${c[u.XRANGEPLAIN]}$`), h("TILDELOOSE", `^${c[u.LONETILDE]}${c[u.XRANGEPLAINLOOSE]}$`), h("LONECARET", "(?:\\^)"), h("CARETTRIM", `(\\s*)${c[u.LONECARET]}\\s+`, !0), e.caretTrimReplace = "$1^", h("CARET", `^${c[u.LONECARET]}${c[u.XRANGEPLAIN]}$`), h("CARETLOOSE", `^${c[u.LONECARET]}${c[u.XRANGEPLAINLOOSE]}$`), h("COMPARATORLOOSE", `^${c[u.GTLT]}\\s*(${c[u.LOOSEPLAIN]})$|^$`), h("COMPARATOR", `^${c[u.GTLT]}\\s*(${c[u.FULLPLAIN]})$|^$`), h("COMPARATORTRIM", `(\\s*)${c[u.GTLT]}\\s*(${c[u.LOOSEPLAIN]}|${c[u.XRANGEPLAIN]})`, !0), e.comparatorTrimReplace = "$1$2$3", h("HYPHENRANGE", `^\\s*(${c[u.XRANGEPLAIN]})\\s+-\\s+(${c[u.XRANGEPLAIN]})\\s*$`), h("HYPHENRANGELOOSE", `^\\s*(${c[u.XRANGEPLAINLOOSE]})\\s+-\\s+(${c[u.XRANGEPLAINLOOSE]})\\s*$`), h("STAR", "(<|>)?=?\\s*\\*"), h("GTE0", "^\\s*>=\\s*0\\.0\\.0\\s*$"), h("GTE0PRE", "^\\s*>=\\s*0\\.0\\.0-0\\s*$");
-})), ln = e(((e, t) => {
+})), un = e(((e, t) => {
 	var n = Object.freeze({ loose: !0 }), r = Object.freeze({});
 	t.exports = (e) => e ? typeof e == "object" ? e : n : r;
-})), un = e(((e, t) => {
+})), dn = e(((e, t) => {
 	var n = /^[0-9]+$/, r = (e, t) => {
 		if (typeof e == "number" && typeof t == "number") return e === t ? 0 : e < t ? -1 : 1;
 		let r = n.test(e), i = n.test(t);
@@ -1120,8 +1089,8 @@ ${qe}  --help                             Show this help.
 		compareIdentifiers: r,
 		rcompareIdentifiers: (e, t) => r(t, e)
 	};
-})), W = e(((e, t) => {
-	var n = H(), { MAX_LENGTH: r, MAX_SAFE_INTEGER: i } = V(), { safeRe: a, t: o } = U(), s = ln(), { compareIdentifiers: c } = un(), l = (e, t) => {
+})), H = e(((e, t) => {
+	var n = B(), { MAX_LENGTH: r, MAX_SAFE_INTEGER: i } = z(), { safeRe: a, t: o } = V(), s = un(), { compareIdentifiers: c } = dn(), l = (e, t) => {
 		let n = t.split(".");
 		if (n.length > e.length) return !1;
 		for (let t = 0; t < n.length; t++) if (c(e[t], n[t]) !== 0) return !1;
@@ -1247,8 +1216,8 @@ ${qe}  --help                             Show this help.
 			return this.raw = this.format(), this.build.length && (this.raw += `+${this.build.join(".")}`), this;
 		}
 	};
-})), G = e(((e, t) => {
-	var n = W();
+})), U = e(((e, t) => {
+	var n = H();
 	t.exports = (e, t, r = !1) => {
 		if (e instanceof n) return e;
 		try {
@@ -1258,20 +1227,20 @@ ${qe}  --help                             Show this help.
 			throw e;
 		}
 	};
-})), dn = e(((e, t) => {
-	var n = G();
+})), fn = e(((e, t) => {
+	var n = U();
 	t.exports = (e, t) => {
 		let r = n(e, t);
 		return r ? r.version : null;
 	};
-})), fn = e(((e, t) => {
-	var n = G();
+})), pn = e(((e, t) => {
+	var n = U();
 	t.exports = (e, t) => {
 		let r = n(e.trim().replace(/^[=v]+/, ""), t);
 		return r ? r.version : null;
 	};
-})), pn = e(((e, t) => {
-	var n = W();
+})), mn = e(((e, t) => {
+	var n = H();
 	t.exports = (e, t, r, i, a) => {
 		typeof r == "string" && (a = i, i = r, r = void 0);
 		try {
@@ -1280,8 +1249,8 @@ ${qe}  --help                             Show this help.
 			return null;
 		}
 	};
-})), mn = e(((e, t) => {
-	var n = G();
+})), hn = e(((e, t) => {
+	var n = U();
 	t.exports = (e, t) => {
 		let r = n(e, null, !0), i = n(t, null, !0), a = r.compare(i);
 		if (a === 0) return null;
@@ -1293,62 +1262,62 @@ ${qe}  --help                             Show this help.
 		let u = l ? "pre" : "";
 		return r.major === i.major ? r.minor === i.minor ? r.patch === i.patch ? "prerelease" : u + "patch" : u + "minor" : u + "major";
 	};
-})), hn = e(((e, t) => {
-	var n = W();
-	t.exports = (e, t) => new n(e, t).major;
 })), gn = e(((e, t) => {
-	var n = W();
-	t.exports = (e, t) => new n(e, t).minor;
+	var n = H();
+	t.exports = (e, t) => new n(e, t).major;
 })), _n = e(((e, t) => {
-	var n = W();
-	t.exports = (e, t) => new n(e, t).patch;
+	var n = H();
+	t.exports = (e, t) => new n(e, t).minor;
 })), vn = e(((e, t) => {
-	var n = G();
+	var n = H();
+	t.exports = (e, t) => new n(e, t).patch;
+})), yn = e(((e, t) => {
+	var n = U();
 	t.exports = (e, t) => {
 		let r = n(e, t);
 		return r && r.prerelease.length ? r.prerelease : null;
 	};
-})), K = e(((e, t) => {
-	var n = W();
+})), W = e(((e, t) => {
+	var n = H();
 	t.exports = (e, t, r) => new n(e, r).compare(new n(t, r));
-})), yn = e(((e, t) => {
-	var n = K();
-	t.exports = (e, t, r) => n(t, e, r);
 })), bn = e(((e, t) => {
-	var n = K();
-	t.exports = (e, t) => n(e, t, !0);
+	var n = W();
+	t.exports = (e, t, r) => n(t, e, r);
 })), xn = e(((e, t) => {
 	var n = W();
+	t.exports = (e, t) => n(e, t, !0);
+})), G = e(((e, t) => {
+	var n = H();
 	t.exports = (e, t, r) => {
 		let i = new n(e, r), a = new n(t, r);
 		return i.compare(a) || i.compareBuild(a);
 	};
 })), Sn = e(((e, t) => {
-	var n = xn();
+	var n = G();
 	t.exports = (e, t) => e.sort((e, r) => n(e, r, t));
 })), Cn = e(((e, t) => {
-	var n = xn();
+	var n = G();
 	t.exports = (e, t) => e.sort((e, r) => n(r, e, t));
-})), q = e(((e, t) => {
-	var n = K();
+})), K = e(((e, t) => {
+	var n = W();
 	t.exports = (e, t, r) => n(e, t, r) > 0;
-})), wn = e(((e, t) => {
-	var n = K();
+})), q = e(((e, t) => {
+	var n = W();
 	t.exports = (e, t, r) => n(e, t, r) < 0;
-})), Tn = e(((e, t) => {
-	var n = K();
+})), wn = e(((e, t) => {
+	var n = W();
 	t.exports = (e, t, r) => n(e, t, r) === 0;
-})), En = e(((e, t) => {
-	var n = K();
+})), Tn = e(((e, t) => {
+	var n = W();
 	t.exports = (e, t, r) => n(e, t, r) !== 0;
 })), J = e(((e, t) => {
-	var n = K();
+	var n = W();
 	t.exports = (e, t, r) => n(e, t, r) >= 0;
-})), Dn = e(((e, t) => {
-	var n = K();
+})), Y = e(((e, t) => {
+	var n = W();
 	t.exports = (e, t, r) => n(e, t, r) <= 0;
-})), On = e(((e, t) => {
-	var n = Tn(), r = En(), i = q(), a = J(), o = wn(), s = Dn();
+})), En = e(((e, t) => {
+	var n = wn(), r = Tn(), i = K(), a = J(), o = q(), s = Y();
 	t.exports = (e, t, c, l) => {
 		switch (t) {
 			case "===": return typeof e == "object" && (e = e.version), typeof c == "object" && (c = c.version), e === c;
@@ -1364,8 +1333,8 @@ ${qe}  --help                             Show this help.
 			default: throw TypeError(`Invalid operator: ${t}`);
 		}
 	};
-})), kn = e(((e, t) => {
-	var n = W(), r = G(), { safeRe: i, t: a } = U();
+})), Dn = e(((e, t) => {
+	var n = H(), r = U(), { safeRe: i, t: a } = V();
 	t.exports = (e, t) => {
 		if (e instanceof n) return e;
 		if (typeof e == "number" && (e = String(e)), typeof e != "string") return null;
@@ -1381,8 +1350,8 @@ ${qe}  --help                             Show this help.
 		let s = o[2];
 		return r(`${s}.${o[3] || "0"}.${o[4] || "0"}${t.includePrerelease && o[5] ? `-${o[5]}` : ""}${t.includePrerelease && o[6] ? `+${o[6]}` : ""}`, t);
 	};
-})), An = e(((e, t) => {
-	var n = G(), r = V(), i = W(), a = (e, t, n) => {
+})), On = e(((e, t) => {
+	var n = U(), r = z(), i = H(), a = (e, t, n) => {
 		if (!r.RELEASE_TYPES.includes(t)) return null;
 		let i = o(e, n);
 		return i && s(i, t);
@@ -1397,7 +1366,7 @@ ${qe}  --help                             Show this help.
 		return e.format();
 	}, c = (e) => e.startsWith("pre");
 	t.exports = a;
-})), jn = e(((e, t) => {
+})), kn = e(((e, t) => {
 	t.exports = class {
 		constructor() {
 			this.max = 1e3, this.map = new Map();
@@ -1420,7 +1389,7 @@ ${qe}  --help                             Show this help.
 			return this;
 		}
 	};
-})), Y = e(((e, t) => {
+})), X = e(((e, t) => {
 	var n = /\s+/g;
 	t.exports = class e {
 		constructor(t, r) {
@@ -1488,7 +1457,7 @@ ${qe}  --help                             Show this help.
 			return !1;
 		}
 	};
-	var r = new (jn())(), i = ln(), a = X(), o = H(), s = W(), { safeRe: c, src: l, t: u, comparatorTrimReplace: d, tildeTrimReplace: f, caretTrimReplace: p } = U(), { FLAG_INCLUDE_PRERELEASE: m, FLAG_LOOSE: h } = V(), g = new RegExp(l[u.BUILD], "g"), _ = (e) => e.value === "<0.0.0-0", v = (e) => e.value === "", y = (e, t) => {
+	var r = new (kn())(), i = un(), a = Z(), o = B(), s = H(), { safeRe: c, src: l, t: u, comparatorTrimReplace: d, tildeTrimReplace: f, caretTrimReplace: p } = V(), { FLAG_INCLUDE_PRERELEASE: m, FLAG_LOOSE: h } = z(), g = new RegExp(l[u.BUILD], "g"), _ = (e) => e.value === "<0.0.0-0", v = (e) => e.value === "", y = (e, t) => {
 		let n = !0, r = e.slice(), i = r.pop();
 		for (; n && r.length;) n = r.every((e) => i.intersects(e, t)), i = r.pop();
 		return n;
@@ -1526,7 +1495,7 @@ ${qe}  --help                             Show this help.
 		}
 		return !0;
 	};
-})), X = e(((e, t) => {
+})), Z = e(((e, t) => {
 	var n = Symbol("SemVer ANY");
 	t.exports = class e {
 		static get ANY() {
@@ -1561,9 +1530,9 @@ ${qe}  --help                             Show this help.
 			return this.operator === "" ? this.value === "" || new l(t.value, n).test(this.value) : t.operator === "" ? t.value === "" || new l(this.value, n).test(t.semver) : (n = r(n), n.includePrerelease && (this.value === "<0.0.0-0" || t.value === "<0.0.0-0") || !n.includePrerelease && (this.value.startsWith("<0.0.0") || t.value.startsWith("<0.0.0")) ? !1 : !!(this.operator.startsWith(">") && t.operator.startsWith(">") || this.operator.startsWith("<") && t.operator.startsWith("<") || this.semver.version === t.semver.version && this.operator.includes("=") && t.operator.includes("=") || o(this.semver, "<", t.semver, n) && this.operator.startsWith(">") && t.operator.startsWith("<") || o(this.semver, ">", t.semver, n) && this.operator.startsWith("<") && t.operator.startsWith(">")));
 		}
 	};
-	var r = ln(), { safeRe: i, t: a } = U(), o = On(), s = H(), c = W(), l = Y();
-})), Z = e(((e, t) => {
-	var n = Y();
+	var r = un(), { safeRe: i, t: a } = V(), o = En(), s = B(), c = H(), l = X();
+})), Q = e(((e, t) => {
+	var n = X();
 	t.exports = (e, t, r) => {
 		try {
 			t = new n(t, r);
@@ -1572,11 +1541,11 @@ ${qe}  --help                             Show this help.
 		}
 		return t.test(e);
 	};
-})), Mn = e(((e, t) => {
-	var n = Y();
+})), An = e(((e, t) => {
+	var n = X();
 	t.exports = (e, t) => new n(e, t).set.map((e) => e.map((e) => e.value).join(" ").trim().split(" "));
-})), Nn = e(((e, t) => {
-	var n = W(), r = Y();
+})), jn = e(((e, t) => {
+	var n = H(), r = X();
 	t.exports = (e, t, i) => {
 		let a = null, o = null, s = null;
 		try {
@@ -1588,8 +1557,8 @@ ${qe}  --help                             Show this help.
 			s.test(e) && (!a || o.compare(e) === -1) && (a = e, o = new n(a, i));
 		}), a;
 	};
-})), Pn = e(((e, t) => {
-	var n = W(), r = Y();
+})), Mn = e(((e, t) => {
+	var n = H(), r = X();
 	t.exports = (e, t, i) => {
 		let a = null, o = null, s = null;
 		try {
@@ -1601,8 +1570,8 @@ ${qe}  --help                             Show this help.
 			s.test(e) && (!a || o.compare(e) === 1) && (a = e, o = new n(a, i));
 		}), a;
 	};
-})), Fn = e(((e, t) => {
-	var n = W(), r = Y(), i = q();
+})), Nn = e(((e, t) => {
+	var n = H(), r = X(), i = K();
 	t.exports = (e, t) => {
 		e = new r(e, t);
 		let a = new n("0.0.0");
@@ -1626,8 +1595,8 @@ ${qe}  --help                             Show this help.
 		}
 		return a && e.test(a) ? a : null;
 	};
-})), In = e(((e, t) => {
-	var n = Y();
+})), Pn = e(((e, t) => {
+	var n = X();
 	t.exports = (e, t) => {
 		try {
 			return new n(e, t).range || "*";
@@ -1635,8 +1604,8 @@ ${qe}  --help                             Show this help.
 			return null;
 		}
 	};
-})), Q = e(((e, t) => {
-	var n = W(), r = X(), { ANY: i } = r, a = Y(), o = Z(), s = q(), c = wn(), l = Dn(), u = J();
+})), Fn = e(((e, t) => {
+	var n = H(), r = Z(), { ANY: i } = r, a = X(), o = Q(), s = K(), c = q(), l = Y(), u = J();
 	t.exports = (e, t, d, f) => {
 		e = new n(e, f), t = new a(t, f);
 		let p, m, h, g, _;
@@ -1658,17 +1627,17 @@ ${qe}  --help                             Show this help.
 		}
 		return !0;
 	};
-})), Ln = e(((e, t) => {
-	var n = Q();
+})), In = e(((e, t) => {
+	var n = Fn();
 	t.exports = (e, t, r) => n(e, t, ">", r);
-})), Rn = e(((e, t) => {
-	var n = Q();
+})), Ln = e(((e, t) => {
+	var n = Fn();
 	t.exports = (e, t, r) => n(e, t, "<", r);
-})), zn = e(((e, t) => {
-	var n = Y();
+})), Rn = e(((e, t) => {
+	var n = X();
 	t.exports = (e, t, r) => (e = new n(e, r), t = new n(t, r), e.intersects(t, r));
-})), Bn = e(((e, t) => {
-	var n = Z(), r = K();
+})), zn = e(((e, t) => {
+	var n = Q(), r = W();
 	t.exports = (e, t, i) => {
 		let a = [], o = null, s = null, c = e.sort((e, t) => r(e, t, i));
 		for (let e of c) n(e, t, i) ? (s = e, o ||= e) : (s && a.push([o, s]), s = null, o = null);
@@ -1678,8 +1647,8 @@ ${qe}  --help                             Show this help.
 		let u = l.join(" || "), d = typeof t.raw == "string" ? t.raw : String(t);
 		return u.length < d.length ? u : t;
 	};
-})), Vn = e(((e, t) => {
-	var n = Y(), r = X(), { ANY: i } = r, a = Z(), o = K(), s = (e, t, r = {}) => {
+})), Bn = e(((e, t) => {
+	var n = X(), r = Z(), { ANY: i } = r, a = Q(), o = W(), s = (e, t, r = {}) => {
 		if (e === t) return !0;
 		e = new n(e, r), t = new n(t, r);
 		let i = !1;
@@ -1737,47 +1706,47 @@ ${qe}  --help                             Show this help.
 		return r < 0 ? e : r > 0 || t.operator === "<" && e.operator === "<=" ? t : e;
 	};
 	t.exports = s;
-})), Hn = e(((e, t) => {
-	var n = U(), r = V(), i = W(), a = un();
+})), Vn = e(((e, t) => {
+	var n = V(), r = z(), i = H(), a = dn();
 	t.exports = {
-		parse: G(),
-		valid: dn(),
-		clean: fn(),
-		inc: pn(),
-		diff: mn(),
-		major: hn(),
-		minor: gn(),
-		patch: _n(),
-		prerelease: vn(),
-		compare: K(),
-		rcompare: yn(),
-		compareLoose: bn(),
-		compareBuild: xn(),
+		parse: U(),
+		valid: fn(),
+		clean: pn(),
+		inc: mn(),
+		diff: hn(),
+		major: gn(),
+		minor: _n(),
+		patch: vn(),
+		prerelease: yn(),
+		compare: W(),
+		rcompare: bn(),
+		compareLoose: xn(),
+		compareBuild: G(),
 		sort: Sn(),
 		rsort: Cn(),
-		gt: q(),
-		lt: wn(),
-		eq: Tn(),
-		neq: En(),
+		gt: K(),
+		lt: q(),
+		eq: wn(),
+		neq: Tn(),
 		gte: J(),
-		lte: Dn(),
-		cmp: On(),
-		coerce: kn(),
-		truncate: An(),
-		Comparator: X(),
-		Range: Y(),
-		satisfies: Z(),
-		toComparators: Mn(),
-		maxSatisfying: Nn(),
-		minSatisfying: Pn(),
-		minVersion: Fn(),
-		validRange: In(),
-		outside: Q(),
-		gtr: Ln(),
-		ltr: Rn(),
-		intersects: zn(),
-		simplifyRange: Bn(),
-		subset: Vn(),
+		lte: Y(),
+		cmp: En(),
+		coerce: Dn(),
+		truncate: On(),
+		Comparator: Z(),
+		Range: X(),
+		satisfies: Q(),
+		toComparators: An(),
+		maxSatisfying: jn(),
+		minSatisfying: Mn(),
+		minVersion: Nn(),
+		validRange: Pn(),
+		outside: Fn(),
+		gtr: In(),
+		ltr: Ln(),
+		intersects: Rn(),
+		simplifyRange: zn(),
+		subset: Bn(),
 		SemVer: i,
 		re: n.re,
 		src: n.src,
@@ -1787,51 +1756,51 @@ ${qe}  --help                             Show this help.
 		compareIdentifiers: a.compareIdentifiers,
 		rcompareIdentifiers: a.rcompareIdentifiers
 	};
-})), $ = Hn(), Un = Object.freeze([
+})), $ = Vn(), Hn = Object.freeze([
 	"@moldea.ai/core",
 	"@moldea.ai/repository",
 	"@moldea.ai/repository-fs"
-]), Wn = Object.freeze({
-	"@moldea.ai/core": "^10.0.0",
+]), Un = Object.freeze({
+	"@moldea.ai/core": "^10.0.1",
 	"@moldea.ai/repository": "^4.0.0",
 	"@moldea.ai/repository-fs": "^4.0.0"
-}), Gn = (e, t) => {
+}), Wn = (e, t) => {
 	if (e.length !== t.length || new Set(e).size !== e.length || new Set(t).size !== t.length) return !1;
 	let n = new Set(t);
 	return e.every((e) => n.has(e));
-}, Kn = (e) => e.length > 0 && e.every((e) => Number.isSafeInteger(e) && e > 0) && new Set(e).size === e.length, qn = (e) => {
+}, Gn = (e) => e.length > 0 && e.every((e) => Number.isSafeInteger(e) && e > 0) && new Set(e).size === e.length, Kn = (e) => {
 	let { dependencies: t, installedPackageVersions: n, supportedNodeRange: r, version: i } = e.packageMetadata;
-	if ((0, $.valid)(i) === null || r === null || (0, $.validRange)(r) === null || (0, $.valid)(e.minimumGitVersion) === null || e.outputSchemaVersion !== 8 || t === null || n === null || !Kn(e.coreSupportedRepositoryFormatVersions)) return !1;
-	let a = [...Un], o = Object.keys(t).filter((e) => e.startsWith("@moldea.ai/")), s = Object.keys(n);
-	return !Gn(o, a) || !Gn(s, a) ? !1 : a.every((e) => {
-		let r = n[e], i = t[e], a = Wn[e];
+	if ((0, $.valid)(i) === null || r === null || (0, $.validRange)(r) === null || (0, $.valid)(e.minimumGitVersion) === null || e.outputSchemaVersion !== 9 || t === null || n === null || !Gn(e.coreSupportedRepositoryFormatVersions)) return !1;
+	let a = [...Hn], o = Object.keys(t).filter((e) => e.startsWith("@moldea.ai/")), s = Object.keys(n);
+	return !Wn(o, a) || !Wn(s, a) ? !1 : a.every((e) => {
+		let r = n[e], i = t[e], a = Un[e];
 		return r !== void 0 && (0, $.valid)(r) !== null && a !== void 0 && (i === a || i === `workspace:${a}`) && (0, $.satisfies)(r, a);
 	});
-}, Jn = (e, t) => e < t ? -1 : +(e > t), Yn = (e) => {
+}, qn = (e, t) => e < t ? -1 : +(e > t), Jn = (e) => {
 	let t = Object.entries(e.packageMetadata.installedPackageVersions ?? {}).map(([e, t]) => ({
 		name: e,
 		version: t
-	})).sort((e, t) => Jn(e.name, t.name));
+	})).sort((e, t) => qn(e.name, t.name));
 	return o({
 		minimumGitVersion: e.minimumGitVersion,
 		packages: t,
 		repositoryFormatVersions: [...e.coreSupportedRepositoryFormatVersions].sort((e, t) => e - t),
 		supportedNodeRange: e.packageMetadata.supportedNodeRange ?? ""
 	});
-}, Xn = Object.freeze({ kind: "invalid" }), Zn = (e) => {
+}, Yn = Object.freeze({ kind: "invalid" }), Xn = (e) => {
 	try {
-		return qn(e) ? Object.freeze({
+		return Kn(e) ? Object.freeze({
 			kind: "valid",
-			result: Yn(e)
-		}) : Xn;
+			result: Jn(e)
+		}) : Yn;
 	} catch {
-		return Xn;
+		return Yn;
 	}
-}, Qn = (e) => Zn({
+}, Zn = (e) => Xn({
 	coreSupportedRepositoryFormatVersions: a,
-	minimumGitVersion: nn,
-	outputSchemaVersion: 8,
+	minimumGitVersion: rn,
+	outputSchemaVersion: 9,
 	packageMetadata: e.packageMetadata
 });
 //#endregion
-export { gt as A, xe as B, pt as C, vt as D, lt as E, E as F, S as H, Ne as I, T as L, Qe as M, O as N, st as O, He as P, je as R, ot as S, dt as T, m as U, w as V, Ct as _, Hn as a, ct as b, tn as c, Jt as d, Xt as f, P as g, R as h, qn as i, ft as j, mt as k, Qt as l, Yt as m, Zn as n, cn as o, qt as p, Yn as r, sn as s, Qn as t, en as u, St as v, ht as w, _t as x, at as y, Ae as z };
+export { _t as A, be as B, mt as C, yt as D, ut as E, Me as F, C as H, D as I, E as L, $e as M, Ve as N, ct as O, O as P, Ae as R, st as S, ft as T, m as U, T as V, Tt as _, Vn as a, lt as b, nn as c, Yt as d, Zt as f, xt as g, I as h, Kn as i, pt as j, ht as k, $t as l, Xt as m, Xn as n, ln as o, Jt as p, Jn as r, cn as s, Zn as t, tn as u, wt as v, gt as w, vt as x, ot as y, ke as z };

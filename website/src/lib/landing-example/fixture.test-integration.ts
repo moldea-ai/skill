@@ -37,14 +37,22 @@ const CliRecordSchema = z.discriminatedUnion('kind', [
     path: z.string(),
     symbol: z.string().nullable(),
     fileCheck: z.literal('passed'),
-    exportCheck: z.enum(['passed', 'failed', 'not-checked']),
+    exportCheck: z.enum(['failed', 'not-checked']),
   }),
   z.object({ kind: z.literal('diagnostic'), code: z.string() }),
   z.object({
     kind: z.literal('match'),
-    match: z.object({ owner: z.object({ agentId: z.string().nullable(), id: z.string() }) }),
+    path: z.string(),
+    ownerKind: z.enum(['agent', 'context', 'decision', 'skill', 'tool']),
+    relationships: z.array(z.strictObject({ field: z.string(), path: z.string() })),
   }),
-  z.object({ kind: z.enum(['agent', 'metadata']) }),
+  z.object({
+    kind: z.literal('metadata'),
+    metadataKind: z.string(),
+    path: z.string(),
+    byteLength: z.number().int().nonnegative(),
+    agentId: z.string().nullable(),
+  }),
 ]);
 const CliEnvelopeSchema = z.object({
   command: z.enum(['inspect', 'scope', 'validate']),
@@ -60,7 +68,6 @@ const CliEnvelopeSchema = z.object({
       })
       .optional(),
     relevant: z.boolean().optional(),
-    snapshotDigest: z.string(),
     valid: z.boolean(),
     warningCount: z.number().optional(),
   }),
@@ -338,80 +345,66 @@ assert.equal(OpenAI.requests.length, 1);
     }
   });
 
-  test('validates the coherent project and reports only the completed file and export checks', async () => {
+  test('validates the coherent project and inspects its bounded owner inventory', async () => {
     await withFixture(LANDING_EXAMPLE_MAINTAINED_FILES, async (root) => {
       const before = await readFixture(root, LANDING_EXAMPLE_MAINTAINED_FILES);
       const firstInspection = await runCli(root, ['inspect']);
       const secondInspection = await runCli(root, ['inspect']);
       const validation = await runCli(root, ['validate']);
-      const coverage = firstInspection.envelope.result.page.records
-        .filter((record) => record.kind === 'coverage')
-        .sort((left, right) => left.relationship.localeCompare(right.relationship));
 
       expect(firstInspection.processResult.exitCode).toBe(0);
       expect(firstInspection.envelope.status).toBe('valid');
-      expect(coverage).toStrictEqual([
-        {
-          kind: 'coverage',
-          relationship: 'instruction-loader',
-          path: LANDING_EXAMPLE.paths.instructionLoader,
-          symbol: 'loadSupportInstruction',
-          fileCheck: 'passed',
-          exportCheck: 'passed',
-        },
-        {
-          kind: 'coverage',
-          relationship: 'runtime-agent',
-          path: LANDING_EXAMPLE.paths.agent,
-          symbol: 'supportAgent',
-          fileCheck: 'passed',
-          exportCheck: 'passed',
-        },
-        {
-          kind: 'coverage',
-          relationship: 'tool-implementation',
-          path: LANDING_EXAMPLE.paths.orderLookup,
-          symbol: 'lookupOrder',
-          fileCheck: 'passed',
-          exportCheck: 'passed',
-        },
-        {
-          kind: 'coverage',
-          relationship: 'tool-registration',
-          path: LANDING_EXAMPLE.paths.orderLookup,
-          symbol: 'lookupOrderTool',
-          fileCheck: 'passed',
-          exportCheck: 'passed',
-        },
-      ]);
-      expect(firstInspection.envelope.result.coverageCounts).toStrictEqual({
+      const inventory = firstInspection.envelope.result.page.records;
+      for (const [logicalPath, metadataKind] of [
+        [LANDING_EXAMPLE.paths.project, 'project'],
+        [LANDING_EXAMPLE.paths.policyContext, 'context'],
+        [LANDING_EXAMPLE.paths.agentDescription, 'agent-description'],
+        [LANDING_EXAMPLE.paths.instruction, 'agent-instruction'],
+      ] as const) {
+        expect(inventory).toContainEqual({
+          kind: 'metadata',
+          metadataKind,
+          path: logicalPath,
+          byteLength: Buffer.byteLength(
+            getLandingExampleFile(LANDING_EXAMPLE_MAINTAINED_FILES, logicalPath),
+            'utf8',
+          ),
+          agentId: metadataKind.startsWith('agent-') ? 'support' : null,
+        });
+      }
+      expect(inventory.every(({ kind }) => kind === 'metadata')).toBe(true);
+      expect(firstInspection.envelope.result.coverageCounts).toBeUndefined();
+      expect(secondInspection.processResult.stdout).toBe(firstInspection.processResult.stdout);
+      expect(validation.processResult.exitCode).toBe(0);
+      expect(validation.envelope.result.valid).toBe(true);
+      expect(validation.envelope.result.warningCount).toBe(0);
+      expect(validation.envelope.result.coverageCounts).toStrictEqual({
         bindings: 4,
         exportsPassed: 4,
         exportsFailed: 0,
         exportsNotChecked: 0,
       });
-      expect(
-        firstInspection.envelope.result.page.records.filter(({ kind }) => kind === 'diagnostic'),
-      ).toStrictEqual([]);
-      expect(validation.processResult.exitCode).toBe(0);
-      expect(validation.envelope.result.valid).toBe(true);
-      expect(validation.envelope.result.warningCount).toBe(0);
-      expect(secondInspection.envelope.result.snapshotDigest).toBe(
-        firstInspection.envelope.result.snapshotDigest,
-      );
+      expect(validation.envelope.result.page.records).toStrictEqual([]);
       expect(await readFixture(root, LANDING_EXAMPLE_MAINTAINED_FILES)).toStrictEqual(before);
     });
   });
 
   test('detects and repairs a missing declared instruction-loader export', async () => {
     await withFixture(LANDING_EXAMPLE_MISSING_EXPORT_FILES, async (root) => {
-      const missingExport = await runCli(root, ['inspect']);
+      const missingExport = await runCli(root, ['validate']);
+      const inspection = await runCli(root, ['inspect']);
       const missingExportRecords = missingExport.envelope.result.page.records;
 
       expect(missingExport.processResult.exitCode).toBe(1);
       expect(missingExport.envelope.status).toBe('invalid');
       expect(
         missingExportRecords
+          .filter((record) => record.kind === 'diagnostic')
+          .map(({ code }) => code),
+      ).toStrictEqual([LANDING_EXAMPLE.diagnostic]);
+      expect(inspection.processResult.exitCode).toBe(1);
+      expect(
+        inspection.envelope.result.page.records
           .filter((record) => record.kind === 'diagnostic')
           .map(({ code }) => code),
       ).toStrictEqual([LANDING_EXAMPLE.diagnostic]);
@@ -442,7 +435,7 @@ assert.equal(OpenAI.requests.length, 1);
         ),
         'utf8',
       );
-      const repaired = await runCli(root, ['inspect']);
+      const repaired = await runCli(root, ['validate']);
       const repairedRecords = repaired.envelope.result.page.records;
 
       expect(repaired.processResult.exitCode).toBe(0);
@@ -459,16 +452,16 @@ assert.equal(OpenAI.requests.length, 1);
 
   test('does not infer runtime instruction wiring from passing file and export checks', async () => {
     await withFixture(LANDING_EXAMPLE_DISCONNECTED_FILES, async (root) => {
-      const inspection = await runCli(root, ['inspect']);
-      expect(inspection.processResult.exitCode).toBe(0);
-      expect(inspection.envelope.result.coverageCounts).toStrictEqual({
+      const validation = await runCli(root, ['validate']);
+      expect(validation.processResult.exitCode).toBe(0);
+      expect(validation.envelope.result.coverageCounts).toStrictEqual({
         bindings: 4,
         exportsPassed: 4,
         exportsFailed: 0,
         exportsNotChecked: 0,
       });
       expect(
-        inspection.envelope.result.page.records.filter(({ kind }) => kind === 'diagnostic'),
+        validation.envelope.result.page.records.filter(({ kind }) => kind === 'diagnostic'),
       ).toStrictEqual([]);
     });
     const runtime = await runAgentScript(
@@ -495,11 +488,14 @@ assert.equal(OpenAI.requests[0].instructions, 'Be helpful.');
         const { envelope, processResult } = await runCli(root, ['scope', '--path', logicalPath]);
         expect(processResult.exitCode).toBe(0);
         expect(envelope.result.relevant).toBe(true);
-        expect(
-          envelope.result.page.records
-            .filter((record) => record.kind === 'match')
-            .map(({ match }) => match.owner.agentId),
-        ).toContain('support');
+        const owner = envelope.result.page.records.find(
+          (record) =>
+            record.kind === 'match' &&
+            record.ownerKind === 'agent' &&
+            record.path === LANDING_EXAMPLE.paths.instruction,
+        );
+        if (owner?.kind !== 'match') throw new Error('Scope did not return the support agent.');
+        expect(owner.relationships.map(({ path }) => path)).toContain(logicalPath);
       }
 
       const unrelated = await runCli(root, ['scope', '--path', '/src/catalog.ts']);

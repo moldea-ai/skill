@@ -18,7 +18,7 @@ The manifest starts with `version: 1`. The project entry point describes purpose
 
 ## Focused context and decisions
 
-Use `/moldea/context/` for durable domain, architecture, security or operating rules. Record governing decisions separately under `/moldea/decisions/` when their rationale and consequences matter. Link established documents from their current paths and keep one authority for each fact.
+Use one focused owner under `/moldea/context/` per product area, policy domain or subsystem. Each owner holds the facts and relationships for that area. Record governing decisions separately under `/moldea/decisions/` when their rationale and consequences matter. Link to facts owned by established documents.
 
 ## Agents and connections
 
@@ -28,6 +28,6 @@ Repository-native Agent Skills stay in their authoritative directories. A real c
 
 ## Context ownership and compression
 
-A file binding can name an ESM export. `affectedBy` maps a fact or behavior to a related file or coherent subtree. Both help select relevant owners. Correct names and passing static checks describe a narrower result than verified use by a model.
+A file binding can name an ESM export. An `affectedBy` path identifies a file or coherent subtree to review against an owner's facts or rules. Prefer the enforcement point, and relate the source of a directly governed deliverable such as a post or report. Both declarations help select relevant owners. A match may end with the context confirmed and no edit needed.
 
-Consolidate context when explicitly requested. Preserve distinct facts, decisions and authority boundaries, and update paths, routing and consumers together. See the [repository format](/docs/repository-format/) for examples.
+The coding agent proposes a focused owner and route for an uncovered area. Check and Fix surface mixed responsibilities, misplaced facts and missing routes. After you approve a restructure, Maintain keeps the facts intact and updates routes, relationships and consumers together. See the [repository format](/docs/repository-format/) for examples.

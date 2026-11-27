@@ -235,15 +235,16 @@ const CANDIDATE_TARGET_CASE_IDS = [
 
 test('the release catalogue retains all cases and the approved private exclusions', async () => {
   const cases = await loadSemanticCases(import.meta.dirname);
-  expect(cases).toHaveLength(149);
+  expect(cases).toHaveLength(155);
   expect(
     cases.reduce((count, { expected, forbidden }) => count + expected.length + forbidden.length, 0),
-  ).toBe(637);
-  expect(cases.filter(({ publication }) => publication !== 'private')).toHaveLength(132);
+  ).toBe(657);
+  expect(cases.filter(({ publication }) => publication !== 'private')).toHaveLength(137);
   expect(
     cases.filter(({ publication }) => publication === 'private').map(({ id }) => id),
   ).toStrictEqual([
     'create-grounded-agent',
+    'exact-binding-relevance',
     'initialize-guided-agents-included',
     'initialize-guided-numbered',
     'initialize-onboarding-confirmed',

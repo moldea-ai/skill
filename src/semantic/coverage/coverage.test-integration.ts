@@ -43,21 +43,22 @@ describe('discovered semantic coverage', () => {
     const published = createSemanticCoverage(
       cases.filter(({ publication }) => publication !== 'private'),
     );
-    expect(
+    const privateIds = new Set(
       cases.filter(({ publication }) => publication === 'private').map(({ id }) => id),
-    ).toStrictEqual(['repair-unproven-adoption']);
+    );
+    expect(privateIds.has('repair-unproven-adoption')).toBe(true);
     expect(published).toStrictEqual({
       ...coverage,
       claims: coverage.claims.map((claim) => ({
         ...claim,
         evidence: claim.evidence.filter(
-          ({ id, kind }) => kind !== 'semantic-case' || id !== 'repair-unproven-adoption',
+          ({ id, kind }) => kind !== 'semantic-case' || !privateIds.has(id),
         ),
       })),
     });
-    for (const definition of cases.filter(({ publication }) => publication === 'private')) {
+    for (const privateId of privateIds) {
       expect(
-        published.claims.flatMap(({ evidence }) => evidence).some(({ id }) => id === definition.id),
+        published.claims.flatMap(({ evidence }) => evidence).some(({ id }) => id === privateId),
       ).toBe(false);
     }
     const evidenceFor = (claimId: string): string[] =>
@@ -78,6 +79,8 @@ describe('discovered semantic coverage', () => {
         'repair-connection-drift',
         'repair-continuation-after-change',
         'repair-continuation-manifest-change',
+        'repair-mixed-context-owners',
+        'repair-link-to-record-owner',
       ]),
     );
     expect(evidenceFor('bounded-relevance')).toEqual(
@@ -98,5 +101,15 @@ describe('discovered semantic coverage', () => {
       ]),
     );
     expect(evidenceFor('activation-abstention')).toContain('scope-expansion-unbound-only');
+    expect(evidenceFor('context-maintenance-and-compression')).toEqual(
+      expect.arrayContaining([
+        'maintain-approved-owner-split',
+        'maintain-new-context-owner',
+        'maintain-rule-enforcement-paths',
+      ]),
+    );
+    expect(evidenceFor('read-only-integrity')).toContain(
+      'validate-ignored-instruction-link-target',
+    );
   });
 });

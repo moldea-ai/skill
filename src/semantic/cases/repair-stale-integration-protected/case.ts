@@ -6,7 +6,7 @@ export const semanticCase = defineSemanticCase({
   id: 'repair-stale-integration-protected',
   setup: createStaleIntegrationSetup(true),
   scenario:
-    'A tracked contained AGENTS.md link has the frozen stale 10.0.1 bridge, but both the link and target are explicitly protected.',
+    'A tracked contained AGENTS.md link leads to a managed region that differs from the installed template. Both the link and target are protected.',
   operation: 'fix-protected-integration',
   input: {
     developerDirection:
@@ -21,7 +21,7 @@ export const semanticCase = defineSemanticCase({
         },
       },
       {
-        claim: 'Protected host rules surround the stale 10.0.1 managed region.',
+        claim: 'Protected host rules surround the mismatched managed region.',
         source: {
           kind: 'workspace-path',
           path: 'config/agent-notes.md',

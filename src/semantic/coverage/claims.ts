@@ -97,14 +97,15 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
   {
     id: 'context-maintenance-and-compression',
     description:
-      'Relevant context changes update every affected existing owner, preserve unique meaning, resolve duplication, and stop on consequential conflict.',
+      'Relevant context changes update the governing owners, propose ownership for uncovered areas, preserve unique meaning, resolve duplication, and stop on consequential conflict.',
     sourcePaths: [
       'moldea/references/maintaining-context.md#maintain-owned-truth',
+      'moldea/references/maintaining-context.md#keep-project-routing-current',
       'moldea/references/maintaining-context.md#consolidate-context',
       'moldea/references/maintaining-context.md#declare-material-relationships',
     ],
     rationale:
-      'Relationship reconsideration, direct and multi-owner maintenance, compression, authority conflicts, and mirror synchronization remain independently exercised.',
+      'Cases cover relationship reconsideration, approved restructuring, independent authority, compression, conflicts and mirror synchronization.',
     fixedEvidence: [],
   },
   {

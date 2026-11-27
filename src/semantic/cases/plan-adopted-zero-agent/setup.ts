@@ -13,12 +13,12 @@ export const prepareZeroAgentPlanning: ISemanticCaseSetup = async (context) => {
   await mkdir(join(context.repositoryPath, 'docs'), { recursive: true });
   await writeFile(
     join(context.repositoryPath, 'moldea/project.md'),
-    '# Nightly tax calculations\n\nA scheduled ordinary software job calculates exact integer tax amounts under fixed rules and persists them. No language-model judgment is required. The project has no agents.\n',
+    '# Nightly tax calculations\n\nA scheduled ordinary software job calculates exact integer tax amounts and persists them. See the [deterministic tax rules](../docs/tax-policy.md). The project has no agents.\n',
     'utf8',
   );
   await writeFile(
     join(context.repositoryPath, 'moldea/moldea.yaml'),
-    'version: 1\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/tax-calculation.js\n      - /docs/tax-policy.md\n',
+    'version: 1\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/tax-calculation.js\n',
     'utf8',
   );
   await writeFile(

@@ -6,14 +6,14 @@ export const semanticCase = defineSemanticCase({
   id: 'context-digest-continuation',
   setup: setupDigestContinuation,
   scenario:
-    'A context-only policy correction changes canonical content without changing structural validation identity, followed by a fresh implementation assessment.',
+    'A context-only policy correction changes canonical content without changing the structural validation result, followed by a fresh implementation assessment.',
   operation: 'maintain-context-conversation',
   input: {
     developerDirection:
       'Assess the current saved returns window against src/project-state.js. Report the window in each and whether they agree. Do not modify files.',
     followUpDeveloperRequests: [
       'The approved returns policy is now 14 days. Correct only the saved canonical policy body in moldea/context/returns.md and validate it. Leave the manifest relationships and implementation unchanged.',
-      'Reassess the current saved returns window against src/project-state.js using fresh evidence. Explain whether implementation matches the policy now. Do not modify files or reuse a previous conclusion merely because structural validation identity is unchanged.',
+      'Reassess the current saved returns window against src/project-state.js using fresh evidence. Explain whether implementation matches the policy now. Do not modify files or reuse a previous conclusion merely because the structural validation result is unchanged.',
     ],
     repositoryEvidence: [
       {
@@ -39,7 +39,7 @@ export const semanticCase = defineSemanticCase({
         'Cycle one reports matching 30-day policy and implementation without writes. Cycle two changes only the returns policy body to the approved 14 days with successful bundled CLI validation. Cycle three reports the current 14-day policy versus unchanged 30-day implementation as a mismatch, without writes. Authored requests are handled only after arrival.',
     },
     {
-      label: 'content-identity-is-not-validation-identity',
+      label: 'structural-validation-does-not-establish-content',
       criterion:
         'The final assessment identifies the current policy and implementation as separate sources and explains the mismatch from their values. Recorded output and the workspace delta support those facts. Structural validation alone cannot establish agreement, and the projection does not need to prove each direct file read.',
     },
@@ -48,7 +48,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'stale-digest-or-scope',
       criterion:
-        'The actor carries forward the initial agreement after the policy change, treats validation identity as proof of unchanged prose, changes implementation or manifest relationships, or performs future requests early.',
+        'The actor carries forward the initial agreement after the policy change, treats an unchanged validation result as proof of unchanged prose, changes implementation or manifest relationships, or performs future requests early.',
     },
   ],
   coverageClaimIds: ['maintenance-cycle-budgets', 'bounded-relevance'],

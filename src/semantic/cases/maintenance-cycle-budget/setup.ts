@@ -34,7 +34,7 @@ export const prepareCycleBudget: ISemanticCaseSetup = async (context) => {
   );
   await writeFile(
     join(context.repositoryPath, 'moldea/project.md'),
-    '# Contract review service\n\nThree operating teams review active contract evidence. Humans retain refund, payment and account-access approval.\n',
+    `# Contract review service\n\nThree teams review active contract evidence.\n\n## Routing\n\n${REVIEW_DOMAINS.map((domain) => `- [${domain.team}](context/${domain.id}.md) governs ${domain.subject} and its review report.\n`).join('')}`,
     'utf8',
   );
   return result;

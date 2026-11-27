@@ -14,7 +14,6 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import type { IManifestScopeMatch } from '@moldea.ai/core';
 import { afterEach, beforeAll, test } from 'vitest';
 
 import {
@@ -72,7 +71,7 @@ type IScopeFixtureEnvelope = {
     valid: boolean;
     relevant: boolean;
     counts: { inputPaths: number };
-    page: { cursor: string | null; records: Array<{ match: IManifestScopeMatch }> };
+    page: { cursor: string | null; records: unknown[] };
   };
 };
 
@@ -359,7 +358,7 @@ test.each([
   [
     'maintain-context-without-duplication',
     'docs/operations-policy.md',
-    /Support owns escalation\. Legal approves retention exceptions\./u,
+    /Legal approves retention exceptions\./u,
   ],
 ] as const)('%s exposes its policy authority to the judge', async (caseId, sourcePath, pattern) => {
   const { caseDefinition, repositoryPath } = await materializeCase(caseId);
@@ -629,10 +628,15 @@ test('an assessed accurate owner exposes missing coverage through completed scop
   assert.equal(scope.result.relevant, true);
   assert.equal(scope.result.counts.inputPaths, 2);
   assert.equal(scope.result.page.cursor, null);
-  assert.deepEqual(
-    scope.result.page.records.map(({ match }) => [match.inputPath, match.owner.id]),
-    [['/src/refund-request.js', '/moldea/context/refunds.md']],
-  );
+  assert.deepEqual(scope.result.page.records, [
+    {
+      key: '00000000000',
+      kind: 'match',
+      ownerKind: 'context',
+      path: '/moldea/context/refunds.md',
+      relationships: [{ field: 'affectedBy', path: '/src/refund-request.js' }],
+    },
+  ]);
   assert.ok(
     cliOutput(repositoryPath, ['content', '--path', '/moldea/context/refunds.md']).includes(
       'Refunds above 1000 units require approval.',
@@ -649,10 +653,15 @@ test('an assessed accurate owner exposes missing coverage through completed scop
   const repairedScope = JSON.parse(
     cliOutput(repositoryPath, ['scope', '--paths-stdin'], '/src/refund-policy.js\0'),
   ) as IScopeFixtureEnvelope;
-  assert.deepEqual(
-    repairedScope.result.page.records.map(({ match }) => [match.inputPath, match.owner.id]),
-    [['/src/refund-policy.js', '/moldea/context/refunds.md']],
-  );
+  assert.deepEqual(repairedScope.result.page.records, [
+    {
+      key: '00000000000',
+      kind: 'match',
+      ownerKind: 'context',
+      path: '/moldea/context/refunds.md',
+      relationships: [{ field: 'affectedBy', path: '/src/refund-policy.js' }],
+    },
+  ]);
   assert.deepEqual(readFileSync(ownerPath), originalOwner);
   const repairedSnapshot = await snapshotSemanticWorkspace(repositoryPath);
   writeFileSync(manifestPath, repairedManifest);
@@ -1105,12 +1114,12 @@ test('repair authority distinguishes known drift, unproven adoption, and ambiguo
   assert.equal(gateResult(unproven.repositoryPath, [], true), '0\n');
   assert.equal(existsSync(join(unproven.repositoryPath, 'node_modules')), false);
   assert.equal(gateResult(ambiguous.repositoryPath, [], true), '1\n');
-  const oldManifest = spawnSync('git', ['show', 'HEAD:moldea/moldea.yaml'], {
+  const committedManifest = spawnSync('git', ['show', 'HEAD:moldea/moldea.yaml'], {
     cwd: ambiguous.repositoryPath,
     encoding: 'utf8',
   });
-  assert.equal(oldManifest.status, 0, oldManifest.stderr);
-  assert.match(oldManifest.stdout, /legacy-policy/u);
+  assert.equal(committedManifest.status, 0, committedManifest.stderr);
+  assert.match(committedManifest.stdout, /approval-policy/u);
   assert.match(
     readFileSync(join(ambiguous.repositoryPath, 'moldea/moldea.yaml'), 'utf8'),
     /unfinished/u,
@@ -1467,11 +1476,11 @@ test('the acceptance fixture exposes the exact warning and confirms only develop
   );
   assert.ok(warning);
   assert.equal(warning.subject, '/moldea/project.md');
-  assert.equal(warning.qualifier, '/deployment/**');
+  assert.equal(warning.qualifier, '/src/fraud-review/**');
   assert.equal(warning.acceptable, true);
   const manifestPath = join(repositoryPath, 'moldea/moldea.yaml');
   const originalManifest = readFileSync(manifestPath, 'utf8');
-  const reason = 'The optional deployment files are maintained outside this repository.';
+  const reason = 'This subtree is reserved for the optional fraud review service.';
   writeFileSync(
     manifestPath,
     originalManifest +

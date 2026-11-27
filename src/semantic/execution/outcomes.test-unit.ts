@@ -112,6 +112,7 @@ test.each([
 test.each([
   [`${CLI_ENTRY} validate --repository /mnt --json --max-output-bytes 65536`, '', 0, true],
   ['node /mnt/tools/check.js', '', 0, true],
+  ['git status', '', 0, true],
   ['git config --null --get attr.tree', '', 0, false],
   [
     'node /mnt/.agents/skills/moldea/scripts/repair-git.mjs --repository /mnt -- checkpoint',
@@ -183,7 +184,7 @@ test.each([
     'repair-git-compliance',
     {
       ...caseDefinition,
-      expected: [{ label: 'repair-git-compliance', criterion: 'Require helper-only repair Git.' }],
+      expected: [{ label: 'repair-git-compliance', criterion: 'Require the Fix Git boundary.' }],
     },
   ],
   ['ordinary repair', healthyRepairCase],
@@ -210,8 +211,13 @@ test.each([
   expect(projected).not.toBeNull();
   if (projected === null) throw new Error('Expected projected command evidence');
   const actorCommandPolicy = projectCommandPolicy([[command, 0]]);
+  const helperCapture = {
+    invocationCount: 1,
+    hostInvocationCount: 0,
+    repair: { compliantCount: 1, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+  };
   const failedRead = {
-    compliantCount: 0,
+    compliantCount: 1,
     noncompliantCount: 1,
     unverifiedCount: 0,
     reasons: [{ code: 'git-other' as const, count: 1 }],
@@ -222,11 +228,7 @@ test.each([
       actorCommandPolicy,
       actorExecutionEvidence: [projected],
       caseDefinition: repairCase,
-      gitInvocationEvidence: {
-        invocationCount: 0,
-        hostInvocationCount: 0,
-        repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
-      },
+      gitInvocationEvidence: helperCapture,
     }),
   ).toBe(false);
   expect(
@@ -242,10 +244,82 @@ test.each([
         },
       ],
       caseDefinition: repairCase,
-      gitInvocationEvidence: { invocationCount: 1, hostInvocationCount: 0, repair: failedRead },
+      gitInvocationEvidence: { ...helperCapture, invocationCount: 2, repair: failedRead },
     }),
   ).toBe(false);
 });
+
+test.each([
+  ['continue', 'continue', 'available', 1, true],
+  ['review', 'review', 'available', 1, true],
+  ['continue', 'continue', 'available', 0, false],
+  ['continue', 'review', 'available', 1, false],
+  ['review', 'review', 'unavailable', 1, false],
+  ['review', null, null, 1, false],
+] as const)(
+  'checks required %s with a %s %s result and %i helper observations -> %s',
+  (requiredRepairGitMode, mode, status, compliantCount, passing) => {
+    const commit = 'a'.repeat(40);
+    const events =
+      mode === null
+        ? []
+        : [
+            {
+              type: 'item.completed',
+              item: {
+                type: 'command_execution',
+                command: `node /mnt/.agents/skills/moldea/scripts/repair-git.mjs --repository /mnt -- ${mode} ${mode === 'continue' ? `--checkpoint ${commit}` : '--path README.md'}`,
+                aggregated_output: JSON.stringify({
+                  kind: 'moldea-repair-git',
+                  mode,
+                  status,
+                  ...(status === 'available'
+                    ? {
+                        commit,
+                        uncommittedPaths: [],
+                        changedPaths: [],
+                        manifestDiff: '',
+                        uncommittedManifestDiff: '',
+                        writtenDiff: '',
+                      }
+                    : { reasonCode: 'attribute-safety', reason: 'Unsafe Git attributes.' }),
+                }),
+                exit_code: status === 'available' ? 0 : 1,
+                status: status === 'available' ? 'completed' : 'failed',
+              },
+            },
+          ];
+    const actorExecutionEvidence = events.map((event) => {
+      const evidence = projectActorExecutionEvidenceEvent(event, {
+        cliVersion: '14.0.1',
+        jsonSchemaVersion: 8,
+      });
+      if (evidence === null) throw new Error('Expected repair helper evidence');
+      expect(evidence.item.outputEvidence.facts).toHaveLength(1);
+      return evidence;
+    });
+    expect(
+      hasPassingCaseRepairGitEvidence({
+        actorCommandPolicy: projectCodexEvaluationExecutionEvidence(
+          events.map((event) => JSON.stringify(event)).join('\n'),
+        ).commandPolicy,
+        actorExecutionEvidence,
+        caseDefinition: defineSemanticCase({
+          ...caseDefinition,
+          expected: [
+            { label: 'repair-git-compliance', criterion: 'Require the declared repair Git mode.' },
+          ],
+          requiredRepairGitMode,
+        }),
+        gitInvocationEvidence: {
+          invocationCount: compliantCount,
+          hostInvocationCount: 0,
+          repair: { compliantCount, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+        },
+      }),
+    ).toBe(passing);
+  },
+);
 
 test.each([
   [2_097_152, true],
@@ -278,12 +352,12 @@ test.each([
 });
 
 test.each([
-  ['&&', 'hardened-direct', false],
-  ['||', 'hardened-direct', false],
+  ['&&', 'hardened-direct', true],
+  ['||', 'hardened-direct', true],
   ['&&', 'prohibited', false],
   ['||', 'prohibited', false],
-  ['&&', 'opaque', false],
-  ['||', 'opaque', false],
+  ['&&', 'opaque', true],
+  ['||', 'opaque', true],
 ] as const)(
   'grades submitted %s Git syntax with a %s branch -> %s',
   (separator, branch, passing) => {
@@ -297,7 +371,7 @@ test.each([
       branch === 'hardened-direct'
         ? status
         : branch === 'prohibited'
-          ? 'git log -p'
+          ? 'git add README.md'
           : 'node inspect.js';
     const event = {
       type: 'item.completed',

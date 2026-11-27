@@ -52,6 +52,7 @@ export const SemanticCaseDefinitionSchema = z
     }),
     operation: StableIdSchema,
     publication: z.literal('private').optional(),
+    requiredRepairGitMode: z.enum(['continue', 'review']).optional(),
     resourceBudget: z.strictObject({
       activation: z.enum(['abstain', 'blocked', 'direct', 'informational', 'relationship']),
       maximumMoldeaCommands: z.number().int().nonnegative(),
@@ -75,6 +76,18 @@ export const SemanticCaseDefinitionSchema = z
       .optional(),
   })
   .superRefine((caseDefinition, context) => {
+    if (
+      caseDefinition.requiredRepairGitMode !== undefined &&
+      !caseDefinition.expected.some(({ label }) =>
+        ['approved-repair-git', 'repair-git-compliance'].includes(label),
+      )
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['requiredRepairGitMode'],
+        message: 'A required repair Git mode needs a repair Git criterion.',
+      });
+    }
     const criterionLabels = [...caseDefinition.expected, ...caseDefinition.forbidden].map(
       ({ label }) => label,
     );

@@ -12,7 +12,7 @@ Repository format is the open, Git-owned structure that gives people and coding 
 
 This page introduces how to adopt the format. The [official Repository Format specification](https://packages.moldea.ai/repository-format/) defines the complete version `1` contract, including every supported file, manifest property, constraint, and conformance rule.
 
-The format is deliberately additive. A new project begins with two files and earns more structure only when real context, rationale, runtime guidance, or agent behavior needs a durable owner.
+A new project begins with two files. Add focused context, decision records, agent assets, and relationships when project evidence establishes what each one owns.
 
 Adoption requires the bounded regular canonical foundation files `/moldea/moldea.yaml` and `/moldea/project.md`. README explains the project integration; AGENTS.md routes ordinary tasks. Neither document controls adoption or Core validity. Missing routing produces a setup warning, while damaged canonical files receive bounded diagnosis rather than a fresh scaffold.
 

@@ -5,6 +5,7 @@ import { defineSemanticCase } from '../define.ts';
 export const semanticCase = defineSemanticCase({
   setup: createSemanticCaseSetup('maintain-guided-billing'),
   id: 'maintain-guided-billing',
+  publication: 'private',
   scenario: 'An adopted project asks moldea to learn one named area.',
   operation: 'maintain-context',
   input: {
@@ -56,7 +57,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'one-area-round',
       criterion:
-        'Run one guided Billing round with a proposed governing rule and exact path. Show the round, established context, area coverage, agent status, changed files, and remaining gaps.',
+        'Run one guided Billing round with a proposed governing rule and exact path. Show established context material to Billing, Billing coverage, agent status, changed files, and remaining gaps in the requested area.',
     },
     {
       label: 'save-confirmed-billing',

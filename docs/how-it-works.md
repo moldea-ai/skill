@@ -10,7 +10,7 @@ order: 20
 
 ## Activation
 
-Initialize only on request. In an adopted project, agent work, changes to what an in-app model decides or says, durable project facts, and direct context questions can use the skill without an existing relationship. Loading another skill's instructions alone leaves moldea out.
+Initialize only on request. In an adopted project, agent work, project-grounded skill work, changes to what an in-app model decides or says, durable project facts, and direct context questions can use moldea without an existing relationship. Loading another skill's instructions alone leaves moldea out.
 
 When a plan adds or changes product behavior, the managed AGENTS.md block checks adoption. The agent reads `moldea/project.md` and opens only the owners its routing describes for that purpose. If the project entry point has no usable routing section, a content-free inventory helps select which headings or openings to inspect. This works before you know the affected paths.
 
@@ -18,14 +18,14 @@ Other work uses the known-path relevance gate. A hit scopes the checked paths to
 
 ## Operation selection
 
-| Request | Operation |
-| --- | --- |
-| Adopt the repository or resume onboarding | Initialize |
-| Read context governing a plan or a related change | Use |
-| Update an established fact, decision or relationship, or learn a named area | Maintain |
-| Plan, create, review, or change a project model responsibility | Agents |
-| Compare context with implementation or correct established drift | Check/Fix |
-| Run deterministic format and binding checks | Validate |
+| Request                                                                     | Operation  |
+| --------------------------------------------------------------------------- | ---------- |
+| Adopt the repository or resume onboarding                                   | Initialize |
+| Read context governing a plan or a related change                           | Use        |
+| Update an established fact, decision or relationship, or learn a named area | Maintain   |
+| Plan, create, review, or change a project agent or project-grounded skill   | Agents     |
+| Compare context with implementation or correct established drift            | Check/Fix  |
+| Run deterministic format and binding checks                                 | Validate   |
 
 ## Guided initialization
 

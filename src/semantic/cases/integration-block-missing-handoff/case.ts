@@ -5,6 +5,7 @@ import { defineSemanticCase } from '../define.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'integration-block-missing-handoff',
+  publication: 'private',
   setup: createSemanticCaseSetup('integration-block-missing-handoff'),
   scenario: 'An adopted fixture has no managed bridge and host instructions prohibit AGENTS edits.',
   operation: 'check-setup',

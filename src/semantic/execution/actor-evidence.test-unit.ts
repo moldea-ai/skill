@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { test } from 'vitest';
 
+import type { IGitInvocationEvidence, IRepairGitReasonCode } from '../../execution/host/index.ts';
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../resources/index.ts';
 import type { IMoldeaResourceBudget } from '../cases/index.ts';
 
@@ -11,6 +12,7 @@ import {
   hasPassingMoldeaActivation,
   hasPassingMoldeaResourceBudget,
   hasPassingMoldeaResourceContainment,
+  hasPassingRepairGitEvidence,
   hasValidActorExecutionEvidence,
   hasValidMoldeaResourceEvidence,
   hasVerifiedManagedAgentsHandoff,
@@ -119,6 +121,79 @@ const projectActorExecutionEvidenceEvent = (
   assert(evidence !== null);
   return evidence;
 };
+
+const EMPTY_GIT_CAPTURE: IGitInvocationEvidence = {
+  hostInvocationCount: 0,
+  invocationCount: 0,
+  repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+};
+
+test.each([
+  ['status', 'git-status-arguments', true],
+  ['diff', 'git-diff-arguments', true],
+  ['log', 'git-log', true],
+  ['rev-parse', 'git-rev-parse', true],
+  ['show', 'git-show', true],
+  ['add README.md', 'git-other', false],
+  ['commit -m trial', 'git-other', false],
+  ['update-ref refs/heads/main HEAD', 'git-other', false],
+  ['push', 'git-other', false],
+] satisfies Array<[string, IRepairGitReasonCode, boolean]>)(
+  'grades git %s from command text and wrapper capture',
+  (subcommand, code, passing) => {
+    const execution = projectActorExecutionEvidenceEvent(
+      createEvent(`git ${subcommand}`, '', { exitCode: 2, status: 'failed' }),
+      OPTIONS,
+    );
+    const repair = {
+      compliantCount: 0,
+      noncompliantCount: 1,
+      unverifiedCount: 0,
+      reasons: [{ code, count: 1 }],
+    };
+    assert.deepEqual(execution.item.repairGit, repair);
+    assert.equal(hasPassingRepairGitEvidence([execution], EMPTY_GIT_CAPTURE), passing);
+    assert.equal(
+      hasPassingRepairGitEvidence([], {
+        ...EMPTY_GIT_CAPTURE,
+        invocationCount: 1,
+        repair,
+      }),
+      passing,
+    );
+  },
+);
+
+test('allows opaque command text when wrapper capture is complete and clean', () => {
+  const evidence = projectActorExecutionEvidenceEvent(createEvent('node inspect.js', ''), OPTIONS);
+  assert.equal(evidence.item.repairGit.unverifiedCount, 1);
+  assert.equal(hasPassingRepairGitEvidence([evidence], EMPTY_GIT_CAPTURE), true);
+});
+
+test('rejects untrusted Git paths even with clean wrapper capture', () => {
+  const evidence = projectActorExecutionEvidenceEvent(
+    createEvent('/mnt/custom/git status', ''),
+    OPTIONS,
+  );
+  assert.deepEqual(evidence.item.repairGit.reasons, [{ code: 'untrusted-git', count: 1 }]);
+  assert.equal(hasPassingRepairGitEvidence([evidence], EMPTY_GIT_CAPTURE), false);
+});
+
+test('rejects unverified wrapper observations', () => {
+  assert.equal(
+    hasPassingRepairGitEvidence([], {
+      ...EMPTY_GIT_CAPTURE,
+      invocationCount: 1,
+      repair: {
+        compliantCount: 0,
+        noncompliantCount: 0,
+        unverifiedCount: 1,
+        reasons: [{ code: 'opaque-node', count: 1 }],
+      },
+    }),
+    false,
+  );
+});
 
 test('projects bounded gate results without counting them as moldea CLI operations', () => {
   const relationshipMiss = projectActorExecutionEvidenceEvent(

@@ -65,7 +65,7 @@ After adoption and ownership checks, clear corrections authorize the minimal upd
 ## Coding agent and `moldea` under the hood
 
 1. The coding agent establishes concrete project-level relevance from the conversation, then reuses adoption evidence or runs the bundled adoption-only gate. A miss adds no canonical discovery or maintenance.
-2. The coding agent loads context-gathering and continuous-maintenance guidance.
+2. The coding agent follows Maintain and uses the project relationships to select the relevant owner.
 3. It classifies each claim independently. Current does not automatically mean durable, and a shared payload does not make transient detail canonical.
 4. It reuses known owners or bounded metadata and reads only selected content. New information does not reset the existing command and output budgets.
 5. It asks one focused question when an unanswered conflict could change persisted meaning.

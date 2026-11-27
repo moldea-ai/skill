@@ -4,6 +4,7 @@ import { defineSemanticCase } from '../define.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'initialize-sufficient-context',
+  publication: 'private',
   setup: createSemanticCaseSetup('initialize-sufficient-context'),
   scenario:
     "Explicit initialization finds concise authoritative documentation and corroborating implementation that clearly establish the project's purpose, consumers, goals, and payment-authority boundary.",
@@ -47,7 +48,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'report-adopted-project',
       criterion:
-        'After completing initialization, the actor reports the project as adopted because the complete canonical foundation now exists, reporting integration separately.',
+        'Report adoption for the covered scope once the complete canonical foundation exists. Identify unfinished integration separately when present. When both are complete, a concise combined status is sufficient.',
     },
     {
       label: 'create-minimum-canonical-foundation',
@@ -62,7 +63,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'report-evidence-backed-foundation',
       criterion:
-        'The actor response explicitly reports evidence backed foundation, with the supplied workspace evidence remaining consistent with that report.',
+        'Identify the established foundation in the first guided round or foundation report. Compare the reported and recorded purpose, users, goals, and payment-authority boundary with the supplied documentation and corroborating code to establish grounding.',
     },
     {
       label: 'rerun-deterministic-inspection',

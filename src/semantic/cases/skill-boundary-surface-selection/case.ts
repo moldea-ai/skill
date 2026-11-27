@@ -4,6 +4,7 @@ import { defineSemanticCase } from '../define.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'skill-boundary-surface-selection',
+  publication: 'private',
   setup: createSemanticCaseSetup('skill-boundary-surface-selection'),
   scenario:
     'A developer proposes Agent Skills for a repository-wide naming rule already owned by protected coding instructions and for checksum generation already owned by deterministic software.',

@@ -4,6 +4,7 @@ import { defineSemanticCase } from '../define.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'reconcile-identified-authority',
+  publication: 'private',
   setup: createSemanticCaseSetup('reconcile-identified-authority'),
   scenario:
     'Code permits manager approval, the agent requires an administrator, and the task identifies an accepted decision that settles the conflict.',

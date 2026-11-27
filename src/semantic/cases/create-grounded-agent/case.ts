@@ -4,6 +4,7 @@ import { defineSemanticCase } from '../define.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'create-grounded-agent',
+  publication: 'private',
   setup: createSemanticCaseSetup('create-grounded-agent'),
   scenario: 'Create a grounded order-triage agent from an existing immutable factory contract.',
   operation: 'create-agent',

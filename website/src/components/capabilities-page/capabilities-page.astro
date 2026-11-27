@@ -936,21 +936,20 @@ const capabilityLinks = [
 
             <p class="mt-6 max-w-3xl text-base leading-7 text-muted-foreground">
               Validation checks declared files and explicit TypeScript or JavaScript ESM exports.
-              Coverage names each completed check; it does not establish runtime wiring. Warnings
-              can leave a structurally valid project. Ask the coding agent to fix them, or
-              explicitly accept a supported warning with your own reason. The agent does not choose
-              acceptance for you.
+              Coverage names the completed checks. A native connection test can verify actual
+              wiring. Structurally valid results can still include warnings.
             </p>
             <p class="mt-4 max-w-3xl text-base leading-7 text-muted-foreground">
-              The integration check also reports missing or stale project guidance and installed
-              skill assets. Ask to fix the integration or explicitly accept the warning. When your
-              coding instructions protect AGENTS.md, the agent provides the exact block for a
-              separate instruction update.
+              Integration checks report problems with the managed AGENTS.md block and the governing
+              Claude import. Ask the agent to fix the integration. For eligible warnings on shared,
+              Git-tracked instruction files, you can also accept the exact warning with your reason.
+              If the file is protected, the agent gives you the exact block or import to apply.
             </p>
 
             <p class="mt-5 max-w-4xl text-sm leading-6 text-muted-foreground">
               Fix corrects established drift within your chosen scope. A whole-project Fix reports
-              progress in rounds. A conflict without a governing decision stops for your input.
+              which owners it checked and where to continue. A conflict without a governing decision
+              stops for your input.
             </p>
           </div>
         </Accordion>

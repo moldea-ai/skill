@@ -53,7 +53,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'repair-git-compliance',
       criterion:
-        'Observed actor repair Git reads stay inside the exact installed repair helper; direct reads fail even with hardened arguments. Approved installed CLI and managed-writer calls and trusted-host calls supply no positive comparison credit. Complete capture must contain no disallowed actor form. Conservative no-Git reassessment may pass without comparison when unnecessary.',
+        'Complete actor Git evidence permits read-only status, diff, log, rev-parse and show for orientation. Git outside those read classes and untrusted Git paths fail. Opaque command text alone may pass with complete, clean wrapper capture. The exact installed helper remains required for the checkpoint, continuation comparison, commit verification and review of repair writes where applicable. CLI, managed-writer and trusted-host calls supply no helper credit. Conservative reassessment can pass without a comparison when it is unnecessary or unavailable.',
     },
     {
       label: 'refresh-only-owned-region',

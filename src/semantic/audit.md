@@ -1,10 +1,111 @@
 # Skill semantic audit handoff
 
+## Qualification triage
+
+The first official recording completed all 148 public cases. It retained 106 passes, five recoveries, and 37 failures at 82,466,371 reported tokens. The private one-case model smoke added 109,202 tokens. Both recorded roles used Sol 6.2 at `xhigh`.
+
+- Corrected `evaluate-brief-project-request` to request ordinary project evaluation and `evaluate-clean-working-tree` to name the implementation to check. The initial requests conflicted with their intended coverage. `maintain-known-context-owners` now explicitly requests the exact relationship its criterion checks.
+- Corrected evidence requirements in `agents-create-project-skill`, `context-digest-continuation`, and `expanding-review-relevance`. The criteria check substantive, observable grounding. The read-only expansion still requires the relevant `scope` result and preserves the workspace. An extra CLI content call and unrecorded source-read chronology are unnecessary.
+- Clarified numbered approval in `initialize-guided-numbered` and final validation at full coverage in `initialize-guided-progress` and `initialize-guided-second-round`. The cases still require numbered choices where another round is available, no writes for unconfirmed proposals, and the final coverage report and validation.
+- Clarified skill instructions for the Fix Git boundary, first-round options, setup warning paths, guided progress and completion, and agent connection verification. Planning now identifies the section that routes to the governing owner and explains how the project purpose shapes the proposal. The first recording's actual helper violations, scope overreach, missing validations, and incomplete reports remain failures in that recording.
+
+Official targeted recording covers the 37 failures and previously resolved cases that exercise those same changed behavior boundaries. The catalogue still has 149 definitions and 637 criteria.
+
+The first targeted recording resolved 74 of its 83 cases. Its nine failures include direct Git calls before Fix evidence collection, missing Agent connection validation, overclaimed runtime evidence, moldea use after a path miss, and a Claude warning acceptance offered without established tracking. The rerun also identified that `plan-context-unrouted-refund` demanded file-read history the projection does not capture. The plan must now cite the exact unlinked owner, apply its distinct policy, and show the bounded inventory operation. The next recording covers all nine failures and the cases affected by the strengthened entry-point, reporting, and setup rules.
+
+The second targeted recording resolved 54 of 61 cases. A preview using all three official recordings accounted for all 148 public cases and retained seven failures: `repair-continuation-after-change`, `repair-continuation-manifest-change`, `repair-continuation-missing-owner-list`, `repair-continuation-partial-coverage`, `repair-marker-ambiguity`, `repair-readme-drift`, and `scope-expansion-unbound-only`. The repair traces include direct Git calls before the Fix reference, sometimes before the skill itself. The unbound case still invokes the CLI after gate misses. The campaign used 152,791,518 of 160,000,000 tokens. The seven cases alone used 8,022,725 tokens in their latest trials, and the 26 Fix cases used 16,095,747. The remaining 7,208,482 tokens do not cover the affected scope at those measured charges. The recordings remain private pending qualification.
+
+### Approved dispositions for the final recording
+
+- `repair-continuation-partial-coverage` is private. In targeted trial 2, the actor read the Fix reference, used permitted Git and ran validation. Its report gave an aggregate count without naming the focused coverage or the next owner. The definition still checks honest coverage and a usable resume point.
+- `scope-expansion-unbound-only` is private. In all three targeted trials, the actor loaded the Use reference and broadened the gate inputs to include unrelated `src/project-state.js`, which has a real relationship in the fixture. Trial 1 also included canonical paths. The task paths were unbound. The definition still checks completion of the implementation and abstention from moldea on those paths.
+- The proposed Fix Git grading applies the five orientation read classes across the captured turn. The after-change and manifest-change continuations require an available installed-helper comparison, and README drift requires an available helper review. Missing owner entries still call for conservative reassessment, and duplicate markers still call for writer refusal. Both cases can pass without a helper result. The implemented gate replayed 118 trials across 22 of 23 affected cases, with 50 Git-gate improvements and no regressions. Three structural-recovery trials pass when the archived judge decisions are held fixed. Four trials still fail the Git gate solely on `git-other`, all before the first recorded Fix-reference read in their traces. `repair-unproven-adoption` had no trial in these archives. The replay leaves archived verdicts untouched.
+
+### Revision 21 qualification proposal
+
+The full official recording `sem-20261126110024165-c5cbc5d2` finished all 146 eligible cases with 115 initial passes, 12 recoveries, and 19 terminal failures. The archive and redacted trial evidence stay private.
+
+- `create-grounded-agent` is private. One trial passed. The others omitted evidence for how the instruction was loaded or failed to distinguish verified loader behavior from untested live consumption. The Agents reference already requires that distinction.
+- `ordinary-final-validation-limit` is private. Two trials exceeded the 524,288-byte budget before the exempt final validation. The totals were 529,342 and 527,865 bytes. Another trial ran out of content calls and stopped without writing or running validation. The passing trial and the existing final validation exemption remain recorded.
+- `unbound-context-discovery` is private. All three trials used stale canonical information despite the relationship miss. One also ran inspect and Validate and changed `moldea/project.md`. The reference already requires abstention for the missed path.
+- `initialize-partial-context` stays public for the diagnostic. Set it aside only if the terminal diagnostic establishes that the clarifying question still fails while the explicit adoption report, no-write and no-Validate requirements, and the other criteria hold. A recovered case stays public.
+- The four refund-planning cases retain the governing Billing threshold and read-only boundary. The routed cases check use of the documented owner. The unrouted case keeps its bounded inventory and exact owner requirement. The read-only Git case keeps the sentinel, complete workspace and repository-control checks. The whole-project Fix still requires a real checkpoint and accurately reports the healthy result. Exact binding still requires static assessment without unsupported runtime claims. Sufficient initialization still requires an evidence-backed foundation and retains its separate confirmation, write, and final validation checks.
+
+The catalogue still has 149 definitions and 637 criteria. Six cases are private and 143 remain eligible. The 47-case diagnostic includes the newly private cases and remains private itself.
+
+### Revision 23 private diagnostic
+
+The 76-case diagnostic `sem-20261126162943757-f5892210` completed with 61 initial passes, seven recoveries and eight terminal failures. All 109 trials were fresh. The run charged 39,059,331 tokens, leaving 143,699,193 in the campaign, including the 128,000,000-token official allocation.
+
+Native actor trace files below are recorded privately under `.evidence/private-semantic/sem-20261126162943757-f5892210/<case-id>/`. Each listed Billing read targeted the exact file, exited successfully and returned content. Each case qualifies at its initial trial. There were no missing reads, inconclusive reads or confirmation trials for these cases.
+
+| Case                         | Trial | Judge  | `moldea/project.md` | `moldea/context/billing.md` | Private actor trace                              |
+| ---------------------------- | ----: | ------ | ------------------- | --------------------------- | ------------------------------------------------ |
+| `plan-context-new-paths`     |     0 | Passed | Verified (`item_9`) | Verified (`item_11`)        | `t0-a-r0-e2c16d89d0fd412891154d12e383ac8e.jsonl` |
+| `plan-context-no-paths`      |     0 | Passed | Verified (`item_8`) | Verified (`item_9`)         | `t0-a-r0-67e415527ff14ea48ae1562b71176099.jsonl` |
+| `plan-context-routed-refund` |     0 | Passed | Verified (`item_8`) | Verified (`item_9`)         | `t0-a-r0-d3d38e8c16d94799acb4900b59dcb750.jsonl` |
+
+Approved private set-asides for the next official recording:
+
+- `initialize-onboarding-continuation` is private as a coding-agent limitation. It missed `inventory-existing-project-assets` and `one-batch-final-validation` in all three trials. All three trials loaded the owning reference, gathered fresh inventory evidence, finished the pending registration, and reported the successful bundled validation. Each omitted the known architecture and operations policy documents, active human-approval decision, and project-owned Release Review Skill from the inventory report. The requirement is in [the owning reference](../../moldea/references/initializing.md#inventory-the-main-areas). Trial evidence in order: `t0-a-r0-4853fc81b3e248e882444eaf27bd7220.jsonl` (`item_6`, `item_19`), `t1-a-r0-6ac3ec99dde4481290abb216c35ab038.jsonl` (`item_7`, `item_13`), `t2-a-r0-fae9cead885b44ecb5d09b3fc516728f.jsonl` (`item_6`, `item_26`).
+- `initialize-sufficient-context` is private because the rubric expected a recap of the entire foundation in the one-line round update. All three trials established the grounded overview, completed the guided flow and ran final Validate. Keep the rubric and recorded outcomes for the next campaign.
+- `maintain-guided-billing` is private because the rubric expected a project purpose and users recap in a single-area round. All three trials read the linked format, mapped and saved the confirmed Billing rule, and validated the canonical writes. Revisit the rubric against the named-area format in the next campaign.
+- `integration-block-missing-handoff` is private for a rubric and wording issue. All three actors printed the exact protected `AGENTS.md` handoff and described acceptance. The protection limited the applicable Fix to that handoff. Revisit the rubric’s separate Fix option and the protected-file case in the warning paragraph next campaign. Trial evidence in order: `t0-a-r0-9938b77eedca4700af28607a307c387a.jsonl` (`item_5`), `t1-a-r0-5184d6f0bacd48b89f13d872e8de6065.jsonl` (`item_4`), `t2-a-r0-f7dbb5ee94964dfea231996b106a1fb4.jsonl` (`item_5`).
+
+These dispositions leave 139 public and 10 private definitions in the 149-case catalogue, with 637 criteria. `exact-binding-relevance` and `initialize-partial-context` remain public. The private diagnostic verdicts are unchanged.
+
+Both public runtime-only Maintain cases still require the native support-agent integration result and accurate repair report. The three `maintain-bound-connection` trials fixed the loader and import, and the three `maintain-tool-registration` trials restored the outgoing registry mapping. All six trial diffs preserve canonical files and record a passing native integration test. Their revised criteria require bundled Validate after canonical writes.
+
+- `dedicated-repository-single-side-change` is a next-campaign SDK reporting follow-up. The package-absent OpenAI fixture passed its cross-repository authority rubric. The actor read the call site and Agents reference, confined writes to the canonical repository, and reported the canonical instruction as unwired. The response omitted that the installed SDK fields could not be verified. Trial 0 is `t0-a-r0-7e4886ed527f442ca2eec190970f4d6f.jsonl` (`item_14`, `item_18`).
+
+### Revision 26 private diagnostic
+
+Attempt `sem-20261126190658865-d8eb6974` completed all 112 selected cases with 97 initial passes, five recoveries and ten terminal failures. Six terminal failures were public and four were already private. The attempt accounted for 51,081,328 tokens, including one retained reservation from the first launch's interrupted private Git capture. The resumed launch completed on the same skill artifact, case selection and attempt cap.
+
+The native actor traces are stored privately under `.evidence/private-semantic/sem-20261126190658865-d8eb6974/<case-id>/`. Each recorded read targeted the exact file, exited successfully and returned content. All three cases qualified on their initial trials.
+
+| Case                         | Trial | Judge  | `moldea/project.md`  | `moldea/context/billing.md` | Private actor trace                              |
+| ---------------------------- | ----: | ------ | -------------------- | --------------------------- | ------------------------------------------------ |
+| `plan-context-new-paths`     |     0 | Passed | Verified (`item_11`) | Verified (`item_15`)        | `t0-a-r0-27fd380a94eb4e6bb556bb941958c9b3.jsonl` |
+| `plan-context-no-paths`      |     0 | Passed | Verified (`item_7`)  | Verified (`item_8`)         | `t0-a-r0-67d5f7fa81a34f998e06b134553d4a96.jsonl` |
+| `plan-context-routed-refund` |     0 | Passed | Verified (`item_9`)  | Verified (`item_11`)        | `t0-a-r0-de3f14901abc4791b719e1c328cf071a.jsonl` |
+
+### Revision 27 pre-official private dispositions
+
+The five cases below are private for the next campaign. Their evidence is from `sem-20261126190658865-d8eb6974`, with private actor traces under `.evidence/private-semantic/sem-20261126190658865-d8eb6974/<case-id>/`.
+
+- `initialize-guided-agents-included` is private as a coding-agent limitation. All three trials read Initialize, registered the evidenced responsibilities and validated, then omitted the uncovered areas in the completion report. Retain the coverage-report criterion. Reference read and closeout traces in trial order: `t0-a-r0-a21d7892a4e74a2499610c23e355342e.jsonl` (`item_4`) and `t0-a-r2-f43848472a9740f2b9f2c9e96389e3be.jsonl`, `t1-a-r0-64f178b618d349f7841239398f743e30.jsonl` (`item_4`) and `t1-a-r2-e5b7a43805ec4f9c910a51a5659eb3fc.jsonl`, `t2-a-r0-15738a74a6cd4a16b0b9221d768c07ad.jsonl` (`item_5`) and `t2-a-r2-457596079ad14c14a3ab2fb2c033810a.jsonl`.
+- `initialize-guided-numbered` is private as a coding-agent limitation. All three trials read Initialize, wrote only the selected proposal and validated, then omitted the required `Next:` line. Retain numbered approval and completion-report coverage. Reference read and closeout traces in trial order: `t0-a-r0-07ff3f1013ae4f8a83df5e48c5b47a7a.jsonl` (`item_5`) and `t0-a-r1-9ecd2d5a722f49f299fa6cba35ae7e7e.jsonl`, `t1-a-r0-599d8e00e5324d3bb653dab059691bda.jsonl` (`item_4`) and `t1-a-r1-e0e5c29aaac149659bb1d75745d9b707.jsonl`, `t2-a-r0-158b651a88a9451cb4a6f24303eb1441.jsonl` (`item_5`) and `t2-a-r1-c040040cc71847ec9798138d1f1ed661.jsonl`.
+- `initialize-onboarding-confirmed` is private as a coding-agent limitation. All four trials read Initialize and ran final Validate. Trial 2 passed. The other trials omitted the project-owned Release Review Skill or more of the required inventory. Retain the inventory criterion. Trial traces in order: `t0-a-r0-7b57c1e5e20e4abaa0b79a4b88ae28f9.jsonl` (`item_5`), `t1-a-r0-6d4aa7f9dee2433f97fc3723efd1b4c4.jsonl` (`item_7`), `t2-a-r0-7b9aab7990664177bef0dfbeb59e99e6.jsonl` (`item_7`), `t3-a-r0-9fa2a4e7d4bc43f8899272ea81c4392d.jsonl` (`item_5`).
+- `setup-shared-claude-precedence` is private for a case-evidence defect. All three trials gave the exact protected-file handoff and left the workspace unchanged. Successful native staged-index queries established the tracked shared file. The judge did not receive that evidence, and the deterministic fixture independently verifies the stage-0 index entry. Revisit how the case verifies tracked eligibility. Trial traces in order: `t0-a-r0-ceb3a15a4f2c41b68ce6df9a3e7aba92.jsonl` (`item_26`), `t1-a-r0-5268cdc998cd480f9233b030bb2bac98.jsonl` (`item_22`), `t2-a-r0-57a3cfe8fe504ea5a7cf40eac8988db9.jsonl` (`item_28`).
+- `skill-reuse-existing-cohesive` is private as a coding-agent limitation. Every trial passed all semantic criteria. Each made one unnecessary `scope` call on the unrelated seeded `src/project-state.js` path and failed the resource gate. Two also supplied `README.md` to that call. Retain the native checks and scoped-work criterion. Trial traces in order: `t0-a-r0-ec27fb78ddd04ec59b226b6e98a2e4a2.jsonl` (`item_14`), `t1-a-r0-17de0d441c5c4c2eb68ce037e091ec0c.jsonl` (`item_17`), `t2-a-r0-3e12ebdcb9604c5f86c76f332f2bab66.jsonl` (`item_17`).
+
+The catalogue has 149 definitions and 637 criteria. Fifteen cases are private and 134 are eligible for the official recording. `exact-binding-relevance` and `initialize-partial-context` remain public.
+
+### Revision 27 official Billing evidence
+
+Official recording `sem-20261126220009651-5e97aa6f` includes one passing initial trial for each routed Billing case. Each native actor trace shows a focused read of both exact files with exit code 0 and nonempty output. All three cases qualified without confirmation trials. The traces are retained privately under `.evidence/private-semantic/sem-20261126220009651-5e97aa6f/<case-id>/`.
+
+| Case                         | Trial | Judge  | `moldea/project.md` | `moldea/context/billing.md` | Private actor trace                              |
+| ---------------------------- | ----: | ------ | ------------------- | --------------------------- | ------------------------------------------------ |
+| `plan-context-new-paths`     |     0 | Passed | Verified (`item_8`) | Verified (`item_10`)        | `t0-a-r0-953583d37a3a4e8099f30c2b16ec366f.jsonl` |
+| `plan-context-no-paths`      |     0 | Passed | Verified (`item_9`) | Verified (`item_10`)        | `t0-a-r0-7ea2882ad1cc4609b3d14b8923d26d4d.jsonl` |
+| `plan-context-routed-refund` |     0 | Passed | Verified (`item_8`) | Verified (`item_9`)         | `t0-a-r0-9a5cfa3152cd464495a7b7a301c27d69.jsonl` |
+
+### Revision 27 official exclusions
+
+The developer approved two private exclusions after official recording `sem-20261126220009651-5e97aa6f`. The 132 passing or confirmation-recovered cases remain eligible from that recording. The catalogue has 149 definitions and 637 criteria, with 17 private definitions. The source verdicts are unchanged.
+
+- `reconcile-identified-authority` is private for a case-evidence defect. Each trial stated in a progress message that the canonical instruction and its mirrors required administrator approval while the accepted decision and implementation agreed on manager approval. The judge received the final response but did not receive those progress messages. Every trial corrected all three copies, preserved the implementation, and passed validation. Native progress evidence in trial order is `t0-a-r0-3d255ac94fda4972a820c40b9295af14.jsonl` (`item_25`), `t1-a-r0-82f080caf2034b6c93f3c62bae9bc2a4.jsonl` (`item_17`), and `t2-a-r0-229a2066a22046dab25ad9deae5d56f0.jsonl` (`item_21`).
+- `skill-boundary-surface-selection` is private as a coding-agent limitation. All four trials kept JavaScript naming in the protected instructions and checksum generation in deterministic software. None wrote files. Trials 0, 2, and 3 failed the zero-command resource gate after one unnecessary bundled `scope` call. The native calls are `t0-a-r0-7b31fc4564b645059f3625a2ed1108b2.jsonl` (`item_12`), `t2-a-r0-fe9a9807bd0345c4b67418a10738e0a5.jsonl` (`item_13`), and `t3-a-r0-4d00de2e9f3a408a969be83a6a3460fb.jsonl` (`item_10`). Trial 1 passed with zero bundled CLI calls.
+
+Next campaign, revisit the resource criteria for `skill-reuse-existing-cohesive` and `skill-boundary-surface-selection`. The actors reached the correct outcomes. In both scenarios, traces show repository file listings feeding broad batches to the relevance gate despite the managed block's known-path, never-scan rule, followed by `scope` on the unrelated seeded `src/project-state.js`. For reuse, see revision 26 trial 2 (`item_3`, `item_11`, `item_17`). For boundary selection, see official trial 2 (`item_8`, `item_9`, `item_13`). The zero-command budgets predate the project-grounded skill route. Allow a relevance check limited to the skill's actual target files while preserving a check against scan-derived batches and unrelated scope.
+
 ## Skill 11.0.0 case review
 
 The developer approved this review of the 143 case definitions at `d70b42d62ec1dcdca6fe879ea9673a0aba55aa22`. The table includes the thirteen removals already delivered with the portable tooling. Published evidence retains its recorded definitions and provenance.
 
-The approved catalogue retains 34 cases, rewrites 89, and removes 20 from the baseline. It adds 26 cases, for 149 definitions and 637 criteria. `repair-unproven-adoption` is the only private case.
+The approved catalogue retains 34 cases, rewrites 89, and removes 20 from the baseline. It adds 26 cases, for 149 definitions and 637 criteria. The original approval excluded `repair-unproven-adoption`. The two initial qualification set-asides left 146 cases eligible for the completed full recording.
 
 Paid-call-free preflight froze the approved catalogue with `caseSuiteDigest` `296a5c15a4b673e5aee406f53763af89e3c27f1cb17518440d41168cc72bc97d`. The release campaign binds that catalogue and any triaged case corrections to the candidate skill and host settings.
 

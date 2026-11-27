@@ -48,7 +48,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'restore-tool-registration',
       criterion:
-        'Workspace changes restore the lookupOrder implementation to the outgoing registration in registry.js under the declared tool name lookup_order without changing that tool declaration. Runner-owned evidence contains a passing integration-test summary and successful bundled CLI validation, and the report identifies the existing support-agent test as passed. Actual tool-owner resolution through agentId, connection assessment and exact test selection require native verification, not this semantic label; aggregate test evidence does not identify a test path.',
+        'Workspace changes restore the lookupOrder implementation to the outgoing registration in registry.js under the declared tool name lookup_order without changing that tool declaration. Runner-owned evidence contains a passing integration-test summary, and the report identifies the existing support-agent test as passed. If the trial changes canonical moldea files, runner-owned evidence must also show successful bundled CLI validation. Actual tool-owner resolution through agentId, connection assessment and exact test selection require native verification, not this semantic label; aggregate test evidence does not identify a test path.',
     },
     {
       label: 'preserve-canonical-tool',

@@ -4,6 +4,7 @@ import { defineSemanticCase } from '../define.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'scope-expansion-unbound-only',
+  publication: 'private',
   setup: createSemanticCaseSetup('scope-expansion-unbound-only'),
   scenario:
     'An unbound checkout task exposes another unbound implementation dependency in an adopted repository.',

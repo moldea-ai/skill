@@ -5,6 +5,7 @@ import { setupFinalValidationLimit } from './setup.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'ordinary-final-validation-limit',
+  publication: 'private',
   setup: setupFinalValidationLimit,
   scenario:
     'A substantive canonical ledger traversal reaches the ordinary output allowance before an authorized summary patch and final structural validation.',

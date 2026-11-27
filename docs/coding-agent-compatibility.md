@@ -51,7 +51,7 @@ The optional `agents/openai.yaml` file adds OpenAI-host presentation, default-pr
 
 Coding agents can differ in how they discover and install skills, present them in the interface, apply invocation policies, combine them with project instructions, expose tools, and report work. Those host-level differences do not create separate `moldea` formats or sources of truth, and an installed copy does not prove activation or runtime registration.
 
-Compatibility of the Agent Skills format, successful installation, and observed host behavior are separate claims. The [future native-host checklist](/docs/reference-reading/#behavioral-regression-checklist) describes journeys to run before claiming behavioral verification in a host; it is not a record of completed host tests.
+Verify Agent Skills format compatibility, installation, and observed host behavior separately. The native-host checklist describes how to observe routing and instruction use. [Reference-reading checks](/docs/reference-reading/#behavioral-regression-checklist).
 
 Use a frontier-capability coding model for the strongest results. New release assurance runs actors and independent judges through Codex CLI with `gpt-6.2-sol` at `xhigh` reasoning effort. Recorded evidence retains its original model.
 

@@ -4,7 +4,7 @@
 
 `moldea` helps developers keep durable project knowledge in Git and bring relevant context into coding-agent planning and development. Start with project purpose, rules, and decisions, even when your application has no runtime agents. The same foundation supports creating and maintaining runtime agents, reusable Agent Skills, and their instructions.
 
-Adopted projects own a canonical `/moldea/**` tree. Focused context, implementation relationships, runtime guidance, mirrors, and unresolved requirements are added only when current project evidence calls for them.
+Adopted projects keep their foundation in `/moldea/**`. Add focused context, decisions, agent assets, and implementation relationships as the project needs them.
 
 ## Installation
 

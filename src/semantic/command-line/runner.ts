@@ -1036,7 +1036,7 @@ const recordSemanticAttempt = async (options: {
   const bundle = createSemanticEvidenceBundle({
     artifacts: [
       {
-        content: Buffer.from(`${JSON.stringify(result, null, 2)}\n`),
+        content: Buffer.from(`${JSON.stringify(result)}\n`),
         mediaType: 'application/json',
         path: attemptPath,
       },

@@ -5,6 +5,7 @@ import { defineSemanticCase } from '../define.ts';
 export const semanticCase = defineSemanticCase({
   setup: createInitializationOnboardingSetup('confirmed'),
   id: 'initialize-onboarding-confirmed',
+  publication: 'private',
   scenario:
     'The grounded foundation and inventory are established, application code is unchanged, and the developer answers the pending agent-inclusion confirmation.',
   operation: 'initialize',

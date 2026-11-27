@@ -4,6 +4,7 @@ import { defineSemanticCase } from '../define.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'repair-readme-drift',
+  requiredRepairGitMode: 'review',
   setup: createSemanticCaseSetup('repair-readme-drift'),
   scenario:
     'A developer confirms prior adoption and requests repair of a bounded managed README block drift.',
@@ -42,7 +43,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'repair-git-compliance',
       criterion:
-        'Observed repair Git reads, including preliminary configuration lookups, come only from the exact installed repair helper. Direct actor Git reads violate this procedure even with hardened arguments. Approved installed CLI and managed-writer subprocesses and trusted-host calls supply no positive repair-comparison credit. Conservative no-Git diagnosis may pass without comparison when evidence is unavailable or comparison is unnecessary; failed calls do not establish successful reads.',
+        'Complete actor Git evidence permits read-only status, diff, log, rev-parse and show for orientation. Git outside those read classes and untrusted Git paths fail. Opaque command text alone may pass with complete, clean wrapper capture. Runner evidence records an available review result from the installed helper and positive installed-helper wrapper credit in the same turn. A missing, unavailable or different result fails.',
     },
     {
       label: 'restore-only-managed-block',

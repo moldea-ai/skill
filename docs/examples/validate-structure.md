@@ -57,4 +57,4 @@ Coverage names each file or export check performed. It never establishes runtime
 
 Ask the coding agent to fix a warning, or explicitly accept a supported warning with your own reason. The agent never chooses acceptance. If AGENTS.md is protected, repair renders the installed block with `managed-agents.mjs --print` and hands it off for a separate instruction update. Acceptance is offered for an integration warning only when its file is shared and tracked by Git; accepting a warning about `CLAUDE.local.md` or an ignored file would report `MOLDEA_ACCEPTANCE_UNMATCHED` on every other checkout. Remove an obsolete acceptance after fixing its cause, then validate again.
 
-To authorize a repair, the developer can later request reconciliation or a focused write-capable correction. A valid result still does not prove semantic alignment or production readiness.
+Ask for Fix when you want the coding agent to correct an established discrepancy. A valid result establishes structural validity. Semantic alignment and production readiness require their own evidence.

@@ -61,7 +61,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'progress',
       criterion:
-        'Every round shows Round N, a one-line established summary, main-area coverage out of the identified total, registered or pending agents, files changed by the preceding round, and gaps. After the answers, offer numbered next choices and name remaining areas when proposing another round.',
+        'Every round shows Round N, a one-line established summary, main-area coverage out of the identified total, registered or pending agents, files changed by the preceding round, and gaps. After the answers, offer numbered next choices that name the remaining areas while evidence-backed proposals remain. When none remain, the finish report closes the round.',
     },
     {
       label: 'coverage-matches-writes',

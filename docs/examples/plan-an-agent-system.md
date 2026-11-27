@@ -23,12 +23,12 @@ order: 100
 ## Coding agent and `moldea` under the hood
 
 1. In the initialized repository, the coding agent recognizes agent-system planning from the request and uses the adoption-only check, without requiring existing agents or bindings.
-2. The skill directs it to read the planning and context-gathering references.
+2. The coding agent follows Use to select the governing project context and Agents to plan the system.
 3. It inspects the current promotion, catalog, pricing, campaign, approval, and delivery paths.
 4. It decomposes outcome responsibilities before naming agents.
 5. It keeps fixed rules and value-bearing changes deterministic.
 6. It justifies the single model-reasoning boundary and makes the human approval boundary explicit.
-7. It does not initialize `moldea`, install the CLI, create a plan artifact, or begin implementation.
+7. It returns the plan in the conversation and leaves repository files unchanged.
 
 ## Result
 

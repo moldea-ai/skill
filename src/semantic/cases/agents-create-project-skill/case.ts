@@ -39,7 +39,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'ground-project-skill',
       criterion:
-        'Create repository-grounded activation and guidance which route to the actual inspected policy and verifier, keeping their canonical ownership.',
+        'Create release-readiness activation and guidance that routes the complete release-diff review to docs/release-policy.md and the package-manager support check to scripts/verify-release.mjs. Keep both resources in their existing ownership and distinguish the two checks in the skill or report.',
     },
   ],
   forbidden: [

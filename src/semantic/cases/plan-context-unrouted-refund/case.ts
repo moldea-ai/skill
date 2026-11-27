@@ -39,11 +39,12 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'grounded-refund-plan',
       criterion:
-        "Use the adopted project purpose and Billing's actual human-approval rule for refunds greater than 50,000 cents, even for otherwise eligible orders. Identify Billing as the governing owner and preserve files.",
+        "Apply Billing's actual human-approval rule to refunds over 50,000 cents, including otherwise eligible orders. Identify Billing as the governing owner and keep the plan read-only. Use established project purpose when it changes a material choice in the plan.",
     },
     {
       label: 'select-focused-context',
-      criterion: 'Use bounded inventory to discover and inspect unlinked Billing.',
+      criterion:
+        'Runner-owned evidence records a successful bounded inspect inventory. The read-only plan names the unlinked moldea/context/billing.md owner and applies its specific refund rule. This establishes focused use of the owner without requiring proof of direct file reads from the projection.',
     },
   ],
   forbidden: [

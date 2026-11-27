@@ -38,7 +38,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'standalone-validation-only',
       criterion:
-        'Perform only the requested bundled CLI structural validation. Observed repair checkpoints, actor Git traversal and whole-project repair are forbidden. Capture cannot prove the absence of unrecorded filesystem reads; native procedures cover that separate obligation.',
+        'Perform only the requested bundled CLI structural validation. The five read-only Git orientation commands are permitted. Repair helper calls and results, and expansion into whole-project repair, fail. Native procedures cover unrecorded filesystem reads.',
     },
     {
       label: 'complete-explicit-validation',

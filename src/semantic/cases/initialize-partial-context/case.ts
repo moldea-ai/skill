@@ -43,7 +43,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'report-unadopted-partial-artifacts',
       criterion:
-        'The actor reports the project as unadopted, identifies the existing `/moldea/project.md` artifact, and identifies the missing `/moldea/moldea.yaml` rather than inventing a third adoption status.',
+        'State that the project is unadopted or that initialization remains incomplete, identify the existing /moldea/project.md and missing /moldea/moldea.yaml, and leave the workspace unchanged. Equivalent descriptions of incomplete adoption satisfy the status requirement.',
     },
     {
       label: 'summarize-supported-foundation',

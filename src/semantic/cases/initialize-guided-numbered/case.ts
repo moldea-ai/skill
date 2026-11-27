@@ -5,6 +5,7 @@ import { defineSemanticCase } from '../define.ts';
 export const semanticCase = defineSemanticCase({
   setup: createSemanticCaseSetup('initialize-guided-yes'),
   id: 'initialize-guided-numbered',
+  publication: 'private',
   scenario: 'The developer accepts only the proposal identified by number.',
   operation: 'initialize',
   input: {
@@ -61,7 +62,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'accept-item-one',
       criterion:
-        'Round 1 contains at least two supported proposals. Only the first is applied, with its approved owners and paths. The response and workspace agree on that selection.',
+        'Round 1 contains at least two supported proposals. Only the first is applied in its evidenced canonical owner, with a relationship only if that proposal includes one. The response and workspace agree on that selection.',
     },
     {
       label: 'finish-covered-scope',

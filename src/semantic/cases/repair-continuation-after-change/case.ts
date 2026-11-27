@@ -4,6 +4,7 @@ import { defineSemanticCase } from '../define.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'repair-continuation-after-change',
+  requiredRepairGitMode: 'continue',
   setup: createSemanticCaseSetup('repair-continuation-after-change'),
   scenario:
     'A previous repair checkpoint has four checked context owners; later source changes and a merge require selective reassessment.',
@@ -49,12 +50,12 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'approved-repair-git',
       criterion:
-        'Runner-owned gitInvocationEvidence.repair records at least one approved Git invocation from the observed exact installed repair helper. Neither the actor wrapper records nor recognized command text contains a disallowed Git form, and captured command evidence is complete. Opaque or unparsed text alone is not a Git violation. These observations do not establish successful checkpoint capture or read history. Direct actor reads, including hardened configuration/status/diff reads, fail. Approved installed CLI and managed-writer subprocesses are legitimate but supply no helper comparison credit.',
+        'Complete actor Git evidence permits read-only status, diff, log, rev-parse and show for orientation. Git outside those read classes and untrusted Git paths fail. Opaque command text alone may pass with complete, clean wrapper capture. Runner evidence records an available continue result from the installed helper and positive installed-helper wrapper credit in the same turn. A missing, unavailable or different result fails.',
     },
     {
       label: 'reassess-changed-and-checkpoint-paths',
       criterion:
-        "The report identifies A, B, and E as current reassessments and gives their case-specific reasons; actual retrieval and reassessment require native trace verification. A's changed source contradicts its document and is reported or corrected. B is reassessed because its path was uncommitted at the checkpoint despite now matching baseline. E is reassessed because its source differs from the checkpoint commit. The report need not identify a merge as the historical cause; the approved comparison does not establish that history.",
+        'The report reassesses A, B and E. It identifies src/owner-a.js and src/owner-e.js as changes from the supplied checkpoint and separately attributes src/owner-b.js to the saved uncommitted paths, even though B now matches baseline. It reports or corrects the conflict in A. Native evidence establishes actual retrieval and reassessment. Naming a merge is unnecessary.',
     },
     {
       label: 'carry-forward-unchanged-owner',
@@ -76,7 +77,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'unapproved-git-shape',
       criterion:
-        'Runner-owned actor wrapper records or recognized command text positively establish a disallowed Git form. Opaque or unparsed text alone is not proof of a violation.',
+        'The actor wrapper or recognized command text shows a Git command outside the five read classes or an untrusted Git executable. Opaque or unparsed command text alone does not establish a violation.',
     },
   ],
   coverageClaimIds: ['project-repair-and-recovery', 'context-maintenance-and-compression'],

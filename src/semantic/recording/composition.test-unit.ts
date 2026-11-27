@@ -471,7 +471,7 @@ test.each([
           compliantCount: 0,
           noncompliantCount: 1,
           unverifiedCount: 0,
-          reasons: [{ code: 'git-log', count: 1 }],
+          reasons: [{ code: 'git-other', count: 1 }],
         },
       };
       recorded.trial.actorCommandPolicyEvidence = { ...COMMAND_POLICY, completedCommandCount: 1 };

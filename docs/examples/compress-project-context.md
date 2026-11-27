@@ -1,7 +1,7 @@
 ---
 title: Compress accumulated project context
 navigationTitle: Compress project context
-description: Consolidate proven duplication without losing unique truth, requirements, relationships, or consumers, and stop safely when current claims conflict.
+description: Consolidate proven duplication while preserving unique facts, constraints, relationships, and consumers.
 section: examples
 order: 135
 ---
@@ -12,13 +12,13 @@ order: 135
 
 > **You**
 >
-> Consolidate the duplicated project context so each durable fact has one authoritative owner. Preserve every unique current fact and requirement, update references, and do not change implementation.
+> Consolidate the duplicated project context so each durable fact has one authoritative owner. Preserve current facts and constraints, update references, and leave implementation unchanged.
 
 > **Coding agent**
 >
 > I found the same escalation-policy ownership in two canonical context files. The operations context is the established owner. The second file also contains a unique unresolved after-hours ownership boundary, so I will preserve that boundary while consolidating the duplicate wording.
 
-The coding agent moves the unique boundary to its established owner, removes the proven duplicate file, updates the manifest relationship, unresolved requirement reference, and context index, and leaves implementation unchanged. It then reruns deterministic inspection and reports the owners selected, content retained, paths synchronized, checks, and limitations.
+The coding agent moves the unique boundary to its established owner, removes the duplicate file, and updates the manifest relationship and context index. It leaves implementation unchanged. After the last write, it runs the bundled Validate and reports the owners selected, content retained, paths updated, and checks.
 
 ## Conflicting current claims
 
@@ -40,7 +40,7 @@ Explicit natural consolidation, deduplication, organization, cleanup, or compres
 
 1. Confirms adoption and write authority.
 2. Resolves the requested canonical scope and affected consumers.
-3. Accounts for every distinct fact, accepted rationale, relevant requirement, unresolved boundary, relationship, and consumer before removing content.
+3. Accounts for every distinct fact, accepted rationale, current constraint, unresolved boundary, relationship, and consumer before removing content.
 4. Consolidates only proven duplication into established owners.
 5. Synchronizes manifest paths, references, indexes, consumers, and directly affected documentation when content moves or disappears.
 6. Stops on consequential conflict and asks one focused question.

@@ -39,11 +39,12 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'grounded-refund-plan',
       criterion:
-        "Use the adopted project purpose and Billing's actual human-approval rule for refunds greater than 50,000 cents, even for otherwise eligible orders. Identify Billing as the governing owner and preserve files.",
+        'Cite and apply the governing Billing guidance. Require human approval for refunds over 50,000 cents, including otherwise eligible orders. Use established project purpose where it changes a material choice and keep the plan read-only.',
     },
     {
       label: 'select-focused-context',
-      criterion: 'Use the routing in project.md to select Billing for refund behavior.',
+      criterion:
+        'The plan cites and applies the governing Billing context for refund behavior. Native review separately checks successful focused reads of moldea/project.md and its Billing target in both the diagnostic and official trials. The semantic judge assesses the cited and applied context without requiring a response explanation of the route or read order.',
     },
   ],
   forbidden: [

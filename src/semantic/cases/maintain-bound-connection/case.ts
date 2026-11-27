@@ -48,7 +48,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'restore-canonical-loader',
       criterion:
-        'Workspace changes update the import and moved loader so the runtime consumes moldea/agents/support-agent/instruction.md again. Runner-owned evidence contains a passing integration-test summary and successful bundled CLI validation, and the report identifies the existing support-agent test as passed. Actual owner retrieval, connection assessment and exact test selection require native verification, not this semantic label; aggregate test evidence does not identify a test path.',
+        'Workspace changes update the import and moved loader so the runtime consumes moldea/agents/support-agent/instruction.md again. Runner-owned evidence contains a passing integration-test summary, and the report identifies the existing support-agent test as passed. If the trial changes canonical moldea files, runner-owned evidence must also show successful bundled CLI validation. Actual owner retrieval, connection assessment and exact test selection require native verification, not this semantic label; aggregate test evidence does not identify a test path.',
     },
     {
       label: 'reconsider-without-churn',

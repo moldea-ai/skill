@@ -88,12 +88,10 @@ If moldea fails or behaves unexpectedly, email [jesus@moldea.ai](mailto:jesus@mo
 
 ## Unbound model workflows
 
-Implicit canonical adoption of an unbound one-shot model workflow is included in the 8.2.3 semantic selection. Its fresh full-recording initial trial passed, including canonical instruction consumption and validation. Earlier inline-only failures remain retained. An explicit moldea request remains available; the observed pass does not establish general routing reliability.
+A request that changes what an in-app model decides or says is direct work in an adopted project, including one-shot calls without a declared binding. The coding agent checks adoption and uses Agents guidance to inspect the actual call and governing context. Register a relationship only after the evidence establishes it. If the connection is opaque, report the unverified boundary.
 
-## Semantic coverage not yet included
+## What recorded evidence establishes
 
-The 8.2.3 selection contains 120 cases: 115 passed and five recovered. The five formerly private targets and three new scenarios are now included, as detailed in [semantic coverage](/docs/semantic-evaluation/#cases-and-coverage). Two cases remain **not yet included**: `exact-binding-relevance` did not reliably report its unverified support-answer boundary, and `read-only-git-helper-suppression` exceeded the unchanged host-command output cap in three of four reserve trials, with one additional safety-stop reporting omission. Their strict criteria and failed records remain private. No forbidden repository or Git-control modification was established. Private diagnostics do not fill these published coverage gaps.
+Semantic results cover the selected requests, fixtures, and recorded host settings. Review the recorded outcomes and provenance for the behavior you want to assess. [Current release selection](/docs/release-evidence/#current-selection).
 
-All six continuation cases passed their initial fresh full-recording trials and are included through exact reuse. They use actual sandbox Git-wrapper records together with recognized command text and measure cooperative compliance. Caller attribution separates direct trusted Codex-host calls from model-controlled commands; host calls supply neither actor violations nor positive repair-read credit. A deliberately evasive actor could locate the wrapper's non-PATH real Git binary or tamper with caller metadata or the temporary invocation log. This is not a tamper-proof audit. Native read history, reloads after compaction and actual reassessment of unchanged owners require separate evidence. The historical 108-case fallback remains unchanged.
-
-The three-request budget case keeps each cycle within its allowance while combined output exceeds one cycle's budget. It does not force the ordinary-work limit-exhaustion branch. Initialization's inspected-source report uses a supplied inspection boundary; it does not establish unrecorded read history or validation-after-write ordering. Those limits remain visible alongside the passing observations.
+Sandbox Git records show cooperative behavior and distinguish host calls from model-controlled commands. Use native traces where a claim depends on actual read order, an instruction reload after compaction, or a specific owner comparison. [Reference-reading checks](/docs/reference-reading/).

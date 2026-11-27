@@ -10,7 +10,7 @@ export const semanticCase = defineSemanticCase({
   operation: 'maintain-knowledge-handoff',
   input: {
     developerDirection:
-      'The service now extracts and validates invoice data for accounting systems; it never authorizes payments. The existing src/invoice.js shows this behavior. Bring moldea/project.md and moldea/context/processing.md up to date. Do not change the application.',
+      'The service now extracts and validates invoice data for accounting systems; it never authorizes payments. The existing src/invoice.js shows this behavior. Bring moldea/project.md and moldea/context/processing.md up to date, including the processing owner’s relationship to that source. Do not change the application.',
     repositoryEvidence: [
       {
         claim:

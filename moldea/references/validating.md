@@ -8,9 +8,11 @@ Skill 11.0.0 supports Git `>=2.32.0`, Node.js `>=22.17.0`, repository format 1, 
 
 ## Run the requested check
 
-Use the adopted Git worktree and exact host-selected installation. Report unavailable Git, Node, or host execution as an incomplete check. On an adoption miss or when the foundation is inaccessible, use the bounded [Check diagnosis](checking-and-fixing.md#diagnose-blocked-adoption) without writes or CLI calls. A completed valid or invalid result already proves invocation. Use `composition` for an identity question or the [whole-project Fix](checking-and-fixing.md#fix-the-whole-project) identity check.
+Use the adopted Git worktree and exact host-selected installation. Report unavailable Git, Node, or host execution as an incomplete check. On an adoption miss or when the foundation is inaccessible, use the bounded [Check diagnosis](checking-and-fixing.md#diagnose-blocked-adoption) without writes or CLI calls. A completed valid or invalid result already proves invocation. For the whole-project Fix identity check, see [Check owners progressively](checking-and-fixing.md#check-owners-progressively).
 
-For a data or policy change, complete affected native checks before final validation. When diagnostics establish a bounded correction within the authorized scope, correct the entire affected contract and rerun affected checks. Validate again only after a corrective write. Report source or authority gaps, required handoffs, and material errors and warnings. Do not treat a warning as invalidity or accept it on the developer's behalf. Binding coverage checks files in any project language. Export checks cover supported JavaScript and TypeScript ESM sources. Report other named symbols as `not-checked`; neither static check proves instruction consumption.
+For an explicit setup check, follow [Check setup integration](checking-and-fixing.md#check-setup-integration).
+
+For a data or policy change, complete affected native checks before final validation. When diagnostics establish a bounded correction within the authorized scope, correct the entire affected contract and rerun affected checks. Validate again only after a corrective write. Stop when failures repeat without progress or corrections oscillate. Report source or authority gaps, required handoffs, and material errors and warnings. Do not accept warnings on the developer's behalf. Binding coverage checks files in any project language. Export checks cover supported JavaScript and TypeScript ESM sources. Report other named symbols as `not-checked`; neither static check proves instruction consumption.
 
 ## Machine commands
 

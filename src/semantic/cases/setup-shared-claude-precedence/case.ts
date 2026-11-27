@@ -4,6 +4,7 @@ import { defineSemanticCase } from '../define.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'setup-shared-claude-precedence',
+  publication: 'private',
   setup: createIntegrationWarningSetup('shared'),
   scenario:
     'Shared .claude/CLAUDE.md lacks an AGENTS.md import while ignored CLAUDE.local.md already imports it; the shared nested file governs.',

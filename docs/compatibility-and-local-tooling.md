@@ -32,7 +32,7 @@ When ordinary work reaches a limit, the coding agent completes the developer's t
 
 For practical handling, start with [Limitations](/docs/limitations/). Detailed input and worker defaults belong to the [Core resource reference](https://packages.moldea.ai/packages/core/repository-inspection/#resource-limits) and [CLI budgets](https://packages.moldea.ai/packages/cli/output-and-operations/#resource-budgets).
 
-The following numbers are release-evaluation measurements from the unchanged source-controlled profiles, not universal limits on developer tasks. The recorded 8.2.3 evaluation counted whole-trial host commands and tool output. Evaluation protocol 53 applies the moldea-only counting rule above to each cycle: `ordinary` limits cover bundled CLI calls, bundled helpers and `moldea/` reads and writes, and `largeTraversal` limits also cover assessment source reads, except for aggregate `moldea` output. See [resource accounting](/docs/semantic-evaluation/#resource-accounting):
+Semantic evaluation applies these operating limits per developer request. The `ordinary` profile counts bundled CLI and helper work and canonical reads and writes. The `largeTraversal` profile also counts assessment source reads toward its command count and model-visible output. [Resource accounting](/docs/semantic-evaluation/#resource-accounting).
 
 | Limit                     | `ordinary` | `largeTraversal` |
 | ------------------------- | ---------: | ---------------: |
@@ -47,7 +47,7 @@ The isolated model-stage runner retains absolute ceilings of 128 completed comma
 
 Token grading counts input plus output, including cached input, for single-request trials and first cycles. For resumed cycles it counts uncached input plus output against both token limits. Campaign usage accounting still includes cached input. A complete token counter above either limit remains valid evidence and records a resource failure for that trial; it does not abort parsing or the campaign. Safe command and moldea-call overages may also reach semantic judging, but the trial remains failed. Missing cycle usage cannot establish a resource pass. Absolute output and evidence-containment violations still stop parsing. Duration and peak memory are diagnostics rather than brittle pass/fail thresholds.
 
-`src/resources/profiles.ts` is the numeric authority. The ordinary moldea-output allowance is 512 KiB because a real Platform implementation cycle consumed 261,014 bytes, leaving little room under the 256 KiB allowance. The per-host-command cap and every other profile limit remain unchanged. `fixtures/resource-calibration.json` contains reproducible measurements for ordinary, 1,024-path, large-Unicode, diagnostic-heavy, and adversarial CLI and repository inputs, with at least 25% cumulative headroom for non-attack cases. `fixtures/model-stage-resource-calibration.json` contains privacy-safe accepted actor and judge aggregates and proves at least 25% cumulative operating headroom; these recorded observations establish calibration integrity, not current behavioral assurance.
+`src/resources/profiles.ts` defines the evaluation limits. `fixtures/resource-calibration.json` records reproducible measurements across ordinary, large-path, Unicode, diagnostic-heavy, and adversarial inputs. `fixtures/model-stage-resource-calibration.json` records bounded actor and judge aggregates. The calibration check verifies measurements, operating headroom, and agreement with the configured profiles.
 
 Use these checks after changing resource behavior:
 
@@ -60,7 +60,7 @@ npm run resource:check
 
 ## SDK guidance
 
-Use the defining SDK's installed version and its relevant types or official documentation to verify the outgoing instruction, routing text, schema, and tools. The package-keyed table in the skill's `references/agents.md` helps you locate the contract. Confirm actual consumption with a focused native connection test. The repository can use any language. The CLI checks declared files and supports explicit JavaScript and TypeScript ESM symbols; unsupported symbols remain `not-checked`.
+Use the defining SDK's installed version and its relevant types or official documentation to verify the outgoing instruction, routing text, schema, and tools. Confirm actual consumption with a focused native connection test. The repository can use any language. The CLI checks declared files and supports explicit JavaScript and TypeScript ESM symbols; unsupported symbols remain `not-checked`.
 
 ## Managed integration
 
@@ -72,11 +72,11 @@ Initialization uses the bundled read-only `initialization-inspection.mjs --repos
 
 Adding repeated `--path <known-relative-file>` arguments selects one source packet instead of repeating inventory traversal. A packet accepts eight paths, reads at most 32 KiB from each bounded regular text file and 64 KiB in total, and reports omissions explicitly. Linked, missing, oversized, non-text and packet-limited sources need existing targeted inspection; they are not checked evidence. The helper rejects escaping and excluded paths, `.env`, `.env.*`, `auth.json`, `credentials.json`, and `.pem`/`.key` selections. Callers select project source, never credentials. Discovery never follows directory links, and the helper writes no repository or Git state.
 
-Inventory stops at 16,384 entries or 64 directory levels and retains at most 128 paths per category. Unreadable directories retain partial inventory. Partial results cannot establish complete discovery or absence. JSON output remains bounded to 262,144 bytes; an output overflow or helper error produces no inspection evidence, so use known indexes or bounded targeted tools and report any remaining limit. Reuse unchanged packets; source mode performs no inventory walk and stores no cache or checkpoint. The Agents operation still owns semantic discovery, runtime interpretation, registration, connection tests and final validation.
+Inventory stops at 16,384 entries or 64 directory levels and retains at most 128 paths per category. Unreadable directories leave the inventory partial. A partial inventory establishes only what was observed. JSON output is limited to 262,144 bytes. If the helper overflows or fails, use known indexes and targeted reads and report any remaining gaps. Reuse unchanged packets. Source mode reads known paths without walking the tree or writing state. Agents guidance covers discovery, registration, and native connection tests. The parent Initialize operation owns final Validate.
 
 ## Repair Git evidence
 
-Explicit repair uses the bundled `repair-git.mjs` helper for checkpoint, continuation and written-file review. It pins Git to the supplied worktree, refuses stored attribute-tree configuration, inspects bounded attributes before worktree-aware reads, uses literal pathspecs, never fetches missing objects or contacts a remote, and does not write Git state. Its internal index listing is bounded to 4 MiB and 65,536 attribute paths; that listing is never shown to the model. The single response remains bounded to 65,536 bytes. Oversized evidence remains unavailable and cannot establish a current checkpoint. Executable filters, unseen indexed attribute fallbacks, unsafe links and oversized evidence produce explicit limitations.
+Fix may use only read-only `git status`, `diff`, `log`, `rev-parse`, and `show` to orient itself. Check and Fix stop before worktree-aware Git reads when evidence shows executable mechanisms such as filters, text conversion, external diff, or fsmonitor. Fix uses `repair-git.mjs` for its checkpoint, comparison on continuation, commit verification, and review of its own writes. The helper pins Git to the supplied worktree, refuses stored attribute-tree configuration, inspects bounded attributes before worktree-aware reads, and uses literal pathspecs. Its reads do not contact a remote or change Git state. The internal index listing is bounded to 4 MiB and 65,536 attribute paths, and each response is bounded to 65,536 bytes. Unavailable evidence leaves the checkpoint unverified.
 
 Attribute inspection conservatively refuses any attribute file containing `filter`, including Git LFS declarations, macros and comments. LFS configuration is disabled as additional protection, not an exception to that refusal. Automatic diff index refresh is disabled even when repository configuration enables it, so timestamp-only worktree changes cannot rewrite Git storage during continuation. These limitations stop Git-dependent repair; they are not evidence of project drift or permission to bypass repository controls. An unborn repository instead returns unavailable commit evidence and uses conservative owner reassessment.
 
@@ -86,23 +86,23 @@ Failed Git reads, including reads during attribute inspection, return `git-read`
 
 ## Repository development
 
-`moldea` is a portable Agent Skill with deterministic conformance, semantic evaluation, scripted journeys, evidence publication, and documentation tooling. The website renders selected evidence snapshots and independently recorded mock-project runs. It has no evaluator responsibility.
+`moldea` is a portable Agent Skill with deterministic conformance, semantic evaluation, evidence tooling, and public documentation. The website renders selected semantic results, recorded scripted journeys, and independently recorded project runs.
 
 ### Source ownership
 
-| Area                                      | Responsibility                                                                                                                                                            |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `moldea/`                                 | Complete distributed Agent Skill: entrypoint, focused references, host metadata, managed document assets, and bounded generated scripts.                                  |
-| `src/`                                    | Maintained TypeScript for portable generation, isolated execution, semantic evaluation, scripted journeys, evidence assets, release checks, and shared developer tooling. |
-| `evidence/selection.json`                 | Exact maintainer selections for semantic evidence and optional scripted journeys.                                                                                         |
-| `website/`                                | Static documentation and evidence presentation, including independently selected mock-project runs, sanitized session replays, and source links.                          |
-| `fixtures/`                               | Deterministic source fixtures and calibration records. Recorded evaluation attempts are not committed.                                                                    |
-| `docs/`                                   | Concise public concepts and durable workflows. API and HTTP endpoint documentation does not belong here.                                                                  |
-| `project-specification`                   | Read-only development reference to the canonical product and skill specifications in `../platform/moldea`.                                                                |
-| `src/test-suite/`                         | Private essential/full selection and inherited-stdio execution; [testing guide](/docs/testing/) owns membership and cadence.                                              |
-| `.github/workflows/conformance.yml`       | Conservative PR selection, root correctness, quality, and portable Linux, Windows and macOS contracts.                                                                    |
-| `.github/workflows/website-checks.yml`    | Pages-only website quality and artifact verification; browser suites run locally.                                                                                         |
-| `.github/workflows/pages.yml`             | Pages preflight, parallel verification/production build, and gated deployment.                                                                                            |
+| Area                                   | Responsibility                                                                                                                                                   |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `moldea/`                              | Complete distributed Agent Skill: entrypoint, focused references, host metadata, managed document assets, and bounded generated scripts.                         |
+| `src/`                                 | Maintained TypeScript for portable generation, isolated execution, semantic evaluation, recorded journey evidence, release checks, and shared developer tooling. |
+| `evidence/selection.json`              | Exact maintainer selections for semantic evidence and optional scripted journeys.                                                                                |
+| `website/`                             | Static documentation and evidence presentation, including independently selected mock-project runs, sanitized session replays, and source links.                 |
+| `fixtures/`                            | Deterministic source fixtures and calibration records. Recorded evaluation attempts are not committed.                                                           |
+| `docs/`                                | Concise public concepts and durable workflows. API and HTTP endpoint documentation does not belong here.                                                         |
+| `project-specification`                | Read-only development reference to the canonical product and skill specifications in `../platform/moldea`.                                                       |
+| `src/test-suite/`                      | Private essential/full selection and inherited-stdio execution; [testing guide](/docs/testing/) owns membership and cadence.                                     |
+| `.github/workflows/conformance.yml`    | Conservative PR selection, root correctness, quality, and portable Linux, Windows and macOS contracts.                                                           |
+| `.github/workflows/website-checks.yml` | Pages-only website quality and artifact verification; browser suites run locally.                                                                                |
+| `.github/workflows/pages.yml`          | Pages preflight, parallel verification/production build, and gated deployment.                                                                                   |
 
 The distributed artifact is exactly `moldea/`; development-only tooling is not installed with the skill. Portable builds use fixed compiler settings in checkouts and temporary release directories. Run `npm run matcher:generate` after changing the relevance gate's locked inputs and `npm run matcher:check` to verify the committed artifact.
 
@@ -126,6 +126,6 @@ Install every workspace dependency from the repository root without lifecycle sc
 npm ci --ignore-scripts
 ```
 
-The root tooling and website consume Website UI `5.0.1` with the exact Astro `7.2.8` peer. Normal dependency resolution selects these versions without an override.
+The root and website manifests pin Website UI. The website manifest also pins its compatible Astro version.
 
 Use the [testing guide](/docs/testing/) for focused and aggregate verification and [release evidence](/docs/release-evidence/#repository-release-preparation) for version and candidate preparation.

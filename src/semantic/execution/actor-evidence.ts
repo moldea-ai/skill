@@ -19,6 +19,8 @@ import type {
   IMoldeaCliOperation,
   IMoldeaManagedAgentsMode,
   IGitInvocationEvidence,
+  IRepairGitCommandEvidence,
+  IRepairGitReasonCode,
   IRepositoryTestCommandKind,
 } from '../../execution/host/index.ts';
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../resources/index.ts';
@@ -47,6 +49,13 @@ const OUTPUT_DISPOSITIONS: ReadonlySet<string> = new Set([
   'projected',
   'too-large',
   'unrecognized',
+]);
+const REPAIR_GIT_READ_REASONS: ReadonlySet<IRepairGitReasonCode> = new Set([
+  'git-status-arguments',
+  'git-diff-arguments',
+  'git-log',
+  'git-rev-parse',
+  'git-show',
 ]);
 const MAX_ACTOR_EXECUTION_EVIDENCE_ITEMS =
   MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxActorExecutionEvidenceItems;
@@ -770,18 +779,25 @@ const hasValidOutputEvidence = (
   );
 };
 
-/** Combines captured Git invocations with known violations in command text. */
+// the recorded noncompliant count includes the five direct read classes
+const allowsObservedRepairGitCommands = (evidence: IRepairGitCommandEvidence): boolean =>
+  hasValidRepairGitCommandEvidence(evidence) &&
+  evidence.noncompliantCount ===
+    evidence.reasons.reduce(
+      (total, { code, count }) => total + (REPAIR_GIT_READ_REASONS.has(code) ? count : 0),
+      0,
+    );
+
+/** Checks Git read classes and capture integrity for repair and standalone validation. */
 export const hasPassingRepairGitEvidence = (
   executionEvidence: ISemanticActorExecutionEvidence[],
   gitInvocationEvidence: IGitInvocationEvidence,
 ): boolean =>
-  hasValidRepairGitCommandEvidence(gitInvocationEvidence.repair) &&
-  gitInvocationEvidence.repair.noncompliantCount === 0 &&
+  allowsObservedRepairGitCommands(gitInvocationEvidence.repair) &&
   gitInvocationEvidence.repair.unverifiedCount === 0 &&
   executionEvidence.every(
     ({ item }) =>
-      hasValidRepairGitCommandEvidence(item.repairGit) &&
-      item.repairGit.noncompliantCount === 0 &&
+      allowsObservedRepairGitCommands(item.repairGit) &&
       !item.repairGit.reasons.some(({ code }) => code === 'untrusted-git'),
   );
 

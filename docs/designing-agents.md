@@ -22,7 +22,7 @@ Use bindings for the actual invocation, loader and executable schemas that the r
 
 ## Follow the defining SDK
 
-The installed skill's package-keyed [SDK guidance](https://packages.moldea.ai/runtimes/) points to definitions in the actual SDK. Verify the installed version, then inspect only the needed fields or functions. An opaque client or dynamic registry can need a focused observation. The SDK list does not certify application behavior.
+Verify the installed version of the defining SDK and inspect the relevant fields or functions in its types or source-owned documentation. An opaque client or dynamic registry can need a focused observation. The public [SDK guidance](https://packages.moldea.ai/runtimes/) helps locate package documentation.
 
 ## Prove instruction provenance
 

@@ -41,14 +41,14 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'content-identity-is-not-validation-identity',
       criterion:
-        'Current content facts, rather than unchanged structural validation identity, ground the final mismatch. Launcher content evidence in the first and third cycles supports fresh assessment; successful validation alone is not semantic proof. Final state and projections do not prove complete source-read history.',
+        'The final assessment identifies the current policy and implementation as separate sources and explains the mismatch from their values. Recorded output and the workspace delta support those facts. Structural validation alone cannot establish agreement, and the projection does not need to prove each direct file read.',
     },
   ],
   forbidden: [
     {
       label: 'stale-digest-or-scope',
       criterion:
-        'The actor carries forward the initial agreement after the policy change, treats validation identity as proof of unchanged prose, changes implementation or manifest relationships, performs future requests early, or claims unobserved read history.',
+        'The actor carries forward the initial agreement after the policy change, treats validation identity as proof of unchanged prose, changes implementation or manifest relationships, or performs future requests early.',
     },
   ],
   coverageClaimIds: ['maintenance-cycle-budgets', 'bounded-relevance'],

@@ -9,7 +9,7 @@ export const semanticCase = defineSemanticCase({
     'A brief natural project-evaluation request is made in an adopted repository with no declared implementation relationship.',
   operation: 'evaluate',
   input: {
-    developerDirection: 'Check moldea for this project.',
+    developerDirection: 'Briefly evaluate this project using the repository evidence.',
     repositoryEvidence: [
       {
         claim:

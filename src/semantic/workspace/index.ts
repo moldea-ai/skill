@@ -3,11 +3,9 @@ export type { ISemanticWorkspaceChanges, ISemanticWorkspaceSnapshot } from './se
 
 // fixture setup and workspace evidence
 export {
-  collectProductionPackageRoots,
   createActorRepository,
   createSemanticCaseSetup,
   diffSemanticWorkspaceSnapshots,
   prepareSemanticEvaluationHome,
-  seedSemanticTooling,
   snapshotSemanticWorkspace,
 } from './setup.ts';

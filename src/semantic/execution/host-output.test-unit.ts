@@ -84,7 +84,7 @@ test('requires startup capture and refuses validation credit from command text o
       item: {
         type: 'command_execution',
         command:
-          'node .agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt -- scope --json --path src/code.js --max-output-bytes 65536',
+          'node .agents/skills/moldea/scripts/moldea-cli/moldea.mjs scope --repository /mnt --json --path src/code.js --max-output-bytes 65536',
         aggregated_output: envelope,
         exit_code: 0,
         status: 'completed',

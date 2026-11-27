@@ -23,15 +23,14 @@ test('adopted zero-agent planning has healthy tooling and exact deterministic ru
       join(root, 'home'),
       join(root, 'tools'),
     );
-    const launcher = join(repositoryPath, '.agents/skills/moldea/scripts/moldea-cli.mjs');
+    const bundledCli = join(repositoryPath, '.agents/skills/moldea/scripts/moldea-cli/moldea.mjs');
     const result = spawnSync(
       process.execPath,
       [
-        launcher,
+        bundledCli,
+        'validate',
         '--repository',
         repositoryPath,
-        '--',
-        'validate',
         '--json',
         '--max-output-bytes',
         '65536',

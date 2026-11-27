@@ -18,20 +18,14 @@ test('portable generation reproduces every committed runtime', async () => {
     'moldea/scripts/initialization-inspection.license.txt',
     'moldea/scripts/repair-git.mjs',
     'moldea/scripts/repair-git.license.txt',
-    'moldea/scripts/response-directory.mjs',
-    'moldea/scripts/response-directory.license.txt',
     'moldea/scripts/managed-agents.mjs',
     'moldea/scripts/managed-agents.license.txt',
     'moldea/scripts/managed-readme.mjs',
     'moldea/scripts/managed-readme.license.txt',
-    'moldea/scripts/moldea-cli.mjs',
-    'moldea/scripts/moldea-cli.license.txt',
     'moldea/scripts/relevance-gate.mjs',
     'moldea/scripts/relevance-gate.license.txt',
     'moldea/scripts/repository-files.mjs',
     'moldea/scripts/repository-files.license.txt',
-    'moldea/scripts/repository-package.mjs',
-    'moldea/scripts/repository-package.license.txt',
     'moldea/scripts/manifest-scope.cjs',
     'moldea/scripts/manifest-scope.license.txt',
   ]);
@@ -39,7 +33,6 @@ test('portable generation reproduces every committed runtime', async () => {
   for (const [script, packageName] of [
     ['repair-git', 'jg-git-commands'],
     ['relevance-gate', 'jg-process'],
-    ['response-directory', 'jg-fs'],
     ['initialization-inspection', 'jg-fs'],
   ] as const) {
     const source = readFileSync(path.join(ROOT_DIRECTORY, `moldea/scripts/${script}.mjs`), 'utf8');
@@ -49,22 +42,6 @@ test('portable generation reproduces every committed runtime', async () => {
       new RegExp(`^${packageName}@\\d+\\.\\d+\\.\\d+\\n\\nMIT License`, 'mu'),
     );
   }
-  assert.match(
-    readFileSync(path.join(ROOT_DIRECTORY, 'moldea/scripts/moldea-cli.license.txt'), 'utf8'),
-    /^zod@4\.3\.6$/mu,
-  );
-  const resolver = readFileSync(
-    path.join(ROOT_DIRECTORY, 'moldea', 'scripts', 'repository-package.mjs'),
-    'utf8',
-  );
-  const notices = readFileSync(
-    path.join(ROOT_DIRECTORY, 'moldea', 'scripts', 'repository-package.license.txt'),
-    'utf8',
-  );
-  assert.match(resolver, /See repository-package\.license\.txt/u);
-  assert.doesNotMatch(resolver, /from ["']semver["']/u);
-  assert.match(notices, /^semver@7\.8\.5$/mu);
-  assert.match(notices, /^zod@4\.3\.6$/mu);
   const writer = readFileSync(
     path.join(ROOT_DIRECTORY, 'moldea', 'scripts', 'managed-agents.mjs'),
     'utf8',
@@ -86,13 +63,10 @@ test('portable bundles omit TypeScript and keep the matcher within its reviewed 
   for (const artifact of [
     'moldea/scripts/initialization-inspection.license.txt',
     'moldea/scripts/repair-git.license.txt',
-    'moldea/scripts/response-directory.license.txt',
     'moldea/scripts/managed-agents.license.txt',
     'moldea/scripts/managed-readme.license.txt',
-    'moldea/scripts/moldea-cli.license.txt',
     'moldea/scripts/relevance-gate.license.txt',
     'moldea/scripts/repository-files.license.txt',
-    'moldea/scripts/repository-package.license.txt',
     'moldea/scripts/manifest-scope.license.txt',
   ]) {
     assert.doesNotMatch(

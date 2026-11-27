@@ -36,11 +36,10 @@ test('body-only policy correction changes content and inspect identities while v
       const result = spawnSync(
         process.execPath,
         [
-          join(repositoryPath, '.agents/skills/moldea/scripts/moldea-cli.mjs'),
+          join(repositoryPath, '.agents/skills/moldea/scripts/moldea-cli/moldea.mjs'),
+          operation,
           '--repository',
           repositoryPath,
-          '--',
-          operation,
           ...(operation === 'content' ? ['--path', '/moldea/context/returns.md'] : []),
           '--json',
           '--max-output-bytes',

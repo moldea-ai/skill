@@ -5,6 +5,7 @@ import { defineSemanticCase } from '../define.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'integration-block-missing-handoff',
+  publication: 'private',
   setup: createSemanticCaseSetup('integration-block-missing-handoff'),
   scenario: 'An adopted fixture has no managed bridge and host instructions prohibit AGENTS edits.',
   operation: 'check-setup',
@@ -57,7 +58,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'checks-execution-separately',
       criterion:
-        'Runner-owned evidence records successful launcher-backed validation and a completed relationship-mode relevance-gate smoke test with matched=false, accurately reported as a healthy miss rather than proof of host compliance. The projection does not record the path or diagnose flag.',
+        'Runner-owned evidence records successful bundled CLI validation and a completed relationship-mode relevance-gate smoke test with matched=false, accurately reported as a healthy miss rather than proof of host compliance. The projection does not record the path or diagnose flag.',
     },
     {
       label: 'preserves-state',

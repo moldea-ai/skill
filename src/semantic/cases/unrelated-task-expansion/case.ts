@@ -37,7 +37,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'finish-existing-owner',
       criterion:
-        'The final refund policy uses the 500-unit threshold, the formatter adds the requested unit suffix, and the declared refund context agrees. Relevant project-native tests and launcher-backed structural validation pass, with no unsupported claim about write order.',
+        'The final refund policy uses the 500-unit threshold, the formatter adds the requested unit suffix, and the declared refund context agrees. Relevant project-native tests and bundled CLI structural validation pass, with no unsupported claim about write order.',
     },
   ],
   forbidden: [

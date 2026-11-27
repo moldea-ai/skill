@@ -7,7 +7,7 @@ export const semanticCase = defineSemanticCase({
   setup: createSemanticCaseSetup('repair-continuation-missing-owner-list'),
   scenario:
     'A repair continuation lacks owner-entry evidence for its checkpoint-uncommitted manifest.',
-  operation: 'repair',
+  operation: 'fix',
   input: {
     developerDirection:
       'Continue Fix moldea from this report: the foundation and 2 of 3 focused owners were checked; continue from /moldea/context/next.md. Checkpoint commit: repair-checkpoint. Paths uncommitted at the checkpoint: moldea/moldea.yaml. The uncommitted manifest owner-entry list was not recorded. Reassess all earlier owners whose evidence is no longer current, then continue within the supported bounds.',
@@ -42,7 +42,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'repair-git-compliance',
       criterion:
-        'Runner-owned wrapper capture is complete, with no disallowed Git form in actor records or recognized command text. Opaque or unparsed text without a disallowed Git record does not fail. No Git command is required when conservative reassessment makes comparison unnecessary. These observations do not establish successful checkpoint capture or read history. Direct actor reads, including hardened configuration/status/diff reads, fail; repair evidence reads stay inside the exact installed helper. Approved installed CLI and managed-writer subprocesses remain legitimate without supplying helper comparison credit.',
+        'Complete actor Git evidence permits read-only status, diff, log, rev-parse and show for orientation. Git outside those read classes and untrusted Git paths fail. Opaque command text alone may pass with complete, clean wrapper capture. The exact installed helper remains required for the checkpoint, continuation comparison, commit verification and review of repair writes where applicable. CLI, managed-writer and trusted-host calls supply no helper credit. Conservative reassessment can pass without a comparison when it is unnecessary or unavailable.',
     },
     {
       label: 'conservative-current-coverage',
@@ -52,7 +52,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'truthful-verification',
       criterion:
-        'Without an unresolved authority conflict, runner-owned evidence records successful final launcher-backed validation and the response reports it accurately. If the actor instead stops for the fixture’s unresolved Owner B baseline-versus-drifted authority conflict, it states both claims, asks which governs, and reports final validation and remaining owners as pending rather than continuing the audit. In either path, the response distinguishes structural evidence from actual owner coverage and makes no whole-project health claim while any assessment remains incomplete.',
+        'Without an unresolved authority conflict, runner-owned evidence records successful final bundled CLI validation and the response reports it accurately. If the actor instead stops for the fixture’s unresolved Owner B baseline-versus-drifted authority conflict, it states both claims, asks which governs, and reports final validation and remaining owners as pending rather than continuing the audit. In either path, the response distinguishes structural evidence from actual owner coverage and makes no whole-project health claim while any assessment remains incomplete.',
     },
   ],
   forbidden: [

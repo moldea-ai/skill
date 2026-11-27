@@ -4,13 +4,14 @@ import { defineSemanticCase } from '../define.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'repair-readme-drift',
+  requiredRepairGitMode: 'review',
   setup: createSemanticCaseSetup('repair-readme-drift'),
   scenario:
     'A developer confirms prior adoption and requests repair of a bounded managed README block drift.',
-  operation: 'repair-managed-readme',
+  operation: 'fix-managed-readme',
   input: {
     developerDirection:
-      'This repository was initialized with moldea. Repair the damaged managed README block and verify the setup. Preserve all other content.',
+      'This repository was initialized with moldea. Fix moldea for the damaged managed README block and verify the setup. Preserve all other content.',
     repositoryEvidence: [
       {
         claim:
@@ -42,7 +43,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'repair-git-compliance',
       criterion:
-        'Observed repair Git reads, including preliminary configuration lookups, come only from the exact installed repair helper. Direct actor Git reads violate this procedure even with hardened arguments. Approved installed CLI and managed-writer subprocesses and trusted-host calls supply no positive repair-comparison credit. Conservative no-Git diagnosis may pass without comparison when evidence is unavailable or comparison is unnecessary; failed calls do not establish successful reads.',
+        'Complete actor Git evidence permits read-only status, diff, log, rev-parse and show for orientation. Git outside those read classes and untrusted Git paths fail. Opaque command text alone may pass with complete, clean wrapper capture. Runner evidence records an available review result from the installed helper and positive installed-helper wrapper credit in the same turn. A missing, unavailable or different result fails.',
     },
     {
       label: 'restore-only-managed-block',
@@ -52,7 +53,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'verify-repaired-adoption',
       criterion:
-        'Runner-owned evidence records a successful launcher-backed validate result with zero errors, zero warnings and zero accepted warnings, and the final workspace delta contains the expected README-only repair. The response accurately reports the repair and its scoped structural checks, without claiming semantic completeness or behavioral correctness. Validation does not check README integration, and Node-startup launcher items do not prove their ordering relative to writes; validation-after-write timing is outside this criterion. An idempotence statement or unrelated behavioral disclaimer is not required.',
+        'Runner-owned evidence records a successful bundled CLI validate result with zero errors, zero warnings and zero accepted warnings, and the final workspace delta contains the expected README-only repair. The response accurately reports the repair and its scoped structural checks, without claiming semantic completeness or behavioral correctness. Validation does not check README integration, and CLI startup observations do not prove their ordering relative to writes; validation-after-write timing is outside this criterion. An idempotence statement or unrelated behavioral disclaimer is not required.',
     },
   ],
   forbidden: [

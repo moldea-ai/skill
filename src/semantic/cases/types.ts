@@ -55,6 +55,7 @@ export type ISemanticCaseDefinition = {
   };
   operation: string;
   publication?: 'private';
+  requiredRepairGitMode?: 'continue' | 'review';
   resourceBudget: IMoldeaResourceBudget;
   scenario: string;
   skillEvidence?: {

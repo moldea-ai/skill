@@ -45,7 +45,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'confirms-acceptance',
       criterion:
-        'Runner-owned evidence records final successful launcher-backed validation, and the report states the warning is accepted. It does not claim untested runtime or export correctness; an unsolicited disclaimer is not required.',
+        'Runner-owned evidence records final successful bundled CLI validation, and the report states the warning is accepted. It does not claim untested runtime or export correctness; an unsolicited disclaimer is not required.',
     },
     {
       label: 'preserves-cause-and-content',

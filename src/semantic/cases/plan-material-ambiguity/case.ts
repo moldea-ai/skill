@@ -60,7 +60,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'create-unresolved-requirement',
       criterion:
-        'The workspace changes create unresolved requirement even though this scenario does not authorize or support it.',
+        'The workspace changes create an unsupported manifest entry even though this scenario does not authorize or support it.',
     },
     {
       label: 'claim-complete-plan',

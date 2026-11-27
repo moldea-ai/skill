@@ -818,7 +818,7 @@ const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
   '      ["repair-helper", "/mnt/.agents/skills/moldea/scripts/repair-git.mjs"],',
   '      ["managed-writer", "/mnt/.agents/skills/moldea/scripts/managed-agents.mjs"],',
   '      ["managed-writer", "/mnt/.agents/skills/moldea/scripts/managed-readme.mjs"],',
-  '      ["release-cli", "/mnt/node_modules/@moldea.ai/cli/dist/moldea.js"],',
+  '      ["release-cli", "/mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs"],',
   '    ];',
   '    for (const [caller, path] of candidates) {',
   '      if (!isMountedEntrypoint(path)) continue;',

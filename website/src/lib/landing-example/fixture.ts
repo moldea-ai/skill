@@ -27,8 +27,6 @@ export const LANDING_EXAMPLE = {
 const createManifest = (): string => `version: 1
 agents:
   support:
-    runtime:
-      id: openai
     context:
       - /moldea/context/refund-policy.md
     bindings:
@@ -111,9 +109,13 @@ const projectSource = `# Trailside
 
 Trailside sells hiking and camping gear online. Customers contact support about deliveries and returns.
 
-The TypeScript backend owns order status and refund eligibility. The return rules live in \`context/refund-policy.md\`.
+The TypeScript backend owns order status and refund eligibility.
 
 Support can explain the policy and look up orders. It cannot approve refunds or change orders.
+
+## Context routing
+
+- Refunds: [Refund policy](context/refund-policy.md) governs the request window and eligibility.
 `;
 
 // existing hero files before agent creation; project context and policy are reused unchanged

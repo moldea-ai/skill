@@ -1,1 +1,2 @@
 * text=auto eol=lf
+moldea/scripts/moldea-cli/** -text !eol

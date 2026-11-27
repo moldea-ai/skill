@@ -43,7 +43,7 @@ const caseDefinition = defineSemanticCase({
 });
 
 const commandPolicy = projectCodexEvaluationExecutionEvidence('').commandPolicy;
-const LAUNCHER = 'node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt --';
+const CLI_ENTRY = 'node /mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs';
 
 /** Projects valid command-policy evidence for completed commands with the given output sizes. */
 const projectCommandPolicy = (commands: ReadonlyArray<readonly [string, number]>) =>
@@ -110,8 +110,9 @@ test.each([
 });
 
 test.each([
-  [`${LAUNCHER} validate --json --max-output-bytes 65536`, '', 0, true],
+  [`${CLI_ENTRY} validate --repository /mnt --json --max-output-bytes 65536`, '', 0, true],
   ['node /mnt/tools/check.js', '', 0, true],
+  ['git status', '', 0, true],
   ['git config --null --get attr.tree', '', 0, false],
   [
     'node /mnt/.agents/skills/moldea/scripts/repair-git.mjs --repository /mnt -- checkpoint',
@@ -183,7 +184,7 @@ test.each([
     'repair-git-compliance',
     {
       ...caseDefinition,
-      expected: [{ label: 'repair-git-compliance', criterion: 'Require helper-only repair Git.' }],
+      expected: [{ label: 'repair-git-compliance', criterion: 'Require the Fix Git boundary.' }],
     },
   ],
   ['ordinary repair', healthyRepairCase],
@@ -210,8 +211,13 @@ test.each([
   expect(projected).not.toBeNull();
   if (projected === null) throw new Error('Expected projected command evidence');
   const actorCommandPolicy = projectCommandPolicy([[command, 0]]);
+  const helperCapture = {
+    invocationCount: 1,
+    hostInvocationCount: 0,
+    repair: { compliantCount: 1, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+  };
   const failedRead = {
-    compliantCount: 0,
+    compliantCount: 1,
     noncompliantCount: 1,
     unverifiedCount: 0,
     reasons: [{ code: 'git-other' as const, count: 1 }],
@@ -222,11 +228,7 @@ test.each([
       actorCommandPolicy,
       actorExecutionEvidence: [projected],
       caseDefinition: repairCase,
-      gitInvocationEvidence: {
-        invocationCount: 0,
-        hostInvocationCount: 0,
-        repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
-      },
+      gitInvocationEvidence: helperCapture,
     }),
   ).toBe(false);
   expect(
@@ -242,10 +244,82 @@ test.each([
         },
       ],
       caseDefinition: repairCase,
-      gitInvocationEvidence: { invocationCount: 1, hostInvocationCount: 0, repair: failedRead },
+      gitInvocationEvidence: { ...helperCapture, invocationCount: 2, repair: failedRead },
     }),
   ).toBe(false);
 });
+
+test.each([
+  ['continue', 'continue', 'available', 1, true],
+  ['review', 'review', 'available', 1, true],
+  ['continue', 'continue', 'available', 0, false],
+  ['continue', 'review', 'available', 1, false],
+  ['review', 'review', 'unavailable', 1, false],
+  ['review', null, null, 1, false],
+] as const)(
+  'checks required %s with a %s %s result and %i helper observations -> %s',
+  (requiredRepairGitMode, mode, status, compliantCount, passing) => {
+    const commit = 'a'.repeat(40);
+    const events =
+      mode === null
+        ? []
+        : [
+            {
+              type: 'item.completed',
+              item: {
+                type: 'command_execution',
+                command: `node /mnt/.agents/skills/moldea/scripts/repair-git.mjs --repository /mnt -- ${mode} ${mode === 'continue' ? `--checkpoint ${commit}` : '--path README.md'}`,
+                aggregated_output: JSON.stringify({
+                  kind: 'moldea-repair-git',
+                  mode,
+                  status,
+                  ...(status === 'available'
+                    ? {
+                        commit,
+                        uncommittedPaths: [],
+                        changedPaths: [],
+                        manifestDiff: '',
+                        uncommittedManifestDiff: '',
+                        writtenDiff: '',
+                      }
+                    : { reasonCode: 'attribute-safety', reason: 'Unsafe Git attributes.' }),
+                }),
+                exit_code: status === 'available' ? 0 : 1,
+                status: status === 'available' ? 'completed' : 'failed',
+              },
+            },
+          ];
+    const actorExecutionEvidence = events.map((event) => {
+      const evidence = projectActorExecutionEvidenceEvent(event, {
+        cliVersion: '14.0.1',
+        jsonSchemaVersion: 8,
+      });
+      if (evidence === null) throw new Error('Expected repair helper evidence');
+      expect(evidence.item.outputEvidence.facts).toHaveLength(1);
+      return evidence;
+    });
+    expect(
+      hasPassingCaseRepairGitEvidence({
+        actorCommandPolicy: projectCodexEvaluationExecutionEvidence(
+          events.map((event) => JSON.stringify(event)).join('\n'),
+        ).commandPolicy,
+        actorExecutionEvidence,
+        caseDefinition: defineSemanticCase({
+          ...caseDefinition,
+          expected: [
+            { label: 'repair-git-compliance', criterion: 'Require the declared repair Git mode.' },
+          ],
+          requiredRepairGitMode,
+        }),
+        gitInvocationEvidence: {
+          invocationCount: compliantCount,
+          hostInvocationCount: 0,
+          repair: { compliantCount, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+        },
+      }),
+    ).toBe(passing);
+  },
+);
 
 test.each([
   [2_097_152, true],
@@ -278,12 +352,12 @@ test.each([
 });
 
 test.each([
-  ['&&', 'hardened-direct', false],
-  ['||', 'hardened-direct', false],
+  ['&&', 'hardened-direct', true],
+  ['||', 'hardened-direct', true],
   ['&&', 'prohibited', false],
   ['||', 'prohibited', false],
-  ['&&', 'opaque', false],
-  ['||', 'opaque', false],
+  ['&&', 'opaque', true],
+  ['||', 'opaque', true],
 ] as const)(
   'grades submitted %s Git syntax with a %s branch -> %s',
   (separator, branch, passing) => {
@@ -297,7 +371,7 @@ test.each([
       branch === 'hardened-direct'
         ? status
         : branch === 'prohibited'
-          ? 'git log -p'
+          ? 'git add README.md'
           : 'node inspect.js';
     const event = {
       type: 'item.completed',
@@ -358,7 +432,7 @@ describe('semantic result dimensions', () => {
         },
         actorCommandPolicy: projectCommandPolicy(
           splitOutput(8, outputBytes, peakBytes).map((bytes) => [
-            `${LAUNCHER} content --path moldea/project.md --json --max-output-bytes 65536`,
+            `${CLI_ENTRY} content --repository /mnt --path moldea/project.md --json --max-output-bytes 65536`,
             bytes,
           ]),
         ),
@@ -763,7 +837,7 @@ test.each([
   'relationship activation requires actual successful scope relevance: %s',
   (outcome, expected) => {
     const command =
-      'node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt -- scope --path src/a.js --json --max-output-bytes 65536';
+      'node /mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs scope --repository /mnt --path src/a.js --json --max-output-bytes 65536';
     const output =
       outcome === 'no-envelope'
         ? ''
@@ -817,7 +891,7 @@ test.each([
 );
 
 const SKILL_SCRIPTS = '/mnt/.agents/skills/moldea/scripts';
-const VALIDATE = `${LAUNCHER} validate --json --max-output-bytes 65536`;
+const VALIDATE = `${CLI_ENTRY} validate --repository /mnt --json --max-output-bytes 65536`;
 const NO_GIT_EVIDENCE = {
   invocationCount: 0,
   hostInvocationCount: 0,
@@ -838,7 +912,7 @@ const MOLDEA_CHANGE = {
 
 type IStreamEntry = readonly ['command', string, number] | readonly ['file-change', unknown];
 
-/** Supplies synthetic observed parent argv for ordered launcher calls and completed patches. */
+/** Supplies synthetic observed parent argv for ordered CLI calls and completed patches. */
 const projectStream = (entries: readonly IStreamEntry[]) => {
   const invocations: ICliInvocation[] = [];
   const events = entries.map((entry, index) => {
@@ -850,14 +924,14 @@ const projectStream = (entries: readonly IStreamEntry[]) => {
     let command = entry[1];
     if (identifyMoldeaCliLauncherOperation(command) !== null) {
       const args = command.split(' ').slice(2);
-      const script = `/* observed launcher ${index} */`;
+      const script = `/* observed CLI ${index} */`;
       invocations.push({
         arguments: args,
         exitCode: 0,
         stdout: '',
         outputByteCount: entry[2],
         callers: [
-          ['/opt/node', '/mnt/.agents/skills/moldea/scripts/moldea-cli.mjs', ...args],
+          ['/opt/node', '/mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs', ...args],
           ['/opt/node', '-e', script],
         ],
       });
@@ -881,7 +955,7 @@ const projectStream = (entries: readonly IStreamEntry[]) => {
   ).commandPolicy;
 };
 
-/** Builds the launcher captures for the given operations and launcher output sizes. */
+/** Builds the CLI captures for the given operations and CLI output sizes. */
 const createLauncherCaptures = (calls: ReadonlyArray<readonly ['scope' | 'validate', number]>) => ({
   actorExecutionEvidence: calls.map(([, byteCount]) => ({
     eventType: 'item.completed' as const,
@@ -1081,7 +1155,7 @@ describe('ordinary final-validation exception', () => {
       ];
       const entries: IStreamEntry[] = sizes.map((size) => [
         'command',
-        `${LAUNCHER} scope --path src/a.js --json --max-output-bytes 65536`,
+        `${CLI_ENTRY} scope --repository /mnt --path src/a.js --json --max-output-bytes 65536`,
         size,
       ]);
       if (hasPatch) entries.push(PATCH_MOLDEA);
@@ -1124,7 +1198,11 @@ describe('ordinary final-validation exception', () => {
     expect(
       identify(
         [
-          ['command', `${LAUNCHER} scope --paths-stdin --json --max-output-bytes 65536`, 900],
+          [
+            'command',
+            `${CLI_ENTRY} scope --repository /mnt --paths-stdin --json --max-output-bytes 65536`,
+            900,
+          ],
           ['command', 'cat moldea/project.md', 1_000],
           PATCH_MOLDEA,
           ['command', 'node --test src/a.test-unit.js', 100],
@@ -1277,7 +1355,7 @@ describe('ordinary final-validation exception', () => {
     };
     const scope = [
       'command',
-      `${LAUNCHER} scope --paths-stdin --json --max-output-bytes 65536`,
+      `${CLI_ENTRY} scope --repository /mnt --paths-stdin --json --max-output-bytes 65536`,
       1_000,
     ] as const;
     const reads = splitOutput(3, 515_000, 200_000).map(

@@ -19,18 +19,18 @@ export const GIT_VERSION_RANGE = '>=2.32.0';
 export const PRODUCT_PAGE_METADATA = {
   getStarted: {
     description:
-      'Install the moldea Skill, initialize your project once, keep working as usual, and ask your coding agent to fix moldea when something seems off.',
+      'Install moldea, map project areas and confirm rules in guided rounds, then use saved context with your coding agent.',
     route: '/get-started/',
     searchText:
-      'get started install setup skills add initialize moldea first request keep working fix moldea repair update skill prerequisites node.js git package.json coding agent',
+      'get started install moldea guided initialize round proposals yes skip coverage context area agents stop continue maintain node.js git coding agent',
     title: 'Get started',
   },
   capabilities: {
     description:
-      'Save and maintain project context for coding-agent planning and development. Explore runtime agents, reusable skills, and alignment checks with moldea.',
+      'Explore guided project context, project agents, grounded skills, maintenance, and Check, Fix, and Validate.',
     route: '/capabilities/',
     searchText:
-      'capabilities project context knowledge rules decisions coding agent planning development project truth plan agent systems create runtime agents build agent skills maintain behavior evaluate reconcile validate repair project',
+      'capabilities guided initialization project context rules decisions coding agent product planning project agents grounded skills maintain check fix validate SDK guidance',
     title: 'Capabilities',
   },
   howItWorks: {
@@ -61,15 +61,15 @@ export const REQUIRED_DOCUMENT_ROUTES = [
   '/docs/how-it-works/',
   '/docs/limitations/',
   '/docs/semantic-evaluation/',
-  '/docs/scripted-journeys/',
   '/docs/repository-format/',
   '/docs/project-state/',
   '/docs/planning-agent-systems/',
   '/docs/designing-agents/',
   '/docs/designing-skills/',
   '/docs/continuous-maintenance/',
-  '/docs/evaluate-reconcile-validate/',
+  '/docs/check-fix-validate/',
   '/docs/safety-and-privacy/',
   '/docs/compatibility-and-local-tooling/',
   '/examples/',
+  '/examples/check-and-fix/',
 ] as const;

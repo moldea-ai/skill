@@ -3,7 +3,6 @@ import { spawnSync } from 'node:child_process';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { isPathWithin } from 'jg-fs';
 import { expect, test, vi } from 'vitest';
 import { z } from 'zod';
 
@@ -90,11 +89,10 @@ test('real content pages and final validation straddle the unchanged ordinary al
       const result = spawnSync(
         process.execPath,
         [
-          join(repositoryPath, '.agents/skills/moldea/scripts/moldea-cli.mjs'),
+          join(repositoryPath, '.agents/skills/moldea/scripts/moldea-cli/moldea.mjs'),
+          ...args,
           '--repository',
           repositoryPath,
-          '--',
-          ...args,
           '--json',
           '--max-output-bytes',
           '65536',
@@ -107,7 +105,7 @@ test('real content pages and final validation straddle the unchanged ordinary al
         type: 'item.completed',
         item: {
           type: 'command_execution',
-          command: `node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt -- ${args.join(' ')} --json --max-output-bytes 65536`,
+          command: `node /mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs ${args.join(' ')} --repository /mnt --json --max-output-bytes 65536`,
           aggregated_output: result.stdout,
           exit_code: 0,
           status: 'completed',
@@ -115,15 +113,14 @@ test('real content pages and final validation straddle the unchanged ordinary al
       };
       events.push(event);
       invocations.push({
-        arguments: ['--repository', '/mnt', '--', ...args, '--json', '--max-output-bytes', '65536'],
+        arguments: [...args, '--repository', '/mnt', '--json', '--max-output-bytes', '65536'],
         callers: [
           [
             '/opt/node',
-            '/mnt/.agents/skills/moldea/scripts/moldea-cli.mjs',
+            '/mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs',
+            ...args,
             '--repository',
             '/mnt',
-            '--',
-            ...args,
             '--json',
             '--max-output-bytes',
             '65536',
@@ -134,31 +131,23 @@ test('real content pages and final validation straddle the unchanged ordinary al
         stdout: result.stdout,
       });
       const capture = projectActorExecutionEvidenceEvent(event, cliIdentity);
-      if (!capture) throw new Error('Missing launcher projection');
+      if (!capture) throw new Error('Missing bundledCli projection');
       captures.push(capture);
       return result.stdout;
     };
     const gateOutput = runHelper('relevance-gate.mjs', ['--adoption-only']);
     expect(gateOutput).toBe('1\n');
-    const directoryOutput = runHelper('response-directory.mjs', []);
-    const responseDirectory = directoryOutput.trim();
-    expect(responseDirectory).not.toBe(root);
-    expect(isPathWithin(root, responseDirectory)).toBe(true);
     let cursor: string | null = null;
     let content = '';
     let pages = 0;
-    let beforeValidationBytes = Buffer.byteLength(gateOutput) + Buffer.byteLength(directoryOutput);
+    let beforeValidationBytes = Buffer.byteLength(gateOutput);
     let contentPageBytes = 0;
     do {
       const output = call([
         'content',
         '--path',
         '/moldea/context/contracts.md',
-        '--save-response',
-        join(responseDirectory, `page-${pages}.json`),
-        ...(pages
-          ? ['--cursor-from-response', join(responseDirectory, `page-${pages - 1}.json`)]
-          : []),
+        ...(cursor === null ? [] : ['--cursor', cursor]),
       ]);
       beforeValidationBytes += Buffer.byteLength(output);
       contentPageBytes += Buffer.byteLength(output);

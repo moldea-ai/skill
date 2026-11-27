@@ -5,9 +5,6 @@ context:
       - /src/project-state.ts
 agents:
   support:
-    runtime:
-      id: custom
-      guidance: /moldea/runtimes/custom.md
     bindings:
       runtimeAgent:
         path: /src/support-agent.ts

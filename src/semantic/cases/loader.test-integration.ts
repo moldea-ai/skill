@@ -40,12 +40,13 @@ const writeCaseModule = async (
   root: string,
   directoryName: string,
   caseId = directoryName,
+  definition = createCaseDefinition(caseId),
 ): Promise<void> => {
   const caseDirectory = path.join(root, directoryName);
   await mkdir(caseDirectory, { recursive: true });
   await writeFile(
     path.join(caseDirectory, 'case.mjs'),
-    `export const semanticCase = ${JSON.stringify(createCaseDefinition(caseId))};\n`,
+    `export const semanticCase = ${JSON.stringify(definition)};\n`,
     'utf8',
   );
 };
@@ -66,7 +67,7 @@ describe('semantic case discovery', () => {
     expect(cases.every(({ setup }) => typeof setup === 'function')).toBe(true);
   });
 
-  test('every explicit repair independently enforces helper-only Git compliance', async () => {
+  test('every explicit repair independently enforces the Fix Git boundary', async () => {
     const cases = await loadSemanticCases(import.meta.dirname);
     const repairs = cases.filter(({ id }) => id.startsWith('repair-'));
     expect(repairs.length).toBeGreaterThan(0);
@@ -155,6 +156,22 @@ describe('semantic case discovery', () => {
     await expect(loadSemanticCases(root)).resolves.toMatchObject([{ id: 'synthetic-case' }]);
   });
 
+  test.each([
+    ['review', 'synthetic-result', /needs a repair Git criterion/u],
+    ['verify', 'repair-git-compliance', /requiredRepairGitMode/u],
+  ])('rejects a declared %s mode with %s evidence', async (requiredRepairGitMode, label, error) => {
+    const root = await mkdtemp(path.join(tmpdir(), 'moldea-semantic-cases-'));
+    temporaryRoots.push(root);
+    const definition = {
+      ...createCaseDefinition('synthetic-case'),
+      expected: [{ label, criterion: 'The actor observes the synthetic result.' }],
+      requiredRepairGitMode,
+    };
+    await writeCaseModule(root, 'synthetic-case', 'synthetic-case', definition);
+
+    await expect(loadSemanticCases(root)).rejects.toThrow(error);
+  });
+
   test('rejects missing modules, duplicate ids, and directory mismatches', async () => {
     const missingRoot = await mkdtemp(path.join(tmpdir(), 'moldea-semantic-cases-'));
     const duplicateRoot = await mkdtemp(path.join(tmpdir(), 'moldea-semantic-cases-'));
@@ -187,8 +204,23 @@ test('repair continuations require Git presence only when comparison is needed',
       definition.expected.some((criterion) => criterion.label === label),
       definition.id,
     ).toBe(true);
+    expect(definition.requiredRepairGitMode).toBe(
+      presenceRequired.has(definition.id) ? 'continue' : undefined,
+    );
     expect(buildSemanticActorPrompt(definition)).not.toContain(label);
   }
+});
+
+test('the README repair requires review and marker refusal needs no helper mode', async () => {
+  const cases = await loadSemanticCases(import.meta.dirname);
+  expect(
+    cases
+      .filter(({ id }) => ['repair-marker-ambiguity', 'repair-readme-drift'].includes(id))
+      .map(({ id, requiredRepairGitMode }) => [id, requiredRepairGitMode]),
+  ).toStrictEqual([
+    ['repair-marker-ambiguity', undefined],
+    ['repair-readme-drift', 'review'],
+  ]);
 });
 
 const CANDIDATE_TARGET_CASE_IDS = [
@@ -196,22 +228,39 @@ const CANDIDATE_TARGET_CASE_IDS = [
   'initialize-inspected-source-coverage',
   'maintenance-cycle-budget',
   'model-workflow-routing',
-  'pnpm-pnp-local-cli-provider',
   'repair-continuation-manifest-change',
   'routing-description-contradiction',
-  'routing-description-fallback',
+  'routing-description-consumers',
 ];
 
-test('the release catalog retains 143 cases with only the approved exclusion', async () => {
+test('the release catalogue retains all cases and the approved private exclusions', async () => {
   const cases = await loadSemanticCases(import.meta.dirname);
-  expect(cases).toHaveLength(143);
+  expect(cases).toHaveLength(149);
   expect(
     cases.reduce((count, { expected, forbidden }) => count + expected.length + forbidden.length, 0),
-  ).toBe(643);
-  expect(cases.filter(({ publication }) => publication !== 'private')).toHaveLength(142);
+  ).toBe(637);
+  expect(cases.filter(({ publication }) => publication !== 'private')).toHaveLength(132);
   expect(
     cases.filter(({ publication }) => publication === 'private').map(({ id }) => id),
-  ).toStrictEqual(['repair-unproven-adoption']);
+  ).toStrictEqual([
+    'create-grounded-agent',
+    'initialize-guided-agents-included',
+    'initialize-guided-numbered',
+    'initialize-onboarding-confirmed',
+    'initialize-onboarding-continuation',
+    'initialize-sufficient-context',
+    'integration-block-missing-handoff',
+    'maintain-guided-billing',
+    'ordinary-final-validation-limit',
+    'reconcile-identified-authority',
+    'repair-continuation-partial-coverage',
+    'repair-unproven-adoption',
+    'scope-expansion-unbound-only',
+    'setup-shared-claude-precedence',
+    'skill-boundary-surface-selection',
+    'skill-reuse-existing-cohesive',
+    'unbound-context-discovery',
+  ]);
 });
 
 test.each(CANDIDATE_TARGET_CASE_IDS)(

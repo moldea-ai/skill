@@ -32,18 +32,15 @@ test('distinct complete policy pages exceed one output allowance while each scop
       join(root, 'home'),
       join(root, 'tools'),
     );
-    const responseDirectory = join(root, 'responses');
-    await mkdir(responseDirectory, { mode: 0o700 });
-    const launcher = join(repositoryPath, '.agents/skills/moldea/scripts/moldea-cli.mjs');
+    const bundledCli = join(repositoryPath, '.agents/skills/moldea/scripts/moldea-cli/moldea.mjs');
     const call = (args: string[], input?: string) => {
       const result = spawnSync(
         process.execPath,
         [
-          launcher,
+          bundledCli,
+          ...args,
           '--repository',
           repositoryPath,
-          '--',
-          ...args,
           '--json',
           '--max-output-bytes',
           '65536',
@@ -58,9 +55,8 @@ test('distinct complete policy pages exceed one output allowance while each scop
     for (const [index, domain] of REVIEW_DOMAINS.entries()) {
       let calls = 1;
       let bytes = Buffer.byteLength(
-        call(['scope', '--paths-stdin'], `reports/${domain.id}-review.md\0`),
+        call(['scope', '--paths-stdin'], `/reports/${domain.id}-review.md\0`),
       );
-      const savedPage = join(responseDirectory, `${domain.id}.json`);
       let cursor: string | null = null;
       let contentBytes = 0;
       let content = '';
@@ -69,9 +65,7 @@ test('distinct complete policy pages exceed one output allowance while each scop
           'content',
           '--path',
           `/moldea/context/${domain.id}.md`,
-          '--save-response',
-          savedPage,
-          ...(calls > 1 ? ['--cursor-from-response', savedPage] : []),
+          ...(cursor === null ? [] : ['--cursor', cursor]),
         ]);
         const envelope = EnvelopeSchema.parse(JSON.parse(output));
         cursor = envelope.result.cursor;

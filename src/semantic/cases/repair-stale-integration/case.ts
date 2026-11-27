@@ -7,12 +7,12 @@ export const semanticCase = defineSemanticCase({
   setup: createStaleIntegrationSetup(false),
   scenario:
     'A frozen 10.0.1 managed bridge is stale beside the immutable 10.0.2 installation, behind a contained AGENTS.md link with unrelated BOM/CRLF instructions.',
-  operation: 'repair-setup-integration',
+  operation: 'fix-setup-integration',
   input: {
     developerDirection:
-      'Repair moldea, including the stale managed AGENTS.md integration. Preserve its link to config/agent-notes.md, every byte outside the managed region and unrelated files.',
+      'Fix moldea, including the stale managed AGENTS.md integration. Preserve its link to config/agent-notes.md, every byte outside the managed region and unrelated files.',
     followUpDeveloperRequests: [
-      'Repair moldea again. Preserve the healthy integration and existing AGENTS.md link; make no unnecessary changes.',
+      'Fix moldea again. Preserve the healthy integration and existing AGENTS.md link; make no unnecessary changes.',
     ],
     repositoryEvidence: [
       {
@@ -53,7 +53,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'repair-git-compliance',
       criterion:
-        'Observed actor repair Git reads stay inside the exact installed repair helper; direct reads fail even with hardened arguments. Approved installed CLI and managed-writer calls and trusted-host calls supply no positive comparison credit. Complete capture must contain no disallowed actor form. Conservative no-Git reassessment may pass without comparison when unnecessary.',
+        'Complete actor Git evidence permits read-only status, diff, log, rev-parse and show for orientation. Git outside those read classes and untrusted Git paths fail. Opaque command text alone may pass with complete, clean wrapper capture. The exact installed helper remains required for the checkpoint, continuation comparison, commit verification and review of repair writes where applicable. CLI, managed-writer and trusted-host calls supply no helper credit. Conservative reassessment can pass without a comparison when it is unnecessary or unavailable.',
     },
     {
       label: 'refresh-only-owned-region',
@@ -63,7 +63,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'validate-and-repeat-noop',
       criterion:
-        'Both cycles have successful launcher-backed validation with zero errors, warnings and accepted warnings. The second cycle reports the unchanged healthy integration and has no workspace changes. Recorded envelopes and final state do not establish the relative timing of writes and validation; native traces cover that ordering.',
+        'Both cycles have successful bundled CLI validation with zero errors, warnings and accepted warnings. The second cycle reports the unchanged healthy integration and has no workspace changes. Recorded envelopes and final state do not establish the relative timing of writes and validation; native traces cover that ordering.',
     },
   ],
   forbidden: [

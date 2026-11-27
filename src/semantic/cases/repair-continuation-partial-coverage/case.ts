@@ -4,10 +4,11 @@ import { defineSemanticCase } from '../define.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'repair-continuation-partial-coverage',
+  publication: 'private',
   setup: createSemanticCaseSetup('repair-continuation-partial-coverage'),
   scenario:
     'A healthy inventory contains 64 independent focused owners requiring truthful bounded coverage.',
-  operation: 'repair',
+  operation: 'fix',
   input: {
     developerDirection:
       'Fix moldea across this repository\u2019s complete owner inventory. Check owners and material relationships within the supported pass limits, preserve healthy state, and report the actual coverage and any continuation point.',
@@ -33,7 +34,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'repair-git-compliance',
       criterion:
-        'Runner-owned wrapper capture is complete, with no disallowed Git form in actor records or recognized command text. Opaque or unparsed text without a disallowed Git record does not fail. No Git command is required when conservative reassessment makes comparison unnecessary. These observations do not establish successful checkpoint capture or read history. Direct actor reads, including hardened configuration/status/diff reads, fail; repair evidence reads stay inside the exact installed helper. Approved installed CLI and managed-writer subprocesses remain legitimate without supplying helper comparison credit.',
+        'Complete actor Git evidence permits read-only status, diff, log, rev-parse and show for orientation. Git outside those read classes and untrusted Git paths fail. Opaque command text alone may pass with complete, clean wrapper capture. The exact installed helper remains required for the checkpoint, continuation comparison, commit verification and review of repair writes where applicable. CLI, managed-writer and trusted-host calls supply no helper credit. Conservative reassessment can pass without a comparison when it is unnecessary or unavailable.',
     },
     {
       label: 'truthful-bounded-coverage',

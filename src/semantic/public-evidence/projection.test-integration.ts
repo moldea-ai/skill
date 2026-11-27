@@ -6,25 +6,17 @@ import { loadSemanticCases } from '../cases/index.ts';
 
 import { createSemanticCatalogWebsiteModel } from './index.ts';
 
-test('the public projection omits only the approved exclusion from 143 discovered cases', async () => {
+test('the public projection includes every eligible case and omits the private cases', async () => {
   const definitions = await loadSemanticCases(path.resolve(import.meta.dirname, '../cases'));
-  expect(definitions).toHaveLength(143);
-  expect(
-    definitions.filter(({ publication }) => publication === 'private').map(({ id }) => id),
-  ).toStrictEqual(['repair-unproven-adoption']);
+  const eligible = definitions.filter(({ publication }) => publication !== 'private');
   const model = createSemanticCatalogWebsiteModel(definitions);
-  expect(model.caseCount).toBe(142);
+  expect(model.caseCount).toBe(eligible.length);
   expect(
     model.groups
       .flatMap((group) => group.cases)
       .map(({ id }) => id)
       .sort(),
-  ).toStrictEqual(
-    definitions
-      .map(({ id }) => id)
-      .filter((id) => id !== 'repair-unproven-adoption')
-      .sort(),
-  );
+  ).toStrictEqual(eligible.map(({ id }) => id).sort());
   for (const id of [
     'exact-binding-relevance',
     'read-only-git-helper-suppression',

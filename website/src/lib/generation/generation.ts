@@ -324,7 +324,7 @@ export const createLlmsText = (
   const lines = [
     '# moldea Agent Skill',
     '',
-    '> Keep durable project knowledge in Git and bring relevant context into coding-agent planning and development. The same foundation supports runtime agents, reusable Agent Skills, and their instructions.',
+    '> Map durable project knowledge in guided rounds and bring the relevant facts into coding-agent planning, development, and work on project agents.',
     '',
     `Current skill release: ${skill.version}.`,
     '',
@@ -334,7 +334,7 @@ export const createLlmsText = (
     INSTALL_COMMAND,
     '```',
     '',
-    'Initialize project context explicitly, then describe outcomes to your coding agent in natural language. Direct context requests and declared relationships select relevant knowledge; unrelated implementation work does not load all project context. The coding agent handles repository-local evidence and deterministic tooling.',
+    'Ask to initialize, confirm evidence-backed proposals, and stop when the covered areas are enough. Planning that changes product behavior selects governing context by purpose. Relationships select owners for ordinary work. The bundled CLI runs with Node in Git repositories written in any language.',
     '',
   ];
 

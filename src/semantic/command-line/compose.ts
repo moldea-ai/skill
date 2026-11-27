@@ -176,12 +176,12 @@ const run = async (): Promise<void> => {
   };
   const artifacts = [
     {
-      content: Buffer.from(`${JSON.stringify(result, null, 2)}\n`),
+      content: Buffer.from(`${JSON.stringify(result)}\n`),
       mediaType: 'application/json',
       path: result.evidence.path.replace(/evidence\.json$/u, 'attempt.json'),
     },
     {
-      content: Buffer.from(`${JSON.stringify(evidenceRecord, null, 2)}\n`),
+      content: Buffer.from(`${JSON.stringify(evidenceRecord)}\n`),
       mediaType: 'application/json',
       path: result.evidence.path,
     },

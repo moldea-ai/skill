@@ -53,7 +53,7 @@ test('walks through the requirements and four setup steps in order', async ({ pa
   await expect(page.getByRole('main').getByRole('heading', { level: 2 })).toHaveText([
     'Before you start',
     'Add the Skill to your repository.',
-    'Initialize the project once.',
+    'Map the areas that matter.',
     'Keep working as usual.',
     'Ask for a fix when something seems off.',
     'Review pull requests with the same context.',
@@ -69,15 +69,14 @@ test('walks through the requirements and four setup steps in order', async ({ pa
   }
 
   const requirements = page.locator('#before-you-start li');
-  await expect(requirements).toHaveCount(4);
+  await expect(requirements).toHaveCount(3);
   await expect(requirements.nth(0).getByRole('link')).toHaveAttribute(
     'href',
     toPublicPath('/docs/coding-agent-compatibility/'),
   );
   await expect(requirements.nth(1)).toContainText(NODE_VERSION_RANGE);
-  await expect(requirements.nth(2)).toContainText('package.json');
-  await expect(requirements.nth(3)).toContainText(GIT_VERSION_RANGE);
-  await expect(requirements.nth(3)).toContainText('not globally');
+  await expect(requirements.nth(2)).toContainText(GIT_VERSION_RANGE);
+  await expect(requirements.nth(1)).toContainText('needs no package.json');
 
   const install = page.locator('#install');
   await expect(install.locator('[data-install-command]')).toContainText(INSTALL_COMMAND);
@@ -94,29 +93,26 @@ test('walks through the requirements and four setup steps in order', async ({ pa
   );
 
   const initialize = page.locator('#initialize');
-  // the four-message example is much taller than its text, so the columns align at the top
+  // the guided conversation is much taller than its text, so the columns align at the top
   await expect(initialize).toHaveCSS('align-items', 'flex-start');
   await expect(page.locator('#keep-working')).toHaveCSS('align-items', 'center');
-  // initialization asks one clarifying question before it saves the foundation
-  await expect(initialize.locator('[data-conversation-message]')).toHaveCount(4);
-  await expect(
-    initialize
-      .locator('[data-conversation-message]')
-      .evaluateAll((messages) =>
-        messages.map((message) => message.getAttribute('data-conversation-message')),
-      ),
-  ).resolves.toStrictEqual(['user', 'assistant', 'user', 'assistant']);
-  await expect(initialize.locator('[data-conversation-message]').nth(0)).toContainText(
-    'Initialize moldea',
-  );
-  await expect(initialize.locator('[data-conversation-message]').nth(1)).toContainText(
-    'What does it do, and who uses it?',
-  );
-  await expect(initialize.getByRole('listitem')).toContainText([
-    "One question if the repository doesn't make the project's purpose or boundaries clear.",
-    'One confirmation before it registers agents your project already has.',
-    "A block to add to AGENTS.md yourself if it can't edit that file.",
+  const messages = initialize.locator('[data-conversation-message]');
+  await expect(messages).toHaveCount(6);
+  await expect(messages.nth(0)).toContainText('Initialize moldea');
+  await expect(messages.nth(1)).toContainText('Round 1');
+  await expect(messages.nth(1)).toContainText('Coverage: 0 of 2 areas. Agents: none found.');
+  await expect(messages.nth(1)).toContainText('Files changed: README.md, AGENTS.md');
+  await expect(messages.nth(1)).toContainText('Gaps: Refunds and Orders.');
+  await expect(messages.nth(1).getByRole('listitem')).toContainText('src/refund-policy.ts');
+  await expect(messages.nth(2)).toContainText('Yes');
+  await expect(messages.nth(3).getByRole('listitem')).toHaveText([
+    'Continue with Orders.',
+    'Stop here and validate the covered scope.',
   ]);
+  await expect(messages.nth(4)).toContainText('Stop here.');
+  await expect(messages.nth(5)).toContainText('Coverage: 1 of 2 areas.');
+  await expect(messages.nth(5)).toContainText('Orders remains uncovered.');
+  await expect(messages.nth(5)).toContainText('Structural validation passed');
   expect(
     await getTreeStatuses(
       initialize.getByRole('list', { name: 'Files initialization adds and updates' }),
@@ -127,8 +123,8 @@ test('walks through the requirements and four setup steps in order', async ({ pa
     ['/src/refund-policy.test-unit.ts', 'Unchanged'],
     ['/moldea/moldea.yaml', 'Added'],
     ['/moldea/project.md', 'Added'],
+    ['/moldea/context/refund-policy.md', 'Added'],
     ['/AGENTS.md', 'Modified'],
-    ['/package.json', 'Modified'],
     ['/README.md', 'Modified'],
   ]);
 
@@ -141,9 +137,9 @@ test('walks through the requirements and four setup steps in order', async ({ pa
     ['/src/order-lookup.ts', 'Unchanged'],
     ['/src/refund-policy.ts', 'Modified'],
     ['/src/refund-policy.test-unit.ts', 'Modified'],
-    ['/moldea/context/refund-policy.md', 'Added'],
-    ['/moldea/moldea.yaml', 'Modified'],
-    ['/moldea/project.md', 'Modified'],
+    ['/moldea/context/refund-policy.md', 'Modified'],
+    ['/moldea/moldea.yaml', 'Unchanged'],
+    ['/moldea/project.md', 'Unchanged'],
   ]);
   await expect(keepWorking.getByRole('link', { name: 'How it works' })).toHaveAttribute(
     'href',
@@ -159,9 +155,9 @@ test('walks through the requirements and four setup steps in order', async ({ pa
     'Needs input',
     'Not checked',
   ]);
-  await expect(fix.getByRole('link', { name: 'Repair guide' })).toHaveAttribute(
+  await expect(fix.getByRole('link', { name: 'Check and fix guide' })).toHaveAttribute(
     'href',
-    toPublicPath('/docs/evaluate-reconcile-validate/#repair-a-project'),
+    toPublicPath('/docs/check-fix-validate/#fix-a-project'),
   );
   await expect(fix.getByRole('link', { name: 'Update the Skill' })).toHaveAttribute(
     'href',

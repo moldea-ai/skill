@@ -4,13 +4,14 @@ import { defineSemanticCase } from '../define.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'skill-boundary-surface-selection',
+  publication: 'private',
   setup: createSemanticCaseSetup('skill-boundary-surface-selection'),
   scenario:
     'A developer proposes Agent Skills for a repository-wide naming rule already owned by protected coding instructions and for checksum generation already owned by deterministic software.',
-  operation: 'evaluate-agent-skill-boundaries',
+  operation: 'check-agent-skill-boundaries',
   input: {
     developerDirection:
-      'Use moldea to complete this repository task. Evaluate two hypothetical Agent Skills: one for repository-wide JavaScript naming and one for checksum generation. Neither has been created. Decide whether either is the correct behavior boundary. Explain the appropriate surfaces without changing files.',
+      'Use moldea Agents. Evaluate two hypothetical Agent Skills: one for repository-wide JavaScript naming and one for checksum generation. Neither has been created. Decide whether either is the correct behavior boundary. Explain the appropriate surfaces without changing files.',
     repositoryEvidence: [
       {
         claim: 'Applicable protected coding instructions own the naming rule.',

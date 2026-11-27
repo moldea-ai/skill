@@ -23,15 +23,17 @@ test('feature boundary starts valid with one missing policy impact and passing n
       join(root, 'actor-home'),
       join(root, 'actor-tools'),
     );
-    const launcher = resolve(import.meta.dirname, '../../../../moldea/scripts/moldea-cli.mjs');
+    const bundledCli = resolve(
+      import.meta.dirname,
+      '../../../../moldea/scripts/moldea-cli/moldea.mjs',
+    );
     const validation = spawnSync(
       process.execPath,
       [
-        launcher,
+        bundledCli,
+        'validate',
         '--repository',
         repositoryPath,
-        '--',
-        'validate',
         '--json',
         '--max-output-bytes',
         '65536',

@@ -76,11 +76,10 @@ test.each([
           execFileSync(
             process.execPath,
             [
-              path.join(repositoryPath, '.agents/skills/moldea/scripts/moldea-cli.mjs'),
+              path.join(repositoryPath, '.agents/skills/moldea/scripts/moldea-cli/moldea.mjs'),
+              'validate',
               '--repository',
               repositoryPath,
-              '--',
-              'validate',
               '--json',
               '--max-output-bytes',
               '65536',

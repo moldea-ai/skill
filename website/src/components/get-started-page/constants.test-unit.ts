@@ -27,7 +27,7 @@ const getFileIds = (entries: readonly IProjectFileTreeEntry[]): string[] =>
   entries.flatMap((entry) => (entry.kind === 'file' ? [entry.id] : []));
 
 describe('INITIALIZE_EXAMPLE_FILES', () => {
-  test('adds the foundation and updates the root files while existing code stays untouched', () => {
+  test('saves the confirmed coverage and updates the root files while code stays untouched', () => {
     expect(getStatuses(INITIALIZE_EXAMPLE_FILES)).toStrictEqual({
       '/src/order-lookup.ts': 'Unchanged',
       '/src/refund-policy.ts': 'Unchanged',
@@ -35,21 +35,8 @@ describe('INITIALIZE_EXAMPLE_FILES', () => {
       '/moldea/moldea.yaml': 'Added',
       '/moldea/project.md': 'Added',
       '/AGENTS.md': 'Modified',
-      '/package.json': 'Modified',
+      '/moldea/context/refund-policy.md': 'Added',
       '/README.md': 'Modified',
-    });
-  });
-
-  test('adds the CLI at the exact version the Skill records', () => {
-    const cliVersionLine = readSkillFile('SKILL.md')
-      .split('\n')
-      .find((line) => line.trim().startsWith('cliRepairVersion:'))!;
-    const cliVersion = cliVersionLine.split(':')[1]!.trim().replaceAll("'", '');
-    const manifest = INITIALIZE_EXAMPLE_FILES.find(({ path }) => path === '/package.json')!;
-
-    expect(JSON.parse(manifest.source)).toStrictEqual({
-      ...JSON.parse(manifest.before!),
-      devDependencies: { '@moldea.ai/cli': cliVersion },
     });
   });
 
@@ -74,9 +61,9 @@ describe('MAINTENANCE_EXAMPLE_FILES', () => {
       '/src/order-lookup.ts': 'Unchanged',
       '/src/refund-policy.ts': 'Modified',
       '/src/refund-policy.test-unit.ts': 'Modified',
-      '/moldea/moldea.yaml': 'Modified',
-      '/moldea/project.md': 'Modified',
-      '/moldea/context/refund-policy.md': 'Added',
+      '/moldea/moldea.yaml': 'Unchanged',
+      '/moldea/project.md': 'Unchanged',
+      '/moldea/context/refund-policy.md': 'Modified',
     });
   });
 

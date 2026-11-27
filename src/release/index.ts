@@ -6,16 +6,11 @@ export type {
   IPublishEvidenceBundleOptions,
   IPublishedEvidenceBundle,
   IReleaseIdentity,
-  IReleasePackageLock,
-  IReleasePackageManifest,
 } from './types.ts';
 
 // constants
 export {
-  CLI_JSON_SCHEMA_VERSION_TEXT_PATHS,
   CLI_PACKAGE_NAME,
-  CLI_VERSION_RANGE_TEXT_PATHS,
-  CORE_VERSION_RANGE_TEXT_PATHS,
   RELEASE_PATHS,
   SEMANTIC_EVALUATION_PROTOCOL_VERSION,
 } from './constants.ts';
@@ -34,16 +29,11 @@ export {
 export {
   assertReleaseIdentity,
   createSemanticCliIdentity,
-  inspectReleaseIdentity,
   readReleaseIdentity,
 } from './identity.ts';
 
 // CLI release update
-export {
-  createCliReleaseUpdate,
-  resolvePublishedCliManifest,
-  updateCliRelease,
-} from './updater.ts';
+export { updateCliRelease } from './updater.ts';
 
 // GitHub client
 export { createGitHubReleaseClient } from './github.ts';

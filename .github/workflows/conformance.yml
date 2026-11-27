@@ -155,6 +155,8 @@ jobs:
         run: npm run runtime:build
       - name: Check portable generated artifacts
         run: npm run portable:check
+      - name: Smoke the shipped CLI with compatibility-test Node.js
+        run: '"$MOLDEA_TEST_NODE" moldea/scripts/moldea-cli/moldea.mjs composition --json'
       - name: Run portable integration tests
         env:
           MOLDEA_RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
@@ -301,8 +303,19 @@ jobs:
               throw 'The installed skill directory is missing.'
             }
 
-            git diff --no-index --exit-code -- moldea $installedSkill
-            if ($LASTEXITCODE -ne 0) {
+            # compare raw bytes because Git can normalize line endings on only one side
+            function Get-SkillFileHashes([string] $root) {
+              Get-ChildItem -LiteralPath $root -Recurse -File -Force | ForEach-Object {
+                $relativePath = [System.IO.Path]::GetRelativePath($root, $_.FullName)
+                $hash = (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash
+                "$relativePath $hash"
+              }
+            }
+            $sourceHashes = @(Get-SkillFileHashes $sourceSkill)
+            $installedHashes = @(Get-SkillFileHashes $installedSkill)
+            $differences = Compare-Object -ReferenceObject $sourceHashes -DifferenceObject $installedHashes -CaseSensitive
+            if ($differences) {
+              $differences | Format-Table
               throw 'The installed skill differs from the portable source.'
             }
           } finally {
@@ -333,6 +346,15 @@ jobs:
         run: npm run portable:check
       - name: Run portable integration tests
         run: npm run test:integration -- src/portable
+      - name: Install and compare the portable artifact
+        env:
+          SKILLS_TEST_HOME: ${{ runner.temp }}/skills-home
+          npm_config_before: ${{ env.SKILLS_REGISTRY_SNAPSHOT }}
+        run: |
+          mkdir -p "$SKILLS_TEST_HOME"
+          HOME="$SKILLS_TEST_HOME" XDG_CONFIG_HOME="$SKILLS_TEST_HOME/.config" npx --yes skills@1.5.22 add ./moldea -g -a codex -y --copy
+          test -d "$SKILLS_TEST_HOME/.agents/skills/moldea"
+          diff -qr moldea "$SKILLS_TEST_HOME/.agents/skills/moldea"
 
   minimum-git:
     needs: changes

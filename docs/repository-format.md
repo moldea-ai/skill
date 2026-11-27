@@ -12,7 +12,7 @@ Repository format is the open, Git-owned structure that gives people and coding 
 
 This page introduces how to adopt the format. The [official Repository Format specification](https://packages.moldea.ai/repository-format/) defines the complete version `1` contract, including every supported file, manifest property, constraint, and conformance rule.
 
-The format is deliberately additive. A new project begins with two files and earns more structure only when real context, rationale, runtime guidance, or agent behavior needs a durable owner.
+A new project begins with two files. Add focused context, decision records, agent assets, and relationships when project evidence establishes what each one owns.
 
 Adoption requires the bounded regular canonical foundation files `/moldea/moldea.yaml` and `/moldea/project.md`. README explains the project integration; AGENTS.md routes ordinary tasks. Neither document controls adoption or Core validity. Missing routing produces a setup warning, while damaged canonical files receive bounded diagnosis rather than a fresh scaffold.
 
@@ -34,7 +34,7 @@ A minimal manifest contains only the version:
 version: 1
 ```
 
-Empty optional mappings are omitted. Initialization registers evidenced existing agents and inline workflows after the required confirmation before registration or application-code changes, or immediately when the request already includes them. It creates no placeholder directories, speculative context, or invented agent responsibilities. Existing architecture, policy, and decision documents remain at their original paths, linked from `project.md` rather than copied into `/moldea`.
+Empty optional mappings are omitted. Guided Initialize confirms existing agents and inline workflows together in the first round unless the request already includes them. It creates no placeholder directories, speculative context, or invented agent responsibilities. Existing architecture, policy, and decision documents remain at their original paths, linked from `project.md` rather than copied into `/moldea`.
 
 ## Give each concern one clear home
 
@@ -45,9 +45,8 @@ Add a surface when it protects a distinct kind of durable truth:
 | Project foundation | `/moldea/project.md`                      | Identity, purpose, users, goals, boundaries, and shared facts                                            |
 | Focused context    | `/moldea/context/**/*.md`                 | Domain, architecture, security, integration, terminology, or operational truth                           |
 | Decisions          | `/moldea/decisions/<timestamp>-<slug>.md` | Active rationale whose alternatives or consequences matter                                               |
-| Runtime guidance   | `/moldea/runtimes/**/*.md`                | Project-specific integration behavior that source and file/export coverage cannot establish alone        |
-| Agent behavior     | `/moldea/agents/<agent-id>/`              | Canonical description, instruction, and optional routing description                                     |
-| Relationships      | `/moldea/moldea.yaml`                     | Impact paths, bindings, capabilities, variables, mirrors, runtime selection, and unresolved requirements |
+| Agent behavior     | `/moldea/agents/<agent-id>/`              | Canonical routing description and instruction                                     |
+| Relationships      | `/moldea/moldea.yaml`                     | Impact paths, bindings, tools, skills, and mirrors |
 
 Repository-local Agent Skills stay in their authoritative repository-native directories. They are not copied into a parallel `/moldea/skills` store. Exact instruction mirrors also stay outside `/moldea/**` and are declared only when a runtime requires another path.
 
@@ -95,8 +94,6 @@ moldea/
 ├── project.md
 ├── context/
 │   └── support-policy.md
-├── runtimes/
-│   └── custom.md
 └── agents/
     └── support-agent/
         ├── description.md
@@ -125,9 +122,6 @@ context:
 
 agents:
   support-agent:
-    runtime:
-      id: custom
-      guidance: /moldea/runtimes/custom.md
     context:
       - /moldea/context/support-policy.md
     bindings:
@@ -138,23 +132,22 @@ agents:
       - /src/agents/support-agent.test-integration.ts
 ```
 
-`description.md` explains what the agent does. `instruction.md` explains how it operates after receiving responsibility. The runtime binding points to the real implementation, and project-local guidance explains the custom integration. No file substitutes for another.
+`description.md` explains what the agent does. `instruction.md` explains how it operates after receiving responsibility. The binding points to the real implementation. The route uses the target agent’s description. An agent with no optional declarations can be registered as `agent-id: {}`.
 
 ## Scale by adding evidence, not ceremony
 
 Repository format stays efficient through a few operating principles:
 
 1. **Keep the foundation concise.** Put universally important truth in `project.md`; move focused detail to the surface that owns it.
-2. **Create only supported relationships.** Paths, symbols, capabilities, variables, and mirrors must refer to real current artifacts.
+2. **Create only supported relationships.** Paths, symbols, capabilities and mirrors must refer to real current artifacts.
 3. **Separate truth from rationale.** Context explains what is true. Decisions preserve why a consequential choice remains active.
 4. **Keep canonical behavior singular.** Runtime instructions derive from the canonical agent instruction instead of becoming independently maintained copies.
 5. **Let impact paths narrow future work.** `affectedBy` relationships guide evidence gathering while preserving a legitimate no-change result.
-6. **Preserve genuine gaps explicitly.** Unresolved requirements record material incomplete state with clear resolution criteria; they are not a roadmap or substitute for asking the developer.
-7. **Compress only with explicit intent.** Ordinary maintenance removes only duplication affected by the authorized change. A broader consolidation request may reorganize canonical context, but it must preserve every unique fact, rationale, requirement, unresolved boundary, relationship, and consumer and stop before consequential conflicts.
+6. **Compress only with explicit intent.** Ordinary maintenance removes only duplication affected by the authorized change. A broader consolidation request may reorganize canonical context, but it must preserve every unique fact, rationale, decision, unresolved boundary, relationship, and consumer and stop before consequential conflicts.
 
 ## What validates the structure
 
-The repository-local `@moldea.ai/cli` reads the Git working tree and delegates Repository format interpretation to `@moldea.ai/core`. Validation checks canonical paths, strict manifest values, referenced files, decisions, agent assets, runtime labels, placeholders, mirrors, declared files, explicit TypeScript or JavaScript ESM exports, and coding-agent integration without executing repository code.
+The skill’s bundled CLI reads the Git working tree and delegates Repository format interpretation to `@moldea.ai/core`. Validation checks canonical paths, strict manifest values, referenced files, decisions, agent assets, mirrors, declared files in any language, supported TypeScript or JavaScript ESM exports, and coding-agent integration without executing repository code.
 
 The coding agent invokes that deterministic boundary when a workflow needs structural evidence. A valid structure does not automatically prove semantic quality, and semantic review does not replace structural validation. Consult the [official Repository Format specification](https://packages.moldea.ai/repository-format/) when exact property or conformance requirements matter.
 

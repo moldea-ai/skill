@@ -393,7 +393,7 @@ describe('verifyProductionBuild', () => {
       name: SITE_NAME,
       alternateName: SITE_ALTERNATE_NAMES,
       description:
-        'Use saved project rules and decisions in coding-agent planning and development. Keep context, runtime agents, and reusable skills aligned with moldea.',
+        'Map durable project context in guided rounds, then use it to plan product behavior, update code and connect project agents.',
       url: homeUrl,
     });
     expect(homeHtml).toContain(`<link rel="canonical" href="${homeUrl}">`);
@@ -453,7 +453,11 @@ test('redirects every retired route immediately and excludes it from discovery',
   const sitemap = readFileSync(getDistPath('sitemap-0.xml'), 'utf8');
   const search = readFileSync(getDistPath('search-index.json'), 'utf8');
   const llms = readFileSync(getDistPath('llms.txt'), 'utf8');
-  expect(Object.keys(RETIRED_PAGE_REDIRECTS)).toHaveLength(16);
+  expect(RETIRED_PAGE_REDIRECTS).toMatchObject({
+    '/docs/evaluate-reconcile-validate/': '/docs/check-fix-validate/',
+    '/examples/evaluate-and-reconcile/': '/examples/check-and-fix/',
+    '/docs/scripted-journeys/': '/evidence/',
+  });
   for (const [route, target] of Object.entries(RETIRED_PAGE_REDIRECTS)) {
     const html = readFileSync(getDistPath(route.slice(1), 'index.html'), 'utf8');
     expect(html).toContain(

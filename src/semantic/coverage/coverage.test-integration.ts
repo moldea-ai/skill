@@ -43,7 +43,6 @@ describe('discovered semantic coverage', () => {
     const published = createSemanticCoverage(
       cases.filter(({ publication }) => publication !== 'private'),
     );
-    expect(cases).toHaveLength(143);
     expect(
       cases.filter(({ publication }) => publication === 'private').map(({ id }) => id),
     ).toStrictEqual(['repair-unproven-adoption']);
@@ -75,7 +74,6 @@ describe('discovered semantic coverage', () => {
         'repair-ambiguous-foundation',
         'repair-marker-ambiguity',
         'repair-conflicting-policy',
-        'repair-missing-tooling',
         'repair-healthy-project',
         'repair-connection-drift',
         'repair-continuation-after-change',

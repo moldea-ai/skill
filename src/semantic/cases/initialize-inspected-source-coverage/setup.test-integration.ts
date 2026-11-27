@@ -34,7 +34,6 @@ test('bounded onboarding can register and consume the instruction without periph
     const instruction =
       'You are the `support-triage` agent. Classify the supplied support request for human review. Do not authorize refunds or payments.\n';
     await mkdir(join(repositoryPath, 'moldea/agents/support-triage'), { recursive: true });
-    await mkdir(join(repositoryPath, 'moldea/runtimes'), { recursive: true });
     await writeFile(
       join(repositoryPath, 'moldea/project.md'),
       '# Support review service\n\nSupport Triage classifies supplied requests for human review. Humans authorize refunds and payments.\n',
@@ -48,12 +47,8 @@ test('bounded onboarding can register and consume the instruction without periph
       instruction,
     );
     await writeFile(
-      join(repositoryPath, 'moldea/runtimes/custom.md'),
-      '# Responses client\n\nThe injected client accepts input and instructions and returns its response. The agent loads its canonical instruction.\n',
-    );
-    await writeFile(
       join(repositoryPath, 'moldea/moldea.yaml'),
-      'version: 1\nagents:\n  support-triage:\n    runtime:\n      id: custom\n      guidance: /moldea/runtimes/custom.md\n    bindings:\n      runtimeAgent:\n        path: /src/triage-agent.js\n        symbol: runTriage\n      instructionLoader:\n        path: /src/triage-agent.js\n        symbol: loadInstruction\n    affectedBy:\n      - /src/triage-agent.test-integration.js\n',
+      'version: 1\nagents:\n  support-triage:\n    bindings:\n      runtimeAgent:\n        path: /src/triage-agent.js\n        symbol: runTriage\n      instructionLoader:\n        path: /src/triage-agent.js\n        symbol: loadInstruction\n    affectedBy:\n      - /src/triage-agent.test-integration.js\n',
     );
     await writeFile(
       join(repositoryPath, 'src/triage-agent.js'),
@@ -89,15 +84,14 @@ test('bounded onboarding can register and consume the instruction without periph
       { cwd: repositoryPath, encoding: 'utf8' },
     );
     expect(pipeline.status, pipeline.stderr).toBe(0);
-    const launcher = join(repositoryPath, '.agents/skills/moldea/scripts/moldea-cli.mjs');
+    const bundledCli = join(repositoryPath, '.agents/skills/moldea/scripts/moldea-cli/moldea.mjs');
     const validation = spawnSync(
       process.execPath,
       [
-        launcher,
+        bundledCli,
+        'validate',
         '--repository',
         repositoryPath,
-        '--',
-        'validate',
         '--json',
         '--max-output-bytes',
         '65536',

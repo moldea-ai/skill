@@ -25,7 +25,7 @@ export const semanticCase = defineSemanticCase({
   setup: prepareMaterialityRepair,
   scenario:
     'Refund policy and settings are material; navigation and tooling do not govern this owner.',
-  operation: 'repair',
+  operation: 'fix',
   input: {
     developerDirection:
       'Fix moldea. Audit the existing refund context and its material implementation relationships. Preserve the established approval and configured-threshold policy and all application files.',
@@ -51,17 +51,17 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'repair-git-compliance',
       criterion:
-        'Observed repair Git reads, including preliminary configuration lookups, come only from the exact installed repair helper. Direct actor Git reads violate this procedure even with hardened arguments. Approved installed CLI and managed-writer subprocesses and trusted-host calls supply no positive repair-comparison credit. Conservative no-Git diagnosis may pass without comparison when evidence is unavailable or comparison is unnecessary; failed calls do not establish successful reads.',
+        'Complete actor Git evidence permits read-only status, diff, log, rev-parse and show for orientation. Git outside those read classes and untrusted Git paths fail. Opaque command text alone may pass with complete, clean wrapper capture. The exact installed helper remains required for the checkpoint, continuation comparison, commit verification and review of repair writes where applicable. CLI, managed-writer and trusted-host calls supply no helper credit. Conservative reassessment can pass without a comparison when it is unnecessary or unavailable.',
     },
     {
       label: 'material-relationship-repair',
       criterion:
-        'The refunds owner retains /src/refund-policy.js and /src/refund-settings.js because they govern approval and threshold facts, and removes /src/ui/navigation.js, /package.json and /package-lock.json because they govern presentation/tooling outside those owner facts.',
+        'The refunds owner retains /src/refund-policy.js and /src/refund-settings.js because they govern approval and threshold facts, and removes /src/ui/navigation.js because it governs presentation outside those owner facts.',
     },
     {
       label: 'verify-minimal-repair',
       criterion:
-        'Only the necessary manifest relationships change; owner prose, application, package files and unrelated state stay unchanged. Runner-owned evidence records successful launcher-backed validation and the report separates structural validity from semantic coverage.',
+        'Only the necessary manifest relationships change; owner prose, application, package files and unrelated state stay unchanged. Runner-owned evidence records successful bundled CLI validation and the report separates structural validity from semantic coverage.',
     },
   ],
   forbidden: [

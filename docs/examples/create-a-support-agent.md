@@ -10,24 +10,26 @@ order: 110
 
 ## Developer and coding agent
 
+This repository is already adopted and its refund policy is mapped.
+
 > **You**
 >
 > Create a customer-support agent for this application. It should answer order questions and escalate refund requests it cannot safely resolve.
 
 > **Coding agent**
 >
-> I found the existing order lookup service, refund policy, support queue, and runtime construction. I will establish the minimum `moldea` foundation, define one support-agent responsibility, bind the existing order tool and runtime agent, connect the canonical instruction to the runtime, add focused tests, and preserve refund approval as deterministic application behavior.
+> I found the existing order lookup service, refund policy, support queue, and runtime construction. I will use the saved context, define one support-agent responsibility, bind the existing order tool and runtime agent, connect the canonical instruction to the runtime, add focused tests, and preserve refund approval as deterministic application behavior.
 
 ## Coding agent and `moldea` under the hood
 
-1. The coding agent selects a write-capable agent-creation workflow and confirms that the request authorizes adoption.
-2. It reads the agent-design guidance for the selected operation and follows only the additional boundary reference that the implementation actually reaches.
-3. It uses local-tooling guidance only to invoke the closed launcher, which establishes the exact repository-local CLI provider before bounded deterministic inspection.
+1. The coding agent selects a write-capable agent-creation workflow and confirms adoption and the requested implementation scope.
+2. It reads the Agents reference for the selected operation and follows only the additional boundary reference that the implementation actually reaches.
+3. It uses the bundled CLI for bounded structural checks when needed.
 4. It gathers the minimum order, refund, authorization, queue, schema, and runtime evidence needed to establish behavior.
-5. It creates `/moldea/moldea.yaml` and `/moldea/project.md`, then the support agent's description and instruction.
+5. It creates the support agent's canonical description and instruction and updates the manifest.
 6. It registers only real repository-local runtime, schema, and tool relationships.
 7. It makes the runtime derive its instruction from the canonical asset and removes any superseded independent instruction source within scope.
-8. It adds tests at the real integration boundary, runs project checks, and reruns deterministic inspection.
+8. It adds tests at the real integration boundary, runs project checks, then validates after the last write.
 
 ## Representative resulting state
 
@@ -41,4 +43,4 @@ moldea/
         └── instruction.md
 ```
 
-A handoff description appears only if another runtime participant needs a real routing hint. A missing implementation contract remains an explicit unresolved requirement rather than invented behavior.
+`description.md` is the routing description. Report any missing implementation or connection evidence with the smallest resolving check.

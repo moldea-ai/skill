@@ -30,9 +30,9 @@ To check the current context without editing it:
 
 > **You**
 >
-> Evaluate the current project context without changing files.
+> Check the current project context without changing files.
 
-After adoption, the coding agent uses `moldea` for agent work, established project facts, approved policies, clear corrections, and project-context questions. Explicit operations, canonical changes, and declared relationships also establish relevance. Ordinary code requirements still use the relationship gate. Generic terminology, pasted proposals, and temporary status alone trigger no canonical discovery or `moldea` reporting. Relevant informational handoffs remain read-only; clear corrections permit minimal updates unless you request read-only work.
+After adoption, the coding agent uses `moldea` for agent and project-grounded skill work, project-context questions, approved policies, and clear corrections. Ordinary coding work uses the known-path relevance gate. An informational handoff stays read-only. A clear correction to established project truth can authorize a focused update unless you request read-only work.
 
 ## Start here
 
@@ -40,20 +40,19 @@ After adoption, the coding agent uses `moldea` for agent work, established proje
 - [Get started](/get-started/): install, initialize, keep working, and fix in four steps.
 - [Setup reference](/docs/getting-started/): install once and make the first natural request.
 - [Coding agent compatibility](/docs/coding-agent-compatibility/): use the same portable skill with Codex, Claude Code, Cursor, OpenCode, GitHub Copilot, Cline, and other compatible hosts.
-- [Capabilities](/capabilities/): see the six product outcomes through visual project examples.
+- [Capabilities](/capabilities/): see the product outcomes through visual project examples.
 - [How moldea works](/how-it-works/): follow one change through context, connections, updates, and checks.
 - [Capability reference](/docs/capabilities/): read the exact capability behavior and boundaries.
 - [Workflow reference](/docs/how-it-works/): inspect activation, operation selection, evidence, and local tooling.
 - [Limitations](/docs/limitations/): understand warnings, unfinished checks, large inputs, and practical next steps.
 - [Repository format](/docs/repository-format/): see how a two-file foundation grows into focused, explicit project organization.
 - [Continuous maintenance](/docs/continuous-maintenance/): keep affected truth aligned and explicitly compress accumulated context without losing unique meaning.
-- [Evidence](/evidence/): inspect recorded semantic evaluation, independently recorded project runs, and selected scripted journeys, including failures and provenance.
+- [Evidence](/evidence/): inspect selected semantic results, independently recorded project runs, and scripted journeys with their source provenance.
 - [Semantic evaluation](/docs/semantic-evaluation/): inspect actor blindness, sourced scenarios, protected repository controls, coverage, and release evidence.
-- [Scripted journeys](/docs/scripted-journeys/): run 21 requests in ChatGPT and Claude projects and assess exported outcomes locally.
 - [Examples](/examples/): follow complete developer, coding-agent, and skill interactions.
 
 ## What stays yours
 
 Canonical project and agent state lives in the repository under `/moldea/**`. Local work is filesystem-first and private by default. Installing or using the skill does not require a `moldea Cloud` account, and the skill does not send repository content to `moldea Cloud`.
 
-The repository remains the source of truth. The skill helps the coding agent understand, maintain, evaluate, and reconcile that truth without creating a hidden semantic database.
+The coding agent uses and maintains the repository's durable context. Ask it to Check for drift or Fix an established discrepancy within the scope you authorize.

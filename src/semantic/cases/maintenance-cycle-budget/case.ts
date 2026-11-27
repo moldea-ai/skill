@@ -51,7 +51,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'independent-cycle-verification',
       criterion:
-        "Each of the three ordered cycles has successful launcher scope, content and final validate facts and completes its report within its unchanged per-cycle resource budget. Combined recorded moldea stdout bytes across the three cycles exceed 524288 bytes; each individual cycle stays at or below 524288. The measured aggregate is required to establish that this scenario exercised more than one cycle's output allowance.",
+        "Each of the three ordered cycles has successful bundled CLI scope, content and final validate facts and completes its report within its unchanged per-cycle resource budget. Combined recorded moldea stdout bytes across the three cycles exceed 524288 bytes; each individual cycle stays at or below 524288. The measured aggregate is required to establish that this scenario exercised more than one cycle's output allowance.",
     },
   ],
   forbidden: [

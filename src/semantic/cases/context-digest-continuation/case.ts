@@ -36,19 +36,19 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'fresh-conclusion-per-request',
       criterion:
-        'Cycle one reports matching 30-day policy and implementation without writes. Cycle two changes only the returns policy body to the approved 14 days with successful launcher validation. Cycle three reports the current 14-day policy versus unchanged 30-day implementation as a mismatch, without writes. Authored requests are handled only after arrival.',
+        'Cycle one reports matching 30-day policy and implementation without writes. Cycle two changes only the returns policy body to the approved 14 days with successful bundled CLI validation. Cycle three reports the current 14-day policy versus unchanged 30-day implementation as a mismatch, without writes. Authored requests are handled only after arrival.',
     },
     {
       label: 'content-identity-is-not-validation-identity',
       criterion:
-        'Current content facts, rather than unchanged structural validation identity, ground the final mismatch. Launcher content evidence in the first and third cycles supports fresh assessment; successful validation alone is not semantic proof. Final state and projections do not prove complete source-read history.',
+        'The final assessment identifies the current policy and implementation as separate sources and explains the mismatch from their values. Recorded output and the workspace delta support those facts. Structural validation alone cannot establish agreement, and the projection does not need to prove each direct file read.',
     },
   ],
   forbidden: [
     {
       label: 'stale-digest-or-scope',
       criterion:
-        'The actor carries forward the initial agreement after the policy change, treats validation identity as proof of unchanged prose, changes implementation or manifest relationships, performs future requests early, or claims unobserved read history.',
+        'The actor carries forward the initial agreement after the policy change, treats validation identity as proof of unchanged prose, changes implementation or manifest relationships, or performs future requests early.',
     },
   ],
   coverageClaimIds: ['maintenance-cycle-budgets', 'bounded-relevance'],

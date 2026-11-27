@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { accessSync, constants, existsSync, readFileSync, realpathSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import {
   chmod,
   copyFile,
@@ -12,7 +12,6 @@ import {
   readlink,
   rename,
   rm,
-  symlink,
   unlink,
   writeFile,
 } from 'node:fs/promises';
@@ -20,13 +19,11 @@ import path, { join, relative } from 'node:path';
 import { tmpdir } from 'node:os';
 
 import { hashValue } from 'jg-crypto';
-import { isPathWithin, readBoundedFile } from 'jg-fs';
-import { z } from 'zod';
+import { readBoundedFile } from 'jg-fs';
 
 import { createManagedBlockBytes } from '../../portable/managed-block/index.ts';
 
 import {
-  CODEX_EVALUATION_NPM_VERSION,
   CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX,
   prepareGitCommandPolicyBoundary,
   prepareCodexEvaluationHome,
@@ -42,22 +39,9 @@ import {
 
 const REPOSITORY_ROOT = path.resolve(import.meta.dirname, '../../..');
 const PORTABLE_SKILL_ROOT = path.join(REPOSITORY_ROOT, 'moldea');
-const ROOT_NODE_MODULES = realpathSync(path.join(REPOSITORY_ROOT, 'node_modules'));
-const PUBLISHED_CLI_ROOT = path.join(ROOT_NODE_MODULES, '@moldea.ai', 'cli');
 const MANAGED_README_BLOCK = readFileSync(
   path.join(PORTABLE_SKILL_ROOT, 'assets', 'managed-readme-block.md'),
   'utf8',
-);
-const PackageManifestSchema = z.looseObject({
-  bin: z.union([z.string(), z.record(z.string(), z.string())]).optional(),
-  dependencies: z.record(z.string(), z.string()).optional(),
-  name: z.string(),
-  optionalDependencies: z.record(z.string(), z.string()).optional(),
-  version: z.string(),
-});
-type IPackageManifest = z.infer<typeof PackageManifestSchema>;
-const PUBLISHED_CLI_MANIFEST = PackageManifestSchema.parse(
-  JSON.parse(readFileSync(path.join(PUBLISHED_CLI_ROOT, 'package.json'), 'utf8')) as unknown,
 );
 const EXCLUDED_SNAPSHOT_NAMES = new Set(['.agents', '.git']);
 const EXCLUDED_CONTEXT_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
@@ -66,9 +50,7 @@ const MAX_WORKSPACE_EVIDENCE_FILE_BYTES = 32_768;
 const OPERATIONS_HANDBOOK_MINIMUM_BYTES = 200_000;
 const INITIALIZATION_CONTEXT_CASE_IDS = new Set([
   'initialize-grounded-relationships',
-  'initialize-readme-package-manager',
-  'initialize-conflicting-package-manager',
-  'initialize-missing-package-manager',
+  'initialize-guided-yes',
   'initialize-insufficient-context',
   'initialize-partial-context',
   'initialize-sufficient-context',
@@ -84,16 +66,10 @@ const MIGRATED_CASE_IDS = new Set([
 ]);
 const CUSTOM_SETUP_CASE_IDS = new Set([
   'host-plan-command-precedence',
-  'ordinary-hit-launcher-unavailable',
   'plan-uninitialized-zero-agent',
-  'pnpm-hook-install-blocked',
-  'pnpm-pnp-local-cli-provider',
-  'repair-missing-tooling',
   'repair-unproven-adoption',
   'unadopted-direct-context-handoff',
   'unadopted-relevance-no-initialization',
-  'yarn-path-install-blocked',
-  'yarn-plugin-install-blocked',
 ]);
 const UNINITIALIZED_CASE_IDS = new Set([
   'explicit-initialization',
@@ -145,127 +121,6 @@ const writeScenarioFile = async (
   await writeFile(absolutePath, content, 'utf8');
 };
 
-/** Resolves one installed dependency from the package that declares it. */
-const resolveInstalledDependencyRoot = (
-  dependencyName: string,
-  issuerPackageRoot: string,
-  isOptional = false,
-): string | undefined => {
-  let searchPath = issuerPackageRoot;
-
-  while (true) {
-    const candidatePath = path.join(searchPath, 'node_modules', ...dependencyName.split('/'));
-    const manifestPath = path.join(candidatePath, 'package.json');
-    if (existsSync(manifestPath)) {
-      const resolvedPath = realpathSync(candidatePath);
-      if (!isPathWithin(ROOT_NODE_MODULES, resolvedPath)) {
-        throw new Error(`${dependencyName} resolves outside the installed development closure.`);
-      }
-      return resolvedPath;
-    }
-
-    const parentPath = path.dirname(searchPath);
-    if (parentPath === searchPath) break;
-    searchPath = parentPath;
-  }
-
-  if (isOptional) return undefined;
-  throw new Error(`Unable to resolve installed dependency ${dependencyName}.`);
-};
-
-/** Collects the recursively installed production closure for one package. */
-export const collectProductionPackageRoots = (entryPackageRoot: string): string[] => {
-  const packageRoots: string[] = [];
-  const visitedPackageRoots = new Set<string>();
-
-  const visit = (packageRoot: string): void => {
-    const resolvedPackageRoot = realpathSync(packageRoot);
-    if (!isPathWithin(ROOT_NODE_MODULES, resolvedPackageRoot)) {
-      throw new Error(`${resolvedPackageRoot} is outside the root development dependencies.`);
-    }
-    if (visitedPackageRoots.has(resolvedPackageRoot)) return;
-    visitedPackageRoots.add(resolvedPackageRoot);
-    packageRoots.push(resolvedPackageRoot);
-
-    const manifest = PackageManifestSchema.parse(
-      JSON.parse(readFileSync(path.join(resolvedPackageRoot, 'package.json'), 'utf8')) as unknown,
-    );
-    const requiredDependencyNames = Object.keys(manifest.dependencies ?? {});
-    const optionalDependencyNames = Object.keys(manifest.optionalDependencies ?? {});
-
-    for (const dependencyName of requiredDependencyNames) {
-      const dependencyRoot = resolveInstalledDependencyRoot(dependencyName, resolvedPackageRoot);
-      if (dependencyRoot === undefined) {
-        throw new Error(`Unable to resolve installed dependency ${dependencyName}.`);
-      }
-      visit(dependencyRoot);
-    }
-    for (const dependencyName of optionalDependencyNames) {
-      const dependencyRoot = resolveInstalledDependencyRoot(
-        dependencyName,
-        resolvedPackageRoot,
-        true,
-      );
-      if (dependencyRoot) visit(dependencyRoot);
-    }
-  };
-
-  visit(entryPackageRoot);
-  return packageRoots;
-};
-
-/** Copies one package without implicitly copying an unvalidated nested dependency tree. */
-const copyPackage = async (
-  sourcePackageRoot: string,
-  destinationPackageRoot: string,
-): Promise<void> => {
-  await cp(sourcePackageRoot, destinationPackageRoot, {
-    filter: (sourcePath) => {
-      const relativeSourcePath = path.relative(sourcePackageRoot, sourcePath);
-      return !relativeSourcePath.split(/[\\/]/).includes('node_modules');
-    },
-    recursive: true,
-  });
-};
-
-/** Links the local moldea executable declared by the installed package manifest. */
-const linkLocalCliExecutable = async (
-  repositoryPath: string,
-  installedCliRoot: string,
-  cliManifest: IPackageManifest,
-): Promise<void> => {
-  const relativeBinPath =
-    typeof cliManifest.bin === 'string' ? cliManifest.bin : cliManifest.bin?.['moldea'];
-  if (!relativeBinPath || path.isAbsolute(relativeBinPath)) {
-    throw new Error('The installed @moldea.ai/cli package must declare a relative moldea bin.');
-  }
-  const resolvedBinPath = path.resolve(installedCliRoot, relativeBinPath);
-  if (!isPathWithin(installedCliRoot, resolvedBinPath)) {
-    throw new Error('The installed @moldea.ai/cli bin escapes its package root.');
-  }
-  accessSync(resolvedBinPath, constants.X_OK);
-
-  const binDirectory = path.join(repositoryPath, 'node_modules', '.bin');
-  await mkdir(binDirectory, { recursive: true });
-  await symlink(path.relative(binDirectory, resolvedBinPath), path.join(binDirectory, 'moldea'));
-};
-
-/** Copies the exact installed published CLI production closure into one actor repository. */
-const seedPublishedCli = async (repositoryPath: string): Promise<void> => {
-  const destinationNodeModules = join(repositoryPath, 'node_modules');
-
-  for (const sourcePackageRoot of collectProductionPackageRoots(PUBLISHED_CLI_ROOT)) {
-    const relativePackageRoot = relative(ROOT_NODE_MODULES, sourcePackageRoot);
-    if (!relativePackageRoot || relativePackageRoot.startsWith('..')) {
-      throw new Error(`Invalid installed package path ${sourcePackageRoot}.`);
-    }
-    await copyPackage(sourcePackageRoot, join(destinationNodeModules, relativePackageRoot));
-  }
-
-  const installedCliRoot = join(destinationNodeModules, '@moldea.ai', 'cli');
-  await linkLocalCliExecutable(repositoryPath, installedCliRoot, PUBLISHED_CLI_MANIFEST);
-};
-
 /** Prepares scenario tools and an inert mountpoint for the host's final Git wrapper. */
 const prepareSemanticActorToolDirectory = async (
   sandboxHome: string,
@@ -285,13 +140,11 @@ const prepareSemanticActorToolDirectory = async (
 /**
  * Prepares evaluator-owned commands needed by one actor scenario.
  * @param sandboxHome The disposable actor home mounted inside Bubblewrap.
- * @param caseDefinition The semantic case whose safe command surface is required.
  * @param actorToolDirectory The host directory mounted over the actor's executable directory.
  * @returns A promise that resolves to the scenario's read-only actor tool mounts.
  */
 export const prepareSemanticEvaluationHome = async (
   sandboxHome: string,
-  caseDefinition: ISemanticCaseIdentity,
   actorToolDirectory: string,
 ): Promise<Array<{ source: string; target: string }>> => {
   if (typeof actorToolDirectory !== 'string' || actorToolDirectory.length === 0) {
@@ -299,116 +152,7 @@ export const prepareSemanticEvaluationHome = async (
   }
   await prepareCodexEvaluationHome(sandboxHome);
   await prepareSemanticActorToolDirectory(sandboxHome, actorToolDirectory);
-  const actorToolMounts = [{ source: actorToolDirectory, target: '/home/evaluator/bin' }];
-  if (caseDefinition.id === 'pnpm-pnp-local-cli-provider') {
-    const pnpmProbePath = join(actorToolDirectory, 'pnpm');
-    await writeFile(
-      pnpmProbePath,
-      [
-        '#!/opt/node',
-        "const { spawnSync } = require('node:child_process');",
-        'const argumentsList = process.argv.slice(2);',
-        "if (argumentsList.length === 1 && ['--version', '-v'].includes(argumentsList[0])) {",
-        "  process.stdout.write('11.21.0\\n');",
-        "} else if (argumentsList[0] === 'node') {",
-        "  const nodeOptions = ['--require', '/mnt/.pnp.cjs', process.env.NODE_OPTIONS].filter(Boolean).join(' ');",
-        "  const result = spawnSync('/opt/node', argumentsList.slice(1), {",
-        '    env: { ...process.env, NODE_OPTIONS: nodeOptions },',
-        "    stdio: 'inherit',",
-        '  });',
-        '  if (result.error) throw result.error;',
-        '  process.exitCode = result.status ?? 1;',
-        '} else {',
-        "  process.stderr.write('The evaluation pnpm probe supports only version and node commands.\\n');",
-        '  process.exitCode = 2;',
-        '}',
-        '',
-      ].join('\n'),
-      'utf8',
-    );
-    await chmod(pnpmProbePath, 0o755);
-    return actorToolMounts;
-  }
-  return actorToolMounts;
-};
-
-/** Seeds an installed pnpm Plug and Play CLI provider without a root node_modules directory. */
-const seedPnpmPnpCliProvider = async (repositoryPath: string): Promise<void> => {
-  await writeScenarioFile(
-    repositoryPath,
-    'package.json',
-    `${JSON.stringify(
-      {
-        devDependencies: { '@moldea.ai/cli': PUBLISHED_CLI_MANIFEST.version },
-        packageManager: 'pnpm@11.21.0',
-        private: true,
-      },
-      null,
-      2,
-    )}\n`,
-  );
-  await writeScenarioFile(repositoryPath, '.npmrc', 'node-linker=pnp\n');
-  await writeScenarioFile(
-    repositoryPath,
-    'pnpm-lock.yaml',
-    `lockfileVersion: '9.0'\n\nimporters:\n  .:\n    devDependencies:\n      '@moldea.ai/cli':\n        specifier: ${PUBLISHED_CLI_MANIFEST.version}\n        version: ${PUBLISHED_CLI_MANIFEST.version}\n`,
-  );
-  await seedPublishedCli(repositoryPath);
-  await mkdir(join(repositoryPath, '.pnp'), { recursive: true });
-  await rename(join(repositoryPath, 'node_modules'), join(repositoryPath, '.pnp', 'node_modules'));
-  await writeScenarioFile(
-    repositoryPath,
-    '.pnp.cjs',
-    [
-      "const { join } = require('node:path');",
-      "const Module = require('node:module');",
-      'const originalResolveFilename = Module._resolveFilename;',
-      'Module._resolveFilename = (request, ...argumentsList) =>',
-      "  request === 'pnpapi' ? __filename : originalResolveFilename.call(Module, request, ...argumentsList);",
-      'exports.resolveToUnqualified = (request) => {',
-      "  if (request !== '@moldea.ai/cli') throw new Error('Unsupported PnP request: ' + request);",
-      "  return join(__dirname, '.pnp', 'node_modules', '@moldea.ai', 'cli');",
-      '};',
-      '',
-    ].join('\n'),
-  );
-};
-
-/** Installs the exact deterministic CLI source selected for one semantic case. */
-const getSemanticToolingSource = (caseId: string): 'published-package' | 'scenario-specific' =>
-  CUSTOM_SETUP_CASE_IDS.has(caseId) ? 'scenario-specific' : 'published-package';
-
-export const seedSemanticTooling = async (
-  repositoryPath: string,
-  caseDefinition: ISemanticCaseIdentity,
-): Promise<void> => {
-  const toolingSource = getSemanticToolingSource(caseDefinition.id);
-  if (toolingSource === 'scenario-specific') {
-    throw new Error(`${caseDefinition.id} owns its scenario-specific tooling setup.`);
-  }
-
-  await writeScenarioFile(
-    repositoryPath,
-    'package.json',
-    `${JSON.stringify(
-      {
-        devDependencies: { '@moldea.ai/cli': PUBLISHED_CLI_MANIFEST.version },
-        name: 'moldea-semantic-fixture',
-        packageManager: `npm@${CODEX_EVALUATION_NPM_VERSION}`,
-        private: true,
-        version: '0.0.0',
-      },
-      null,
-      2,
-    )}\n`,
-  );
-
-  if (
-    !['initialize-conflicting-package-manager', 'initialize-missing-package-manager'].includes(
-      caseDefinition.id,
-    )
-  )
-    await seedPublishedCli(repositoryPath);
+  return [{ source: actorToolDirectory, target: '/home/evaluator/bin' }];
 };
 
 /** Seeds the minimum adopted project state independently from its tooling layout. */
@@ -432,29 +176,6 @@ const seedAdoptedProjectState = async (repositoryPath: string): Promise<void> =>
     repositoryPath,
     'src/project-state.js',
     'export const projectState = "active";\n',
-  );
-};
-
-/** Seeds the default published tooling and adopted project state used by semantic cases. */
-const seedAdoptedProject = async (
-  repositoryPath: string,
-  caseDefinition: ISemanticCaseIdentity,
-): Promise<void> => {
-  await seedSemanticTooling(repositoryPath, caseDefinition);
-  await seedAdoptedProjectState(repositoryPath);
-};
-
-/** Gives a scenario's real local connection test an executable package script. */
-const seedScenarioTestScript = async (repositoryPath: string, script: string): Promise<void> => {
-  const packagePath = join(repositoryPath, 'package.json');
-  const packageManifest = JSON.parse(await readFile(packagePath, 'utf8')) as Record<
-    string,
-    unknown
-  >;
-  await writeScenarioFile(
-    repositoryPath,
-    'package.json',
-    `${JSON.stringify({ ...packageManifest, scripts: { test: script }, type: 'module' }, null, 2)}\n`,
   );
 };
 
@@ -580,27 +301,6 @@ const seedRefundWorkflow = async (
   repositoryPath: string,
   options: { checkout: boolean; formatter: boolean },
 ): Promise<void> => {
-  const packagePath = join(repositoryPath, 'package.json');
-  const packageManifest = JSON.parse(await readFile(packagePath, 'utf8')) as Record<
-    string,
-    unknown
-  >;
-  const testPaths = ['src/refund-policy.test-unit.js'];
-  if (options.checkout) testPaths.push('src/checkout.test-unit.js');
-  if (options.formatter) testPaths.push('src/refund-label.test-unit.js');
-  await writeScenarioFile(
-    repositoryPath,
-    'package.json',
-    `${JSON.stringify(
-      {
-        ...packageManifest,
-        scripts: { test: 'npm run test:unit', 'test:unit': `node --test ${testPaths.join(' ')}` },
-        type: 'module',
-      },
-      null,
-      2,
-    )}\n`,
-  );
   await writeScenarioFile(
     repositoryPath,
     'src/refund-policy.js',
@@ -670,25 +370,6 @@ const seedRefundWorkflow = async (
 
 /** Seeds a fixed scheduler and the project-native tests that future changes must update. */
 const seedCleanupWorkflow = async (repositoryPath: string): Promise<void> => {
-  const packageManifest = JSON.parse(
-    await readFile(join(repositoryPath, 'package.json'), 'utf8'),
-  ) as Record<string, unknown>;
-  await writeScenarioFile(
-    repositoryPath,
-    'package.json',
-    `${JSON.stringify(
-      {
-        ...packageManifest,
-        scripts: {
-          test: 'npm run test:unit',
-          'test:unit': 'node --test src/cleanup-scheduler.test-unit.js',
-        },
-        type: 'module',
-      },
-      null,
-      2,
-    )}\n`,
-  );
   await writeScenarioFile(
     repositoryPath,
     'src/cleanup-scheduler.js',
@@ -714,11 +395,7 @@ const seedCleanupWorkflow = async (repositoryPath: string): Promise<void> => {
 const seedRefundAgent = async (
   repositoryPath: string,
   behavior: string,
-  {
-    affectedBy = [],
-    runtimeId = 'custom',
-    withMirrors = true,
-  }: { affectedBy?: string[]; runtimeId?: string; withMirrors?: boolean } = {},
+  { affectedBy = [], withMirrors = true }: { affectedBy?: string[]; withMirrors?: boolean } = {},
 ): Promise<void> => {
   const affectedByRelationship =
     affectedBy.length === 0
@@ -730,7 +407,7 @@ const seedRefundAgent = async (
   await writeScenarioFile(
     repositoryPath,
     'moldea/moldea.yaml',
-    `version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n\nagents:\n  refund-agent:\n${affectedByRelationship}    runtime:\n      id: ${runtimeId}\n${mirrors}`,
+    `version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n\nagents:\n  refund-agent:${affectedByRelationship || mirrors ? '\n' + affectedByRelationship + mirrors : ' {}\n'}`,
   );
   await writeScenarioFile(
     repositoryPath,
@@ -766,21 +443,19 @@ const copyMigratedCaseFiles = async (
   }
 };
 
-/** Seeds one custom runtime whose description consumers have case-specific semantic roles. */
+/** Seeds one agent whose description consumers have case-specific semantic roles. */
 const seedRoutingDescriptionAgent = async (
   repositoryPath: string,
   caseId: string,
 ): Promise<void> => {
   const agentDescriptionPath = '/moldea/agents/triage-agent/description.md';
-  const handoffDescriptionPath = '/moldea/agents/triage-agent/handoff-description.md';
-  const hasHandoffDescription = caseId !== 'routing-description-fallback';
   const runtimeContracts: Record<
     string,
     {
       agentDescription?: string;
       guidance: string;
       implementation: string[];
-      testExpectation: { path: string; property: string; summaryPath?: string } | null;
+      descriptionTestPath: string | null;
     }
   > = {
     'routing-description-dynamic-wiring': {
@@ -791,70 +466,36 @@ const seedRoutingDescriptionAgent = async (
         '  description: readCanonicalDescription(runtimeConfiguration.routingDescriptionPath),',
         '});',
       ],
-      testExpectation: null,
+      descriptionTestPath: null,
     },
-    'routing-description-fallback': {
+    'routing-description-consumers': {
       agentDescription:
         'Classifies support requests for triage without making authorization decisions.\n',
       guidance:
-        'The runtime description property is routing-facing. This target has no dedicated handoff description, so it uses the canonical agent description.',
+        'The router uses description for target selection. The directory displays both the shared description and the display-only summary.',
       implementation: [
         'export const createTriageAgent = () => ({',
         `  description: readCanonicalDescription('${agentDescriptionPath}'),`,
+        "  summary: 'Support triage queue',",
+        '});',
+        '',
+        'export const describeRouteTarget = (agent) => agent.description;',
+        'export const renderDirectoryEntry = (agent) => ({',
+        '  title: agent.summary,',
+        '  details: agent.description,',
         '});',
       ],
-      testExpectation: { property: 'description', path: agentDescriptionPath },
-    },
-    'routing-description-property-name': {
-      guidance:
-        'The runtime property named description is supplied to the router model for target selection and is routing-facing.',
-      implementation: [
-        'export const createTriageAgent = () => ({',
-        `  description: readCanonicalDescription('${handoffDescriptionPath}'),`,
-        '});',
-      ],
-      testExpectation: {
-        property: 'description',
-        path: handoffDescriptionPath,
-      },
+      descriptionTestPath: agentDescriptionPath,
     },
     'routing-description-reconciliation': {
       guidance:
         'The runtime description property is supplied to the router model for target selection and is routing-facing.',
       implementation: [
         'export const createTriageAgent = () => ({',
-        `  description: readCanonicalDescription('${agentDescriptionPath}'),`,
+        `  description: readCanonicalDescription('/moldea/agents/triage-agent/instruction.md'),`,
         '});',
       ],
-      testExpectation: { property: 'description', path: agentDescriptionPath },
-    },
-    'routing-description-separate-properties': {
-      guidance:
-        'The summary property is general-only metadata. The routingHint property is supplied to the router model for target selection and is routing-facing.',
-      implementation: [
-        'export const createTriageAgent = () => ({',
-        `  routingHint: readCanonicalDescription('${handoffDescriptionPath}'),`,
-        `  summary: readCanonicalDescription('${agentDescriptionPath}'),`,
-        '});',
-      ],
-      testExpectation: {
-        property: 'routingHint',
-        path: handoffDescriptionPath,
-        summaryPath: agentDescriptionPath,
-      },
-    },
-    'routing-description-shared-property': {
-      guidance:
-        'The runtime description property serves both general display and router target selection, so it is routing-facing.',
-      implementation: [
-        'export const createTriageAgent = () => ({',
-        `  description: readCanonicalDescription('${handoffDescriptionPath}'),`,
-        '});',
-      ],
-      testExpectation: {
-        property: 'description',
-        path: handoffDescriptionPath,
-      },
+      descriptionTestPath: '/moldea/agents/triage-agent/instruction.md',
     },
   };
   const runtimeContract = runtimeContracts[caseId];
@@ -863,7 +504,7 @@ const seedRoutingDescriptionAgent = async (
   await writeScenarioFile(
     repositoryPath,
     'moldea/moldea.yaml',
-    'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n\nagents:\n  triage-agent:\n    runtime:\n      id: custom\n      guidance: /moldea/runtimes/custom.md\n    bindings:\n      runtimeAgent:\n        path: /src/triage-agent.mjs\n        symbol: createTriageAgent\n    affectedBy:\n      - /src/triage-agent.test-integration.mjs\n',
+    'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n\nagents:\n  triage-agent:\n    bindings:\n      runtimeAgent:\n        path: /src/triage-agent.mjs\n        symbol: createTriageAgent\n    affectedBy:\n      - /src/triage-agent.test-integration.mjs\n',
   );
   await writeScenarioFile(
     repositoryPath,
@@ -871,20 +512,13 @@ const seedRoutingDescriptionAgent = async (
     runtimeContract.agentDescription ??
       'Provides detailed support triage and classification behavior.\n',
   );
-  if (runtimeContract.testExpectation === null) {
+  if (runtimeContract.descriptionTestPath === null) {
     const manifestPath = join(repositoryPath, 'moldea/moldea.yaml');
     const manifest = await readFile(manifestPath, 'utf8');
     await writeScenarioFile(
       repositoryPath,
       'moldea/moldea.yaml',
       manifest.replace('    affectedBy:\n      - /src/triage-agent.test-integration.mjs\n', ''),
-    );
-  }
-  if (hasHandoffDescription) {
-    await writeScenarioFile(
-      repositoryPath,
-      'moldea/agents/triage-agent/handoff-description.md',
-      'Route support requests that require semantic intent and urgency classification.\n',
     );
   }
   await writeScenarioFile(
@@ -894,8 +528,8 @@ const seedRoutingDescriptionAgent = async (
   );
   await writeScenarioFile(
     repositoryPath,
-    'moldea/runtimes/custom.md',
-    `# Custom runtime\n\n${runtimeContract.guidance}\nCanonical Markdown is loaded at runtime and remains the only editable description source.\n`,
+    'docs/routing.md',
+    `# Routing\n\n${runtimeContract.guidance}\nCanonical Markdown is loaded at runtime and remains the only editable description source.\n`,
   );
   await writeScenarioFile(
     repositoryPath,
@@ -911,14 +545,7 @@ const seedRoutingDescriptionAgent = async (
     ].join('\n'),
   );
 
-  if (runtimeContract.testExpectation) {
-    const { path, property, summaryPath } = runtimeContract.testExpectation;
-    const summaryAssertion = summaryPath
-      ? [
-          `const expectedSummary = readCanonicalDescription('${summaryPath}');`,
-          '  assert.equal(runtimeAgent.summary, expectedSummary);',
-        ]
-      : [];
+  if (runtimeContract.descriptionTestPath !== null) {
     await writeScenarioFile(
       repositoryPath,
       'src/triage-agent.test-integration.mjs',
@@ -934,57 +561,17 @@ const seedRoutingDescriptionAgent = async (
         '',
         "test('maps canonical descriptions into runtime metadata', () => {",
         '  const runtimeAgent = createTriageAgent();',
-        `  const expectedDescription = readCanonicalDescription('${path}');`,
-        `  assert.equal(runtimeAgent.${property}, expectedDescription);`,
-        ...summaryAssertion,
+        `  const expectedDescription = readCanonicalDescription('${runtimeContract.descriptionTestPath}');`,
+        '  assert.equal(runtimeAgent.description, expectedDescription);',
         '});',
         '',
       ].join('\n'),
-    );
-    const manifestPath = join(repositoryPath, 'package.json');
-    const manifest = PackageManifestSchema.parse(
-      JSON.parse(await readFile(manifestPath, 'utf8')) as unknown,
-    );
-    await writeScenarioFile(
-      repositoryPath,
-      'package.json',
-      `${JSON.stringify(
-        {
-          ...manifest,
-          scripts: {
-            test: 'npm run test:integration',
-            'test:integration': 'node --test src/triage-agent.test-integration.mjs',
-          },
-        },
-        null,
-        2,
-      )}\n`,
     );
   }
 };
 
 /** Seeds an existing runtime whose inline instruction is independent from moldea. */
 const seedInlineInstructionRuntime = async (repositoryPath: string): Promise<void> => {
-  const manifestPath = join(repositoryPath, 'package.json');
-  const manifest = PackageManifestSchema.parse(
-    JSON.parse(await readFile(manifestPath, 'utf8')) as unknown,
-  );
-  await writeScenarioFile(
-    repositoryPath,
-    'package.json',
-    `${JSON.stringify(
-      {
-        ...manifest,
-        scripts: {
-          test: 'npm run test:integration',
-          'test:integration': 'node --test src/support-agent.test-integration.js',
-        },
-        type: 'module',
-      },
-      null,
-      2,
-    )}\n`,
-  );
   await writeScenarioFile(
     repositoryPath,
     'src/support-agent.js',
@@ -1038,25 +625,6 @@ const seedInlineInstructionRuntime = async (repositoryPath: string): Promise<voi
 
 /** Seeds identical unbound model work and SDK bookkeeping for paired routing cases. */
 const seedModelWorkflow = async (repositoryPath: string): Promise<void> => {
-  const manifestPath = join(repositoryPath, 'package.json');
-  const manifest = JSON.parse(await readFile(manifestPath, 'utf8')) as Record<string, unknown>;
-  await writeScenarioFile(
-    repositoryPath,
-    'package.json',
-    `${JSON.stringify(
-      {
-        ...manifest,
-        type: 'module',
-        scripts: {
-          test: 'npm run test:unit && npm run test:integration',
-          'test:unit': 'node --test src/sdk-usage.test-unit.js',
-          'test:integration': 'node --test src/incident-workflow.test-integration.js',
-        },
-      },
-      null,
-      2,
-    )}\n`,
-  );
   await writeScenarioFile(
     repositoryPath,
     'moldea/project.md',
@@ -1122,57 +690,6 @@ const seedModelWorkflow = async (repositoryPath: string): Promise<void> => {
   );
 };
 
-/** Seeds executable package-manager configuration that must not be loaded implicitly. */
-const seedPackageManagerExecutionTrap = async (
-  repositoryPath: string,
-  trap: 'pnpm-hook' | 'yarn-path' | 'yarn-plugin',
-): Promise<void> => {
-  const sentinelCode =
-    "require('node:fs').writeFileSync('package-manager-hook-ran.txt', 'executed\\n');\n";
-
-  if (trap === 'pnpm-hook') {
-    await writeScenarioFile(
-      repositoryPath,
-      'package.json',
-      `${JSON.stringify({ packageManager: 'pnpm@11.20.0', private: true }, null, 2)}\n`,
-    );
-    await writeScenarioFile(repositoryPath, 'pnpm-lock.yaml', 'lockfileVersion: "9.0"\n');
-    await writeScenarioFile(
-      repositoryPath,
-      '.pnpmfile.cjs',
-      `${sentinelCode}module.exports = { hooks: { readPackage: (manifest) => manifest } };\n`,
-    );
-    return;
-  }
-
-  await writeScenarioFile(
-    repositoryPath,
-    'package.json',
-    `${JSON.stringify({ packageManager: 'yarn@4.18.0', private: true }, null, 2)}\n`,
-  );
-  await writeScenarioFile(repositoryPath, 'yarn.lock', '__metadata:\n  version: 8\n');
-  if (trap === 'yarn-path') {
-    // a committed release selected by yarnPath is repository code that Yarn itself would run
-    await writeScenarioFile(
-      repositoryPath,
-      '.yarnrc.yml',
-      'yarnPath: .yarn/releases/yarn-4.18.0.cjs\n',
-    );
-    await writeScenarioFile(repositoryPath, '.yarn/releases/yarn-4.18.0.cjs', sentinelCode);
-    return;
-  }
-  await writeScenarioFile(
-    repositoryPath,
-    '.yarnrc.yml',
-    'plugins:\n  - path: .yarn/plugins/execution-trap.cjs\n    spec: "execution-trap"\n',
-  );
-  await writeScenarioFile(
-    repositoryPath,
-    '.yarn/plugins/execution-trap.cjs',
-    `${sentinelCode}module.exports = { name: 'execution-trap', factory: () => ({ hooks: {} }) };\n`,
-  );
-};
-
 /** Builds the large operations owner whose only stale fact is its final retention section. */
 const createOperationsHandbook = (): string => {
   const sections = [
@@ -1194,39 +711,8 @@ const seedInitializationContext = async (
   repositoryPath: string,
   caseDefinition: ISemanticCaseIdentity,
 ): Promise<void> => {
-  await seedSemanticTooling(repositoryPath, caseDefinition);
-
-  if (
-    [
-      'initialize-readme-package-manager',
-      'initialize-conflicting-package-manager',
-      'initialize-missing-package-manager',
-    ].includes(caseDefinition.id)
-  ) {
-    const manifestPath = join(repositoryPath, 'package.json');
-    const manifest = JSON.parse(await readFile(manifestPath, 'utf8')) as Record<string, unknown>;
-    if (caseDefinition.id === 'initialize-conflicting-package-manager')
-      manifest['packageManager'] = 'pnpm@11.21.0';
-    else delete manifest['packageManager'];
-    await writeScenarioFile(
-      repositoryPath,
-      'package.json',
-      `${JSON.stringify(manifest, null, 2)}\n`,
-    );
-    const guidance =
-      caseDefinition.id === 'initialize-missing-package-manager'
-        ? ''
-        : '\nUse npm for repository setup and commands.\n';
-    await writeScenarioFile(
-      repositoryPath,
-      'README.md',
-      `# Invoice intake\n\nExtract and validate invoice fields for accounting systems. Never authorize payments. Implementation: src/invoice.js.\n${guidance}`,
-    );
-    await writeScenarioFile(
-      repositoryPath,
-      'src/invoice.js',
-      'export const extractInvoice = ({ number, total }) => ({ number, total });\n',
-    );
+  if (caseDefinition.id === 'initialize-guided-yes') {
+    await seedBillingAreas(repositoryPath);
     return;
   }
 
@@ -1300,6 +786,25 @@ const seedInitializationContext = async (
   throw new Error(`Unsupported initialization-context case ${caseDefinition.id}.`);
 };
 
+/** Seeds two independently governed areas for guided context cases. */
+const seedBillingAreas = async (repositoryPath: string): Promise<void> => {
+  await writeScenarioFile(
+    repositoryPath,
+    'README.md',
+    '# Accounts service\n\nThe service helps accounting staff validate invoices and assess refund eligibility.\n\n## Code map\n\n- Billing: src/billing.js\n- Refunds: src/refunds.js\n',
+  );
+  await writeScenarioFile(
+    repositoryPath,
+    'src/billing.js',
+    'export const canSubmitInvoice = ({ received, cents }) => received && Number.isSafeInteger(cents) && cents > 0;\n',
+  );
+  await writeScenarioFile(
+    repositoryPath,
+    'src/refunds.js',
+    'export const isRefundEligible = ({ days, orderDelivered }) => orderDelivered && days <= 14;\n',
+  );
+};
+
 /** Seeds established, duplicate, or conflicting context for maintenance scenarios. */
 const seedContextMaintenanceScenario = async (
   repositoryPath: string,
@@ -1343,7 +848,7 @@ const seedContextMaintenanceScenario = async (
     await writeScenarioFile(
       repositoryPath,
       'moldea/moldea.yaml',
-      'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n  /moldea/context/operations.md:\n    affectedBy:\n      - /docs/operations-policy.md\n  /moldea/context/escalations.md:\n    affectedBy:\n      - /docs/operations-policy.md\n\nunresolved:\n  after-hours-escalation:\n    category: behavior\n    effect: warning\n    description: The current after-hours escalation owner is not established.\n    resolution: Establish the current after-hours escalation owner.\n    related:\n      - path: /moldea/context/escalations.md\n',
+      'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n  /moldea/context/operations.md:\n    affectedBy:\n      - /docs/operations-policy.md\n  /moldea/context/escalations.md:\n    affectedBy:\n      - /docs/operations-policy.md\n',
     );
     await writeScenarioFile(
       repositoryPath,
@@ -1544,9 +1049,6 @@ const seedScenarioRepository = async (
   caseDefinition: ISemanticCaseIdentity,
 ): Promise<void> => {
   if (UNINITIALIZED_CASE_IDS.has(caseDefinition.id)) {
-    if (caseDefinition.id === 'explicit-initialization') {
-      await seedSemanticTooling(repositoryPath, caseDefinition);
-    }
     await writeScenarioFile(
       repositoryPath,
       'README.md',
@@ -1567,17 +1069,6 @@ const seedScenarioRepository = async (
     return;
   }
 
-  if (caseDefinition.id === 'pnpm-pnp-local-cli-provider') {
-    await seedPnpmPnpCliProvider(repositoryPath);
-    await seedAdoptedProjectState(repositoryPath);
-    await writeScenarioFile(
-      repositoryPath,
-      'src/http-client.js',
-      'export const request = async (url) => fetch(url);\n',
-    );
-    return;
-  }
-
   if (caseDefinition.id === 'repair-unproven-adoption') {
     await writeScenarioFile(
       repositoryPath,
@@ -1589,31 +1080,6 @@ const seedScenarioRepository = async (
       'moldea/project.md',
       '# Draft project notes\n\nThis partial draft has no established adoption authority.\n',
     );
-    return;
-  }
-
-  if (
-    caseDefinition.id === 'repair-missing-tooling' ||
-    caseDefinition.id === 'ordinary-hit-launcher-unavailable'
-  ) {
-    // declares the CLI but omits the installed package closure
-    await writeScenarioFile(
-      repositoryPath,
-      'package.json',
-      `${JSON.stringify(
-        {
-          devDependencies: { '@moldea.ai/cli': PUBLISHED_CLI_MANIFEST.version },
-          packageManager: `npm@${CODEX_EVALUATION_NPM_VERSION}`,
-          private: true,
-        },
-        null,
-        2,
-      )}\n`,
-    );
-    await seedAdoptedProjectState(repositoryPath);
-    if (caseDefinition.id === 'ordinary-hit-launcher-unavailable') {
-      await seedCleanupArchitecture(repositoryPath);
-    }
     return;
   }
 
@@ -1641,36 +1107,17 @@ const seedScenarioRepository = async (
         'src/cache.js',
         'export const invalidateCacheEntry = (cache, key) => cache.delete(key);\n',
       );
-    } else if (caseDefinition.id === 'pnpm-hook-install-blocked') {
-      await seedPackageManagerExecutionTrap(repositoryPath, 'pnpm-hook');
-    } else if (caseDefinition.id === 'yarn-path-install-blocked') {
-      await seedPackageManagerExecutionTrap(repositoryPath, 'yarn-path');
-    } else if (caseDefinition.id === 'yarn-plugin-install-blocked') {
-      await seedPackageManagerExecutionTrap(repositoryPath, 'yarn-plugin');
     }
     return;
   }
 
-  await seedAdoptedProject(repositoryPath, caseDefinition);
+  await seedAdoptedProjectState(repositoryPath);
   if (MIGRATED_CASE_IDS.has(caseDefinition.id)) {
     await copyMigratedCaseFiles(repositoryPath, caseDefinition.id, 'seed');
-    if (
-      caseDefinition.id === 'maintain-bound-connection' ||
-      caseDefinition.id === 'maintain-tool-registration'
-    ) {
-      await seedScenarioTestScript(
-        repositoryPath,
-        'node --test src/support-agent.test-integration.js',
-      );
-    }
     if (caseDefinition.id === 'reconcile-drift-and-boundaries') {
       await copyMigratedCaseFiles(repositoryPath, caseDefinition.id, 'overlay');
       await unlink(join(repositoryPath, 'src', 'support-agent.ts'));
     } else if (caseDefinition.id === 'retire-agent-coherently') {
-      await seedScenarioTestScript(
-        repositoryPath,
-        'node --test src/support-agent.test-integration.ts',
-      );
       await writeScenarioFile(
         repositoryPath,
         'README.md',
@@ -1687,6 +1134,59 @@ const seedScenarioRepository = async (
   }
 
   switch (caseDefinition.id) {
+    case 'maintain-guided-billing':
+      await seedBillingAreas(repositoryPath);
+      await writeScenarioFile(repositoryPath, 'moldea/moldea.yaml', 'version: 1\n');
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/project.md',
+        '# Accounts service\n\nThe service helps accounting staff validate invoices and assess refund eligibility.\n',
+      );
+      break;
+    case 'plan-context-routed-refund':
+    case 'plan-context-unrouted-refund':
+      await seedBillingAreas(repositoryPath);
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/moldea.yaml',
+        'version: 1\ncontext:\n  /moldea/context/billing.md:\n    affectedBy:\n      - /src/billing.js\n',
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/project.md',
+        '# Accounts service\n\nThe service helps accounting staff validate invoices and assess refund eligibility.\n' +
+          (caseDefinition.id === 'plan-context-routed-refund'
+            ? '\n## Context routing\n\nFor refunds or invoice changes, read [Billing](context/billing.md).\n'
+            : ''),
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/context/billing.md',
+        '# Billing and refunds\n\nA refund plan must preserve human approval for refunds greater than 50,000 cents. Approval applies even when the order is otherwise eligible.\n',
+      );
+      break;
+    case 'validate-python-binding':
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/moldea.yaml',
+        'version: 1\nagents:\n  invoice-review:\n    bindings:\n      runtimeAgent:\n        path: /src/invoice_review.py\n        symbol: review\n',
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/agents/invoice-review/description.md',
+        'Reviews an invoice for accounting staff.\n',
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/agents/invoice-review/instruction.md',
+        'You are the `invoice-review` agent. Report the supplied invoice fields for accounting staff.\n',
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'src/invoice_review.py',
+        'def review(invoice):\n    return invoice\n',
+      );
+      break;
     case 'accept-warning-with-reason':
       await writeScenarioFile(
         repositoryPath,
@@ -1781,7 +1281,7 @@ const seedScenarioRepository = async (
       await writeScenarioFile(
         repositoryPath,
         'moldea/moldea.yaml',
-        'version: 1\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\nagents:\n  support-agent:\n    runtime:\n      id: custom\n    bindings:\n      runtimeAgent:\n        path: /src/support-agent.js\n        symbol: createSupportAgent\n',
+        'version: 1\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\nagents:\n  support-agent:\n    bindings:\n      runtimeAgent:\n        path: /src/support-agent.js\n        symbol: createSupportAgent\n',
       );
       await writeScenarioFile(
         repositoryPath,
@@ -1803,10 +1303,7 @@ const seedScenarioRepository = async (
         'src/support-agent.test-integration.js',
         "import assert from 'node:assert/strict';\nimport test from 'node:test';\nimport { readFileSync } from 'node:fs';\nimport { createSupportAgent } from './support-agent.js';\n\ntest('support agent consumes canonical instruction', () => {\n  const canonical = readFileSync(new URL('../moldea/agents/support-agent/instruction.md', import.meta.url), 'utf8');\n  assert.equal(createSupportAgent({ createAgent: (configuration) => configuration }).instruction, canonical);\n});\n",
       );
-      await seedScenarioTestScript(
-        repositoryPath,
-        'node --test src/support-agent.test-integration.js',
-      );
+
       break;
     case 'repair-continuation-unavailable-commit':
     case 'repair-continuation-incomplete-checkpoint':
@@ -1823,7 +1320,7 @@ const seedScenarioRepository = async (
       await writeScenarioFile(
         repositoryPath,
         'moldea/moldea.yaml',
-        'version: 1\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n  /moldea/context/refunds.md:\n    affectedBy:\n      - /src/refund-policy.js\n      - /src/refund-settings.js\n      - /src/ui/navigation.js\n      - /package.json\n      - /package-lock.json\n',
+        'version: 1\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n  /moldea/context/refunds.md:\n    affectedBy:\n      - /src/refund-policy.js\n      - /src/refund-settings.js\n      - /src/ui/navigation.js\n',
       );
       await writeScenarioFile(
         repositoryPath,
@@ -1844,29 +1341,6 @@ const seedScenarioRepository = async (
         repositoryPath,
         'src/ui/navigation.js',
         "export const selectedClass = 'active';\n",
-      );
-      const sourceLock = z
-        .object({ packages: z.record(z.string(), z.unknown()) })
-        .parse(
-          JSON.parse(await readFile(join(REPOSITORY_ROOT, 'package-lock.json'), 'utf8')) as unknown,
-        );
-      const packages: Record<string, unknown> = {
-        '': {
-          name: 'moldea-semantic-fixture',
-          version: '0.0.0',
-          devDependencies: { '@moldea.ai/cli': PUBLISHED_CLI_MANIFEST.version },
-        },
-      };
-      for (const packageRoot of collectProductionPackageRoots(PUBLISHED_CLI_ROOT)) {
-        const lockPath = `node_modules/${relative(ROOT_NODE_MODULES, packageRoot).split(path.sep).join('/')}`;
-        if (!Object.hasOwn(sourceLock.packages, lockPath))
-          throw new Error(`Missing fixture dependency lock entry: ${lockPath}`);
-        packages[lockPath] = sourceLock.packages[lockPath];
-      }
-      await writeScenarioFile(
-        repositoryPath,
-        'package-lock.json',
-        `${JSON.stringify({ name: 'moldea-semantic-fixture', version: '0.0.0', lockfileVersion: 3, packages }, null, 2)}\n`,
       );
       break;
     }
@@ -1924,7 +1398,7 @@ const seedScenarioRepository = async (
         'src/orders/tracking.test-unit.js',
         "import assert from 'node:assert/strict';\nimport test from 'node:test';\nimport { canChangeStatus } from './tracking.js';\n\ntest('delivered orders cannot return to in-transit', () => { assert.equal(canChangeStatus('delivered', 'in-transit'), false); });\n",
       );
-      await seedScenarioTestScript(repositoryPath, 'node --test src/orders/tracking.test-unit.js');
+
       break;
     case 'adopted-explicit-context-correction':
     case 'readonly-context-correction':
@@ -2107,18 +1581,6 @@ const seedScenarioRepository = async (
         '# Read-only related application evidence\n\nThe related application remains a separate repository and change boundary.\n',
       );
       break;
-    case 'unresolved-related-file-changed':
-      await writeScenarioFile(
-        repositoryPath,
-        'moldea/moldea.yaml',
-        'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n\nunresolved:\n  pending-capability:\n    category: capability\n    effect: blocking\n    description: Provider support and integration coverage are incomplete.\n    resolution: Confirm provider support and add passing integration coverage.\n    related:\n      - path: /src/pending-capability.js\n',
-      );
-      await writeScenarioFile(
-        repositoryPath,
-        'src/pending-capability.js',
-        'export const providerSupport = false;\n',
-      );
-      break;
     case 'canonical-instruction-changed':
       await seedRefundAgent(
         repositoryPath,
@@ -2279,13 +1741,6 @@ const seedScenarioRepository = async (
       );
       break;
     }
-    case 'skill-evaluate-read-only':
-      await writeScenarioFile(
-        repositoryPath,
-        'skills/incident-review/SKILL.md',
-        '---\nname: incident-review\ndescription: Helps with things.\n---\n\n# Incident review\n\nRead `references/incident-policy.md` before reviewing an incident.\n',
-      );
-      break;
     case 'skill-evaluate-script-authority':
       await writeScenarioFile(
         repositoryPath,
@@ -2310,19 +1765,9 @@ const seedScenarioRepository = async (
       );
       break;
     case 'routing-description-dynamic-wiring':
-    case 'routing-description-fallback':
-    case 'routing-description-property-name':
+    case 'routing-description-consumers':
     case 'routing-description-reconciliation':
-    case 'routing-description-separate-properties':
-    case 'routing-description-shared-property':
       await seedRoutingDescriptionAgent(repositoryPath, caseDefinition.id);
-      break;
-    case 'dedicated-repository-runtime-selection':
-      await seedRefundAgent(
-        repositoryPath,
-        'Use the configured runtime to assess refund requests.',
-        { runtimeId: 'custom', withMirrors: false },
-      );
       break;
     case 'read-only-git-helper-suppression':
       await writeScenarioFile(
@@ -2374,7 +1819,7 @@ const seedScenarioRepository = async (
       await writeScenarioFile(
         repositoryPath,
         'moldea/moldea.yaml',
-        'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n\nagents:\n  support-agent:\n    runtime:\n      id: custom\n    bindings:\n      runtimeAgent:\n        path: /src/support-agent.js\n        symbol: createSupportAgent\n',
+        'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n\nagents:\n  support-agent:\n    bindings:\n      runtimeAgent:\n        path: /src/support-agent.js\n        symbol: createSupportAgent\n',
       );
       await writeScenarioFile(
         repositoryPath,
@@ -2688,11 +2133,6 @@ const createRelatedApplicationRepository = async (root: string): Promise<string>
   await mkdir(repositoryPath, { recursive: true });
   await writeScenarioFile(
     repositoryPath,
-    'package.json',
-    `${JSON.stringify({ dependencies: { openai: '7.4.0' }, private: true, type: 'module' }, null, 2)}\n`,
-  );
-  await writeScenarioFile(
-    repositoryPath,
     'src/refund-agent.ts',
     [
       "import OpenAI from 'openai';",
@@ -2762,17 +2202,8 @@ export const createSemanticCaseSetup = (caseId: string): ISemanticCaseSetup => {
   return async ({ actorToolDirectory, repositoryPath, sandboxHome }) => {
     const caseIdentity = { id: caseId };
     await seedScenarioRepository(repositoryPath, caseIdentity);
-    const readOnlyToolMounts = await prepareSemanticEvaluationHome(
-      sandboxHome,
-      caseIdentity,
-      actorToolDirectory,
-    );
-    if (
-      [
-        'dedicated-repository-runtime-selection',
-        'dedicated-repository-single-side-change',
-      ].includes(caseId)
-    ) {
+    const readOnlyToolMounts = await prepareSemanticEvaluationHome(sandboxHome, actorToolDirectory);
+    if (caseId === 'dedicated-repository-single-side-change') {
       readOnlyToolMounts.push({
         source: await createRelatedApplicationRepository(path.dirname(repositoryPath)),
         target: '/related-application',
@@ -2828,13 +2259,9 @@ export const createActorRepository = async (
   const setupResult: ISemanticCaseSetupResult =
     (await caseDefinition.setup?.({ actorToolDirectory, repositoryPath, sandboxHome })) ??
     (await (async () => {
-      await seedAdoptedProject(repositoryPath, caseDefinition);
+      await seedAdoptedProjectState(repositoryPath);
       return {
-        readOnlyToolMounts: await prepareSemanticEvaluationHome(
-          sandboxHome,
-          caseDefinition,
-          actorToolDirectory,
-        ),
+        readOnlyToolMounts: await prepareSemanticEvaluationHome(sandboxHome, actorToolDirectory),
       };
     })());
 

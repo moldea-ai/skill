@@ -5,6 +5,7 @@ import { defineSemanticCase } from '../define.ts';
 export const semanticCase = defineSemanticCase({
   setup: createInitializationOnboardingSetup('continuation'),
   id: 'initialize-onboarding-continuation',
+  publication: 'private',
   scenario:
     'A partial approved initialization already has the grounded foundation and a working canonical Support Triage registration; the inline Invoice Review workflow remains pending.',
   operation: 'initialize',
@@ -126,12 +127,12 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'one-batch-final-validation',
       criterion:
-        'Runner-owned evidence records exactly one successful installed-skill launcher validate for the complete two-agent initialization, and the response accurately reports its structural result and material diagnostics together with the inventory and registrations. Do not require an unobservable write/validation ordering claim. Invalid attempts may precede the one successful final validation only for the Skill bounded structural-recovery path. Any other successful validate, including a preliminary foundation-only or per-agent validation, fails this criterion. Binding coverage totals are not projected: an incidental export-count summary absent from that evidence is unverified, not evidence of failure by itself. Canonical consumption still requires the separate source and connection-test criteria. Native traces separately check actual ordering.',
+        'Runner-owned evidence records exactly one successful bundled CLI validate for the complete two-agent initialization, and the response accurately reports its structural result and material diagnostics together with the inventory and registrations. Do not require an unobservable write/validation ordering claim. Invalid attempts may precede the one successful final validation only for the Skill bounded structural-recovery path. Any other successful validate, including a preliminary foundation-only or per-agent validation, fails this criterion. Binding coverage totals are not projected: an incidental export-count summary absent from that evidence is unverified, not evidence of failure by itself. Canonical consumption still requires the separate source and connection-test criteria. Native traces separately check actual ordering.',
     },
     {
       label: 'resume-without-recreating-completed-work',
       criterion:
-        'The existing Support Triage agent assets, src/support-agent.js, and its canonical-connection test remain byte-identical. Shared runtime guidance may be extended with supported invoice details while preserving its correct support contract. Its valid existing manifest declaration is preserved while the pending invoice registration is added. The response identifies resumed initialization and does not restart a scaffold or switch to whole-project repair.',
+        'The existing Support Triage agent assets, src/support-agent.js, and its canonical-connection test remain byte-identical. Its valid existing manifest declaration is preserved while the pending invoice registration is added. The response identifies resumed initialization and does not restart a scaffold or switch to whole-project repair.',
     },
   ],
   forbidden: [

@@ -435,13 +435,12 @@ test.each(['SIGINT', 'SIGTERM'] as const)(
   'the real CLI drains two workers on %s and resumes with retained unknown charges',
   async (signal) => {
     const fixture = await prepareCompletedRecording(false, false);
-    const definitions = [
-      'initialize-conflicting-package-manager',
-      'initialize-missing-package-manager',
-    ].map((id) => ({
-      ...createCase(id),
-      coverageClaimIds: SEMANTIC_COVERAGE_CLAIMS.map(({ id: claim }) => claim),
-    }));
+    const definitions = ['initialize-grounded-relationships', 'initialize-sufficient-context'].map(
+      (id) => ({
+        ...createCase(id),
+        coverageClaimIds: SEMANTIC_COVERAGE_CLAIMS.map(({ id: claim }) => claim),
+      }),
+    );
     await rm(path.join(fixture.root, 'src/semantic/cases', fixture.definition.id), {
       recursive: true,
     });
@@ -590,26 +589,35 @@ test.each(['SIGINT', 'SIGTERM'] as const)(
   },
 );
 
-test('passes the diagnostic CLI limit to paid-stage admission before calling a host', async () => {
-  const fixture = await prepareCompletedRecording(false, false);
-  fixture.checkpoint.mode = 'diagnostic';
-  fixture.checkpoint.cases = [];
-  await writeSemanticCheckpoint(fixture.root, fixture.checkpoint);
-  const result = fixture.run(['--diagnose-batch', '--all', '--workers', '1', '--token-limit', '1']);
-  expect(result.status).toBe(1);
-  expect(result.stderr).toContain('1 maximum.');
-  expect(existsSync(fixture.modelCallsPath)).toBe(false);
-  expect((await readSemanticCheckpoint(fixture.root))?.cases).toStrictEqual([]);
-});
+test.each(['diagnostic', 'official'] as const)(
+  'passes the %s CLI limit to paid-stage admission before calling a host',
+  async (mode) => {
+    const fixture = await prepareCompletedRecording(false, false);
+    fixture.checkpoint.mode = mode;
+    fixture.checkpoint.cases = [];
+    await writeSemanticCheckpoint(fixture.root, fixture.checkpoint);
+    const selection =
+      mode === 'diagnostic'
+        ? ['--diagnose-batch', '--all']
+        : ['--record', '--cases', fixture.definition.id];
+    const result = fixture.run([...selection, '--workers', '1', '--token-limit', '1']);
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('1 maximum.');
+    expect(existsSync(fixture.modelCallsPath)).toBe(false);
+    const saved = await readSemanticCheckpoint(fixture.root);
+    expect(saved.attemptId).toBe(fixture.checkpoint.attemptId);
+    expect(saved.cases).toStrictEqual([]);
+    expect(getSemanticCandidatePaidTokenCount(saved.cases, saved.caseCheckpoints)).toBe(0);
+  },
+);
 
-test('resumes diagnostic admission with existing charges counted exactly once', async () => {
+test('resumes official admission with a raised limit and existing charges counted exactly once', async () => {
   const repositoryRoot = await mkdtemp(path.join(tmpdir(), 'moldea-admission-resume-'));
   temporaryRoots.push(repositoryRoot);
   const completed = createCase('completed-case');
   const pending = createCase('pending-case');
   const next = createCase('next-case');
   const checkpoint = createCandidateCheckpoint([completed, pending, next]);
-  checkpoint.mode = 'diagnostic';
   checkpoint.cases = [
     {
       id: completed.id,
@@ -623,35 +631,48 @@ test('resumes diagnostic admission with existing charges counted exactly once', 
   const consumed = getSemanticCandidatePaidTokenCount(checkpoint.cases, {});
   expect(consumed).toBe(4);
   const reservation = 2_097_152;
-  const arguments_ = parseSemanticEvaluationArguments([
-    '--diagnose-batch',
-    '--all',
-    '--token-limit',
-    String(consumed + reservation),
-  ]);
+  const argumentsForLimit = (limit: number) =>
+    parseSemanticEvaluationArguments([
+      '--record',
+      '--cases',
+      [completed.id, pending.id, next.id].join(','),
+      '--token-limit',
+      String(limit),
+    ]);
   let callCount = 0;
-  await executeSemanticCases({
-    cases: [pending],
-    checkpoint,
-    repositoryRoot,
-    workerCount: 1,
-    tokenLimit: arguments_.tokenLimit ?? 0,
-    executeTrial: async ({ tokenController, caseDefinition, confirmationIndex }) => {
-      tokenController.reserve('resumed-actor');
-      callCount++;
-      tokenController.release('resumed-actor');
-      return createRecordedTrial({ caseDefinition, confirmationIndex, passed: true });
-    },
-  });
+  const run = async (limit: number) =>
+    executeSemanticCases({
+      cases: [pending],
+      checkpoint: await readSemanticCheckpoint(repositoryRoot),
+      repositoryRoot,
+      workerCount: 1,
+      tokenLimit: argumentsForLimit(limit).tokenLimit!,
+      executeTrial: async ({ tokenController, caseDefinition, confirmationIndex }) => {
+        tokenController.reserve('resumed-actor');
+        callCount++;
+        tokenController.release('resumed-actor');
+        return createRecordedTrial({ caseDefinition, confirmationIndex, passed: true });
+      },
+    });
+  await writeSemanticCheckpoint(repositoryRoot, checkpoint);
+  await expect(run(consumed + reservation - 1)).rejects.toThrow('4 tokens consumed');
+  expect(callCount).toBe(0);
+  const stopped = await readSemanticCheckpoint(repositoryRoot);
+  expect(stopped.attemptId).toBe(checkpoint.attemptId);
+  expect(getSemanticCandidatePaidTokenCount(stopped.cases, stopped.caseCheckpoints)).toBe(4);
+  const authorizedLimit = consumed + reservation;
+  await run(authorizedLimit);
   expect(callCount).toBe(1);
-  expect(getSemanticCandidatePaidTokenCount(checkpoint.cases, {})).toBe(8);
+  const resumed = await readSemanticCheckpoint(repositoryRoot);
+  expect(resumed.attemptId).toBe(checkpoint.attemptId);
+  expect(getSemanticCandidatePaidTokenCount(resumed.cases, resumed.caseCheckpoints)).toBe(8);
   await expect(
     executeSemanticCases({
       cases: [next],
-      checkpoint,
+      checkpoint: resumed,
       repositoryRoot,
       workerCount: 1,
-      tokenLimit: arguments_.tokenLimit ?? 0,
+      tokenLimit: authorizedLimit,
       executeTrial: async ({ tokenController }) => {
         tokenController.reserve('next-actor');
         throw new Error('Admission should stop before this synthetic call.');
@@ -1277,18 +1298,14 @@ console.log(JSON.stringify({type:'turn.completed',usage:{input_tokens:100*usageM
   30_000,
 );
 
-test.each([
-  'context-recovery-install-blocked',
-  'context-recovery-install-only',
-  'context-recovery-paused',
-  'context-recovery-topic-change',
-])('%s retains the exact session, private request order and cycle deltas', async (caseId) => {
-  const root = await mkdtemp(path.join(tmpdir(), 'moldea-recovery-session-'));
+test('retains the exact session, private request order and cycle deltas', async () => {
+  const caseId = 'context-digest-continuation';
+  const root = await mkdtemp(path.join(tmpdir(), 'moldea-context-session-'));
   temporaryRoots.push(root);
   try {
     const cases = await loadSemanticCases(path.resolve(import.meta.dirname, '../cases'));
     const definition = cases.find(({ id }) => id === caseId);
-    if (!definition) throw new Error('Missing context recovery case');
+    if (!definition) throw new Error('Missing context digest continuation case');
     const requests = [
       definition.input.developerDirection,
       ...(definition.input.followUpDeveloperRequests ?? []),
@@ -1312,20 +1329,22 @@ let response;
 if (prompt.startsWith('Assess whether')) {
   response = ${JSON.stringify(JSON.stringify(verdict))};
 } else {
-  const counter = '/home/evaluator/.codex/recovery-counter';
+  const counter = '/home/evaluator/.codex/continuation-counter';
   const index = fs.existsSync(counter) ? Number(fs.readFileSync(counter, 'utf8')) : 0;
-  assert.ok(index < 2);
+  assert.ok(index < requests.length);
   assert.equal(prompt, requests[index]);
   const resumeIndex = process.argv.indexOf('resume');
-  assert.equal(resumeIndex >= 0, index === 1);
-  if (index === 1) assert.equal(process.argv[resumeIndex + 1], '12345678-abcd-1234-abcd-123456789012');
-  assert.equal(fs.existsSync('/mnt/node_modules/@moldea.ai/cli/package.json'), false);
-  assert.ok(fs.readFileSync('/mnt/moldea/project.md', 'utf8').includes('within 30 days'));
-  assert.equal(fs.readFileSync('/mnt/reports/status.txt', 'utf8'), 'pending\\n');
-  if (index === 1 && ${caseId === 'context-recovery-topic-change'}) fs.writeFileSync('/mnt/reports/status.txt', 'complete\\n');
+  assert.equal(resumeIndex >= 0, index > 0);
+  if (index > 0) assert.equal(process.argv[resumeIndex + 1], '12345678-abcd-1234-abcd-123456789012');
+  assert.equal(fs.existsSync('/mnt/package.json'), false);
+  assert.equal(fs.existsSync('/mnt/node_modules'), false);
+  const policyPath = '/mnt/moldea/context/returns.md';
+  const policy = fs.readFileSync(policyPath, 'utf8');
+  assert.ok(policy.includes(index < 2 ? '30 days' : '14 days'));
+  if (index === 1) fs.writeFileSync(policyPath, policy.replace('30 days', '14 days'));
   fs.writeFileSync(counter, String(index + 1));
   console.log(JSON.stringify({type:'thread.started',thread_id:'12345678-abcd-1234-abcd-123456789012'}));
-  response = index === 0 ? 'Local tooling is unavailable; the context correction remains blocked.' : 'The follow-up restriction is preserved. No installation or canonical update occurred.';
+  response = ['Both sources say 30 days.', 'The saved returns window is 14 days.', 'The policy says 14 days and the code says 30 days.'][index];
 }
 console.log(JSON.stringify({type:'item.completed',item:{type:'agent_message',text:response}}));
 console.log(JSON.stringify({type:'turn.completed',usage:{input_tokens:100,cached_input_tokens:0,output_tokens:20}}));
@@ -1358,7 +1377,7 @@ console.log(JSON.stringify({type:'turn.completed',usage:{input_tokens:100,cached
       actorHost: checkpoint.actorHost,
       artifactDigest: SHA256,
       caseDefinition: definition,
-      cli: { ...checkpoint.cli, version: '13.0.1', jsonSchemaVersion: 7 },
+      cli: checkpoint.cli,
       confirmationIndex: null,
       isOperationalResumeRequested: false,
       judgeCommand: buildCodexEvaluationHostCommand(baseCommand, 'judge'),
@@ -1378,19 +1397,19 @@ console.log(JSON.stringify({type:'turn.completed',usage:{input_tokens:100,cached
     });
     const cycles = execution.recordedTrial.cycles;
     expect(cycles.map(({ developerRequest }) => developerRequest)).toStrictEqual(requests);
-    expect(cycles.map(({ requestIndex }) => requestIndex)).toStrictEqual([0, 1]);
+    expect(cycles.map(({ requestIndex }) => requestIndex)).toStrictEqual([0, 1, 2]);
     expect(cycles[0]?.workspaceChanges).toStrictEqual({ created: [], deleted: [], modified: [] });
     expect(cycles[1]?.workspaceChanges.created).toStrictEqual([]);
     expect(cycles[1]?.workspaceChanges.deleted).toStrictEqual([]);
-    expect(cycles[1]?.workspaceChanges.modified.map(({ path }) => path)).toStrictEqual(
-      caseId === 'context-recovery-topic-change' ? ['reports/status.txt'] : [],
-    );
-    if (caseId === 'context-recovery-topic-change') {
-      expect(cycles[1]?.workspaceChanges.modified[0]?.after).toMatchObject({
-        content: 'complete\n',
-      });
-    }
+    expect(cycles[1]?.workspaceChanges.modified.map(({ path }) => path)).toStrictEqual([
+      'moldea/context/returns.md',
+    ]);
+    expect(cycles[1]?.workspaceChanges.modified[0]?.after).toMatchObject({
+      content: '# Returns policy\n\nThe approved returns window is 14 days.\n',
+    });
+    expect(cycles[2]?.workspaceChanges).toStrictEqual({ created: [], deleted: [], modified: [] });
     expect(execution.recordedTrial.paidInvocations.map(({ stage }) => stage)).toStrictEqual([
+      'actor',
       'actor',
       'actor',
       'judge',

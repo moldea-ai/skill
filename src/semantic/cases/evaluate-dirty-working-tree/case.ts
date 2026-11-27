@@ -10,7 +10,7 @@ export const semanticCase = defineSemanticCase({
   operation: 'evaluate',
   input: {
     developerDirection:
-      'Use moldea to evaluate the current uncommitted project changes. The host-established scope contains staged /src/staged.js, unstaged /src/unstaged.js, untracked /src/untracked.js, renamed /src/renamed-before.js to /src/renamed-after.js, and deleted /src/deleted.js.',
+      'Check moldea for the current uncommitted project changes. The host-established scope contains staged /src/staged.js, unstaged /src/unstaged.js, untracked /src/untracked.js, renamed /src/renamed-before.js to /src/renamed-after.js, and deleted /src/deleted.js.',
     repositoryEvidence: [
       {
         claim: 'HEAD exists.',

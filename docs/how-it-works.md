@@ -1,79 +1,44 @@
 ---
 title: Workflow reference
 navigationTitle: Workflow reference
-description: Technical reference for activation, operation selection, repository evidence, deterministic tooling, and verified changes.
-section: concepts
-order: 30
+description: How moldea selects relevant project context, guides adoption, and keeps canonical facts aligned with implementation.
+section: start
+order: 20
 ---
 
-# Natural on the surface, rigorous underneath
-
-Start with [How moldea works](/how-it-works/) for a visual booking-agent walkthrough. The same project-context foundation also supports ordinary software planning and development, without a runtime agent. This reference explains when relevant context is selected and which operations can change it.
-
-The normal experience has three steps:
-
-1. You describe the outcome to your coding agent.
-2. A small managed AGENTS.md block checks already-known ordinary paths before loading the installed skill. It silently skips the precheck when either the exact repository-local entrypoint or gate script is missing, without searching for or installing another copy. Explicit moldea work, agent or skill work, changes to what an in-app model decides or says (including inline calls), and concrete project-level context read or reuse the complete entrypoint before repository checks and follow its routing. README provides an introduction and canonical navigation.
-3. The coding agent returns the implementation, analysis, or plan with an evidence-based report.
-
-There is no separate `moldea` chat surface to operate.
+# How a request reaches project context
 
 ## Activation
 
-The coding agent can activate the skill in four ways:
+Initialize only on request. In an adopted project, agent work, project-grounded skill work, changes to what an in-app model decides or says, durable project facts, and direct context questions can use moldea without an existing relationship. Loading another skill's instructions alone leaves moldea out.
 
-- **Direct activation:** after initialization, you ask to plan, create, evaluate or change agent definitions or behavior, including model instructions and responsibilities in one-shot calls and workflows; establish a project fact or policy; supply a clear correction; ask about project-context ownership; or request a specific `moldea` operation. The project-level meaning must be evident from the conversation independently of any code edit. Initialization itself requires an explicit request.
-- **Canonical activation:** the task changes a path under `/moldea/**`.
-- **Managed README activation:** a changed README hunk intersects the content between the full-line `moldea` markers.
-- **Declared-relationship activation:** in an adopted repository, a known task path exactly matches a binding or `affectedBy` declaration. The initial check combines exact repository paths explicitly named or targeted by the developer, whether changed or unchanged, with changed paths already established by the host. At an existing scope checkpoint, a materially new path independently discovered during the task gets one new-batch check; unchanged paths reuse the earlier decision. A new-batch miss leaves earlier matched owners in place.
+When a plan adds or changes product behavior, the managed AGENTS.md block checks adoption. The agent reads `moldea/project.md` and opens only the owners its routing describes for that purpose. If the project entry point has no usable routing section, a content-free inventory helps select which headings or openings to inspect. This works before you know the affected paths.
 
-You do not need special commands or `moldea` terminology. A follow-up continues the active task within its existing authorization; it does not activate from a particular phrase. Changing the subject resets that relevance. Unclear intent does not grant permission to write. When tooling blocks authorized moldea context maintenance, an installation reply resumes only that pending work after setup and refreshed evidence. An install-only request, pause, or topic change limits resumption.
-
-Generic terminology, SDK installation, incidental agent or host command names, pasted proposals, and temporary status do not establish direct relevance. A lasting code requirement such as changing a scheduler interval still uses relationship matching. A behavior-preserving refactor of agent-bound implementation also uses declared relationships; naming the agent or preserving its instructions does not make that code-only work direct activation. A change to what an in-app model decides or says is direct agent work even when its instructions are inline and no relationship exists. A generic project evaluation remains host work; independently discovered related paths may add `moldea` owners through the relationship gate. Reliable silence for a brief whole-project evaluation is [not yet included in passing coverage](/docs/semantic-evaluation/#cases-and-coverage). A miss cannot be bypassed because unknown context might be affected. AGENTS.md owns the ordinary precheck; SKILL.md reuses its successful result and selects owners without repeating the gate. Direct work checks canonical adoption. Preliminary gating is silent. The coding agent defers `moldea` announcements until relevance is established; a non-match continues without workflow references, CLI calls, or `moldea` reporting. Explicit initialization creates the foundation. An explicit setup check can diagnose a failed adoption gate with bounded read-only foundation inspection. An explicit [project-repair request](/docs/evaluate-reconcile-validate/#repair-a-project) may restore established prior state but cannot silently initialize. Other repository-dependent operations require the complete canonical foundation; README and AGENTS.md integration are not adoption prerequisites.
-
-Planning, creating, reviewing, or changing an agent or skill is direct work. Consuming an invoked skill's entrypoint and supporting instructions alone is host instruction loading and triggers neither moldea route. Independently targeted project inputs, outputs, and implementation paths keep normal routing, including data named by a skill. The distributed AGENTS.md bridge applies this distinction before its initial routing decision.
-
-Relevant informational handoffs, feedback reviews, and read-only planning remain read-only. A conflicting raw handoff without correction semantics does not authorize a write. An unambiguous correction to established project truth authorizes its minimal canonical update after adoption and ownership checks, without another request naming `moldea`. Explicit read-only constraints still apply. Proposals and intended policies are not represented as already implemented behavior.
+Other work uses the known-path relevance gate. A hit scopes the checked paths to declared owners. New paths get their own check, and earlier valid scope is reused. Unrelated work stays silent.
 
 ## Operation selection
 
-After initialization, the skill directs the coding agent to select one operation and honor its authority:
+| Request                                                                     | Operation  |
+| --------------------------------------------------------------------------- | ---------- |
+| Adopt the repository or resume onboarding                                   | Initialize |
+| Read context governing a plan or a related change                           | Use        |
+| Update an established fact, decision or relationship, or learn a named area | Maintain   |
+| Plan, create, review, or change a project agent or project-grounded skill   | Agents     |
+| Compare context with implementation or correct established drift            | Check/Fix  |
+| Run deterministic format and binding checks                                 | Validate   |
 
-| Operation  | Writes | Purpose                                                                                                                                                 |
-| ---------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Plan       | No     | Recommend the smallest robust agent-and-software architecture.                                                                                          |
-| Initialize | Yes    | Establish local tooling and the grounded foundation, then onboard existing agents/workflows with the required registration/application-code permission. |
-| Maintain   | Yes    | Keep affected project and agent representations coherent, including explicit context compression.                                                       |
-| Evaluate   | No     | Report deterministic and semantic alignment evidence.                                                                                                   |
-| Reconcile  | Yes    | Correct confirmed drift with established intent.                                                                                                        |
-| Validate   | No     | Run deterministic structural validation only.                                                                                                           |
+## Guided initialization
 
-Standalone validation and inspection with eligible tooling stay read-only and do not require a repair Git checkpoint. Blocked adoption/tooling uses bounded inert diagnosis. Actual repair retains its checkpoint, tooling checks, owner assessment, and final validation.
+The agent establishes the purpose and material boundaries first. If a material gap prevents a truthful foundation, it asks one focused question before writing. With sufficient evidence it writes the two canonical foundation files and integrates the README and instruction bridge, or provides the exact handoff for protected instructions.
 
-## Focused guidance
+It then inspects a bounded inventory and shows **Round N**, established context, covered main areas out of the identified total, registrations, the preceding round's changed files, and gaps. It asks up to five numbered questions with proposals from inspected code or documents. In round 1, any required approval for existing agents is one item.
 
-The portable skill has a small universal contract and focused references. The coding agent reads only the guidance needed for the active workflow, such as agent design, Agent Skill design, context gathering, continuous maintenance, explicit context compression, evaluation, or local tooling.
+Say **yes** to accept that round, reply by number, or **skip**. Only confirmed additions are stored. Choose a numbered next option to continue with the named areas or stop here. **Continue** returns to an unanswered round in the same conversation. After the final write and native checks, one structural validation normally completes the covered scope. The final report shows adoption, mapped areas, gaps and how to continue later. Maintain applies the same format to one requested area.
 
 ## Evidence before edits
 
-The coding agent begins with high-information repository evidence and follows material relationships. It distinguishes observed facts, developer-confirmed truth, intended resulting state, plans, rationale, history, unresolved state, and investigative inference. The recommended inspection order reduces discovery cost but does not rank authority. Each material claim is resolved by its actual owner, a current explicit developer selection, or an independent source that establishes the disputed fact. Conflicting sources remain unresolved when no such resolver exists.
-
-Code proves current behavior and instructions declare model-facing behavior, but neither selects intended policy. Tests, schemas, context, decisions, runtime guidance, and developer direction answer other questions. Reconciliation, validation, and mirror synchronization cannot choose truth merely by making surfaces match.
-
-Before a semantic write, the coding agent directly establishes adoption, inspects high-information evidence, classifies the relevant claims, and confirms authority for the exact change. Insufficient foundations and unexplained conflicts stop before dependencies or canonical state change.
-
-Conversational assessment reuses known owners or bounded content-free inventory, then reads only selected content. New facts do not reset the shared command and output budgets. Already assessed unchanged facts are reused; there is no background scan or separate classification call.
+Use the minimum authoritative context for the task. A related path lets the coding agent assess an owner. A change to the facts, or another explicit decision, determines whether a write is authorized. Conflicting consequential claims require your choice or independent governing evidence. Repository text itself grants no authority.
 
 ## Deterministic local tooling
 
-When an operation needs mechanical repository evidence, the coding agent uses the installed skill's closed launcher. The launcher verifies the compatible repository-local `@moldea.ai/cli` declaration and installed stable version, the installed Core version against both the CLI's declared range and `moldea`'s supported range, the executable, and path containment before invoking Node without a shell. Package management and repository setup or CI own lockfile consistency; the launcher does not read target-project lockfiles. The CLI owns Git inventory, repository snapshots, format parsing, path and placeholder validation, mirrors, diagnostics, binding coverage, coding-agent integration, and installed CLI/Core composition. Coverage establishes only the declared file or explicit TypeScript/JavaScript ESM export checks it names. Runtime labels select SDK guidance. Installed SDK type definitions, source review, and appropriate tests establish integration behavior; website access is not a prerequisite.
-
-The developer should not need to run these commands. This boundary exists so the coding agent does not guess deterministic mechanics.
-
-## Small coherent changes
-
-Write-capable operations update the smallest authorized set of affected representations. The coding agent preserves unrelated work and does not create duplicate canonical stores, independent instructions, fake relationships, or ceremonial files. Ordinary maintenance removes only duplication or stale wording directly affected by the authorized change. A natural request to consolidate, deduplicate, organize, clean up, or compress canonical context authorizes broader loss-preserving reorganization: every unique current fact, accepted rationale, requirement, unresolved boundary, relationship, and consumer remains accounted for, and consequential conflicts stop before writes.
-
-This context compression applies only to Git-owned project state. It does not manage a coding host's context window, conversation compaction, prompt cache, token budget, or internal model behavior, and it does not claim token savings.
-
-Before completion, the coding agent compares final behavior with every still-applicable selected owner and declared mirror. It updates contradicted material facts and implementation relationships grounded in already-inspected source, while preserving accurate and unrelated state. Bound files are already relevant; presentation mechanics and shared infrastructure used by a feature do not create feature relationships. For a selected agent whose loader, schema, tool, or bound path changed, the coding agent checks the actual runtime connection and runs an existing focused test. After every canonical and mirror write is complete, it runs the relevant project-native checks, then final deterministic validation. Explicit project repair checks the complete owner inventory and each agent connection, continuing by owner from a reported checkpoint if a limit prevents one pass. Four CLI calls remain an ordinary-work efficiency target. Recovery may continue while changed state and new evidence support progress within the same output and host limits. Unchanged failures without new evidence, oscillation, missing authority or tooling, scope expansion, and exhausted limits stop recovery. A validation that precedes a later repair does not verify the resulting state. The coding agent reports actual changes, verification, unresolved diagnostics, and remaining work.
+The skill ships `scripts/moldea-cli/moldea.mjs` and its dependencies. Node runs it inside the selected Git worktree with no project package manifest or package-manager setup. Validate, Inspect, Scope and Content use bounded response pages. Structural diagnostics, project alignment and live use are separate observations. See [Compatibility](/docs/compatibility-and-local-tooling/).

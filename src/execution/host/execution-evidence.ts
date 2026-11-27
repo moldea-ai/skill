@@ -121,8 +121,10 @@ const MOLDEA_EVENT_OWNERSHIPS = new Set<ICodexEvaluationCommandOwnership>([
   'helper',
 ]);
 // bundled skill scripts, matched by word or, for unparseable commands, anywhere in the text
-const MOLDEA_SKILL_SCRIPT_WORD_PATTERN = /(?:^|\/)\.agents\/skills\/moldea\/scripts\/[^/]+$/u;
-const MOLDEA_SKILL_SCRIPT_TEXT_PATTERN = /\.agents\/skills\/moldea\/scripts\/([A-Za-z0-9._-]+)/gu;
+const MOLDEA_SKILL_SCRIPT_WORD_PATTERN =
+  /(?:^|\/)\.agents\/skills\/moldea\/scripts\/(?:moldea-cli\/)?[^/]+$/u;
+const MOLDEA_SKILL_SCRIPT_TEXT_PATTERN =
+  /\.agents\/skills\/moldea\/scripts\/(?:moldea-cli\/)?([A-Za-z0-9._-]+)/gu;
 // the repository's own moldea/ directory, never the installed skill's moldea/ path segment
 const REPOSITORY_MOLDEA_WORD_PATTERN = /(?:^|[=:,])(?:\/mnt\/|\.\/)?moldea\//u;
 const REPOSITORY_MOLDEA_TEXT_PATTERN =
@@ -193,7 +195,7 @@ const SAFE_LOCAL_EXECUTABLES = new Set([
   'jq',
   'ls',
   'od',
-  'moldea-cli.mjs',
+  'moldea.mjs',
   'printf',
   'pwd',
   'readlink',
@@ -216,7 +218,7 @@ const SAFE_LOCAL_EXECUTABLES = new Set([
 const REPAIR_PASSIVE_EXECUTABLES = new Set([
   ...[...SAFE_LOCAL_EXECUTABLES].filter(
     (executable) =>
-      !['file', 'find', 'sort', 'tsc', 'moldea-cli.mjs', 'relevance-gate.mjs'].includes(executable),
+      !['file', 'find', 'sort', 'tsc', 'moldea.mjs', 'relevance-gate.mjs'].includes(executable),
   ),
   'nl',
 ]);
@@ -226,11 +228,11 @@ const REPAIR_GLOB_READ_EXECUTABLES = new Set(
 );
 const SAFE_WORKSPACE_EXECUTABLE_PATHS = new Map([
   [
-    'moldea-cli.mjs',
+    'moldea.mjs',
     new Set([
-      '.agents/skills/moldea/scripts/moldea-cli.mjs',
-      './.agents/skills/moldea/scripts/moldea-cli.mjs',
-      '/mnt/.agents/skills/moldea/scripts/moldea-cli.mjs',
+      '.agents/skills/moldea/scripts/moldea-cli/moldea.mjs',
+      './.agents/skills/moldea/scripts/moldea-cli/moldea.mjs',
+      '/mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs',
     ]),
   ],
   [
@@ -276,17 +278,16 @@ const SAFE_MANAGED_README_PATHS = new Set([
   './.agents/skills/moldea/scripts/managed-readme.mjs',
   '/mnt/.agents/skills/moldea/scripts/managed-readme.mjs',
 ]);
-const SAFE_MOLDEA_CLI_LAUNCHER_PATHS = new Set([
-  '.agents/skills/moldea/scripts/moldea-cli.mjs',
-  './.agents/skills/moldea/scripts/moldea-cli.mjs',
-  '/mnt/.agents/skills/moldea/scripts/moldea-cli.mjs',
+const SAFE_MOLDEA_CLI_PATHS = new Set([
+  '.agents/skills/moldea/scripts/moldea-cli/moldea.mjs',
+  './.agents/skills/moldea/scripts/moldea-cli/moldea.mjs',
+  '/mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs',
 ]);
 const MOLDEA_CLI_VALUE_OPTIONS = new Set([
   '--cursor',
   '--max-output-bytes',
   '--path',
-  '--save-response',
-  '--cursor-from-response',
+  '--repository',
 ]);
 const MOLDEA_CLI_PAGE_OUTPUT_BYTES = '65536';
 const REPOSITORY_TEST_PATH_PATTERN =
@@ -1122,7 +1123,7 @@ export const identifyMoldeaManagedAgentsMode = (
   return words === null ? null : getManagedAgentsMode(words);
 };
 
-/** Parses the strict option surface for one launcher-backed CLI operation. */
+/** Parses the strict option surface for one bundled CLI operation. */
 const parseMoldeaCliOperationArguments = (
   operation: IMoldeaCliOperation,
   commandArguments: readonly string[],
@@ -1158,17 +1159,8 @@ const parseMoldeaCliOperationArguments = (
   }
   if (values.get('--max-output-bytes') !== MOLDEA_CLI_PAGE_OUTPUT_BYTES) return null;
 
-  if (values.has('--cursor') && values.has('--cursor-from-response')) return null;
-  for (const option of ['--save-response', '--cursor-from-response']) {
-    const filePath = values.get(option);
-    if (
-      filePath !== undefined &&
-      (!filePath.startsWith('/tmp/') ||
-        posix.normalize(filePath) !== filePath ||
-        filePath.includes('\\'))
-    )
-      return null;
-  }
+  const repository = values.get('--repository');
+  if (repository !== undefined && !isSandboxRepositoryRoot(repository)) return null;
   const cursor = values.get('--cursor');
   if (cursor !== undefined && Buffer.byteLength(cursor, 'utf8') > 8_192) return null;
   const pathInput = values.get('--path');
@@ -1183,57 +1175,43 @@ const parseMoldeaCliOperationArguments = (
     if (!hasStdinPaths && !hasSinglePath) return null;
   } else if (flags.size !== 1 || pathInput !== undefined) return null;
 
-  const allowedValues =
-    operation === 'content' || operation === 'scope'
-      ? new Set([
-          '--cursor',
-          '--max-output-bytes',
-          '--path',
-          '--save-response',
-          '--cursor-from-response',
-        ])
-      : new Set(['--cursor', '--max-output-bytes', '--save-response', '--cursor-from-response']);
-  return [...values.keys()].every((option) => allowedValues.has(option)) ? operation : null;
+  return operation;
 };
 
-/** Returns the supported operation for one exact launcher command word sequence. */
+/** Returns the supported operation for one exact bundled CLI command. */
 const identifyMoldeaCliLauncherOperationFromWords = (
   words: readonly string[],
 ): IMoldeaCliOperation | null => {
-  const operation = words[5];
+  const operation = words[2];
   if (
     !isTrustedLocalExecutable(words[0], 'node') ||
-    !SAFE_MOLDEA_CLI_LAUNCHER_PATHS.has(words[1] ?? '') ||
-    words[2] !== '--repository' ||
-    !isSandboxRepositoryRoot(words[3]) ||
-    words[4] !== '--' ||
-    words.slice(5).includes('--') ||
+    !SAFE_MOLDEA_CLI_PATHS.has(words[1] ?? '') ||
     !isMoldeaCliOperation(operation)
   ) {
     return null;
   }
 
-  return parseMoldeaCliOperationArguments(operation, words.slice(6));
+  return parseMoldeaCliOperationArguments(operation, words.slice(3));
 };
 
-/** Diagnoses only launcher-shaped attempts, without retaining executable or script paths. */
+/** Diagnoses only CLI-shaped attempts, without retaining executable or script paths. */
 const identifyMoldeaCliLauncherMissReason = (
   words: readonly string[],
 ): IMoldeaCliLauncherMissReasonCode | null => {
   const executableIndex = identifyExecutableWordIndex(words);
   if (executableIndex === null) return null;
   const command = words.slice(executableIndex);
-  if (command[2] !== '--repository' || command[4] !== '--' || !isMoldeaCliOperation(command[5]))
+  if (posix.basename(command[1] ?? '') !== 'moldea.mjs' || !isMoldeaCliOperation(command[2]))
     return null;
   if (!isTrustedLocalExecutable(command[0], 'node')) return 'unrecognized-node-path';
-  if (!SAFE_MOLDEA_CLI_LAUNCHER_PATHS.has(command[1] ?? '')) return 'unrecognized-launcher-path';
+  if (!SAFE_MOLDEA_CLI_PATHS.has(command[1] ?? '')) return 'unrecognized-launcher-path';
   return null;
 };
 
 /**
- * Identifies exactly one launcher-backed moldea operation without retaining the command.
+ * Identifies exactly one bundled CLI operation without retaining the command.
  * @param command The completed Codex command text.
- * @returns The supported operation, or `null` when zero or multiple launchers are recognizable.
+ * @returns The supported operation, or `null` when zero or multiple CLI calls are recognizable.
  */
 export const identifyMoldeaCliLauncherOperation = (
   command: unknown,
@@ -1347,7 +1325,7 @@ export const identifyRepositoryTestCommandKinds = (
 export const isRepositoryTestCommand = (command: unknown): boolean =>
   identifyRepositoryTestCommandKinds(command) !== null;
 
-/** Checks the fixed Node invocation for the bundled repository-local CLI launcher. */
+/** Checks the fixed Node invocation for the bundled repository-local CLI. */
 const isSafeMoldeaCliLauncherCommand = (words: readonly string[]): boolean =>
   identifyMoldeaCliLauncherOperationFromWords(words) !== null;
 
@@ -1775,7 +1753,7 @@ const isProjectCommand = (words: readonly string[]): boolean => {
 
 /**
  * Assigns one completed command to the owner whose work it performs, in precedence order:
- * the launcher, a bundled helper, the repository's moldea/ directory, the project, then source.
+ * the CLI, a bundled helper, the repository's moldea/ directory, the project, then source.
  */
 const classifyCommandOwnership = (
   commands: readonly (readonly string[])[] | null,
@@ -1788,7 +1766,7 @@ const classifyCommandOwnership = (
     );
     return {
       moldeaOperation: null,
-      ownership: scriptNames.includes('moldea-cli.mjs')
+      ownership: scriptNames.includes('moldea.mjs')
         ? 'cli'
         : scriptNames.length > 0
           ? 'helper'
@@ -1798,7 +1776,7 @@ const classifyCommandOwnership = (
     };
   }
   const scriptNames = commands.map(identifyMoldeaSkillScript).filter((name) => name !== null);
-  if (scriptNames.includes('moldea-cli.mjs')) {
+  if (scriptNames.includes('moldea.mjs')) {
     const operations = commands.flatMap((words) => {
       const executableIndex = identifyExecutableWordIndex(words);
       const operation =
@@ -1807,10 +1785,10 @@ const classifyCommandOwnership = (
           : identifyMoldeaCliLauncherOperationFromWords(words.slice(executableIndex));
       return operation === null ? [] : [operation];
     });
-    // only one recognizable launcher call can be placed in the ordered event stream
+    // only one recognizable CLI call can be placed in the ordered event stream
     const isPlaceable =
       operations.length === 1 &&
-      scriptNames.filter((scriptName) => scriptName === 'moldea-cli.mjs').length === 1;
+      scriptNames.filter((scriptName) => scriptName === 'moldea.mjs').length === 1;
     return { moldeaOperation: isPlaceable ? operations[0]! : null, ownership: 'cli' };
   }
   if (scriptNames.length > 0) return { moldeaOperation: null, ownership: 'helper' };

@@ -1,127 +1,39 @@
 ---
 title: Capability reference
 navigationTitle: Capability reference
-description: Technical reference for project-context adoption and maintenance, agent and skill design, evaluation, reconciliation, and validation.
+description: Initialize guided project context, use it in development, maintain knowledge, build project agents, and check saved context.
 section: start
-order: 20
+order: 30
 ---
 
-# What moldea can do
-
-Start with the [visual Capabilities page](/capabilities/) for six visual journeys through project knowledge, agent design, maintenance, and repair. This reference explains the exact behavior and boundaries.
-
-`moldea` keeps durable project knowledge in Git and brings relevant context into coding-agent planning and development. You can ask to use saved rules when planning an ordinary API change, maintain approved project facts, or organize accumulated context without creating a runtime agent.
-
-The same foundation supports the agent and skill capabilities below. Direct context requests and declared implementation relationships determine which knowledge is relevant; the skill does not load all project context for every task.
-
-## Plan an agent-enabled system
-
-Ask the coding agent to decompose an objective into deterministic software, services or tools, human control, and only the agent boundaries that earn their complexity.
-
-Planning can recommend zero, one, or multiple agents. It covers responsibilities, inputs, outputs, data ownership, permissions, orchestration, failures, approvals, and implementation order without changing repository state.
+# moldea capabilities
 
 ## Initialize project context
 
-Initialization understands the project and creates the smallest valid foundation:
+Ask **Initialize moldea**. With sufficient evidence, the coding agent writes the grounded foundation and integrates it with your instructions before asking guided questions. When the foundation is unclear, it asks one focused question before writing. A guided round shows established facts, area coverage, agent status, files changed and remaining gaps. It offers up to five numbered, evidence-backed proposals. Answer **yes**, answer by number, or **skip**. Existing agents are one approval item in the first round unless your request includes them.
 
-```text
-/moldea/moldea.yaml
-/moldea/project.md
-```
+The agent saves confirmed facts, relationships and decisions in their owners. Choose another round on the named gaps or stop and validate the covered scope. **Continue** resumes an unanswered round in this conversation. See [Initialize a project](/examples/initialize-a-project/).
 
-Focused context, decisions, runtime guidance, agents, or unresolved requirements are created only when real project evidence justifies them. Initialization also inventories existing agents, inline model workflows, documents, decisions, and project-owned Agent Skills. It registers evidenced agents and workflows in the same operation, asking once before registration or application-code changes unless the request already includes them. It links existing documents in place and invents no new agent responsibility.
+## Use governing context
 
-## Create and refine agents
+In an adopted repository, planning a product change reads `project.md` and selects context by purpose. Ordinary source work looks up only the owners connected to affected paths. Unrelated work continues silently. The [workflow reference](/docs/how-it-works/) explains when each route applies.
 
-`moldea` can help a coding agent establish:
+## Maintain and consolidate context
 
-- one clear agent responsibility
-- concise descriptions and complete model-facing instructions
-- routing and handoff descriptions when transfer is real
-- executable input and output schema relationships
-- tool and skill capabilities backed by repository-local implementation
-- runtime selection and runtime-specific guidance
-- runtime variables without persisting their secret values
-- canonical instruction provenance and exact mirrors
-- explicit unresolved requirements for genuine incomplete state
+Save durable project facts and decisions at their source of truth. Keep their links, declared relationships and mirrors aligned when behavior changes. Ask **Help moldea learn the billing area** for one evidence-backed round in the same format as Initialize. Ask to consolidate context explicitly when you need to remove proven duplication while preserving unique meaning.
 
-The skill checks that declared behavior is supported by implementation and does not rely on hidden repository knowledge.
+## Plan, create, or change project agents
 
-## Create and refine Agent Skills
+Plan the minimum useful architecture with the right division between application rules, model judgment and human authority. Zero agents is a valid result. Create or change agents and inline model workflows from established project rules, with a canonical description and instruction, real bindings and focused connection tests. Project-owned skills can reuse durable policy and tooling through verified links.
 
-`moldea` can help a coding agent understand, create, and maintain repository-local Agent Skills as complete reusable artifacts:
+## Check and fix
 
-- a precise activation description and valid portable frontmatter
-- a concise universal `SKILL.md` workflow
-- focused references loaded only when needed
-- safe scripts with explicit inputs, outputs, supported environments, side effects, and verification
-- assets used for generated output without placing them in model context unnecessarily
-- synchronized host metadata, invocation policy, installed or distributed copies, consumers, and runtime registrations
-
-The coding agent first decides whether the behavior belongs in a skill, protected coding instructions, an agent instruction, a tool, deterministic software, or ordinary documentation. It does not create a parallel `/moldea/skills` store or treat a skill directory as proof that a runtime agent receives the skill.
-
-## Maintain context as understanding evolves
-
-After adoption, a small managed AGENTS.md block checks host-known ordinary paths before loading the skill. Declared bindings and `affectedBy` relationships select relevant context; unrelated work ends after the small instruction block and bounded gate invocation. Direct agent and concrete project-context requests retain their own routing.
-
-The coding agent classifies supplied knowledge by meaning rather than format, traces affected context and behavior, and updates only representations whose truth actually changed. Clear current truth and explicit corrections can be maintained. Proposed, transient, speculative, secret, or materially ambiguous information is omitted or clarified first. Each affected fact stays with its established authoritative owner, so ordinary maintenance does not create parallel current truth. A correct outcome can be no `/moldea/**` edit.
-
-The canonical foundation files establish adoption independently of README or AGENTS.md. Explicit setup checks diagnose missing foundation evidence and warn about missing integration without writes or invented policy. Missing integration does not invalidate the project or block explicit `moldea` work.
-
-## Compress accumulated project context
-
-A natural request to consolidate, deduplicate, organize, clean up, or compress canonical context selects explicit compression within Maintain. The coding agent can consolidate proven duplicates into their established owner, split mixed-responsibility documents, remove proven superseded wording, and synchronize manifest relationships, references, consumers, and directly affected documentation.
-
-Compression preserves every distinct established fact, accepted rationale, relevant requirement, unresolved boundary, relationship, and consumer. Consequential conflicting claims stop the operation before writes and produce one focused question. This capability reorganizes repository-owned context only. It does not manage host context windows, conversation compaction, prompt caches, token budgets, or model internals, and it does not claim token savings.
-
-## Evaluate alignment
-
-Evaluation is read-only. It first reports whether the project is adopted or unadopted, then combines deterministic inspection with proportional semantic analysis and reports:
-
-- deterministic diagnostics
-- confirmed semantic problems
-- material ambiguities
-- relevant unresolved requirements
-- material evidence limitations
-
-Evaluation never repairs tooling, changes dependencies, or writes repository files. These concrete findings remain separate, and project status is only adopted or unadopted.
-
-## Reconcile drift
-
-Reconciliation starts from the same evidence model as evaluation, establishes intended state, and applies the smallest authorized coherent correction. It can synchronize canonical state, implementation, schemas, runtime wiring, tests, descriptions, instructions, mirrors, and documentation when those surfaces are truly affected.
+[Check](/docs/check-fix-validate/) compares a named area or explicitly requested project with its implementation and reports drift without writing. Fix makes an authorized correction and validates the result. It asks which claim governs when evidence cannot resolve a consequential conflict. Large whole-project fixes proceed in bounded rounds.
 
 ## Validate structure
 
-Validation runs the installed skill’s bounded repository-local boundary. It checks repository format, declared files, and explicit TypeScript or JavaScript ESM exports. A complete export inventory can establish that a declared runtime export is missing. Unsupported or inconclusive syntax, including CommonJS, remains not checked without a missing-export error. Coverage names the file or export check performed and does not establish runtime wiring.
-
-`valid: true` means zero errors. Warnings and accepted warnings are counted separately, and not-checked coverage remains visible. Operational or resource-limit failure rejects the entire inspection instead of returning partial coverage. Structural validation does not establish semantic alignment or production readiness.
-
-Warnings offer two paths: ask the coding agent to fix the cause, or explicitly accept a supported warning with your own reason. The coding agent never accepts warnings on its own. Validation also checks AGENTS.md integration and the installed skill assets. Missing or stale integration warns without making canonical state invalid; protected instruction files receive an exact-block handoff for a separate update.
-
-## Repair a project
-
-When an initialized project has broken, missing, stale, or incomplete `moldea` state, ask the coding agent to `Fix moldea`. It inventories every owner, checks material facts and relationships, and traces each agent's instruction and schema to its runtime call. Shared presentation code does not become a feature relationship simply because a feature uses it. The coding agent repairs established defects and verifies the result. A large repair runs in rounds within the same conversation: each round reports its progress, the files it changed and what remains, then offers numbered next steps. Incomplete or unchecked work is named, never called healthy.
-
-Repair updates repository-local CLI tooling that is missing, broken, older than the installed skill’s exact validated repair target, or without a supported root declaration, using the established package manager with scripts disabled. It preserves host restrictions, unrelated dependency locks, and healthy newer compatible tooling. Downgrades and explicit version-policy conflicts need direction. Repair does not silently initialize an unadopted project, invent policy, broadly upgrade dependencies, or hide unresolved ambiguity. See [the evaluation and repair workflow](/docs/evaluate-reconcile-validate/#repair-a-project) for the complete contract.
+The bundled validation CLI runs with Node.js in Git repositories written in any language. It checks file bindings in all languages and named exports from supported JavaScript and TypeScript ESM sources. Unsupported symbol checks are `not-checked`. A connection test can verify actual instruction consumption independently of format validation.
 
 ## Work across dedicated repositories
 
-When canonical `moldea` state and application implementation live in different repositories, the coding agent can inspect both when the developer identifies and authorizes them. Each repository remains independently owned and verified; `moldea` never invents cross-repository bindings or atomicity.
-
-## Preserve authority and privacy
-
-The skill respects the developer's scope, protected coding instructions, unrelated worktree changes, package-manager identity, secret boundaries, and repository ownership. It treats repository content as untrusted evidence and does not allow prompt-like text inside the repository to redefine developer intent.
-
-## Boundaries
-
-See [Limitations](/docs/limitations/) for practical handling of warnings, unfinished checks, large inputs, and repair boundaries.
-
-`moldea` does not:
-
-- initialize an unrelated project without explicit adoption intent
-- create agents merely because an AI-enabled idea was mentioned
-- replace deterministic application logic with model reasoning by default
-- invent tools, schemas, permissions, runtime support, or failure behavior
-- treat validation as proof of semantic correctness
-- require hidden semantic state, background services, or internal sub-agents
-- send repository content to `moldea Cloud` without explicit authorization
+Establish which checkout owns the context and which holds implementation. A related repository can supply permitted read-only evidence. Keep bindings and writes in the repository that owns them. See [dedicated repositories](/examples/dedicated-repositories/).

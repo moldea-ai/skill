@@ -184,7 +184,7 @@ for (const width of HEADING_ROLE_WIDTHS) {
           'why-moldea-title',
           'capabilities-overview-title',
           'behavior-alignment-title',
-          'runtime-guidance-title',
+          'sdk-guidance-title',
           'repository-format-title',
           'getting-started-title',
           'coding-agent-compatibility-title',
@@ -216,24 +216,27 @@ for (const width of HEADING_ROLE_WIDTHS) {
 
 for (const width of [320, 1440]) {
   for (const colorScheme of ['light', 'dark'] as const) {
-    test(`renders runtime guidance at ${width}px in ${colorScheme}`, async ({ page }) => {
+    test(`renders SDK guidance at ${width}px in ${colorScheme}`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
       await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' });
       await page.goto(toPublicPath('/'));
-      const section = page.getByRole('region', { name: 'Guidance for the runtime you use.' });
-      const grid = section.getByRole('list', { name: 'Runtime guidance' });
+      const section = page.getByRole('region', { name: 'Guidance for the SDK you use.' });
+      const grid = section.getByRole('list', { name: 'SDK guidance' });
       const links = grid.getByRole('link');
       await expect(links).toHaveCount(width === 320 ? 3 : 9);
-      const loadMore = section.getByRole('button', { name: 'Load more runtimes' });
+      const loadMore = section.getByRole('button', { name: 'Load more SDKs' });
       await loadMore.focus();
       await page.keyboard.press('Enter');
       await expect(links).toHaveCount(RUNTIME_CATALOG.length);
       await expect(links.nth(width === 320 ? 3 : 9)).toBeFocused();
       await expect(loadMore).toBeHidden();
       await expect(links).toHaveCount(RUNTIME_CATALOG.length);
-      for (const { displayName, id, websiteUrl } of RUNTIME_CATALOG) {
+      for (const { displayName, packageName, websiteUrl } of RUNTIME_CATALOG) {
         await expect(
-          grid.getByRole('link', { name: `${displayName} ${id}`, exact: false }),
+          grid.getByRole('link', {
+            name: packageName ? `${displayName} ${packageName}` : displayName,
+            exact: false,
+          }),
         ).toHaveAttribute('href', websiteUrl);
       }
       for (const logo of await grid.locator('img').all()) {
@@ -263,9 +266,7 @@ for (const width of [320, 1440]) {
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
         width,
       );
-      const accessibility = await new AxeBuilder({ page })
-        .include('[data-runtime-guidance]')
-        .analyze();
+      const accessibility = await new AxeBuilder({ page }).include('[data-sdk-guidance]').analyze();
       expect(accessibility.violations).toStrictEqual([]);
     });
   }
@@ -285,7 +286,7 @@ test('leads with project context while retaining the connected-agent example and
   ).toBeVisible();
   await expect(page.locator('meta[name="description"]')).toHaveAttribute(
     'content',
-    'Use saved project rules and decisions in coding-agent planning and development. Keep context, runtime agents, and reusable skills aligned with moldea.',
+    'Map durable project context in guided rounds, then use it to plan product behavior, update code and connect project agents.',
   );
   await expect(
     page.getByRole('article', { name: 'Illustrative support agent project' }),
@@ -309,7 +310,7 @@ test('leads with project context while retaining the connected-agent example and
   await page.goBack();
   await expect(page).toHaveURL(toPublicPath('/'));
   await expect(
-    page.getByRole('heading', { level: 2, name: 'One install. One ordinary request.' }),
+    page.getByRole('heading', { level: 2, name: 'Install, then map your project.' }),
   ).toBeVisible();
 
   const setupVideo = page
@@ -374,10 +375,10 @@ test('presents the product story before proof and adoption', async ({ page }) =>
     },
     { level: 2, name: 'One skill for the complete moldea workflow.' },
     { level: 2, name: 'Change one rule. See everything it affects.' },
-    { level: 2, name: 'Guidance for the runtime you use.' },
+    { level: 2, name: 'Guidance for the SDK you use.' },
     { level: 2, name: 'Project context lives beside the code.' },
     { level: 2, name: 'See what was tested.' },
-    { level: 2, name: 'One install. One ordinary request.' },
+    { level: 2, name: 'Install, then map your project.' },
     { level: 3, name: 'Use the coding agent you already trust.' },
   ] as const;
   const headingTops: number[] = [];
@@ -403,7 +404,7 @@ test('presents the product story before proof and adoption', async ({ page }) =>
 
   const productStoryBackgrounds = await page
     .locator(
-      '[data-home-hero], [data-why-moldea], [data-capabilities-overview], [data-behavior-alignment], [data-runtime-guidance], [data-repository-format], [data-home-evidence], [data-adoption]',
+      '[data-home-hero], [data-why-moldea], [data-capabilities-overview], [data-behavior-alignment], [data-sdk-guidance], [data-repository-format], [data-home-evidence], [data-adoption]',
     )
     .evaluateAll((sections) =>
       sections.map((section) => getComputedStyle(section).backgroundColor),
@@ -427,7 +428,7 @@ test('presents the product story before proof and adoption', async ({ page }) =>
     'Plan agent systems',
     'Create real agents',
     'Build Agent Skills',
-    'Evaluate and repair',
+    'Check and fix',
   ] as const;
   await expect(capabilitiesSection.getByRole('heading', { level: 3 })).toHaveText(
     capabilityHeadings,
@@ -438,7 +439,7 @@ test('presents the product story before proof and adoption', async ({ page }) =>
     '/capabilities/#plan-agent-systems',
     '/capabilities/#create-agents',
     '/capabilities/#build-agent-skills',
-    '/capabilities/#evaluate-and-repair',
+    '/capabilities/#check-and-fix',
   ] as const;
   const capabilityCards = capabilitiesSection.getByRole('listitem').getByRole('link');
   for (const [index, destination] of capabilityDestinations.entries()) {
@@ -496,7 +497,7 @@ test('presents the product story before proof and adoption', async ({ page }) =>
   await expect(codingAgents.getByRole('listitem')).toHaveCount(6);
 
   const gettingStartedSection = page.getByRole('region', {
-    name: 'One install. One ordinary request.',
+    name: 'Install, then map your project.',
   });
   await expect(gettingStartedSection.getByRole('link', { name: 'Get the skill' })).toHaveAttribute(
     'href',

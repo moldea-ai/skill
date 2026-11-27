@@ -180,21 +180,37 @@ export const identifyFinalValidationExemption = (options: {
   return hasNetMoldeaChange ? finalInvocation.item.outputEvidence.byteCount : null;
 };
 
-/** Enforces helper-only Git compliance for explicitly labelled repair cases, independently of the judge. */
+/** Enforces the Git boundary and any required helper result for repair cases. */
 export const hasPassingCaseRepairGitEvidence = (options: {
   actorCommandPolicy: ICodexEvaluationCommandPolicyEvidence;
   gitInvocationEvidence: IGitInvocationEvidence;
   actorExecutionEvidence: ISemanticActorExecutionEvidence[];
   caseDefinition: ISemanticCase;
-}): boolean =>
-  !options.caseDefinition.expected.some(({ label }) =>
-    ['approved-repair-git', 'repair-git-compliance'].includes(label),
-  ) ||
-  (options.actorExecutionEvidence.filter(({ item }) => item.commandKind === 'other').length ===
-    options.actorCommandPolicy.completedCommandCount &&
+}): boolean => {
+  const { expected, requiredRepairGitMode } = options.caseDefinition;
+  if (
+    !expected.some(({ label }) => ['approved-repair-git', 'repair-git-compliance'].includes(label))
+  )
+    return true;
+  const needsHelper =
+    requiredRepairGitMode !== undefined ||
+    expected.some(({ label }) => label === 'approved-repair-git');
+  return (
+    options.actorExecutionEvidence.filter(({ item }) => item.commandKind === 'other').length ===
+      options.actorCommandPolicy.completedCommandCount &&
     hasPassingRepairGitEvidence(options.actorExecutionEvidence, options.gitInvocationEvidence) &&
-    (!options.caseDefinition.expected.some(({ label }) => label === 'approved-repair-git') ||
-      options.gitInvocationEvidence.repair.compliantCount > 0));
+    (!needsHelper || options.gitInvocationEvidence.repair.compliantCount > 0) &&
+    (requiredRepairGitMode === undefined ||
+      options.actorExecutionEvidence.some(({ item }) =>
+        item.outputEvidence.facts.some(
+          (fact) =>
+            fact.kind === 'repair-git-result' &&
+            fact.mode === requiredRepairGitMode &&
+            fact.status === 'available',
+        ),
+      ))
+  );
+};
 
 /** Rejects observed repair Git work in cases explicitly limited to structural validation. */
 const hasPassingValidationBoundary = (options: {

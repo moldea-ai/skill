@@ -19,7 +19,7 @@ order: 32
 | **Not checked** | A declared file or export check was unsupported or inconclusive. This alone is not a warning or error. | Inspect the named check and establish any required behavior separately.       |
 | **Unfinished**  | A limit, cancellation, or operational failure prevented a conclusion.                                  | Preserve work and resolve the reported obstacle before relying on that check. |
 
-`valid: true` means **zero errors**. Warnings and not-checked binding checks can remain. Accepted warnings retain their identity and the developer’s reason in a separate count. Unresolved requirements describe missing project decisions separately. None of these fields certifies business readiness or production correctness.
+`valid: true` means **zero errors**. Warnings and not-checked binding checks can remain. Accepted warnings retain their identity and the developer’s reason in a separate count. None of these fields certifies business readiness or production correctness.
 
 Ask the coding agent to fix a warning, or explicitly accept a supported warning with your own reason. Acceptance does not fix its cause or change errors. Remove an obsolete acceptance after its warning disappears, then validate again. Integration warnings identify a missing or stale AGENTS.md block or installed skill assets. If your instructions protect AGENTS.md, repair supplies the exact block for you to add.
 
@@ -39,11 +39,11 @@ The skill offers integration acceptance only for shared Git-tracked instruction 
 | Files change during inspection or continuation  | Snapshot checks refuse to combine incompatible states.                                  | Finish the edits and begin a fresh inspection; discard the old cursor.                                                          |
 | A complete record cannot fit an output page     | Records remain whole; output pagination can refuse.                                     | Let the coding agent assess the page budget within the invocation’s allowed bounds.                                             |
 | The repository uses a sparse checkout           | The CLI refuses it with `GIT_SPARSE_CHECKOUT_UNSUPPORTED`.                              | Use a full checkout.                                                                                                            |
-| A linked worktree has no installed dependencies | The relevance gate still matches; the launcher reports the missing install in one line. | Install the repository dependencies in that worktree.                                                                           |
+| A deployed checkout has no package manifest or installed dependencies | The selected skill can still run its bundled CLI from Node in the Git worktree. | Verify the skill installation and supported Node and Git when the command cannot run. |
 
 See [deterministic examples](https://packages.moldea.ai/capabilities/) and the [inspection contracts](https://packages.moldea.ai/packages/core/repository-inspection/) for concrete results.
 
-Initialization registers relationships only for source it inspected; in the four-agent Platform run this was narrower than the curated manifest, missing agent-specific context, output and judge paths, so run explicit relationship maintenance after onboarding for complete coverage.
+Initialization registers relationships only for source it inspected; in the four-agent Platform run this was narrower than the curated manifest, missing agent-specific context, output and judge paths, so use a named-area Maintain round to map the remaining areas when they matter.
 
 ## Large projects and files
 
@@ -62,17 +62,17 @@ Users do not need to configure packages for ordinary work. Ask the coding agent 
 
 Static checks establish structure and the file or export checks named in coverage. Meaning, policy, and arbitrary application behavior require the coding agent’s assessment and relevant tests.
 
-`Fix moldea` uses established intended behavior, respects host permissions, and reports checks it could not complete. It checks material facts and declared relationships for each owner, then traces each agent's instruction and schema to its runtime call. Presentation details and shared infrastructure used by a feature do not create feature relationships. A large repair can continue by owner from a reported commit and changed-path checkpoint. It cannot invent missing policy, guarantee every repair, or silently initialize an unrelated project. It updates a missing, broken or older CLI to the installed skill's validated target; healthy newer compatible tooling is preserved. See [repair](/docs/evaluate-reconcile-validate/#repair-a-project) and [local tooling](/docs/compatibility-and-local-tooling/).
+`Fix moldea` uses established intended behavior, respects host permissions, and reports checks it could not complete. It checks material facts and declared relationships for each owner, then traces each agent's instruction and schema to its runtime call. Presentation details and shared infrastructure used by a feature do not create feature relationships. A large repair can continue by owner from a reported commit and changed-path checkpoint. It cannot invent missing policy, guarantee every repair, or silently initialize an unrelated project. See [repair](/docs/check-fix-validate/#fix-a-project) and [local tooling](/docs/compatibility-and-local-tooling/).
 
 In a repository whose Git attributes mention `filter`, including Git LFS, the repair helper refuses to read Git evidence. Repair then stops Git-dependent work and gives only a bounded foundation diagnosis until the helper supports these repositories.
 
 Attribute inspection supports repository-contained directory symlinks and Windows junctions, including overlays over indexed descendants. It still refuses escaping, dangling, cyclic, unsupported, and over-budget resolution, linked attribute files, and unseen indexed attribute fallbacks. Written-file review does not follow linked parents. Preserve links, tracking, and ignore rules rather than removing tracked skills to bypass a checkpoint limitation.
 
-On Windows, repository roots at or above the [native process working-directory limit](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-setcurrentdirectory) (260 characters) prevent subprocess startup. The repair helper reports unavailable evidence as `git-read` with a request to move or clone the repository to a shorter path. The launcher's `validate` and `inspect` operations have the same working-directory limitation. Use a shorter checkout path for these operations. Deterministic tests cover longer paths for the relevance gate, managed document writers and initialization inspection.
+On Windows, repository roots at or above the [native process working-directory limit](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-setcurrentdirectory) (260 characters) prevent subprocess startup. The repair helper reports unavailable evidence as `git-read` with a request to move or clone the repository to a shorter path. The bundled CLI's `validate` and `inspect` operations have the same working-directory limitation. Use a shorter checkout path for these operations. Deterministic tests cover longer paths for the relevance gate, managed document writers and initialization inspection.
 
 ## Compatibility and evidence
 
-Runtime IDs select SDK guidance. They do not certify SDK versions or application behavior. Unsupported CommonJS, type-only declarations, and inconclusive export inventories are not checked and never become missing-export errors. Read the [runtime guidance](https://packages.moldea.ai/runtimes/) and [recorded evidence](/evidence/) for their separate purposes.
+SDK guidance points to the package and its official documentation. Application behavior depends on the installed version and observed wiring. Unsupported CommonJS, type-only declarations, and inconclusive export inventories are not checked and never become missing-export errors. Read the [SDK guidance](https://packages.moldea.ai/runtimes/) and [recorded evidence](/evidence/) for their separate purposes.
 
 Release-evaluation command, token, and output profiles constrain assurance trials. They are not universal limits on users’ repositories or coding-agent sessions. See [resource profiles](/docs/compatibility-and-local-tooling/#resource-profiles).
 
@@ -88,12 +88,10 @@ If moldea fails or behaves unexpectedly, email [jesus@moldea.ai](mailto:jesus@mo
 
 ## Unbound model workflows
 
-Implicit canonical adoption of an unbound one-shot model workflow is included in the 8.2.3 semantic selection. Its fresh full-recording initial trial passed, including canonical instruction consumption and validation. Earlier inline-only failures remain retained. An explicit moldea request remains available; the observed pass does not establish general routing reliability.
+A request that changes what an in-app model decides or says is direct work in an adopted project, including one-shot calls without a declared binding. The coding agent checks adoption and uses Agents guidance to inspect the actual call and governing context. Register a relationship only after the evidence establishes it. If the connection is opaque, report the unverified boundary.
 
-## Semantic coverage not yet included
+## What recorded evidence establishes
 
-The 8.2.3 selection contains 120 cases: 115 passed and five recovered. The five formerly private targets and three new scenarios are now included, as detailed in [semantic coverage](/docs/semantic-evaluation/#cases-and-coverage). Two cases remain **not yet included**: `exact-binding-relevance` did not reliably report its unverified support-answer boundary, and `read-only-git-helper-suppression` exceeded the unchanged host-command output cap in three of four reserve trials, with one additional safety-stop reporting omission. Their strict criteria and failed records remain private. No forbidden repository or Git-control modification was established. Private diagnostics do not fill these published coverage gaps.
+Semantic results cover the selected requests, fixtures, and recorded host settings. Review the recorded outcomes and provenance for the behavior you want to assess. [Current release selection](/docs/release-evidence/#current-selection).
 
-All six continuation cases passed their initial fresh full-recording trials and are included through exact reuse. They use actual sandbox Git-wrapper records together with recognized command text and measure cooperative compliance. Caller attribution separates direct trusted Codex-host calls from model-controlled commands; host calls supply neither actor violations nor positive repair-read credit. A deliberately evasive actor could locate the wrapper's non-PATH real Git binary or tamper with caller metadata or the temporary invocation log. This is not a tamper-proof audit. Native read history, reloads after compaction and actual reassessment of unchanged owners require separate evidence. The historical 108-case fallback remains unchanged.
-
-The three-request budget case keeps each cycle within its allowance while combined output exceeds one cycle's budget. It does not force the ordinary-work limit-exhaustion branch. Initialization's inspected-source report uses a supplied inspection boundary; it does not establish unrecorded read history or validation-after-write ordering. Those limits remain visible alongside the passing observations.
+Sandbox Git records show cooperative behavior and distinguish host calls from model-controlled commands. Use native traces where a claim depends on actual read order, an instruction reload after compaction, or a specific owner comparison. [Reference-reading checks](/docs/reference-reading/).

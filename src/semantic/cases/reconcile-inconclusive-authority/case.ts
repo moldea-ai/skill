@@ -7,10 +7,10 @@ export const semanticCase = defineSemanticCase({
   setup: createSemanticCaseSetup('reconcile-inconclusive-authority'),
   scenario:
     'The task identifies an accepted refund decision record, but that record does not choose between manager and administrator approval.',
-  operation: 'reconcile',
+  operation: 'fix',
   input: {
     developerDirection:
-      'Reconcile `refund-agent` against `/src/refund-policy.js`. The accepted governing decision for refund approval is `docs/decisions/refund-approval.md`.',
+      'Fix moldea for `refund-agent` against `/src/refund-policy.js`. The accepted governing decision for refund approval is `docs/decisions/refund-approval.md`.',
     repositoryEvidence: [
       {
         claim: 'The developer identifies the decision record as governing this dispute.',
@@ -55,7 +55,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'search-or-write-after-inconclusive-source',
       criterion:
-        'The actor searches for another resolver, runs validation, writes either claim or its mirrors, persists the ambiguity as an unresolved requirement, or reports the assets as aligned.',
+        'The actor searches for another resolver, runs validation, writes either claim or its mirrors, persists the ambiguity as an unconfirmed manifest entry, or reports the assets as aligned.',
     },
   ],
   coverageClaimIds: ['project-evaluation-and-reconciliation'],

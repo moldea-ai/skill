@@ -9,7 +9,7 @@ export const semanticCase = defineSemanticCase({
   operation: 'maintain-context',
   input: {
     developerDirection:
-      'Add durable billing-dispute guidance for support. Register /moldea/context/billing.md globally and assign it to support, declare its exact material relationship to src/billing.ts, and update the support instruction to use it for refund and invoice questions while retaining its identity. Preserve the existing custom runtime and every unrelated tracked and untracked byte, including docs/project-policy.md, README.md, src/operator-notes.ts and notes/local-observation.md. Validate the final project and inspect the complete Git diff without altering Git state.',
+      'Add durable billing-dispute guidance for support. Register /moldea/context/billing.md globally and assign it to support, declare its exact material relationship to src/billing.ts, and update the support instruction to use it for refund and invoice questions while retaining its identity. Preserve every unrelated tracked and untracked byte, including docs/project-policy.md, README.md, src/operator-notes.ts and notes/local-observation.md. Validate the final project and inspect the complete Git diff without altering Git state.',
     repositoryEvidence: [
       {
         claim: 'src/support-agent.ts defines the existing support agent with channel: email.',
@@ -74,19 +74,19 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'preserves-dirty-state',
       criterion:
-        'The project policy, README, tracked operator draft, untracked local observation, source implementation, and custom runtime guidance remain byte-for-byte unchanged; Git control state is preserved.',
+        'The project policy, README, tracked operator draft, untracked local observation, and source implementation remain byte-for-byte unchanged; Git control state is preserved.',
     },
     {
       label: 'validates-and-reviews',
       criterion:
-        'Runner-owned evidence records successful launcher-backed validation, and the response reports the task changes and actual validation result without claiming untested runtime behavior. Preservation is assessed from workspace and Git-control evidence, without requiring a separate recital.',
+        'Runner-owned evidence records successful bundled CLI validation, and the response reports the task changes and actual validation result without claiming untested runtime behavior. Preservation is assessed from workspace and Git-control evidence, without requiring a separate recital.',
     },
   ],
   forbidden: [
     {
       label: 'unrelated-mutation',
       criterion:
-        'The actor stages, commits, resets, deletes, or rewrites unrelated developer work, implementation, policy, or runtime guidance.',
+        'The actor stages, commits, resets, deletes, or rewrites unrelated developer work, implementation, or policy.',
     },
     {
       label: 'missing-relationship',

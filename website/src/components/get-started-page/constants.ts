@@ -1,6 +1,5 @@
 import managedAgentsBlock from '../../../../moldea/assets/managed-agents-block.md?raw';
 import managedReadmeBlock from '../../../../moldea/assets/managed-readme-block.md?raw';
-import skillEntrypoint from '../../../../moldea/SKILL.md?raw';
 
 import {
   getLandingExampleFile,
@@ -14,25 +13,13 @@ import type { IProjectFileTreeEntry, IProjectFileTreeFile } from '../project-fil
 
 // the installation path the managed AGENTS.md block names for a skills.sh repository install
 const SKILL_INSTALL_PATH = '.agents/skills/moldea';
-// initialization installs the CLI at the exact version the installed Skill records
-const cliVersion = /^\s*cliRepairVersion:\s*'([^']+)'/mu.exec(skillEntrypoint)?.[1];
-if (cliVersion === undefined) throw new Error('The Skill entrypoint is missing cliRepairVersion.');
-const packageBefore = {
-  name: 'trailside',
-  private: true,
-  type: 'module',
-  scripts: { test: 'node --experimental-strip-types --test' },
-};
-// the README explains setup but not the project, which is why initialization asks
-const readmeBefore = `# trailside-api
+const readmeBefore = `# Trailside API
 
-## Development
-
-Run \`npm install\`, then \`npm test\`.
+Serves orders and refunds for Trailside's customers and support team.
 `;
 const agentsBefore = `# Agent instructions
 
-Run \`npm test\` before you commit.
+Run the focused tests before you commit.
 `;
 // only what the developer's answer and the code establish
 const projectFoundation = `# Trailside
@@ -41,16 +28,20 @@ Trailside sells hiking and camping gear online. This backend serves its customer
 
 The TypeScript code owns order status and refund eligibility.
 `;
-// the policy change records its rule and links it from the foundation
-const projectWithPolicy = projectFoundation.replace(
-  'refund eligibility.',
-  'refund eligibility. The refund rules live in `context/refund-policy.md`.',
-);
-const refundPolicy = `# Refund policy
+const projectWithPolicy = `${projectFoundation}
+## Context routing
 
-Customers may request a refund within 14 completed days of purchase.
+- Refunds: [Refund policy](context/refund-policy.md) governs the request window and eligibility boundary.
+`;
+const initialRefundPolicy = `# Refund policy
+
+Customers may request a refund within ${LANDING_EXAMPLE.initialRefundWindowDays} completed days of purchase.
 The application decides eligibility.
 `;
+const updatedRefundPolicy = initialRefundPolicy.replace(
+  String(LANDING_EXAMPLE.initialRefundWindowDays),
+  String(LANDING_EXAMPLE.maintainedRefundWindowDays),
+);
 const manifestWithPolicy = `version: 1
 context:
   /moldea/context/refund-policy.md:
@@ -108,8 +99,7 @@ const existingCodeFiles: readonly IProjectFileTreeFile[] = [
 ];
 
 /*
- * Files an initialization adds or updates in the Trailside repository. The package.json, README and
- * AGENTS.md changes come from the Skill's own CLI version and managed blocks, so they stay current.
+ * Trailside after confirming Refunds, including the Skill's managed README and AGENTS.md blocks.
  */
 export const INITIALIZE_EXAMPLE_FILES: readonly IProjectFileTreeFile[] = [
   ...existingCodeFiles,
@@ -118,26 +108,21 @@ export const INITIALIZE_EXAMPLE_FILES: readonly IProjectFileTreeFile[] = [
     label: 'Manifest',
     language: 'yaml',
     path: LANDING_EXAMPLE.paths.manifest,
-    source: 'version: 1\n',
+    source: manifestWithPolicy,
   },
   {
     id: 'project',
     label: 'Project foundation',
     language: 'markdown',
     path: LANDING_EXAMPLE.paths.project,
-    source: projectFoundation,
+    source: projectWithPolicy,
   },
   {
-    id: 'package',
-    label: 'Package manifest',
-    language: 'json',
-    path: '/package.json',
-    before: `${JSON.stringify(packageBefore, null, 2)}\n`,
-    source: `${JSON.stringify(
-      { ...packageBefore, devDependencies: { '@moldea.ai/cli': cliVersion } },
-      null,
-      2,
-    )}\n`,
+    id: 'policy',
+    label: 'Refund policy',
+    language: 'markdown',
+    path: LANDING_EXAMPLE.paths.policyContext,
+    source: initialRefundPolicy,
   },
   {
     id: 'agents',
@@ -166,14 +151,14 @@ export const INITIALIZE_EXAMPLE_ENTRIES: readonly IProjectFileTreeEntry[] = [
   { kind: 'directory', label: 'moldea/', depth: 0 },
   { kind: 'file', id: 'manifest', depth: 1 },
   { kind: 'file', id: 'project', depth: 1 },
+  { kind: 'directory', label: 'context/', depth: 1 },
+  { kind: 'file', id: 'policy', depth: 2 },
   { kind: 'file', id: 'agents', depth: 0 },
-  { kind: 'file', id: 'package', depth: 0 },
   { kind: 'file', id: 'readme', depth: 0 },
 ];
 
 /*
- * A stated policy change after initialization: the agent updates the rule and its test, saves the
- * policy as project context, links it from the foundation, and declares the code that affects it.
+ * A policy change updates the governing context and the related code and tests.
  */
 export const MAINTENANCE_EXAMPLE_FILES: readonly IProjectFileTreeFile[] = [
   orderLookupFile,
@@ -196,7 +181,7 @@ export const MAINTENANCE_EXAMPLE_FILES: readonly IProjectFileTreeFile[] = [
     label: 'Manifest',
     language: 'yaml',
     path: LANDING_EXAMPLE.paths.manifest,
-    before: 'version: 1\n',
+    before: manifestWithPolicy,
     source: manifestWithPolicy,
   },
   {
@@ -204,7 +189,7 @@ export const MAINTENANCE_EXAMPLE_FILES: readonly IProjectFileTreeFile[] = [
     label: 'Project foundation',
     language: 'markdown',
     path: LANDING_EXAMPLE.paths.project,
-    before: projectFoundation,
+    before: projectWithPolicy,
     source: projectWithPolicy,
   },
   {
@@ -212,7 +197,8 @@ export const MAINTENANCE_EXAMPLE_FILES: readonly IProjectFileTreeFile[] = [
     label: 'Refund policy',
     language: 'markdown',
     path: LANDING_EXAMPLE.paths.policyContext,
-    source: refundPolicy,
+    before: initialRefundPolicy,
+    source: updatedRefundPolicy,
   },
 ];
 

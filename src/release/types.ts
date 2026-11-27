@@ -1,40 +1,13 @@
 import type { IEvidenceKind } from '../evidence/index.ts';
 
-export type IReleasePackageManifest = {
-  devDependencies: Record<string, string>;
-  moldeaRelease: {
-    cliJsonSchemaVersion: number;
-    cliVersionRange: string;
-    coreVersionRange: string;
-  };
-  version: string;
-};
-
-export type IReleasePackageLock = {
-  packages: Record<
-    string,
-    {
-      dependencies?: Record<string, string> | undefined;
-      devDependencies?: Record<string, string> | undefined;
-      integrity?: string | undefined;
-      version?: string | undefined;
-    }
-  >;
-};
-
+// npm lock and shipped composition provenance of the skill release
 export type IReleaseIdentity = {
-  cliCoreVersionRange: string;
-  cliDependencies: Record<string, string>;
+  checksums: string;
   cliIntegrity: string;
   cliJsonSchemaVersion: number;
   cliVersion: string;
-  cliVersionRange: string;
-  coreIntegrity: string;
   coreVersion: string;
-  coreVersionRange: string;
-  packageLock: IReleasePackageLock;
   packageLockSha256: string;
-  packageManifest: IReleasePackageManifest;
   releaseVersion: string;
 };
 

@@ -28,7 +28,7 @@ Merge the reviewed development work into `main`, push, and verify the checks and
 
 ## release
 
-After `main`, follow the [release contract](../release-evidence/#repository-release-preparation) and [release evidence procedure](../release-evidence/). Publish the immutable version tag only after its required conformance, identity and installation checks. Verify the tag and official distribution bytes. Historical semantic evidence retains its recorded scope; deterministic publication does not claim a new semantic evaluation.
+After integration to `main`, follow the release contract and evidence procedure. Publish the immutable version tag after conformance, identity, and installation checks pass. Verify the tag and official distribution bytes. The semantic claim follows the selected recording and its artifact identity. [Release contract](../release-evidence/#repository-release-preparation) and [evidence procedure](../release-evidence/).
 
 ## Verification and cleanup
 

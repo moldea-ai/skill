@@ -7,10 +7,10 @@ export const semanticCase = defineSemanticCase({
   setup: createSemanticCaseSetup('skill-reconcile-distributed-copy'),
   scenario:
     'An authoritative release-review skill supports npm and pnpm while a repository-owned distributed copy remains npm-only, and the developer has confirmed the source should win.',
-  operation: 'reconcile-agent-skill',
+  operation: 'fix-agent-skill',
   input: {
     developerDirection:
-      'Use moldea to complete this repository task. Reconcile the distributed release-review copy from the authoritative source and verify both artifacts independently.',
+      'Use moldea Agents to synchronize the distributed release-review copy from its authoritative source and verify both artifacts independently.',
     repositoryEvidence: [
       {
         claim: 'The authoritative source supports npm and pnpm.',

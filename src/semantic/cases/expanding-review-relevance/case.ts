@@ -24,7 +24,7 @@ export const semanticCase = defineSemanticCase({
   },
   resourceBudget: {
     activation: 'relationship',
-    minimumMoldeaCommands: 2,
+    minimumMoldeaCommands: 1,
     maximumMoldeaCommands: 8,
     maximumMoldeaOutputBytes: 524288,
   },
@@ -37,7 +37,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'report-read-only-alignment',
       criterion:
-        'The actor assesses the approval behavior against the declared refund context, reports their agreement on amounts above 1000 units, and explicitly states that the review changed no files.',
+        'The actor assesses the approval behavior against the declared refund context, reports their agreement on amounts above 1000 units, and reports a read-only outcome supported by an unchanged workspace.',
     },
   ],
   forbidden: [

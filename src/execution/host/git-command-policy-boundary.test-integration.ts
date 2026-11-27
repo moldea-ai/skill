@@ -816,7 +816,7 @@ test('real sandbox attributes repair Git to immutable helpers rather than copied
       join(root, 'tools'),
     );
     await prepareGitCommandPolicyBoundary(join(sandboxHome, 'bin'), {
-      trustedReadOnlyWorkspacePaths: ['.agents', 'node_modules'],
+      trustedReadOnlyWorkspacePaths: ['.agents'],
       realGitExecutable: '/opt/moldea-real-git/git',
       invocationLogPath: '/home/evaluator/git-invocations.jsonl',
     });
@@ -833,7 +833,6 @@ test('real sandbox attributes repair Git to immutable helpers rather than copied
           ],
           cwd: repositoryPath,
           hostExecutable,
-          includeWorkspaceBinaryDirectory: true,
           nodeExecutable: process.execPath,
           readOnlyWorkspacePaths: ['.agents', '.git'],
           readOnlyMounts,
@@ -853,7 +852,7 @@ test('real sandbox attributes repair Git to immutable helpers rather than copied
     expect(helper.evidence.hostInvocationCount).toBe(0);
 
     const cli = await run(
-      `node ${scripts}/moldea-cli.mjs --repository /mnt -- validate --json --max-output-bytes 65536`,
+      `node ${scripts}/moldea-cli/moldea.mjs validate --repository /mnt --json --max-output-bytes 65536`,
     );
     expect(StatusEnvelopeSchema.parse(JSON.parse(cli.result.stdout)).status).toBe('valid');
     expect(cli.evidence.invocationCount).toBeGreaterThan(0);

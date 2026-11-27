@@ -4,13 +4,14 @@ import { defineSemanticCase } from '../define.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'skill-reuse-existing-cohesive',
+  publication: 'private',
   setup: createSemanticCaseSetup('skill-reuse-existing-cohesive'),
   scenario:
     "An existing release-review Agent Skill already owns release readiness, and the developer wants it to include the repository's established changelog check.",
   operation: 'maintain-agent-skill',
   input: {
     developerDirection:
-      'Use moldea to complete this repository task. Extend the existing release-review skill for the changelog check. Keep one cohesive activation and workflow boundary.',
+      'Use moldea Agents. Extend the existing release-review skill for the changelog check. Keep one cohesive activation and workflow boundary.',
     repositoryEvidence: [
       {
         claim: 'One cohesive release-review skill already exists.',

@@ -2,138 +2,68 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { hashValue } from 'jg-crypto';
-import semver from 'semver';
-import { isScalar, parseDocument } from 'yaml';
+import { parseDocument } from 'yaml';
 import { z } from 'zod';
 
 import { CLI_PACKAGE_NAME, RELEASE_PATHS } from './constants.ts';
-import type { IReleaseIdentity, IReleasePackageLock, IReleasePackageManifest } from './types.ts';
-import { parseCompatibleStableRange, parseStableVersion } from './versions.ts';
+import { readPortableCliIdentity, verifyPortableCli } from './portable-cli.ts';
+import type { IReleaseIdentity } from './types.ts';
+import { parseStableVersion } from './versions.ts';
 
-const OBSOLETE_SKILL_RELEASE_PATTERN =
-  /(?:\bskill(?:\s+release)?\s+|@moldea\.ai\/skill@|\/releases\/tag\/v?)4\.0\.[0-2]\b/iu;
-const StringRecordSchema = z.record(z.string(), z.string());
 const PackageManifestSchema = z.object({
-  devDependencies: StringRecordSchema,
-  moldeaRelease: z.object({
-    cliJsonSchemaVersion: z.number().int().positive(),
-    cliVersionRange: z.string(),
-    coreVersionRange: z.string(),
-  }),
+  devDependencies: z.record(z.string(), z.string()),
   version: z.string(),
 });
 const PackageLockSchema = z.object({
   packages: z.record(
     z.string(),
     z.object({
-      dependencies: StringRecordSchema.optional(),
-      devDependencies: StringRecordSchema.optional(),
+      devDependencies: z.record(z.string(), z.string()).optional(),
       integrity: z.string().optional(),
       version: z.string().optional(),
     }),
   ),
 });
 const SkillMetadataSchema = z.object({
-  metadata: z.object({
-    cliRepairVersion: z.string(),
-    cliJsonSchemaVersion: z
-      .string()
-      .regex(/^[1-9]\d*$/u)
-      .refine((version) => Number.isSafeInteger(Number(version))),
-    cliVersionRange: z.string(),
-    coreVersionRange: z.string(),
-    version: z.string(),
-  }),
-  name: z.string(),
-});
-const SemanticCliManifestSchema = z.object({
-  dependencies: StringRecordSchema.optional(),
-  moldeaRelease: z.object({ cliJsonSchemaVersion: z.number().int().positive() }),
-  version: z.string(),
+  metadata: z.strictObject({ version: z.string() }),
+  name: z.literal('moldea'),
 });
 
-const readText = (repositoryRoot: string, relativePath: string): string =>
-  readFileSync(path.join(repositoryRoot, relativePath), 'utf8');
-
-const parseJson = (source: string, label: string): unknown => {
-  try {
-    return JSON.parse(source) as unknown;
-  } catch (error) {
-    throw new Error(`${label} is not valid JSON.`, { cause: error });
-  }
-};
-
-const readJson = (repositoryRoot: string, relativePath: string): unknown =>
-  parseJson(readText(repositoryRoot, relativePath), relativePath);
-
-const parseSkillMetadata = (source: string): z.infer<typeof SkillMetadataSchema> => {
-  const match = /^---\n([\s\S]*?)\n---\n/u.exec(source);
-  if (match === null) throw new Error('moldea/SKILL.md must begin with YAML frontmatter.');
-  const document = parseDocument(match[1] ?? '', { uniqueKeys: true });
-  if (document.errors.length > 0) {
-    throw new Error(document.errors.map(({ message }) => message).join('\n'));
-  }
-  const repairVersion = document.getIn(['metadata', 'cliRepairVersion'], true);
-  if (
-    !isScalar(repairVersion) ||
-    (repairVersion.type !== 'QUOTE_SINGLE' && repairVersion.type !== 'QUOTE_DOUBLE')
-  ) {
-    throw new Error('The skill CLI repair version must be one quoted stable version.');
-  }
-  return SkillMetadataSchema.parse(document.toJS());
-};
-
-/** Reads the exact release, CLI, schema, lock, and registry-integrity identity. */
+/** Reads the skill version, npm lock identity, and composition of the shipped CLI. */
 export const readReleaseIdentity = (repositoryRoot: string): IReleaseIdentity => {
-  const packageManifest: IReleasePackageManifest = PackageManifestSchema.parse(
-    readJson(repositoryRoot, RELEASE_PATHS.packageManifest),
+  const packageManifest = PackageManifestSchema.parse(
+    JSON.parse(
+      readFileSync(path.join(repositoryRoot, RELEASE_PATHS.packageManifest), 'utf8'),
+    ) as unknown,
   );
-  const packageLockText = readText(repositoryRoot, RELEASE_PATHS.packageLock);
-  const packageLock: IReleasePackageLock = PackageLockSchema.parse(
-    parseJson(packageLockText, RELEASE_PATHS.packageLock),
+  const packageLockText = readFileSync(
+    path.join(repositoryRoot, RELEASE_PATHS.packageLock),
+    'utf8',
   );
-  const cliVersion = parseStableVersion(packageManifest.devDependencies[CLI_PACKAGE_NAME]);
-  const cliVersionRange = parseCompatibleStableRange(packageManifest.moldeaRelease.cliVersionRange);
-  if (!semver.satisfies(cliVersion, cliVersionRange)) {
-    throw new Error(`package.json does not bind a CLI release satisfying ${cliVersionRange}.`);
-  }
-  const coreVersionRange = parseCompatibleStableRange(
-    packageManifest.moldeaRelease.coreVersionRange,
-  );
+  const packageLock = PackageLockSchema.parse(JSON.parse(packageLockText) as unknown);
   const releaseVersion = parseStableVersion(packageManifest.version);
-  const cliJsonSchemaVersion = packageManifest.moldeaRelease.cliJsonSchemaVersion;
+  const cliVersion = parseStableVersion(packageManifest.devDependencies[CLI_PACKAGE_NAME]);
   const lockedCli = packageLock.packages[`node_modules/${CLI_PACKAGE_NAME}`];
-  if (lockedCli?.version !== cliVersion || typeof lockedCli.integrity !== 'string') {
-    throw new Error(`package-lock.json does not bind ${CLI_PACKAGE_NAME}@${cliVersion}.`);
-  }
-  const cliCoreVersionRange = parseCompatibleStableRange(
-    lockedCli.dependencies?.['@moldea.ai/core'],
-  );
-  const lockedCore = packageLock.packages['node_modules/@moldea.ai/core'];
-  const coreVersion = parseStableVersion(lockedCore?.version);
   if (
-    typeof lockedCore?.integrity !== 'string' ||
-    !semver.satisfies(coreVersion, cliCoreVersionRange) ||
-    !semver.satisfies(coreVersion, coreVersionRange)
+    lockedCli?.version !== cliVersion ||
+    typeof lockedCli.integrity !== 'string' ||
+    packageLock.packages['']?.version !== releaseVersion ||
+    packageLock.packages['']?.devDependencies?.[CLI_PACKAGE_NAME] !== cliVersion
   ) {
     throw new Error(
-      `package-lock.json does not bind a Core release satisfying ${coreVersionRange}.`,
+      `package-lock.json does not bind ${CLI_PACKAGE_NAME}@${cliVersion} for this skill.`,
     );
   }
 
+  const identity = readPortableCliIdentity(path.join(repositoryRoot, RELEASE_PATHS.portableCli));
+  if (identity.cliVersion !== cliVersion) {
+    throw new Error('The shipped portable CLI does not match the exact development CLI version.');
+  }
+
   return {
-    cliCoreVersionRange,
-    cliDependencies: lockedCli.dependencies ?? {},
+    ...identity,
     cliIntegrity: lockedCli.integrity,
-    cliJsonSchemaVersion,
-    cliVersion,
-    cliVersionRange,
-    coreIntegrity: lockedCore.integrity,
-    coreVersion,
-    coreVersionRange,
-    packageLock,
     packageLockSha256: hashValue(packageLockText),
-    packageManifest,
     releaseVersion,
   };
 };
@@ -158,119 +88,34 @@ export const createSemanticCliIdentity = (
   };
 };
 
-const areStringRecordsEqual = (
-  left: Readonly<Record<string, string>>,
-  right: Readonly<Record<string, string>>,
-): boolean =>
-  JSON.stringify(Object.entries(left).sort()) === JSON.stringify(Object.entries(right).sort());
-
-const includesStringConstant = (source: string, name: string, value: string): boolean =>
-  source.includes(`${name} = '${value}'`) || source.includes(`${name} = "${value}"`);
-
-/** Inspects every maintained current-release identity. */
-export const inspectReleaseIdentity = (repositoryRoot: string): string[] => {
-  let identity: IReleaseIdentity;
-  try {
-    identity = readReleaseIdentity(repositoryRoot);
-  } catch (error) {
-    return [error instanceof Error ? error.message : String(error)];
-  }
-  const issues: string[] = [];
-  const skill = readText(repositoryRoot, RELEASE_PATHS.skill);
-  const skillMetadata = parseSkillMetadata(skill);
-  const rootLockPackage = identity.packageLock.packages[''];
-  const semanticCliManifest = SemanticCliManifestSchema.parse(
-    readJson(repositoryRoot, RELEASE_PATHS.semanticCliManifest),
-  );
-  const repositoryPackage = readText(repositoryRoot, RELEASE_PATHS.skillRepositoryPackage);
-  const sourceRepositoryPackage = readText(repositoryRoot, RELEASE_PATHS.sourceRepositoryPackage);
-
-  if (
-    skillMetadata.name !== 'moldea' ||
-    parseStableVersion(skillMetadata.metadata.cliRepairVersion) !== identity.cliVersion ||
-    parseStableVersion(skillMetadata.metadata.version) !== identity.releaseVersion ||
-    parseCompatibleStableRange(skillMetadata.metadata.cliVersionRange) !==
-      identity.cliVersionRange ||
-    parseCompatibleStableRange(skillMetadata.metadata.coreVersionRange) !==
-      identity.coreVersionRange ||
-    Number(skillMetadata.metadata.cliJsonSchemaVersion) !== identity.cliJsonSchemaVersion
-  ) {
-    issues.push('Portable skill metadata does not match the exact current release identity.');
-  }
-  if (
-    rootLockPackage?.version !== identity.releaseVersion ||
-    rootLockPackage.devDependencies?.[CLI_PACKAGE_NAME] !== identity.cliVersion
-  ) {
-    issues.push('The package-lock root identity does not match package.json.');
-  }
-  if (semanticCliManifest.version !== identity.cliVersion) {
-    issues.push(`The semantic CLI fixture version is not ${identity.cliVersion}.`);
-  }
-  if (semanticCliManifest.moldeaRelease.cliJsonSchemaVersion !== identity.cliJsonSchemaVersion) {
-    issues.push(
-      `The semantic CLI fixture JSON schema version is not ${identity.cliJsonSchemaVersion}.`,
-    );
-  }
-  if (!areStringRecordsEqual(semanticCliManifest.dependencies ?? {}, identity.cliDependencies)) {
-    issues.push(
-      'The semantic CLI fixture dependency inventory does not match the locked CLI closure.',
-    );
-  }
-  if (
-    !includesStringConstant(
-      sourceRepositoryPackage,
-      'EXPECTED_CLI_RANGE',
-      identity.cliVersionRange,
-    ) ||
-    !includesStringConstant(
-      sourceRepositoryPackage,
-      'SUPPORTED_CORE_RANGE',
-      identity.coreVersionRange,
-    )
-  ) {
-    issues.push('The repository package source does not match the compatible CLI/Core closure.');
-  }
-  if (
-    !includesStringConstant(repositoryPackage, 'EXPECTED_CLI_RANGE', identity.cliVersionRange) ||
-    !includesStringConstant(repositoryPackage, 'SUPPORTED_CORE_RANGE', identity.coreVersionRange)
-  ) {
-    issues.push('The repository package resolver does not match the compatible CLI/Core closure.');
-  }
-
-  if (
-    !readText(repositoryRoot, 'src/portable/response-page/types.ts').includes(
-      `schemaVersion: z.literal(${identity.cliJsonSchemaVersion})`,
-    )
-  ) {
-    issues.push('The response-page schema does not match the current CLI JSON schema version.');
-  }
-
-  const publicReleaseText = [
-    RELEASE_PATHS.readme,
-    RELEASE_PATHS.gettingStarted,
-    'docs/compatibility-and-local-tooling.md',
-    RELEASE_PATHS.skill,
-    RELEASE_PATHS.skillLocalTooling,
-  ]
-    .map((relativePath) => readText(repositoryRoot, relativePath))
-    .join('\n');
-  if (/\bMoldea\b/u.test(publicReleaseText)) {
-    issues.push('Current user-facing release text must use the lowercase moldea name.');
-  }
-  if (OBSOLETE_SKILL_RELEASE_PATTERN.test(publicReleaseText)) {
-    issues.push('Current user-facing release text contains an obsolete release reference.');
-  }
-  if (
-    /^\s{2}package-managers:/mu.test(readText(repositoryRoot, RELEASE_PATHS.conformanceWorkflow))
-  ) {
-    issues.push('The conformance workflow still contains the obsolete package-manager matrix.');
-  }
-  return issues;
-};
-
-/** Requires the complete current release identity to agree. */
+/** Checks the published artifact bytes and the generated manifest matcher against the lock. */
 export const assertReleaseIdentity = (repositoryRoot: string): IReleaseIdentity => {
-  const issues = inspectReleaseIdentity(repositoryRoot);
-  if (issues.length > 0) throw new Error(issues.join('\n'));
-  return readReleaseIdentity(repositoryRoot);
+  const distribution = path.join(repositoryRoot, RELEASE_PATHS.portableCli);
+  const installed = path.join(repositoryRoot, RELEASE_PATHS.installedPortableCli);
+  if (verifyPortableCli(distribution) !== verifyPortableCli(installed)) {
+    throw new Error('The shipped portable CLI does not match the locked npm artifact.');
+  }
+
+  const identity = readReleaseIdentity(repositoryRoot);
+  const skill = readFileSync(path.join(repositoryRoot, RELEASE_PATHS.skill), 'utf8');
+  const frontmatter = /^---\n([\s\S]*?)\n---\n/u.exec(skill)?.[1];
+  if (frontmatter === undefined)
+    throw new Error('moldea/SKILL.md must begin with YAML frontmatter.');
+  const document = parseDocument(frontmatter, { uniqueKeys: true });
+  if (document.errors.length > 0) {
+    throw new Error(document.errors.map(({ message }) => message).join('\n'));
+  }
+  if (
+    parseStableVersion(SkillMetadataSchema.parse(document.toJS()).metadata.version) !==
+    identity.releaseVersion
+  ) {
+    throw new Error('The skill metadata version does not match the release version.');
+  }
+
+  const matcher = readFileSync(path.join(repositoryRoot, RELEASE_PATHS.manifestScope), 'utf8');
+  const embeddedCore = [...matcher.matchAll(/^module\.exports\.coreVersion = "([^"\n]+)";$/gmu)];
+  if (embeddedCore.length !== 1 || embeddedCore[0]?.[1] !== identity.coreVersion) {
+    throw new Error('The manifest scope and portable CLI must embed the same Core version.');
+  }
+  return identity;
 };

@@ -47,7 +47,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'confirm-accepted-warning',
       criterion:
-        'A successful recorded launcher validation reports zero errors, zero unaccepted warnings and one accepted warning. The report says acceptance was recorded and validation succeeded, without inferring native/cloud host behavior; no unsolicited disclaimer is required. Fixture Git tracking does not establish actor read history.',
+        'A successful recorded bundled CLI validation reports zero errors, zero unaccepted warnings and one accepted warning. The report says acceptance was recorded and validation succeeded, without inferring native/cloud host behavior; no unsolicited disclaimer is required. Fixture Git tracking does not establish actor read history.',
     },
   ],
   forbidden: [

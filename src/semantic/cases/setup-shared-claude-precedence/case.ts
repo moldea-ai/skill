@@ -4,6 +4,7 @@ import { defineSemanticCase } from '../define.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'setup-shared-claude-precedence',
+  publication: 'private',
   setup: createIntegrationWarningSetup('shared'),
   scenario:
     'Shared .claude/CLAUDE.md lacks an AGENTS.md import while ignored CLAUDE.local.md already imports it; the shared nested file governs.',
@@ -57,7 +58,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'shared-file-governs',
       criterion:
-        "Successful launcher validation reports exactly one unaccepted MOLDEA_INTEGRATION_CLAUDE_IMPORT_MISSING warning for /.claude/CLAUDE.md. The response explains that the shared nested file governs despite the local fallback's existing import.",
+        "Successful bundled CLI validation reports exactly one unaccepted MOLDEA_INTEGRATION_CLAUDE_IMPORT_MISSING warning for /.claude/CLAUDE.md. The response explains that the shared nested file governs despite the local fallback's existing import.",
     },
     {
       label: 'exact-shared-import-handoff',

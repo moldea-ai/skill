@@ -35,7 +35,7 @@ test('parallel real validation and writer print retain separately proved results
       tools,
     );
     const commands = [
-      'node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt -- validate --json --max-output-bytes 65536',
+      'node /mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs validate --repository /mnt --json --max-output-bytes 65536',
       'node /mnt/.agents/skills/moldea/scripts/managed-agents.mjs --repository /mnt --print',
     ];
     await writeFile(
@@ -126,11 +126,10 @@ test.each(['sequential', 'overlapping', 'failed-command'] as const)(
         tools,
       );
       const args = [
-        '/mnt/.agents/skills/moldea/scripts/moldea-cli.mjs',
+        '/mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs',
+        'validate',
         '--repository',
         '/mnt',
-        '--',
-        'validate',
         '--json',
         '--max-output-bytes',
         '65536',
@@ -191,7 +190,7 @@ test.each(['sequential', 'overlapping', 'failed-command'] as const)(
       const identity = readReleaseIdentity(process.cwd());
       const parsed = parseSemanticEvaluationHostOutput(output, {
         cliVersion: identity.cliVersion,
-        jsonSchemaVersion: 7,
+        jsonSchemaVersion: identity.cliJsonSchemaVersion,
       });
       expect(parsed.commandPolicyEvidence.completedCommandCount).toBe(2);
       expect(parsed.actorResourceEvidence.commandCount).toBe(2);
@@ -417,11 +416,10 @@ test.each([
       mounts.push({ source: view, target: '/mnt/moldea' });
     }
     const args = [
-      '/mnt/.agents/skills/moldea/scripts/moldea-cli.mjs',
+      '/mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs',
+      'validate',
       '--repository',
       '/mnt',
-      '--',
-      'validate',
       '--json',
       '--max-output-bytes',
       '65536',
@@ -430,7 +428,7 @@ test.each([
       "fs.appendFileSync('/mnt/moldea/project.md','\\nConfirmed canonical summary update.\\n');\n";
     const invocation = (operation: 'validate' | 'inspect', repeated = false) => {
       const invocationArgs = [...args];
-      invocationArgs[4] = operation;
+      invocationArgs[1] = operation;
       if (repeated) invocationArgs.unshift('--no-warnings');
       return `{const result=cp.spawnSync('/opt/node',${JSON.stringify(invocationArgs)},{encoding:'utf8'});console.log(JSON.stringify({type:'item.completed',item:{type:'command_execution',command:${JSON.stringify(scenario === 'ambiguous-command' ? 'node -e "wrapped launcher"' : `/opt/node ${invocationArgs.join(' ')}`)},status:'completed',exit_code:result.status,aggregated_output:result.stdout+result.stderr}}));}\n`;
     };

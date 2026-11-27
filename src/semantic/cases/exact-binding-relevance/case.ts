@@ -39,7 +39,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'assess-selected-agent-owner',
       criterion:
-        'After a relevant scope result, the actor identifies the selected support-agent owner and assesses the changed createSupportAgent binding: the added enabled flag does not by itself contradict the declared binding, while actual support-answer behavior remains unverified. It does not rewrite canonical state merely from the scope match, and the read-only review changes no files.',
+        'After a relevant scope result, identify the support-agent owner and assess the changed createSupportAgent binding. Explain that the added enabled flag alone leaves the declared binding consistent. Keep any runtime claim within the evidence and leave canonical and repository files unchanged.',
     },
   ],
   forbidden: [

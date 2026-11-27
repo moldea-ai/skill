@@ -64,18 +64,27 @@ test.each([
       ]);
       const scripts = join(repositoryPath, '.agents/skills/moldea/scripts');
       const run = (filename: string, args: string[]) => {
-        const result = spawnSync(
-          process.execPath,
-          [join(scripts, filename), '--repository', repositoryPath, ...args],
-          { encoding: 'utf8', timeout: 10_000, maxBuffer: 65536 },
-        );
+        const result = spawnSync(process.execPath, [join(scripts, filename), ...args], {
+          encoding: 'utf8',
+          timeout: 10_000,
+          maxBuffer: 65536,
+        });
         expect(result.status, result.stderr || result.stdout).toBe(0);
         return result.stdout;
       };
+      const runManagedAgents = (args: string[]) =>
+        run('managed-agents.mjs', ['--repository', repositoryPath, ...args]);
       const validate = () =>
         ValidationSchema.parse(
           JSON.parse(
-            run('moldea-cli.mjs', ['--', 'validate', '--json', '--max-output-bytes', '65536']),
+            run('moldea-cli/moldea.mjs', [
+              'validate',
+              '--repository',
+              repositoryPath,
+              '--json',
+              '--max-output-bytes',
+              '65536',
+            ]),
           ),
         );
       const stale = validate();
@@ -84,7 +93,7 @@ test.each([
       expect(stale.result.page.records).toContainEqual(
         expect.objectContaining({ code: 'MOLDEA_INTEGRATION_BLOCK_STALE', subject: '/AGENTS.md' }),
       );
-      const printed = run('managed-agents.mjs', ['--print']);
+      const printed = runManagedAgents(['--print']);
       const template = (
         await readFile(
           join(repositoryPath, '.agents/skills/moldea/assets/managed-agents-block.md'),
@@ -97,14 +106,14 @@ test.each([
         frozen.toString('utf8').replaceAll('{{skill-path}}', '.agents/skills/moldea'),
       );
       if (!isProtected) {
-        expect(run('managed-agents.mjs', [])).toBe('updated\n');
+        expect(runManagedAgents([])).toBe('updated\n');
         const expected =
           '\uFEFF# Host rules\r\n\r\nKeep changes scoped and verified.\r\n\r\n' +
           printed.replaceAll('\n', '\r\n') +
           '\r\nKeep these owner rules.\r\n';
         expect((await readFile(target)).toString('utf8')).toBe(expected);
         expect(validate().result.warningCount).toBe(0);
-        expect(run('managed-agents.mjs', [])).toBe('unchanged\n');
+        expect(runManagedAgents([])).toBe('unchanged\n');
         expect((await readFile(target)).toString('utf8')).toBe(expected);
       } else {
         expect(before.toString('utf8')).toContain(

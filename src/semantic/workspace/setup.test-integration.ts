@@ -24,6 +24,7 @@ import {
   projectCodexEvaluationExecutionEvidence,
 } from '../../execution/host/index.ts';
 import { readCliInvocations } from '../../execution/host/cli-invocations/index.ts';
+import { readReleaseIdentity } from '../../release/index.ts';
 import {
   createRecordedSemanticDefinitions,
   hasMatchingSemanticRequest,
@@ -39,6 +40,9 @@ import {
   snapshotSemanticWorkspace,
 } from './setup.ts';
 
+const { cliVersion, cliJsonSchemaVersion } = readReleaseIdentity(
+  resolve(import.meta.dirname, '../../..'),
+);
 const CASE_DIRECTORY = resolve(import.meta.dirname, '..', 'cases');
 const GATE_PATH = resolve(
   import.meta.dirname,
@@ -49,7 +53,7 @@ const GATE_PATH = resolve(
   'scripts',
   'relevance-gate.mjs',
 );
-const LAUNCHER_PATH = resolve(import.meta.dirname, '../../../moldea/scripts/moldea-cli.mjs');
+const CLI_PATH = resolve(import.meta.dirname, '../../../moldea/scripts/moldea-cli/moldea.mjs');
 const MANAGED_BLOCK_PATH = resolve(
   import.meta.dirname,
   '..',
@@ -209,15 +213,15 @@ const gateResult = (repositoryPath: string, paths: string[], isAdoptionOnly = fa
   return result.stdout;
 };
 
-const launcherOutput = (repositoryPath: string, operation: string[], input?: string): string => {
+const cliOutput = (repositoryPath: string, operation: string[], input?: string): string => {
   const result = spawnSync(
     process.execPath,
     [
-      LAUNCHER_PATH,
+      CLI_PATH,
+      operation[0]!,
       '--repository',
       repositoryPath,
-      '--',
-      ...operation,
+      ...operation.slice(1),
       '--json',
       '--max-output-bytes',
       '65536',
@@ -241,7 +245,7 @@ const runFixtureTests = (repositoryPath: string, testPaths: string[]) => {
   return result;
 };
 
-test.each(['direct-canonical-relevance', 'pnpm-pnp-local-cli-provider'])(
+test.each(['direct-canonical-relevance'])(
   '%s replaces stale executable Git with an inert mountpoint while preserving scenario tools',
   async (caseId) => {
     const definition = cases.find(({ id }) => id === caseId);
@@ -255,7 +259,7 @@ test.each(['direct-canonical-relevance', 'pnpm-pnp-local-cli-provider'])(
     writeFileSync(gitMountpoint, '#!/bin/sh\nexit 99\n');
     chmodSync(gitMountpoint, 0o755);
     const mounts = await withEmptyCodexHome(root, () =>
-      prepareSemanticEvaluationHome(sandboxHome, definition, actorToolDirectory),
+      prepareSemanticEvaluationHome(sandboxHome, actorToolDirectory),
     );
     assert.deepEqual(mounts, [{ source: actorToolDirectory, target: '/home/evaluator/bin' }]);
     const mountpoint = lstatSync(gitMountpoint);
@@ -269,19 +273,10 @@ test.each(['direct-canonical-relevance', 'pnpm-pnp-local-cli-provider'])(
       );
     }
     assert.notEqual(readFileSync(join(sandboxHome, 'bin/git'), 'utf8'), '');
-    if (caseId === 'pnpm-pnp-local-cli-provider') {
-      const probe = spawnSync(process.execPath, [join(actorToolDirectory, 'pnpm'), '--version'], {
-        encoding: 'utf8',
-        timeout: 2_000,
-      });
-      assert.equal(probe.status, 0, probe.stderr);
-      assert.equal(probe.stdout, '11.21.0\n');
-      assert.notEqual(lstatSync(join(actorToolDirectory, 'pnpm')).mode & 0o111, 0);
-    }
   },
 );
 
-test.each(['direct-canonical-relevance', 'pnpm-pnp-local-cli-provider'])(
+test.each(['direct-canonical-relevance'])(
   '%s preserves Node startup capture through the production actor-tools mount',
   async (caseId) => {
     const definition = cases.find(({ id }) => id === caseId);
@@ -295,11 +290,10 @@ test.each(['direct-canonical-relevance', 'pnpm-pnp-local-cli-provider'])(
       );
     const logPath = join(sandboxHome, 'cli-invocations.jsonl');
     const launcherArguments = [
-      '/mnt/.agents/skills/moldea/scripts/moldea-cli.mjs',
+      '/mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs',
+      'validate',
       '--repository',
       '/mnt',
-      '--',
-      'validate',
       '--json',
       '--max-output-bytes',
       '65536',
@@ -336,21 +330,6 @@ test.each(['direct-canonical-relevance', 'pnpm-pnp-local-cli-provider'])(
       assert.equal(invocations.length, 1, result.stderr);
       assert.deepEqual(invocations[0]?.arguments, launcherArguments.slice(1));
       assert.equal(invocations[0]?.exitCode, result.status);
-      if (caseId === 'pnpm-pnp-local-cli-provider') {
-        assert.notEqual(result.status, 0);
-        assert.equal(invocations[0]?.stdout, '');
-        assert.doesNotMatch(result.stderr, /cli-invocation-preload/u);
-      } else {
-        assert.equal(result.status, 0, result.stderr);
-        const validation = JSON.parse(invocations[0]?.stdout ?? '') as {
-          command: string;
-          status: string;
-          result: { errorCount: number };
-        };
-        assert.equal(validation.command, 'validate');
-        assert.equal(validation.status, 'valid');
-        assert.equal(validation.result.errorCount, 0);
-      }
     }
   },
 );
@@ -363,7 +342,7 @@ test.each([
   'repair-relationship-materiality',
 ])('%s starts structurally valid through the installed CLI', async (caseId) => {
   const { repositoryPath } = await materializeCase(caseId, true);
-  const envelope = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as {
+  const envelope = JSON.parse(cliOutput(repositoryPath, ['validate'])) as {
     status: string;
     result: { valid: boolean; errorCount: number };
   };
@@ -445,12 +424,9 @@ test.each([true, false])(
         status: passing ? 'completed' : 'failed',
       },
     };
-    const cliPackage = JSON.parse(
-      readFileSync(join(repositoryPath, 'node_modules/@moldea.ai/cli/package.json'), 'utf8'),
-    ) as { version: string };
     const evidence = projectActorExecutionEvidenceEvent(event, {
-      cliVersion: cliPackage.version,
-      jsonSchemaVersion: 7,
+      cliVersion,
+      jsonSchemaVersion: cliJsonSchemaVersion,
     });
     assert.ok(evidence);
     assert.equal(
@@ -475,12 +451,9 @@ test('every semantic case materializes a snapshot-ready actor repository', async
           join(root, 'actor-tools'),
         ),
       );
-      if (caseDefinition.id === 'host-plan-command-precedence') {
-        assert.equal(hasWorkspaceBinaryDirectory, false);
-      }
-      if (caseDefinition.id === 'explicit-moldea-validation') {
-        assert.equal(hasWorkspaceBinaryDirectory, true);
-      }
+      assert.equal(hasWorkspaceBinaryDirectory, false);
+      assert.equal(existsSync(join(repositoryPath, 'package.json')), false);
+      assert.equal(existsSync(join(repositoryPath, 'node_modules')), false);
       await snapshotSemanticWorkspace(repositoryPath);
     } catch (error) {
       throw new Error(`Unable to materialize semantic case ${caseDefinition.id}.`, {
@@ -510,7 +483,7 @@ test.each([
     ]),
     '0\n',
   );
-  const inventory = launcherOutput(repositoryPath, ['inspect']);
+  const inventory = cliOutput(repositoryPath, ['inspect']);
   assert.ok(inventory.includes('/moldea/project.md'));
   assert.ok(inventory.includes('/moldea/context/operations.md'));
   assert.equal(inventory.includes('The operations team owns'), false);
@@ -518,7 +491,7 @@ test.each([
     caseId.startsWith('skill-') || caseId === 'editorial-feedback-information'
       ? '/moldea/context/editorial-policy.md'
       : '/moldea/project.md';
-  const selectedContent = launcherOutput(repositoryPath, ['content', '--path', selectedPath]);
+  const selectedContent = cliOutput(repositoryPath, ['content', '--path', selectedPath]);
   assert.ok(selectedContent.includes(selectedPath));
   assert.equal(selectedContent.includes('The operations team owns'), false);
   if (selectedPath.endsWith('editorial-policy.md')) {
@@ -560,9 +533,6 @@ test.each(['model-workflow-routing', 'unrelated-sdk-maintenance'])(
     );
     const testPaths = ['src/sdk-usage.test-unit.js', 'src/incident-workflow.test-integration.js'];
     const passing = runFixtureTests(repositoryPath, testPaths);
-    const cliPackage = JSON.parse(
-      readFileSync(join(repositoryPath, 'node_modules/@moldea.ai/cli/package.json'), 'utf8'),
-    ) as { version: string };
     const projected = projectActorExecutionEvidenceEvent(
       {
         type: 'item.completed',
@@ -574,7 +544,7 @@ test.each(['model-workflow-routing', 'unrelated-sdk-maintenance'])(
           status: 'completed',
         },
       },
-      { cliVersion: cliPackage.version, jsonSchemaVersion: 7 },
+      { cliVersion, jsonSchemaVersion: cliJsonSchemaVersion },
     );
     assert.ok(projected);
     const summary = projected.item.outputEvidence.facts[0];
@@ -613,16 +583,16 @@ test('known invoice owners become selectable through exact grounded relationship
   assert.equal(gateResult(repositoryPath, ['/src/invoice.js']), '0\n');
   assert.equal(gateResult(repositoryPath, ['/src/unrelated.js']), '0\n');
 
-  const inventory = launcherOutput(repositoryPath, ['inspect']);
+  const inventory = cliOutput(repositoryPath, ['inspect']);
   assert.ok(inventory.includes('/moldea/project.md'));
   assert.ok(inventory.includes('/moldea/context/processing.md'));
   assert.equal(inventory.includes('The operations team owns'), false);
   assert.match(
-    launcherOutput(repositoryPath, ['content', '--path', '/moldea/project.md']),
+    cliOutput(repositoryPath, ['content', '--path', '/moldea/project.md']),
     /plans to process invoices and authorize payments/u,
   );
   assert.match(
-    launcherOutput(repositoryPath, ['content', '--path', '/moldea/context/processing.md']),
+    cliOutput(repositoryPath, ['content', '--path', '/moldea/context/processing.md']),
     /extraction and validation are planned/u,
   );
 
@@ -633,7 +603,7 @@ test('known invoice owners become selectable through exact grounded relationship
 
   assert.equal(gateResult(repositoryPath, ['/src/invoice.js']), '1\n');
   assert.equal(gateResult(repositoryPath, ['/src/unrelated.js']), '0\n');
-  const scope = launcherOutput(repositoryPath, ['scope', '--paths-stdin'], '/src/invoice.js\0');
+  const scope = cliOutput(repositoryPath, ['scope', '--paths-stdin'], '/src/invoice.js\0');
   assert.equal((JSON.parse(scope) as { result: { relevant: boolean } }).result.relevant, true);
   assert.ok(scope.includes('/moldea/project.md'));
   assert.ok(scope.includes('/moldea/context/processing.md'));
@@ -653,7 +623,7 @@ test('an assessed accurate owner exposes missing coverage through completed scop
   assert.equal(gateResult(repositoryPath, ['/src/project-state.js']), '0\n');
 
   const scope = JSON.parse(
-    launcherOutput(repositoryPath, ['scope', '--paths-stdin'], `${batch.join('\0')}\0`),
+    cliOutput(repositoryPath, ['scope', '--paths-stdin'], `${batch.join('\0')}\0`),
   ) as IScopeFixtureEnvelope;
   assert.equal(scope.result.valid, true);
   assert.equal(scope.result.relevant, true);
@@ -664,7 +634,7 @@ test('an assessed accurate owner exposes missing coverage through completed scop
     [['/src/refund-request.js', '/moldea/context/refunds.md']],
   );
   assert.ok(
-    launcherOutput(repositoryPath, ['content', '--path', '/moldea/context/refunds.md']).includes(
+    cliOutput(repositoryPath, ['content', '--path', '/moldea/context/refunds.md']).includes(
       'Refunds above 1000 units require approval.',
     ),
   );
@@ -677,7 +647,7 @@ test('an assessed accurate owner exposes missing coverage through completed scop
   assert.equal(gateResult(repositoryPath, [policyPath]), '1\n');
   assert.equal(gateResult(repositoryPath, ['/src/project-state.js']), '0\n');
   const repairedScope = JSON.parse(
-    launcherOutput(repositoryPath, ['scope', '--paths-stdin'], '/src/refund-policy.js\0'),
+    cliOutput(repositoryPath, ['scope', '--paths-stdin'], '/src/refund-policy.js\0'),
   ) as IScopeFixtureEnvelope;
   assert.deepEqual(
     repairedScope.result.page.records.map(({ match }) => [match.inputPath, match.owner.id]),
@@ -687,7 +657,7 @@ test('an assessed accurate owner exposes missing coverage through completed scop
   const repairedSnapshot = await snapshotSemanticWorkspace(repositoryPath);
   writeFileSync(manifestPath, repairedManifest);
   assert.deepEqual(await snapshotSemanticWorkspace(repositoryPath), repairedSnapshot);
-  const validation = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as {
+  const validation = JSON.parse(cliOutput(repositoryPath, ['validate'])) as {
     status: string;
   };
   assert.equal(validation.status, 'valid');
@@ -697,17 +667,17 @@ test('direct read-only assessed-owner evidence leaves the complete fixture uncha
   const { repositoryPath } = await materializeCase('assessed-owner-readonly', true);
   const before = await snapshotSemanticWorkspace(repositoryPath);
   assert.equal(gateResult(repositoryPath, [], true), '1\n');
-  const inventory = launcherOutput(repositoryPath, ['inspect']);
+  const inventory = cliOutput(repositoryPath, ['inspect']);
   const inventoryEnvelope = JSON.parse(inventory) as {
     result: { page: { cursor: string | null } };
   };
   assert.equal(inventoryEnvelope.result.page.cursor, null);
-  const owner = launcherOutput(repositoryPath, ['content', '--path', '/moldea/context/refunds.md']);
+  const owner = cliOutput(repositoryPath, ['content', '--path', '/moldea/context/refunds.md']);
   // inventory identifies the manifest but does not prove relationship coverage
   assert.ok(inventory.includes('/moldea/moldea.yaml'));
   assert.equal(inventory.includes('/src/refund-request.js'), false);
   const manifest = JSON.parse(
-    launcherOutput(repositoryPath, ['content', '--path', '/moldea/moldea.yaml']),
+    cliOutput(repositoryPath, ['content', '--path', '/moldea/moldea.yaml']),
   ) as { result: { chunk: { content: string }; cursor: string | null } };
   assert.equal(manifest.result.cursor, null);
   assert.ok(manifest.result.chunk.content.includes('/src/refund-request.js'));
@@ -834,7 +804,7 @@ test('damaged managed README does not block adoption while retaining prior canon
   assert.equal(readme.includes(readFileSync(MANAGED_BLOCK_PATH, 'utf8')), false);
   assert.equal(existsSync(join(repositoryPath, 'moldea', 'moldea.yaml')), true);
   assert.equal(existsSync(join(repositoryPath, 'moldea', 'project.md')), true);
-  const validation = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as { status: string };
+  const validation = JSON.parse(cliOutput(repositoryPath, ['validate'])) as { status: string };
   assert.equal(validation.status, 'valid');
   assert.deepEqual(await snapshotSemanticWorkspace(repositoryPath), before);
 });
@@ -850,7 +820,7 @@ test('a changed managed README hunk can restore the exact adopted block for read
   });
   assert.equal(baseline.status, 0, baseline.stderr);
   assert.match(baseline.stdout, /Begin at \[the project overview\]/u);
-  const validation = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as { status: string };
+  const validation = JSON.parse(cliOutput(repositoryPath, ['validate'])) as { status: string };
   assert.equal(validation.status, 'valid');
 });
 
@@ -976,18 +946,18 @@ test.each([
   for (const path of matches) {
     assert.equal(gateResult(repositoryPath, [path]), '1\n');
     const scope = JSON.parse(
-      launcherOutput(repositoryPath, ['scope', '--paths-stdin'], `${path}\0`),
+      cliOutput(repositoryPath, ['scope', '--paths-stdin'], `${path}\0`),
     ) as { result: { relevant: boolean }; status: string };
     assert.equal(scope.status, 'valid');
     assert.equal(scope.result.relevant, true);
   }
   if (caseId === 'scope-expansion-second-owner') {
-    const refundScope = launcherOutput(
+    const refundScope = cliOutput(
       repositoryPath,
       ['scope', '--paths-stdin'],
       '/src/refund-policy.js\0',
     );
-    const displayScope = launcherOutput(
+    const displayScope = cliOutput(
       repositoryPath,
       ['scope', '--paths-stdin'],
       '/src/refund-label.js\0',
@@ -1039,13 +1009,9 @@ test.each([
 test('selected context injection does not become fixture authority', async () => {
   const { repositoryPath } = await materializeCase('context-instruction-injection', true);
   assert.equal(gateResult(repositoryPath, ['/src/refund-policy.js']), '1\n');
-  const scope = launcherOutput(
-    repositoryPath,
-    ['scope', '--paths-stdin'],
-    '/src/refund-policy.js\0',
-  );
+  const scope = cliOutput(repositoryPath, ['scope', '--paths-stdin'], '/src/refund-policy.js\0');
   assert.ok(scope.includes('/moldea/context/refunds.md'));
-  const selectedContent = launcherOutput(repositoryPath, [
+  const selectedContent = cliOutput(repositoryPath, [
     'content',
     '--path',
     '/moldea/context/refunds.md',
@@ -1091,7 +1057,7 @@ test('managed README drift is repairable through the shipped writer without outs
   expected.set('README.md', workspaceAfter.get('README.md')!);
   assert.deepEqual(workspaceAfter, expected);
   assert.equal(gateResult(repositoryPath, [], true), '1\n');
-  const validation = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as { status: string };
+  const validation = JSON.parse(cliOutput(repositoryPath, ['validate'])) as { status: string };
   assert.equal(validation.status, 'valid');
   const repeated = spawnSync(
     process.execPath,
@@ -1171,13 +1137,12 @@ test('known repair can correct both owners while preserving application and unre
     readFileSync(join(repositoryPath, 'moldea', 'context', 'operations.md'), 'utf8'),
     unrelatedBefore,
   );
-  const validation = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as { status: string };
+  const validation = JSON.parse(cliOutput(repositoryPath, ['validate'])) as { status: string };
   assert.equal(validation.status, 'valid');
 });
 
-test('repair conflict, missing tooling, and healthy state retain distinct outcomes', async () => {
+test('repair conflict and healthy state retain distinct outcomes', async () => {
   const conflict = await materializeCase('repair-conflicting-policy');
-  const missing = await materializeCase('repair-missing-tooling', true);
   const healthy = await materializeCase('repair-healthy-project', true);
   assert.match(
     readFileSync(join(conflict.repositoryPath, 'src/refund-policy.js'), 'utf8'),
@@ -1191,57 +1156,43 @@ test('repair conflict, missing tooling, and healthy state retain distinct outcom
     existsSync(join(conflict.repositoryPath, 'docs/decisions/refund-approval.md')),
     false,
   );
-  assert.equal(gateResult(missing.repositoryPath, [], true), '1\n');
-  assert.equal(existsSync(join(missing.repositoryPath, 'node_modules')), false);
-  const unavailable = spawnSync(
-    process.execPath,
-    [
-      LAUNCHER_PATH,
-      '--repository',
-      missing.repositoryPath,
-      '--',
-      'validate',
-      '--json',
-      '--max-output-bytes',
-      '65536',
-    ],
-    { encoding: 'utf8' },
-  );
-  assert.notEqual(unavailable.status, 0);
-  assert.equal(unavailable.stdout, '');
-  assert.match(unavailable.stderr, /node_modules|@moldea\.ai\/cli/u);
   assert.equal(gateResult(healthy.repositoryPath, [], true), '1\n');
-  const validation = JSON.parse(launcherOutput(healthy.repositoryPath, ['validate'])) as {
+  const validation = JSON.parse(cliOutput(healthy.repositoryPath, ['validate'])) as {
     status: string;
   };
   assert.equal(validation.status, 'valid');
 });
 
-test('the uninstalled checkout still matches its scheduler relationship while the launcher refuses', async () => {
-  const { repositoryPath } = await materializeCase('ordinary-hit-launcher-unavailable', true);
+test('the package-free checkout matches its scheduler relationship with the shipped CLI', async () => {
+  const { repositoryPath } = await materializeCase('bound-context-maintenance', true);
   assert.equal(existsSync(join(repositoryPath, 'node_modules')), false);
   assert.equal(gateResult(repositoryPath, ['src/cleanup-scheduler.js']), '1\n');
-  const unavailable = spawnSync(
-    process.execPath,
-    [
-      LAUNCHER_PATH,
-      '--repository',
-      repositoryPath,
-      '--',
-      'scope',
-      '--paths-stdin',
-      '--json',
-      '--max-output-bytes',
-      '65536',
-    ],
-    { encoding: 'utf8', input: 'src/cleanup-scheduler.js\0' },
+  assert.equal(existsSync(join(repositoryPath, 'package.json')), false);
+  const result = JSON.parse(
+    cliOutput(repositoryPath, ['scope', '--paths-stdin'], '/src/cleanup-scheduler.js\0'),
+  ) as {
+    result: { relevant: boolean };
+  };
+  assert.equal(result.result.relevant, true);
+});
+
+test('the Python case validates the file while reporting its named export as unchecked', async () => {
+  const { repositoryPath } = await materializeCase('validate-python-binding', true);
+  const validation = JSON.parse(cliOutput(repositoryPath, ['validate'])) as {
+    status: string;
+    result: {
+      errorCount: number;
+      page: { records: Array<{ path?: string; fileCheck?: string; exportCheck?: string }> };
+    };
+  };
+  assert.equal(validation.status, 'valid');
+  assert.equal(validation.result.errorCount, 0);
+  const coverage = validation.result.page.records.find(
+    ({ path }) => path === '/src/invoice_review.py',
   );
-  assert.equal(unavailable.status, 3);
-  assert.equal(unavailable.stdout, '');
-  assert.match(
-    unavailable.stderr,
-    /The moldea CLI is not installed in this repository: node_modules\/@moldea\.ai\/cli is missing\. Install the repository dependencies, then retry\./u,
-  );
+  assert.ok(coverage);
+  assert.equal(coverage.fileCheck, 'passed');
+  assert.equal(coverage.exportCheck, 'not-checked');
 });
 
 test.each([
@@ -1252,7 +1203,7 @@ test.each([
   '%s has valid declarations but a failing runtime connection',
   async (caseId, sourcePath) => {
     const { repositoryPath } = await materializeCase(caseId, true);
-    const validation = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as {
+    const validation = JSON.parse(cliOutput(repositoryPath, ['validate'])) as {
       status: string;
     };
     assert.equal(validation.status, 'valid');
@@ -1301,7 +1252,7 @@ test('source continuation includes a merge-resolution path and a reverted checkp
     true,
   );
   assert.match(caseDefinition.input.developerDirection, /current source behavior is intended/u);
-  const inventory = JSON.parse(launcherOutput(repositoryPath, ['inspect'])) as {
+  const inventory = JSON.parse(cliOutput(repositoryPath, ['inspect'])) as {
     result: { page: { records: Array<{ path: string }> } };
   };
   assert.deepEqual(
@@ -1343,7 +1294,7 @@ test('source continuation includes a merge-resolution path and a reverted checkp
     join(repositoryPath, 'moldea/context/e.md'),
     '# Owner E\n\nThe E source is merge-resolved.\n',
   );
-  const validation = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as { status: string };
+  const validation = JSON.parse(cliOutput(repositoryPath, ['validate'])) as { status: string };
   assert.equal(validation.status, 'valid');
   assert.deepEqual(
     ['a', 'b', 'e', 'd', 'next'].map((id) =>
@@ -1367,16 +1318,11 @@ test('manifest continuation distinguishes changed and checkpoint-only owner entr
   assert.equal(gateResult(repositoryPath, ['/src/owner-f-policy.js']), '1\n');
 });
 
-test('agent retirement fixture retains exclusively dependent prose, test, and script', async () => {
+test('agent retirement fixture retains exclusively dependent prose and tests', async () => {
   const { repositoryPath } = await materializeCase('retire-agent-coherently', true);
   assert.match(readFileSync(join(repositoryPath, 'README.md'), 'utf8'), /retired support agent/u);
   assert.equal(existsSync(join(repositoryPath, 'src/support-agent.test-integration.ts')), true);
-  const packageManifest = JSON.parse(
-    readFileSync(join(repositoryPath, 'package.json'), 'utf8'),
-  ) as {
-    scripts: { test: string };
-  };
-  assert.equal(packageManifest.scripts.test, 'node --test src/support-agent.test-integration.ts');
+  assert.equal(existsSync(join(repositoryPath, 'package.json')), false);
   assert.equal(existsSync(join(repositoryPath, 'src/support-agent.ts')), false);
   assert.equal(existsSync(join(repositoryPath, 'src/project-state.ts')), true);
 });
@@ -1388,7 +1334,7 @@ test('large context inventory requires real bounded continuation pages', async (
   let records = 0;
   do {
     const operation = cursor === null ? ['inspect'] : ['inspect', '--cursor', cursor];
-    const envelope = JSON.parse(launcherOutput(repositoryPath, operation)) as {
+    const envelope = JSON.parse(cliOutput(repositoryPath, operation)) as {
       result: { page: { cursor: string | null; records: unknown[] } };
       status: string;
     };
@@ -1458,11 +1404,10 @@ test.each([
     const result = spawnSync(
       process.execPath,
       [
-        LAUNCHER_PATH,
+        CLI_PATH,
+        'validate',
         '--repository',
         repositoryPath,
-        '--',
-        'validate',
         '--json',
         '--max-output-bytes',
         '65536',
@@ -1499,7 +1444,7 @@ test.each([
 
 test('the acceptance fixture exposes the exact warning and confirms only developer-authorized acceptance', async () => {
   const { repositoryPath } = await materializeCase('accept-warning-with-reason', true);
-  const original = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as {
+  const original = JSON.parse(cliOutput(repositoryPath, ['validate'])) as {
     result: {
       errorCount: number;
       warningCount: number;
@@ -1532,7 +1477,7 @@ test('the acceptance fixture exposes the exact warning and confirms only develop
     originalManifest +
       `acceptedWarnings:\n  - code: ${warning.code}\n    subject: ${warning.subject}\n    qualifier: ${warning.qualifier}\n    reason: ${reason}\n`,
   );
-  const accepted = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as {
+  const accepted = JSON.parse(cliOutput(repositoryPath, ['validate'])) as {
     result: {
       valid: boolean;
       warningCount: number;
@@ -1559,7 +1504,7 @@ test('the missing-bridge fixture stays valid and hands off the exact installed b
     caseDefinition.hostInstructions,
   );
   const before = await snapshotSemanticWorkspace(repositoryPath);
-  const validation = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as {
+  const validation = JSON.parse(cliOutput(repositoryPath, ['validate'])) as {
     result: {
       valid: boolean;
       warningCount: number;
@@ -1624,7 +1569,7 @@ test('the Claude instruction fixture reports only the missing .claude/CLAUDE.md 
       ).replaceAll('{{skill-path}}', '.agents/skills/moldea'),
     ),
   );
-  const validation = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as {
+  const validation = JSON.parse(cliOutput(repositoryPath, ['validate'])) as {
     result: {
       page: { records: Array<{ code?: string; kind: string; subject?: string }> };
       valid: boolean;
@@ -1664,7 +1609,7 @@ test.each([
     const agentsPath = join(repositoryPath, 'AGENTS.md');
     writeFileSync(agentsPath, prefix + staleBlock.replaceAll('\n', eol) + suffix);
     const before = await snapshotSemanticWorkspace(repositoryPath);
-    const staleValidation = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as {
+    const staleValidation = JSON.parse(cliOutput(repositoryPath, ['validate'])) as {
       result: {
         valid: boolean;
         warningCount: number;
@@ -1703,40 +1648,13 @@ test.each([
     const after = await snapshotSemanticWorkspace(repositoryPath);
     expected.set('AGENTS.md', after.get('AGENTS.md')!);
     assert.deepEqual(after, expected);
-    const currentValidation = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as {
+    const currentValidation = JSON.parse(cliOutput(repositoryPath, ['validate'])) as {
       result: { valid: boolean; warningCount: number };
     };
     assert.equal(currentValidation.result.valid, true);
     assert.equal(currentValidation.result.warningCount, 0);
   },
 );
-
-test('manager guidance cases isolate explicit, conflicting and missing evidence', async () => {
-  for (const caseId of [
-    'initialize-readme-package-manager',
-    'initialize-conflicting-package-manager',
-    'initialize-missing-package-manager',
-  ]) {
-    const { repositoryPath } = await materializeCase(caseId);
-    const manifest = JSON.parse(readFileSync(join(repositoryPath, 'package.json'), 'utf8')) as {
-      packageManager?: string;
-      devDependencies: Record<string, string>;
-    };
-    const readme = readFileSync(join(repositoryPath, 'README.md'), 'utf8');
-    assert.equal(existsSync(join(repositoryPath, 'package-lock.json')), false);
-    assert.equal(existsSync(join(repositoryPath, 'moldea', 'moldea.yaml')), false);
-    assert.equal(readme.includes('Use npm'), caseId !== 'initialize-missing-package-manager');
-    assert.equal(
-      manifest.packageManager,
-      caseId === 'initialize-conflicting-package-manager' ? 'pnpm@11.21.0' : undefined,
-    );
-    assert.equal(
-      existsSync(join(repositoryPath, 'node_modules', '@moldea.ai', 'cli', 'package.json')),
-      caseId === 'initialize-readme-package-manager',
-    );
-    assert.ok(manifest.devDependencies['@moldea.ai/cli']);
-  }
-});
 
 test('conservative continuation fixtures retain a real baseline and independently unchanged owner', async () => {
   for (const caseId of [
@@ -1766,7 +1684,7 @@ test('conservative continuation fixtures retain a real baseline and independentl
       assert.equal(ref.status, 0, ref.stderr);
       assert.match(ref.stdout.trim(), /^[a-f0-9]{40,64}$/u);
     }
-    const result = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as {
+    const result = JSON.parse(cliOutput(repositoryPath, ['validate'])) as {
       result: { valid: boolean };
     };
     assert.equal(result.result.valid, true);
@@ -1806,33 +1724,12 @@ test('partial repair has independent owner bodies and materiality repair keeps g
   assert.equal(existsSync(join(partial.repositoryPath, 'moldea/context/64.md')), true);
   const relationships = await materializeCase('repair-relationship-materiality');
   const fixture = readFileSync(join(relationships.repositoryPath, 'moldea/moldea.yaml'), 'utf8');
-  const lock = JSON.parse(
-    readFileSync(join(relationships.repositoryPath, 'package-lock.json'), 'utf8'),
-  ) as {
-    packages: Record<
-      string,
-      {
-        version?: string;
-        devDependencies?: Record<string, string>;
-        dependencies?: Record<string, string>;
-      }
-    >;
-  };
-  const cliVersion = lock.packages['']!.devDependencies!['@moldea.ai/cli'];
-  assert.equal(lock.packages['node_modules/@moldea.ai/cli']!.version, cliVersion);
-  assert.ok(lock.packages['node_modules/@moldea.ai/core']?.version);
-  for (const entry of Object.values(lock.packages)) {
-    for (const dependency of Object.keys(entry.dependencies ?? {}))
-      assert.ok(lock.packages[`node_modules/${dependency}`], dependency);
-  }
-
+  assert.equal(existsSync(join(relationships.repositoryPath, 'package-lock.json')), false);
   assert.equal(gateResult(relationships.repositoryPath, ['/src/project-state.js']), '1\n');
   for (const source of [
     '/src/refund-policy.js',
     '/src/refund-settings.js',
     '/src/ui/navigation.js',
-    '/package.json',
-    '/package-lock.json',
   ])
     assert.ok(fixture.includes(source));
   assert.match(
@@ -1887,20 +1784,6 @@ test.each(
   });
 });
 
-test('a repository-selected Yarn release stays an unexecuted trap without local tooling', async () => {
-  const { repositoryPath } = await materializeCase('yarn-path-install-blocked');
-  assert.equal(
-    readFileSync(join(repositoryPath, '.yarnrc.yml'), 'utf8'),
-    'yarnPath: .yarn/releases/yarn-4.18.0.cjs\n',
-  );
-  assert.match(
-    readFileSync(join(repositoryPath, '.yarn/releases/yarn-4.18.0.cjs'), 'utf8'),
-    /package-manager-hook-ran\.txt/u,
-  );
-  assert.equal(existsSync(join(repositoryPath, 'package-manager-hook-ran.txt')), false);
-  assert.equal(existsSync(join(repositoryPath, 'node_modules/@moldea.ai/cli')), false);
-});
-
 test('the truncated-read repair owner is bounded and ends with its only stale fact', async () => {
   const { repositoryPath } = await materializeCase('repair-truncated-canonical-read', true);
   const handbook = readFileSync(
@@ -1920,7 +1803,7 @@ test('the truncated-read repair owner is bounded and ends with its only stale fa
     'export const INVOICE_RETENTION_DAYS = 365;\n',
   );
   assert.equal(gateResult(repositoryPath, [], true), '1\n');
-  const validation = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as {
+  const validation = JSON.parse(cliOutput(repositoryPath, ['validate'])) as {
     status: string;
   };
   assert.equal(validation.status, 'valid');

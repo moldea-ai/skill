@@ -371,7 +371,6 @@ test.each([false, true])(
         const output = await runCodexEvaluationHost({
           command: HOST_COMMAND,
           cwd: repositoryPath,
-          includeWorkspaceBinaryDirectory: true,
           prompt: 'deterministic Git attribution test',
           readOnlyMounts: withToolsOverlay ? readOnlyMounts : [],
           readOnlyWorkspacePaths,
@@ -400,7 +399,7 @@ test.each([false, true])(
 
       for (const [command, usesGit] of [
         [
-          `node ${scripts}/moldea-cli.mjs --repository /mnt -- validate --json --max-output-bytes 65536`,
+          `node ${scripts}/moldea-cli/moldea.mjs validate --repository /mnt --json --max-output-bytes 65536`,
           true,
         ],
         [`node ${scripts}/managed-agents.mjs --repository /mnt`, true],
@@ -709,21 +708,11 @@ test('Bubblewrap supports private response checkpoints without changing reposito
   try {
     mkdirSync(repositoryPath);
     await prepareEmptyCodexEvaluationHome(sandboxHome, evaluationRoot);
-    for (const name of ['response-directory.mjs', 'repository-files.mjs']) {
-      writeFileSync(
-        join(repositoryPath, name),
-        readFileSync(join(process.cwd(), 'moldea', 'scripts', name)),
-      );
-    }
     const probe = `
       const assert = require('node:assert/strict');
-      const { spawnSync } = require('node:child_process');
-      const { writeFileSync, readFileSync, rmSync, readdirSync } = require('node:fs');
+      const { mkdtempSync, writeFileSync, readFileSync, rmSync, readdirSync } = require('node:fs');
       const { join } = require('node:path');
-      const result = spawnSync('node', ['/mnt/response-directory.mjs', '--repository', '/mnt'], { encoding: 'utf8' });
-      assert.equal(result.status, 0, result.stderr);
-      const directory = result.stdout.trim();
-      assert.match(directory, /^\\/tmp\\/moldea-response-/);
+      const directory = mkdtempSync('/tmp/moldea-checkpoint-');
       try {
         const checkpoint = join(directory, 'response.json');
         writeFileSync(checkpoint, '{"cursor":"next-page"}');
@@ -732,7 +721,7 @@ test('Bubblewrap supports private response checkpoints without changing reposito
         rmSync(directory, { recursive: true });
       }
       assert.deepEqual(readdirSync('/tmp'), []);
-      assert.deepEqual(readdirSync('/mnt').sort(), ['repository-files.mjs', 'response-directory.mjs']);
+      assert.deepEqual(readdirSync('/mnt'), []);
     `;
     const result = spawnSync(
       'bwrap',

@@ -5,8 +5,9 @@ import { defineSemanticCase } from '../define.ts';
 export const semanticCase = defineSemanticCase({
   id: 'skill-independent-followup',
   setup: createSemanticCaseSetup('skill-independent-followup'),
-  scenario: 'The same scope question follows only reusable reviewer-output formatting changes.',
-  operation: 'assess-independent-skill-scope',
+  scenario:
+    'A generic reviewer skill formatting question has no project-context impact, even in an adopted repository.',
+  operation: 'unrelated-skill-review',
   input: {
     developerDirection:
       'We are considering changes to skills/reddit-review/SKILL.md. The proposal says to group review notes by priority and include the relevant quotation with each note. Does this have a global impact or just that skill?',
@@ -26,24 +27,24 @@ export const semanticCase = defineSemanticCase({
     ],
   },
   resourceBudget: {
-    activation: 'direct',
+    activation: 'abstain',
     minimumMoldeaCommands: 0,
     maximumMoldeaCommands: 0,
     maximumMoldeaOutputBytes: 0,
   },
   expected: [
     {
-      label: 'preserve-artifact-only-scope',
+      label: 'answer-generic-skill-question',
       criterion:
-        'The actor answers that the proposal changes only the reviewer skill procedure, does not claim a change to project-wide editorial policy, and leaves all files unchanged. This criterion does not require unrecorded read-path proof.',
+        'The actor answers that grouping and quoting findings only changes the reviewer skill’s output. It keeps the answer focused on that question and leaves repository files unchanged.',
     },
   ],
   forbidden: [
     {
-      label: 'canonical-overreach',
+      label: 'activate-moldea-for-generic-skill-work',
       criterion:
-        'The actor invokes a moldea gate or CLI operation, reads canonical files or other moldea workflow references, appends a canonical status report, or changes files.',
+        'The actor runs a moldea CLI operation, reads canonical context or moldea workflow references, mentions moldea or adoption in the answer, or changes files. A silent relationship gate miss and host instruction loading do not establish activation.',
     },
   ],
-  coverageClaimIds: ['agent-and-skill-design', 'read-only-integrity'],
+  coverageClaimIds: ['activation-abstention', 'read-only-integrity'],
 });

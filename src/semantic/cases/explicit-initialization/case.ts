@@ -6,10 +6,11 @@ export const semanticCase = defineSemanticCase({
   id: 'explicit-initialization',
   setup: createSemanticCaseSetup('explicit-initialization'),
   scenario:
-    'A repository-local CLI is present but the repository has not adopted moldea, and the developer explicitly requests initialization.',
+    'The installed skill bundles the CLI and the repository has not adopted moldea, and the developer explicitly requests initialization.',
   operation: 'explicit-initialization',
   input: {
     developerDirection: 'Initialize moldea for this repository using the current project evidence.',
+    followUpDeveloperRequests: ['yes', 'Stop here.'],
     repositoryEvidence: [
       {
         claim: 'The repository contains a small TypeScript service with a documented purpose.',
@@ -40,7 +41,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'minimal-grounded-initialization',
       criterion:
-        'The actor creates the minimum grounded manifest, project document, and managed README block. Runner-owned evidence records a completed repository-local CLI validation, and the actor reports its result accurately. This fixture has no agents or model workflows: preserve application code, create no agent/runtime assets, and finish without an agent-inclusion question.',
+        'The actor creates the minimum grounded manifest, project document, and managed README block. Runner-owned evidence records a completed bundled CLI validation after the guided round, and the actor reports its result accurately. This fixture has no agents or model workflows: preserve application code, create no agent/runtime assets, and finish without an agent-inclusion question.',
     },
   ],
   forbidden: [

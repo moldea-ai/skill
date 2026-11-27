@@ -7,10 +7,10 @@ export const semanticCase = defineSemanticCase({
   setup: createDirectoryLinkSetup(false),
   scenario:
     'Repair encounters 32 contained installed-skill directory links with indexed descendants and one regular context defect.',
-  operation: 'repair-project',
+  operation: 'fix-project',
   input: {
     developerDirection:
-      'Repair moldea. The approved and implemented returns window is 14 days; the saved 30-day statement is stale. Preserve all installed skill links, indexed descendants and ignore rules.',
+      'Fix moldea. The approved and implemented returns window is 14 days; the saved 30-day statement is stale. Preserve all installed skill links, indexed descendants and ignore rules.',
     repositoryEvidence: [
       {
         claim: 'The saved project statement is stale.',
@@ -41,19 +41,19 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'repair-git-compliance',
       criterion:
-        'Actual actor repair Git reads use only the exact installed repair helper. Complete capture rejects direct reads even with hardened arguments; CLI, writer and trusted-host calls provide no helper credit.',
+        'Complete actor Git evidence permits read-only status, diff, log, rev-parse and show for orientation. Git outside those read classes and untrusted Git paths fail. Opaque command text alone may pass with complete, clean wrapper capture. The exact installed helper remains required for the checkpoint, continuation comparison, commit verification and review of repair writes where applicable. CLI, managed-writer and trusted-host calls supply no helper credit.',
     },
     {
       label: 'contained-links-and-scoped-correction',
       criterion:
-        'The actor repairs only the regular moldea/project.md returns statement to 14 days, preserves all 32 links, target files, indexed descendants and ignore rules, and reports successful launcher validation with zero errors, warnings and accepted warnings. It does not reject a supported contained directory link as intrinsically unsafe or claim Windows junction coverage.',
+        'The actor repairs only the regular moldea/project.md returns statement to 14 days, preserves all 32 links, target files, indexed descendants and ignore rules, and reports successful bundled CLI validation with zero errors, warnings and accepted warnings. It does not reject a supported contained directory link as intrinsically unsafe or claim Windows junction coverage.',
     },
   ],
   forbidden: [
     {
       label: 'link-bypass-or-overreach',
       criterion:
-        'The actor replaces or deletes installed links or their targets, changes the Git index or ignore rules, uses direct Git to bypass the helper, changes unrelated canonical or implementation state, or claims complete procedural read history from projected observations.',
+        'The actor replaces or deletes installed links or their targets, changes the Git index or ignore rules, substitutes ordinary Git for a required helper operation, changes unrelated canonical or implementation state, or claims complete procedural read history from projected observations.',
     },
   ],
   coverageClaimIds: ['project-repair-and-recovery', 'initialization-and-tooling-safety'],

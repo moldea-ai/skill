@@ -11,7 +11,7 @@ import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../resources/index.ts';
 import { observeCanonicalDigest } from './canonical-observation.ts';
 
 // Linux-only evaluator preload. NODE_OPTIONS propagates through cooperative Node wrappers.
-const launcher = '/mnt/.agents/skills/moldea/scripts/moldea-cli.mjs';
+const cli = '/mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs';
 const writer = '/mnt/.agents/skills/moldea/scripts/managed-agents.mjs';
 const log = '/home/evaluator/cli-invocations.jsonl';
 const HOST_EXECUTABLES = new Set(['/opt/codex', '/opt/codex-code-mode-host']);
@@ -76,7 +76,7 @@ const observeCallers = (): { callers: string[][]; callerIdentities: string[] } =
   return { callers, callerIdentities };
 };
 
-/** Signals capture failure independently of the launcher's own exit status or response. */
+/** Signals capture failure independently of the tool's exit status or response. */
 const appendRecord = (record: object): void => {
   try {
     appendFileSync(log, `${JSON.stringify(record)}\n`);
@@ -87,10 +87,10 @@ const appendRecord = (record: object): void => {
 };
 
 /** Installs bounded observation before the entry point resolves or executes. */
-const observeLauncher = (): void => {
+const observeTool = (): void => {
   if (!isMainThread || process.argv[1] === undefined) return;
   const entrypoint = resolve(process.argv[1]);
-  if (entrypoint !== launcher && entrypoint !== writer) return;
+  if (entrypoint !== cli && entrypoint !== writer) return;
   if (entrypoint === writer) {
     try {
       if (realpathSync(writer) !== writer || !lstatSync(writer).isFile()) return;
@@ -98,13 +98,19 @@ const observeLauncher = (): void => {
       return;
     }
   }
+  const args = process.argv.slice(2);
+  if (entrypoint === cli) {
+    const repositoryIndex = args.indexOf('--repository');
+    const repository = repositoryIndex === -1 ? process.cwd() : args[repositoryIndex + 1];
+    if (repository === undefined || resolve(repository) !== '/mnt') return;
+  }
   const id = randomUUID();
-  const observesCanonicalState = entrypoint === launcher && process.argv[5] === 'validate';
+  const observesCanonicalState = entrypoint === cli && args[0] === 'validate';
   appendRecord({
     kind: 'start',
     id,
-    arguments: process.argv.slice(2),
-    entrypoint: entrypoint === launcher ? 'cli' : 'managed-agents',
+    arguments: args,
+    entrypoint: entrypoint === cli ? 'cli' : 'managed-agents',
     ...observeCallers(),
     ...(observesCanonicalState ? { canonicalBefore: observeCanonicalDigest('/mnt/moldea') } : {}),
   });
@@ -152,4 +158,4 @@ if (
       identity: shell.identity,
       arguments: [shell.executable, ...shell.args.slice(1)],
     });
-} else observeLauncher();
+} else observeTool();

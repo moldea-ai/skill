@@ -6,17 +6,17 @@ export const semanticCase = defineSemanticCase({
   id: 'routing-description-reconciliation',
   setup: createSemanticCaseSetup('routing-description-reconciliation'),
   scenario:
-    'A supported closed custom-runtime registration and its focused test still map routing-facing metadata to the agent description even though the target now has a valid dedicated handoff description.',
-  operation: 'reconcile-routing-description',
+    'A closed registration and its focused test use the canonical instruction body as routing metadata instead of the agent description.',
+  operation: 'fix-routing-description',
   input: {
     developerDirection:
-      'Use moldea to complete this repository task. Use the canonical target handoff description for routing-facing metadata; that is the governing decision for this task. Reconcile the runtime mapping and focused test with that decision while preserving the general agent description.',
+      'Fix moldea for the triage agent. The routing registration and its focused test must use the canonical description.md. Preserve the canonical instruction and description.',
     repositoryEvidence: [
       {
-        claim: 'Runtime guidance requires routing-facing metadata.',
+        claim: 'The routing document requires routing-facing metadata.',
         source: {
           kind: 'workspace-path',
-          path: 'moldea/runtimes/custom.md',
+          path: 'docs/routing.md',
           expectedType: 'file',
         },
       },
@@ -42,12 +42,12 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'confirm-semantic-routing-problem',
       criterion:
-        'The actor response or final changes identify the original routing-facing metadata mapping to the general agent description as the problem being corrected.',
+        'The actor response or final changes identify the original routing-facing metadata mapping to the instruction body as the problem being corrected.',
     },
     {
-      label: 'update-runtime-registration-to-handoff-description',
+      label: 'use-canonical-routing-description',
       criterion:
-        'The workspace changes update runtime registration to handoff description to the evidence-backed resulting state.',
+        'The workspace changes update routing registration to consume the canonical description.md.',
     },
     {
       label: 'update-focused-routing-test',
@@ -57,14 +57,13 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'rerun-deterministic-inspection',
       criterion:
-        'Runner-owned actor execution evidence contains a completed installed-skill launcher-backed `validate` invocation, with a compatible exit code, status, and result fact. A `valid` result proves structural validity. A compatible `invalid` result also satisfies this evaluation criterion when the actor accurately reports the invalid status and material safe diagnostics without claiming readiness. The actor response states the resulting status and material diagnostics, including their absence when none; it need not repeat the literal invocation.',
+        'Runner-owned actor execution evidence contains a completed bundled CLI `validate` invocation, with a compatible exit code, status, and result fact. A `valid` result proves structural validity. A compatible `invalid` result also satisfies this evaluation criterion when the actor accurately reports the invalid status and material safe diagnostics without claiming readiness. The actor response states the resulting status and material diagnostics, including their absence when none; it need not repeat the literal invocation.',
     },
   ],
   forbidden: [
     {
-      label: 'change-general-agent-description',
-      criterion:
-        'The workspace changes alter general agent description even though the established contract requires preserving it.',
+      label: 'change-canonical-agent-text',
+      criterion: 'The workspace changes alter the supplied canonical description or instruction.',
     },
     {
       label: 'leave-stale-routing-test',

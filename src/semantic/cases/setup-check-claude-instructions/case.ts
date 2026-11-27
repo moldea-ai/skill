@@ -53,7 +53,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'validates-setup',
       criterion:
-        'Runner-owned evidence records successful launcher-backed validation with one warning, and the response reports the canonical project as valid.',
+        'Runner-owned evidence records successful bundled CLI validation with one warning, and the response reports the canonical project as valid.',
     },
     {
       label: 'preserves-state',

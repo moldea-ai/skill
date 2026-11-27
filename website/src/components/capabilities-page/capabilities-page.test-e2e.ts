@@ -20,7 +20,7 @@ test('presents all six capabilities as distinct visual outcomes', async ({ page 
   await expect(page.locator('[data-conversation]')).toHaveCount(6);
   await expect(page.locator('[data-capability-load]')).toHaveCount(0);
   await expect(page.getByText('Illustrative conversations.', { exact: false })).toBeVisible();
-  await expect(page.locator('#evaluate-and-repair [data-repair-visual]')).toBeVisible();
+  await expect(page.locator('#check-and-fix [data-repair-visual]')).toBeVisible();
   await expect(
     page.getByRole('navigation', { name: 'Primary navigation' }).locator('a[aria-current="page"]'),
   ).toHaveText('Capabilities');
@@ -31,7 +31,7 @@ test('presents all six capabilities as distinct visual outcomes', async ({ page 
     'Build an agent from real project boundaries.',
     'Package a repeatable workflow, not just a prompt.',
     'Change one rule. Follow every connection.',
-    'Inspect first. Repair only when asked.',
+    'Check the evidence. Fix established drift.',
   ]) {
     await expect(page.getByRole('heading', { level: 2, name: heading })).toBeVisible();
   }
@@ -45,10 +45,10 @@ test('presents all six capabilities as distinct visual outcomes', async ({ page 
   await expect(page.locator('[data-maintenance-visual] [data-code-copy-button]')).toHaveCount(0);
   await expect(page.getByText('Fix moldea.', { exact: true }).locator('code')).toHaveCount(0);
   await expect(page.getByText('Planning is read-only.', { exact: true })).toBeVisible();
-  await page.getByText('How evaluation, repair, and validation differ', { exact: true }).click();
-  await expect(
-    page.getByText('Repair uses established project evidence', { exact: false }),
-  ).toContainText('reports any checks it could not complete');
+  await page.getByText('How Check, Fix, and Validate differ', { exact: true }).click();
+  await expect(page.getByText('Fix corrects established drift', { exact: false })).toContainText(
+    'stops for your input',
+  );
   await expect(page.getByRole('list', { name: 'Saved project files' })).toContainText('refunds.md');
   await expect(page.getByRole('list', { name: 'Release review skill files' })).toContainText(
     'verify.mjs',
@@ -58,9 +58,9 @@ test('presents all six capabilities as distinct visual outcomes', async ({ page 
     'href',
     withBase('/examples/plan-an-agent-system/', basePath),
   );
-  await expect(page.getByRole('link', { name: 'Repair and evaluation guide' })).toHaveAttribute(
+  await expect(page.getByRole('link', { name: 'Check and fix guide' })).toHaveAttribute(
     'href',
-    withBase('/docs/evaluate-reconcile-validate/#repair-a-project', basePath),
+    withBase('/docs/check-fix-validate/#fix-a-project', basePath),
   );
 
   await expect(page.locator('h1 code')).toHaveCount(0);

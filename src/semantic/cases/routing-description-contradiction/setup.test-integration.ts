@@ -48,11 +48,10 @@ test('correct description wiring remains structurally valid while its authority 
     const validation = spawnSync(
       process.execPath,
       [
-        join(repositoryPath, '.agents/skills/moldea/scripts/moldea-cli.mjs'),
+        join(repositoryPath, '.agents/skills/moldea/scripts/moldea-cli/moldea.mjs'),
+        'validate',
         '--repository',
         repositoryPath,
-        '--',
-        'validate',
         '--json',
         '--max-output-bytes',
         '65536',
@@ -74,7 +73,7 @@ test('correct description wiring remains structurally valid while its authority 
   }
 });
 
-test.each(['routing-description-contradiction', 'routing-description-fallback'])(
+test.each(['routing-description-contradiction', 'routing-description-consumers'])(
   '%s reads canonical content on the host and through the production Git wrapper',
   async (id) => {
     const root = await mkdtemp(join(tmpdir(), 'moldea-content-'));
@@ -110,11 +109,10 @@ test.each(['routing-description-contradiction', 'routing-description-fallback'])
           const result = spawnSync(
             process.execPath,
             [
-              join(repositoryPath, '.agents/skills/moldea/scripts/moldea-cli.mjs'),
+              join(repositoryPath, '.agents/skills/moldea/scripts/moldea-cli/moldea.mjs'),
+              'content',
               '--repository',
               repositoryPath,
-              '--',
-              'content',
               '--path',
               asset,
               '--json',
@@ -137,7 +135,7 @@ test.each(['routing-description-contradiction', 'routing-description-fallback'])
       await chmod(companion, 0o755);
       await writeFile(
         codex,
-        `#!/opt/node\nimport { spawnSync } from 'node:child_process';\nprocess.env.MOLDEA_EVAL_MODEL_COMMAND = '1';\nconst results = ${JSON.stringify(paths)}.map(path => {\n const result = spawnSync('/bin/bash', ['-lc', 'exec node "$@"', 'moldea-content', '/mnt/.agents/skills/moldea/scripts/moldea-cli.mjs', '--repository', '/mnt', '--', 'content', '--path', path, '--json', '--max-output-bytes', '65536'], { encoding: 'utf8', timeout: 10000, maxBuffer: 65536 });\n return { environment: 'sandbox', path, status: result.status, stdout: result.stdout, stderr: result.stderr };\n});\nprocess.stdout.write(JSON.stringify(results) + '\\n');\n`,
+        `#!/opt/node\nimport { spawnSync } from 'node:child_process';\nprocess.env.MOLDEA_EVAL_MODEL_COMMAND = '1';\nconst results = ${JSON.stringify(paths)}.map(path => {\n const result = spawnSync('/bin/bash', ['-lc', 'exec node "$@"', 'moldea-content', '/mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs', 'content', '--repository', '/mnt', '--path', path, '--json', '--max-output-bytes', '65536'], { encoding: 'utf8', timeout: 10000, maxBuffer: 65536 });\n return { environment: 'sandbox', path, status: result.status, stdout: result.stdout, stderr: result.stderr };\n});\nprocess.stdout.write(JSON.stringify(results) + '\\n');\n`,
       );
       await chmod(codex, 0o755);
       const output = await runCodexEvaluationHost({
@@ -193,7 +191,7 @@ test.each(['routing-description-contradiction', 'routing-description-fallback'])
         if (result.status === 0) {
           const response = z
             .object({
-              schemaVersion: z.literal(7),
+              schemaVersion: z.literal(8),
               error: z.null(),
               status: z.literal('valid'),
               result: z.object({ chunk: z.object({ content: z.string() }) }),

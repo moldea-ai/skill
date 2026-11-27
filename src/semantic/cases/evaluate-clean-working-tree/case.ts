@@ -5,11 +5,11 @@ import { defineSemanticCase } from '../define.ts';
 export const semanticCase = defineSemanticCase({
   id: 'evaluate-clean-working-tree',
   setup: createSemanticCaseSetup('evaluate-clean-working-tree'),
-  scenario: 'Evaluate has no explicit scope, HEAD exists, and the working tree is clean.',
+  scenario: 'A clean adopted project is checked against its project-state implementation.',
   operation: 'evaluate',
   input: {
     developerDirection:
-      'Use moldea to complete this repository task. Evaluate the current project.',
+      'Check moldea against src/project-state.js. Report whether the project context and that implementation agree.',
     repositoryEvidence: [
       {
         claim: 'HEAD exists.',

@@ -27,7 +27,7 @@ import CodingAgentCompatibility from '../coding-agent-compatibility/coding-agent
 import GettingStartedSimulation from '../getting-started-simulation/getting-started-simulation.astro';
 import RepositoryFormat from '../repository-format/repository-format.astro';
 import RecordedJourneys from '../recorded-journeys/recorded-journeys.astro';
-import RuntimeGuidance from '../runtime-guidance/runtime-guidance.astro';
+import SdkGuidance from '../sdk-guidance/sdk-guidance.astro';
 import WhyMoldea from '../why-moldea/why-moldea.astro';
 import VideoPreview from '../video-preview/video-preview.astro';
 import BaseLayout from '../../layouts/base-layout.astro';
@@ -56,7 +56,7 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
 
 <BaseLayout
   title="Use and maintain project context"
-  description="Use saved project rules and decisions in coding-agent planning and development. Keep context, runtime agents, and reusable skills aligned with moldea."
+  description="Map durable project context in guided rounds, then use it to plan product behavior, update code and connect project agents."
 >
   <section
     class="relative overflow-hidden border-b border-border bg-background"
@@ -205,7 +205,7 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
     </div>
   </section>
 
-  <RuntimeGuidance />
+  <SdkGuidance />
 
   <RepositoryFormat />
 

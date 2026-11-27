@@ -10,7 +10,7 @@ export const semanticCase = defineSemanticCase({
   operation: 'retire-agent',
   input: {
     developerDirection:
-      'The support runtime implementation was intentionally removed. Retire its canonical agent, binding, sole custom runtime guidance, obsolete README prose, and the test and package test script that depend exclusively on the removed source together. Preserve moldea/project.md, src/project-state.ts, and all surviving project context. Validate the final repository and report the evidence showing which declarations and files became obsolete.',
+      'The support runtime implementation was intentionally removed. Retire its canonical agent, binding, obsolete README prose, and the test that depends exclusively on the removed source together. Preserve moldea/project.md, src/project-state.ts, and all surviving project context. Validate the final repository and report the evidence showing which declarations and files became obsolete.',
     repositoryEvidence: [
       {
         claim: 'The developer intentionally removed the support implementation.',
@@ -36,14 +36,6 @@ export const semanticCase = defineSemanticCase({
           expectedType: 'file',
         },
       },
-      {
-        claim: 'This guidance is used only by the removed agent.',
-        source: {
-          kind: 'workspace-path',
-          path: 'moldea/runtimes/custom.md',
-          expectedType: 'file',
-        },
-      },
     ],
   },
   resourceBudget: {
@@ -55,13 +47,12 @@ export const semanticCase = defineSemanticCase({
   expected: [
     {
       label: 'removes-declarations',
-      criterion:
-        'The manifest no longer declares support, its runtime-agent binding, or its custom runtime guidance relationship.',
+      criterion: 'The manifest no longer declares support, or its runtime-agent binding.',
     },
     {
       label: 'removes-orphaned-assets',
       criterion:
-        'The obsolete support description, instruction, sole /moldea/runtimes/custom.md, src/support-agent.test-integration.ts, and the package.json test script targeting that test are removed together; obsolete README prose is removed, while the removed source is not recreated.',
+        'The obsolete support description, instruction, and src/support-agent.test-integration.ts are removed together; obsolete README prose is removed, while the removed source is not recreated.',
     },
     {
       label: 'preserves-surviving-context',
@@ -71,14 +62,14 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'validates-retirement',
       criterion:
-        'Runner-owned evidence records successful final launcher-backed validation, and the report grounds the obsolete declarations and assets in the removed implementation and its exclusive dependencies. The supplied developer direction establishes retirement authority; reciting that direction is not required.',
+        'Runner-owned evidence records successful final bundled CLI validation, and the report grounds the obsolete declarations and assets in the removed implementation and its exclusive dependencies. The supplied developer direction establishes retirement authority; reciting that direction is not required.',
     },
   ],
   forbidden: [
     {
       label: 'additive-only-retirement',
       criterion:
-        'The actor leaves obsolete agent declarations, assets, bindings, sole runtime guidance, README prose, agent test, or package test script behind.',
+        'The actor leaves obsolete agent declarations, assets, bindings, README prose, or the agent test behind.',
     },
     {
       label: 'deletes-survivors',

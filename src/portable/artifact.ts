@@ -10,7 +10,7 @@ import { parseStableVersion } from '../release/index.ts';
 
 const NORMALIZED_RELEASE_VERSION = '<release-version>';
 const SKILL_FRONTMATTER_PATTERN = /^---\n([\s\S]*?)\n---\n/u;
-const LOCAL_TOOLING_RELEASE_PATTERN = /^Skill ([0-9]+\.[0-9]+\.[0-9]+) supports Git /gmu;
+const VALIDATION_RELEASE_PATTERN = /^Skill ([0-9]+\.[0-9]+\.[0-9]+) supports Git /gmu;
 const SkillFrontmatterSchema = z.object({
   metadata: z.object({ version: z.string() }),
 });
@@ -104,12 +104,12 @@ const normalizeSkillSource = (source: string): { releaseVersion: string; source:
   return { releaseVersion, source: normalizedMetadata };
 };
 
-const normalizeLocalToolingSource = (source: string, expectedVersion: string): string =>
+const normalizeValidationSource = (source: string, expectedVersion: string): string =>
   replaceSingleReleaseSentence(
     source,
-    LOCAL_TOOLING_RELEASE_PATTERN,
+    VALIDATION_RELEASE_PATTERN,
     expectedVersion,
-    'moldea/references/local-tooling.md',
+    'moldea/references/validating.md',
   );
 
 /** Hashes every distributed skill path and byte without normalization. */
@@ -123,10 +123,10 @@ export const createPortableSkillBehaviorDigest = (repositoryRoot: string): strin
   const portableSkillRoot = join(repositoryRoot, 'moldea');
   const paths = collectPortableSkillPaths(portableSkillRoot);
   const skillPath = join(portableSkillRoot, 'SKILL.md');
-  const localToolingPath = join(portableSkillRoot, 'references', 'local-tooling.md');
+  const validationPath = join(portableSkillRoot, 'references', 'validating.md');
   const normalizedSkill = normalizeSkillSource(readFileSync(skillPath, 'utf8'));
-  const normalizedLocalTooling = normalizeLocalToolingSource(
-    readFileSync(localToolingPath, 'utf8'),
+  const normalizedValidation = normalizeValidationSource(
+    readFileSync(validationPath, 'utf8'),
     normalizedSkill.releaseVersion,
   );
   const hash = createHash('sha256');
@@ -136,8 +136,8 @@ export const createPortableSkillBehaviorDigest = (repositoryRoot: string): strin
     const content =
       absolutePath === skillPath
         ? Buffer.from(normalizedSkill.source)
-        : absolutePath === localToolingPath
-          ? Buffer.from(normalizedLocalTooling)
+        : absolutePath === validationPath
+          ? Buffer.from(normalizedValidation)
           : readFileSync(absolutePath);
     hash.update(relativePath);
     hash.update('\0');

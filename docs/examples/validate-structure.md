@@ -32,8 +32,8 @@ The mirror must match the canonical instruction after text normalization. These 
 ## Coding agent and `moldea` under the hood
 
 1. The coding agent selects read-only validation.
-2. It checks repository-root-local package identity, containment, and supported installed versions through the installed skill’s closed launcher.
-3. It runs the launcher’s bounded `validate` operation. The launcher owns the child-process resource limits and invokes the verified executable directly.
+2. It selects the repository-local installed skill and its bundled CLI.
+3. It runs the bundled CLI’s bounded `validate` operation directly with Node.
 4. It validates the current release’s schema identity, CLI version, command, status, payload, diagnostic totals, and exit-code consistency before reading diagnostics.
 5. It treats `status: invalid` as completed deterministic evidence and an operational or resource-limit failure as an incomplete operation.
 6. It reports the diagnostic without editing the mirror or claiming semantic alignment.
@@ -57,4 +57,4 @@ Coverage names each file or export check performed. It never establishes runtime
 
 Ask the coding agent to fix a warning, or explicitly accept a supported warning with your own reason. The agent never chooses acceptance. If AGENTS.md is protected, repair renders the installed block with `managed-agents.mjs --print` and hands it off for a separate instruction update. Acceptance is offered for an integration warning only when its file is shared and tracked by Git; accepting a warning about `CLAUDE.local.md` or an ignored file would report `MOLDEA_ACCEPTANCE_UNMATCHED` on every other checkout. Remove an obsolete acceptance after fixing its cause, then validate again.
 
-To authorize a repair, the developer can later request reconciliation or a focused write-capable correction. A valid result still does not prove semantic alignment or production readiness.
+Ask for Fix when you want the coding agent to correct an established discrepancy. A valid result establishes structural validity. Semantic alignment and production readiness require their own evidence.

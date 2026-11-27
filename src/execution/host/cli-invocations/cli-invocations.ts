@@ -13,7 +13,7 @@ import {
   type ICliCommandInstance,
 } from './types.ts';
 
-// closed launcher operations shared by capture and grading
+// closed bundled CLI operations shared by capture and grading
 export const MOLDEA_CLI_OPERATIONS = [
   'composition',
   'content',
@@ -22,21 +22,28 @@ export const MOLDEA_CLI_OPERATIONS = [
   'validate',
 ] as const;
 
-/** Recognizes the five closed launcher operations shared by capture and grading. */
+/** Recognizes the five bundled CLI operations shared by capture and grading. */
 export const isMoldeaCliOperation = (input: unknown): input is IMoldeaCliOperation =>
   MOLDEA_CLI_OPERATIONS.some((operation) => operation === input);
 
-/** Identifies the operation from observed launcher argv for the exact sandbox repository. */
+/** Identifies the operation from observed bundled CLI argv for the sandbox repository. */
 export const identifyCliInvocationOperation = (
   argumentsList: readonly string[],
 ): IMoldeaCliOperation | null => {
-  const [flag, repository, separator, operation] = argumentsList;
-  return flag === '--repository' &&
-    typeof repository === 'string' &&
+  const [operation, ...options] = argumentsList;
+  if (
+    !isMoldeaCliOperation(operation) ||
+    options.some((option) => option.startsWith('--repository='))
+  ) {
+    return null;
+  }
+  const repositoryIndex = options.indexOf('--repository');
+  if (repositoryIndex === -1) return operation;
+  const repository = options[repositoryIndex + 1];
+  return options.lastIndexOf('--repository') === repositoryIndex &&
+    repository !== undefined &&
     repository !== '' &&
-    posix.resolve('/mnt', repository) === '/mnt' &&
-    separator === '--' &&
-    isMoldeaCliOperation(operation)
+    posix.resolve('/mnt', repository) === '/mnt'
     ? operation
     : null;
 };
@@ -44,7 +51,7 @@ export const identifyCliInvocationOperation = (
 /**
  * Reads bounded startup/exit pairs in invocation order, without accepting incomplete capture.
  * @param path The runner-owned temporary log outside the repository.
- * @returns The ordered launcher invocations for content-free projection.
+ * @returns The ordered CLI invocations for content-free projection.
  * @throws If the capture is unreadable, oversized, malformed or incomplete.
  */
 export const readCliInvocationCapture = async (
@@ -137,7 +144,7 @@ export const readCliInvocationCapture = async (
       }
     }
     if (starts.size !== exits.size)
-      throw new Error('CLI invocation capture has an unfinished launcher.');
+      throw new Error('CLI invocation capture has an unfinished invocation.');
     const capture = CliInvocationEventSchema.parse({
       type: 'moldea.cli-invocations',
       commandInstances: [...commandInstances.values()],
@@ -163,7 +170,7 @@ export const readCliInvocationCapture = async (
 
 /**
  * Reads the existing ordered-invocation API without exposing private command-instance metadata.
- * @returns Complete bounded launcher invocations.
+ * @returns Complete bounded CLI invocations.
  * @throws If capture cannot be read and validated by readCliInvocationCapture.
  */
 export const readCliInvocations = async (path: string): Promise<ICliInvocation[]> =>

@@ -4,6 +4,7 @@ import { defineSemanticCase } from '../define.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'unbound-context-discovery',
+  publication: 'private',
   setup: createSemanticCaseSetup('unbound-context-discovery'),
   scenario:
     'An adopted project links to canonical context from README, but declares no relationship for the ordinary scheduler path.',

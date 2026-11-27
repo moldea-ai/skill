@@ -6,7 +6,7 @@ export const semanticCase = defineSemanticCase({
   setup: createInitializationOnboardingSetup('confirmation'),
   id: 'initialize-onboarding-confirmation',
   scenario:
-    'An existing project has an agent, an inline model workflow, architecture/policy docs, an active ADR and an Agent Skill; initialization must pause for the single application-code confirmation.',
+    'An existing project has an agent, an inline model workflow, architecture/policy docs, an active ADR and an Agent Skill; initialization pauses with its agent-registration confirmation in the first guided round.',
   operation: 'initialize',
   input: {
     developerDirection: 'Initialize moldea',
@@ -92,7 +92,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'one-confirmation-before-application-changes',
       criterion:
-        'The actor asks one inclusion confirmation that identifies both existing model responsibilities by name or unambiguous invocation path before changing application source or tests. It preserves the grounded foundation while awaiting the answer and identifies registration and final validation as pending. No application code, canonical agent registration or final initialization validate is completed before the response.',
+        'Round 1 contains one numbered inclusion item within at most five questions that identifies both existing model responsibilities by name or unambiguous invocation path before changing application source or tests. It preserves the grounded foundation while awaiting the answer and identifies registration and final validation as pending. No application code, canonical agent registration or final initialization validate is completed before the response.',
     },
     {
       label: 'honest-pending-initialization',

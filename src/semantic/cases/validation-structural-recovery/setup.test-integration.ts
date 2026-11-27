@@ -29,11 +29,10 @@ test('structural recovery produces a real missing-path diagnostic before one sco
       spawnSync(
         process.execPath,
         [
-          join(repositoryPath, '.agents/skills/moldea/scripts/moldea-cli.mjs'),
+          join(repositoryPath, '.agents/skills/moldea/scripts/moldea-cli/moldea.mjs'),
+          'validate',
           '--repository',
           repositoryPath,
-          '--',
-          'validate',
           '--json',
           '--max-output-bytes',
           '65536',

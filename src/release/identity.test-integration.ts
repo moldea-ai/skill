@@ -13,7 +13,7 @@ const repository = path.resolve(import.meta.dirname, '../..');
 test('the pinned distribution and manifest scope identify one release', () => {
   const release = assertReleaseIdentity(repository);
   expect(release).toMatchObject({
-    releaseVersion: '11.0.2',
+    releaseVersion: '11.0.3',
     cliVersion: '15.0.1',
     cliJsonSchemaVersion: 9,
     coreVersion: '10.0.1',

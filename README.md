@@ -10,7 +10,7 @@ Adopted projects keep their foundation in `/moldea/**`. Add focused context, dec
 
 [Get moldea on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or read the complete documentation at [skill.moldea.ai](https://skill.moldea.ai).
 
-This checkout contains `moldea` `11.0.2`. Install the latest published version from `main` inside each repository that will use it:
+This checkout contains `moldea` `11.0.3`. Install the latest published version from `main` inside each repository that will use it:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -19,7 +19,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the immutable release after publication:
 
 ```bash
-npx skills add "moldea-ai/skill#v11.0.2"
+npx skills add "moldea-ai/skill#v11.0.3"
 ```
 
 Both commands install the portable skill named `moldea`. The skill ships its CLI, runs with Node in the Git worktree, and requires no hosted account. See the [Setup reference](docs/getting-started.md) for initialization, updates, and removal.

@@ -24,7 +24,7 @@
     "yaml": "2.9.0",
     "zod": "4.3.6"
   },
-  "version": "11.0.2",
+  "version": "11.0.3",
   "name": "@moldea.ai/skill-conformance",
   "private": true,
   "description": "Development-only conformance checks for the moldea Agent Skill.",

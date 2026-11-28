@@ -4,7 +4,7 @@ Use for an explicit structural Validate or when the selected operation needs CLI
 
 ## Supported contract
 
-Skill 11.0.2 supports Git `>=2.32.0`, Node.js `>=22.17.0`, repository format 1, and CLI JSON schema 9. The skill ships its CLI and requires no package manifest or dependency install in the adopted repository.
+Skill 11.0.3 supports Git `>=2.32.0`, Node.js `>=22.17.0`, repository format 1, and CLI JSON schema 9. The skill ships its CLI and requires no package manifest or dependency install in the adopted repository.
 
 ## Run the requested check
 

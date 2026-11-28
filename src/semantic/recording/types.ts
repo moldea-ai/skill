@@ -65,7 +65,7 @@ export interface ISemanticRecordedTrial {
   operationalRetries: ISemanticOperationalRetryState;
   stageIdentities: {
     actorSha256: string;
-    judgeSha256: string;
+    judgeSha256: string | null;
   };
   trial: ISemanticAttemptTrialModel;
   workspaceChanges: ISemanticWorkspaceChanges;
@@ -97,6 +97,7 @@ export interface ISemanticCandidateCheckpoint {
   coverageDigest: string;
   createdAt: string;
   judgeHost: ICodexEvaluationHostIdentity;
+  maxPublicFailures?: number;
   mode: ISemanticEvaluationMode;
   schemaVersion: 4;
   selectedCaseIds: string[];

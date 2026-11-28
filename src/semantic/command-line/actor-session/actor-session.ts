@@ -8,6 +8,7 @@ import {
   runCodexEvaluationHost,
   type ICodexEvaluationHostRunOptions,
 } from '../../../execution/host/index.ts';
+import type { ISemanticWorkspaceVerifier } from '../../cases/index.ts';
 import {
   parseSemanticEvaluationHostOutput,
   type ISemanticHostOutput,
@@ -63,6 +64,7 @@ export const runSemanticActorSession = async (options: {
   cli: { version: string; jsonSchemaVersion: number };
   invoke: (operation: () => Promise<ISemanticHostOutput>) => Promise<ISemanticHostOutput>;
   persistCycle: (cycle: ISemanticCycleEvidence) => Promise<void>;
+  verifyWorkspace?: ISemanticWorkspaceVerifier;
 }): Promise<ISemanticCycleEvidence[]> => {
   if (options.requests.length === 0 || options.requests.some((request) => request.trim() === '')) {
     throw new Error('Actor session requires nonempty authored developer requests.');
@@ -130,6 +132,14 @@ export const runSemanticActorSession = async (options: {
     const isUnchanged = (index: number): boolean =>
       JSON.stringify([...(integrityBefore[index] ?? [])]) ===
       JSON.stringify([...(integrityAfter[index] ?? [])]);
+    const snapshot = await snapshotSemanticWorkspace(options.host.cwd);
+    const workspaceChanges = diffSemanticWorkspaceSnapshots(before, snapshot);
+    const workspaceChecks = options.verifyWorkspace?.({
+      repositoryPath: options.host.cwd,
+      requestIndex,
+      snapshot,
+      workspaceChanges,
+    });
     const cycle: ISemanticCycleEvidence = {
       ...evidence,
       developerRequest,
@@ -138,10 +148,8 @@ export const runSemanticActorSession = async (options: {
         ({ isGit }, index) => isGit || isUnchanged(index),
       ),
       isRepositoryControlPassing: isUnchanged(0),
-      workspaceChanges: diffSemanticWorkspaceSnapshots(
-        before,
-        await snapshotSemanticWorkspace(options.host.cwd),
-      ),
+      workspaceChanges,
+      ...(workspaceChecks === undefined ? {} : { workspaceChecks }),
     };
     await options.persistCycle(cycle);
     cycles.push(cycle);

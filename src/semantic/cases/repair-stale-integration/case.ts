@@ -9,11 +9,8 @@ export const semanticCase = defineSemanticCase({
     'A managed region differs from the installed template behind a contained AGENTS.md link with host instructions in BOM/CRLF text.',
   operation: 'fix-setup-integration',
   input: {
-    developerDirection:
-      'Fix moldea, including the stale managed AGENTS.md integration. Preserve its link to config/agent-notes.md, every byte outside the managed region and unrelated files.',
-    followUpDeveloperRequests: [
-      'Fix moldea again. Preserve the healthy integration and existing AGENTS.md link; make no unnecessary changes.',
-    ],
+    developerDirection: 'fix moldea',
+    followUpDeveloperRequests: ['fix moldea'],
     repositoryEvidence: [
       {
         claim: 'AGENTS.md is a contained relative link to the tracked instruction target.',

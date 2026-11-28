@@ -40,8 +40,16 @@ const stepLinks = [
 ] as const;
 // the sections an explicit repair reports, with illustrative values
 const repairReport = [
-  { term: 'Checked', detail: 'Project routing, refund policy, and its enforcement paths' },
-  { term: 'Fixed', detail: 'Policy record linked and AGENTS.md managed block refreshed' },
+  {
+    term: 'Checked',
+    detail:
+      'Cohesive project foundation (0 declarations) and refund owner (2 declarations). Kept 1 for refund eligibility, removed 1, unchecked 0.',
+  },
+  {
+    term: 'Fixed',
+    detail:
+      'Removed /docs/refund-approval.md because it is a human approval record. The refund owner links to it.',
+  },
   { term: 'Verified', detail: 'Structural validation passed' },
   { term: 'Needs input', detail: 'None' },
   { term: 'Not checked', detail: 'None' },
@@ -410,7 +418,8 @@ const bandLinkClass =
           </h2>
           <p class="mt-5 leading-8 text-muted-foreground">
             Say <code class="inline-code">Fix moldea</code> routinely and after large changes. The agent
-            checks who owns each area, adds missing relationships, and explains why it removes paths.
+            assesses whether each owner is cohesive and accounts for every path it checked or still needs
+            to check.
           </p>
           <p class="mt-4 text-sm leading-7 text-muted-foreground">
             The agent asks before reorganizing context and checks the managed block in
@@ -445,9 +454,9 @@ const bandLinkClass =
           <SkillConversation ariaLabel="Developer and coding agent repair conversation">
             <p slot="request">Fix moldea.</p>
             <p slot="response">
-              I linked the refund approval record in the refund policy and removed its impact path.
-              It records the approval. The refund code enforces the policy. I also refreshed the
-              managed block and validated the result.
+              Fix complete. I checked the project foundation and the refund owner. The refund rule
+              is in its canonical owner, which links to the approval record. The refund code
+              enforces the rule.
             </p>
             <dl
               class="grid gap-3 rounded-xl border border-border bg-background p-4 text-sm"

@@ -30,10 +30,11 @@ export const semanticCase = defineSemanticCase({
         },
       },
       {
-        claim: 'docs/operations-policy.md owns the Legal approval rule for retention exceptions.',
+        claim:
+          'The focused retention context owns the Legal approval rule for retention exceptions.',
         source: {
           kind: 'workspace-path',
-          path: 'docs/operations-policy.md',
+          path: 'moldea/context/retention.md',
           expectedType: 'file',
         },
       },
@@ -64,7 +65,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'avoid-duplicate-current-truth',
       criterion:
-        'The operations context remains the sole owner of escalation authority, and project.md continues routing to it without copying its rule. Legal approval remains in the linked policy document, which the workspace leaves unchanged. The manifest retains the escalation enforcement path.',
+        'The operations context remains the sole owner of escalation authority, and project.md routes to it without copying its rule. The linked canonical retention owner still carries the Legal approval rule and the human desk guide stays unchanged. The manifest retains the escalation enforcement path.',
     },
     {
       label: 'preserve-unrelated-context',

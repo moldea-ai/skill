@@ -29,6 +29,12 @@ The actor and judge run in isolated homes on Linux. Related repositories and eva
 
 Public evidence contains structured outcomes, observed skill operations, workspace changes, and usage summaries. Private event and Git sidecars retain bounded, redacted diagnostics for triage under `.evidence/private-semantic/`. A resume requires complete capture and matching inputs. Keep these sidecars with the private attempt and its charge ledger.
 
+The runner counts Git attempts blocked before execution when their private records establish the ledger rejection. Those attempts supply no proof that Git ran. An unexplained capture mismatch records an evaluator error for that trial and leaves it eligible for normal confirmation. Recorded usage and unresolved reservations remain in the charge ledger. Other cases continue under the same admission limits.
+
+The judge receives bounded descriptions of recognized Node assertions that the runner observed, with their verdicts. An unsupported, skipped, or ambiguous assertion establishes no behavior. The judge also sees observed bundled helper results from compound commands, with each child's own exit status. Raw command text, output, and process identities stay in private capture.
+
+Cases compare each turn's workspace and Git controls independently of the actor's report. Case-owned workspace checks can verify specific outcomes from the actual files. The Fix convergence case also checks that the final workspace is byte-identical and runs the bundled relevance gate and Scope against a guide-only path and a governed edition source.
+
 ### Resource accounting
 
 The ordinary profile counts bundled CLI calls, bundled helper calls, and reads and writes under `moldea/`. The large-traversal profile also counts other source reads toward its host command and visible output limits. The aggregate skill output limit is 512 KiB for the ordinary profile and 1 MiB for large traversal. Case-specific CLI budgets track calls and output from the bundled CLI.
@@ -65,6 +71,8 @@ Set each attempt's `--token-limit` to a positive integer within the 128,000,000-
 An active attempt stores its candidate identity, completed trials, in-flight stages, and paid charges in `.evidence/semantic/checkpoint.json`. Run the matching command to resume with the same inputs, selection, worker count, and token limit. Preserve the checkpoint and charges if its inputs cannot be verified or changed. An exhausted model-call retry uses `--resume-stopped-stage` for one additional call with explicit authorization.
 
 When an official attempt stops at token admission, retain its checkpoint and leave the candidate untagged. After developer authorization, ordinary `--record` can resume the same input with a higher attempt total inside both limits. The new total includes charges in its checkpoint. Subtract only charges for other attempts when allocating it. If the remaining allowance cannot cover the work, retain the checkpoint and report the shortfall.
+
+Use `--record --max-public-failures 8` to stop admitting paid stages on the ninth distinct terminal public failure. Confirmation-eligible failures count only once their case reaches a failing quorum. A completed failure counts even while its result waits for an earlier case in the commit order. Calls already running can finish and their charges stay in the checkpoint. The failure limit is part of the attempt identity and the stopped checkpoint refuses further stages on resume.
 
 ## Compose selected results
 

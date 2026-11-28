@@ -13,8 +13,11 @@ test('the public projection includes every eligible case and omits the private c
   const publicIds = model.groups.flatMap(({ cases }) => cases.map(({ id }) => id)).sort();
   expect(model.caseCount).toBe(eligible.length);
   expect(publicIds).toStrictEqual(eligible.map(({ id }) => id).sort());
-  expect(publicIds).not.toContain('exact-binding-relevance');
-  for (const id of ['read-only-git-helper-suppression', 'repair-stale-integration']) {
+  for (const id of [
+    'exact-binding-relevance',
+    'read-only-git-helper-suppression',
+    'repair-stale-integration',
+  ]) {
     expect(publicIds).toContain(id);
   }
 });

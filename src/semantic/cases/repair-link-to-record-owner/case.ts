@@ -9,8 +9,7 @@ export const semanticCase = defineSemanticCase({
     'Refund context repeats an approval owned by an authoritative record and lists the record as an impact path.',
   operation: 'fix-context-authority',
   input: {
-    developerDirection:
-      'Fix moldea in the refund processing area. docs/records/refund-review.md owns the approval fact. Preserve the independent operating rule and keep the approval discoverable.',
+    developerDirection: 'Fix moldea for refund processing.',
     repositoryEvidence: [
       {
         claim: 'The refund owner states a processing rule and repeats the approval.',
@@ -46,7 +45,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'retain-enforcement-and-validate',
       criterion:
-        'The manifest keeps the payment rule relationship and removes the record path. The response explains that the record supplies authority rather than enforcing a rule. Runner-owned evidence includes completed, successful bundled Validate.',
+        'Record a cohesive verdict for the named refund owner. Reconcile 1 kept for payment-method enforcement, 1 removed, and 0 unchecked against 2 starting declarations. Name /docs/records/refund-review.md and the reason for removing it. The manifest keeps the payment relationship and removes the record. Runner-owned evidence includes completed, successful bundled Validate.',
     },
   ],
   forbidden: [

@@ -18,7 +18,7 @@ The manifest starts with `version: 1`. The project entry point describes purpose
 
 ## Focused context and decisions
 
-Use one focused owner under `/moldea/context/` per product area, policy domain or subsystem. Each owner holds the facts and relationships for that area. Record governing decisions separately under `/moldea/decisions/` when their rationale and consequences matter. Link to facts owned by established documents.
+Use one focused owner under `/moldea/context/` per product area, policy domain or subsystem. Each owner holds the facts, governing rules and relationships for that area. Record governing decisions separately under `/moldea/decisions/` when their rationale and consequences matter. Link human documentation from the owner for supporting detail.
 
 ## Agents and connections
 
@@ -28,6 +28,6 @@ Repository-native Agent Skills stay in their authoritative directories. A real c
 
 ## Context ownership and compression
 
-A file binding can name an ESM export. An `affectedBy` path identifies a file or coherent subtree to review against an owner's facts or rules. Prefer the enforcement point, and relate the source of a directly governed deliverable such as a post or report. Both declarations help select relevant owners. A match may end with the context confirmed and no edit needed.
+A file binding can name an ESM export. An `affectedBy` path connects an owner to the code or configuration implementing its facts or enforcing its rules, a project-owned model-facing asset, or the authoritative source of a directly governed deliverable. Both declarations help select relevant owners. A match may end with the context confirmed and no edit needed.
 
 The coding agent proposes a focused owner and route for an uncovered area. Check and Fix surface mixed responsibilities, misplaced facts and missing routes. After you approve a restructure, Maintain keeps the facts intact and updates routes, relationships and consumers together. See the [repository format](/docs/repository-format/) for examples.

@@ -102,13 +102,19 @@ export const readCliInvocationCapture = async (
       }
       if (record.kind === 'start') {
         if (starts.has(record.id)) throw new Error('CLI invocation startup is duplicated.');
-        // every other active start was already marked when it joined an overlapping interval
-        const activeId = activeIds.values().next().value;
-        if (activeId !== undefined) {
-          overlappingIds.add(activeId);
-          overlappingIds.add(record.id);
+        // Only canonical operations participate in existing CLI overlap proof.
+        if (
+          record.entrypoint === undefined ||
+          record.entrypoint === 'cli' ||
+          record.entrypoint === 'managed-agents'
+        ) {
+          const activeId = activeIds.values().next().value;
+          if (activeId !== undefined) {
+            overlappingIds.add(activeId);
+            overlappingIds.add(record.id);
+          }
+          activeIds.add(record.id);
         }
-        activeIds.add(record.id);
         if (
           record.callerIdentities !== undefined &&
           record.callerIdentities.length !== record.callers?.length
@@ -138,6 +144,9 @@ export const readCliInvocationCapture = async (
           exitCode: record.exitCode,
           stdout: record.stdout,
           outputByteCount: record.outputByteCount,
+          ...(record.assertionObservation === undefined
+            ? {}
+            : { assertionObservation: record.assertionObservation }),
           ...(record.canonicalAfter === undefined ? {} : { canonicalAfter: record.canonicalAfter }),
         });
         activeIds.delete(record.id);

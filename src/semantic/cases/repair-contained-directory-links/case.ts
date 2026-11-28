@@ -9,8 +9,7 @@ export const semanticCase = defineSemanticCase({
     'Repair encounters 32 contained installed-skill directory links with indexed descendants and one regular context defect.',
   operation: 'fix-project',
   input: {
-    developerDirection:
-      'Fix moldea. The approved and implemented returns window is 14 days; the saved 30-day statement is stale. Preserve all installed skill links, indexed descendants and ignore rules.',
+    developerDirection: 'Fix moldea. The approved returns window is 14 days.',
     repositoryEvidence: [
       {
         claim: 'The saved project statement is stale.',

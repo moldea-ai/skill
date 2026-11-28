@@ -22,6 +22,7 @@ describe('semantic evaluation argument parsing', () => {
       isRestartRequested: false,
       isResumeStoppedStageRequested: false,
       isVerifyAttemptsRequested: false,
+      maxPublicFailures: null,
       recordCaseIds: null,
       requestedCaseId: undefined,
       tokenLimit: null,
@@ -46,6 +47,29 @@ describe('semantic evaluation argument parsing', () => {
     expect(() => parseSemanticEvaluationArguments(['--record', '--all'])).toThrow(
       /Diagnostic selectors require|accepts only/u,
     );
+  });
+
+  test('accepts an opt-in terminal public failure limit on an official recording', () => {
+    expect(
+      parseSemanticEvaluationArguments([
+        '--record',
+        '--workers',
+        '4',
+        '--max-public-failures',
+        '8',
+      ]),
+    ).toMatchObject({ maxPublicFailures: 8, workerCount: 4 });
+    expect(
+      parseSemanticEvaluationArguments(['--record', '--max-public-failures', '0']),
+    ).toMatchObject({ maxPublicFailures: 0 });
+    for (const value of ['-1', '1.5', '1e2', '9007199254740992']) {
+      expect(() =>
+        parseSemanticEvaluationArguments(['--record', `--max-public-failures=${value}`]),
+      ).toThrow(/--max-public-failures must be a non-negative safe integer/u);
+    }
+    expect(() =>
+      parseSemanticEvaluationArguments(['--diagnose-batch', '--all', '--max-public-failures', '8']),
+    ).toThrow(/--max-public-failures requires --record/u);
   });
 
   test('keeps one targeted case diagnostic-only', () => {

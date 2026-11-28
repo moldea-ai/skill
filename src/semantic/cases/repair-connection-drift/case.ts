@@ -9,8 +9,7 @@ export const semanticCase = defineSemanticCase({
     'A declared support agent passes structural validation but loads the wrong instruction file.',
   operation: 'fix-connection',
   input: {
-    developerDirection:
-      'Fix moldea in this repository. Inspect every owner and check the support-agent connection. Correct established drift and run the existing project test.',
+    developerDirection: 'fix moldea',
     repositoryEvidence: [
       {
         claim: 'The support agent is declared.',

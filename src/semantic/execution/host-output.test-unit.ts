@@ -7,6 +7,45 @@ const EMPTY_CLI_CAPTURE = { type: 'moldea.cli-invocations', invocations: [] };
 
 const OPTIONS = { cliVersion: '9.0.0', jsonSchemaVersion: 5 } as const;
 
+test('requires host evidence for every Git ledger rejection marker', () => {
+  const stream = (blockedInvocationCount: number) =>
+    [
+      {
+        type: 'item.completed',
+        item: {
+          type: 'command_execution',
+          command: 'git --version',
+          exit_code: 3,
+          status: 'failed',
+          aggregated_output: 'MOLDEA_GIT_CAPTURE_FAILED\nMOLDEA_GIT_CAPTURE_FAILED\n',
+        },
+      },
+      { type: 'item.completed', item: { type: 'agent_message', text: 'Git was blocked.' } },
+      EMPTY_CLI_CAPTURE,
+      {
+        type: 'moldea.git-invocations',
+        blockedInvocationCount,
+        evidence: {
+          invocationCount: 2,
+          hostInvocationCount: 0,
+          repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+        },
+      },
+    ]
+      .map((event) => JSON.stringify(event))
+      .join('\n');
+
+  expect(parseSemanticEvaluationHostOutput(stream(2), OPTIONS).gitInvocationEvidence).toMatchObject(
+    {
+      invocationCount: 2,
+      repair: { compliantCount: 0 },
+    },
+  );
+  expect(() => parseSemanticEvaluationHostOutput(stream(1), OPTIONS)).toThrow(
+    expect.objectContaining({ kind: 'evidence-integrity' }),
+  );
+});
+
 test('projects each wrapped writer result without inflating host-command counts', () => {
   const script = 'run the writer twice';
   const args = ['--repository', '/mnt'];
@@ -287,7 +326,10 @@ test('does not treat a failed wrapper capture as an empty successful log', () =>
     .map((event) => JSON.stringify(event))
     .join('\n');
   expect(() => parseSemanticEvaluationHostOutput(stream, OPTIONS)).toThrow(
-    'capture failed during actor execution',
+    expect.objectContaining({
+      kind: 'evidence-integrity',
+      message: 'Git invocation evidence is incomplete.',
+    }),
   );
 });
 

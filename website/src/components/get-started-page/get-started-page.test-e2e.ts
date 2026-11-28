@@ -156,6 +156,12 @@ test('walks through the requirements and four setup steps in order', async ({ pa
     'Needs input',
     'Not checked',
   ]);
+  const repairReport = fix.locator('[data-repair-report]');
+  await expect(repairReport).toContainText('refund owner (2 declarations)');
+  await expect(repairReport).toContainText(
+    'Kept 1 for refund eligibility, removed 1, unchecked 0.',
+  );
+  await expect(repairReport).toContainText('/docs/refund-approval.md');
   await expect(fix.getByRole('link', { name: 'Check and fix guide' })).toHaveAttribute(
     'href',
     toPublicPath('/docs/check-fix-validate/#fix-a-project'),

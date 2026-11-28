@@ -1,6 +1,7 @@
 import { hashValue } from 'jg-crypto';
 
 import {
+  identifyCapturedHelper,
   hasValidRepairGitCommandEvidence,
   identifyCliInvocationOperation,
   identifyManagedAgentsInvocationMode,
@@ -33,6 +34,7 @@ import type {
   ISemanticActorExecutionOutputEvidence,
   ISemanticActorExecutionOutputFact,
 } from './types.ts';
+import { hasValidNodeAssertionFact, projectNodeAssertion } from './node-assertion-evidence.ts';
 
 type ICommandCompletedStatus = ISemanticActorExecutionEvidence['item']['status'];
 type IMoldeaStatus = Extract<
@@ -139,7 +141,10 @@ const isOutputDisposition = (input: unknown): input is IOutputDisposition =>
 const isCommandKind = (
   input: unknown,
 ): input is ISemanticActorExecutionEvidence['item']['commandKind'] =>
-  input === 'managed-agents' || input === 'moldea' || input === 'other';
+  input === 'captured-child' ||
+  input === 'managed-agents' ||
+  input === 'moldea' ||
+  input === 'other';
 
 const hasValidProjectionOptions = (
   options: unknown,
@@ -764,6 +769,8 @@ const hasValidOutputEvidence = (
   if (disposition === 'unrecognized') {
     return byteCount > 0 && facts.length === 0;
   }
+  if (commandKind === 'captured-child' && facts.length === 1 && hasValidNodeAssertionFact(facts[0]))
+    return true;
   return (
     byteCount > 0 &&
     facts.length === 1 &&
@@ -840,6 +847,7 @@ const hasValidEntry = (
  * @param options The accepted release CLI identity.
  * @param recognizeCliFromCommand Whether transcript-only callers may infer CLI use from command text.
  * @param recognizeManagedAgentsFromCommand Whether transcript-only callers may infer writer use.
+ * @param recognizeOtherHelpersFromCommand Whether this record alone supplies helper evidence.
  * @returns Content-free evidence, or null for another event kind.
  * @throws If the command evidence or release identity is invalid.
  */
@@ -848,6 +856,7 @@ export const projectActorExecutionEvidenceEvent = (
   options: ISemanticActorExecutionEvidenceOptions,
   recognizeCliFromCommand = true,
   recognizeManagedAgentsFromCommand = true,
+  recognizeOtherHelpersFromCommand = true,
 ): ISemanticActorExecutionEvidence | null => {
   if (!hasValidProjectionOptions(options)) {
     throw new Error('Actor execution evidence requires a valid release CLI identity.');
@@ -873,9 +882,15 @@ export const projectActorExecutionEvidenceEvent = (
     throw new Error('A completed Codex command event did not include its result evidence.');
   }
   const operation = recognizeCliFromCommand ? identifyMoldeaCliLauncherOperation(command) : null;
-  const gateMode = operation === null ? identifyMoldeaRelevanceGateMode(command) : null;
+  const gateMode =
+    operation === null && recognizeOtherHelpersFromCommand
+      ? identifyMoldeaRelevanceGateMode(command)
+      : null;
   const isManagedReadmeWriter =
-    operation === null && gateMode === null && isMoldeaManagedReadmeWriterCommand(command);
+    recognizeOtherHelpersFromCommand &&
+    operation === null &&
+    gateMode === null &&
+    isMoldeaManagedReadmeWriterCommand(command);
   const agentsMode =
     recognizeManagedAgentsFromCommand &&
     operation === null &&
@@ -899,7 +914,7 @@ export const projectActorExecutionEvidenceEvent = (
         gateMode,
         isManagedReadmeWriter,
         agentsMode,
-        identifyMoldeaRepairGitMode(command),
+        recognizeOtherHelpersFromCommand ? identifyMoldeaRepairGitMode(command) : null,
         exitCode,
         options,
         testKinds,
@@ -912,6 +927,61 @@ export const projectActorExecutionEvidenceEvent = (
     throw new Error('A Codex actor execution evidence item has an unsupported shape.');
   }
   return entry;
+};
+
+/** Projects a matched helper or eval child with its own exit status and bounded output. */
+export const projectCapturedChildEvidence = (
+  invocation: ICliInvocation,
+  options: ISemanticActorExecutionEvidenceOptions,
+  isPlaced = true,
+): ISemanticActorExecutionEvidence | null => {
+  const { exitCode, outputByteCount: byteCount } = invocation;
+  const helper = identifyCapturedHelper(invocation);
+  let outputEvidence: ISemanticActorExecutionOutputEvidence;
+  if (invocation.entrypoint === 'node-eval') {
+    outputEvidence =
+      byteCount > MAX_OTHER_OUTPUT_BYTES
+        ? { byteCount, disposition: 'too-large', facts: [] }
+        : {
+            byteCount,
+            disposition: 'projected',
+            facts: [
+              isPlaced
+                ? projectNodeAssertion(invocation)
+                : { kind: 'node-assertion', status: 'ambiguous' },
+            ],
+          };
+  } else {
+    if (helper === null || !isPlaced) return null;
+    outputEvidence = createOutputEvidence(
+      invocation.stdout,
+      null,
+      helper.kind === 'relevance-gate' ? helper.mode : null,
+      helper.kind === 'managed-readme',
+      null,
+      helper.kind === 'repair-git' ? helper.mode : null,
+      exitCode,
+      options,
+      null,
+    );
+    if (byteCount > MAX_OTHER_OUTPUT_BYTES) {
+      outputEvidence = { byteCount, disposition: 'too-large', facts: [] };
+    } else if (byteCount !== outputEvidence.byteCount) {
+      outputEvidence = { byteCount, disposition: 'unrecognized', facts: [] };
+    }
+  }
+  const entry: ISemanticActorExecutionEvidence = {
+    eventType: 'item.completed',
+    item: {
+      type: 'command_execution',
+      commandKind: 'captured-child',
+      status: exitCode === 0 ? 'completed' : 'failed',
+      exitCode,
+      repairGit: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+      outputEvidence,
+    },
+  };
+  return hasValidEntry(entry, options) ? entry : null;
 };
 
 /**

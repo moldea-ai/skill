@@ -14,11 +14,11 @@ export const prepareRefundRecord: ISemanticCaseSetup = async (context) => {
     ],
     [
       'moldea/context/refunds.md',
-      '# Refund processing\n\nRefunds go back to the original payment method. Finance approved a $250 threshold for manual refund review.\n',
+      '# Refund processing\n\nRefunds go back to the original payment method. Finance signed off on the January refund rehearsal. See [the approval record](/docs/records/refund-review.md).\n',
     ],
     [
       'docs/records/refund-review.md',
-      '# Approved manual refund review\n\nThis is the authority for the approval. Finance approved a $250 threshold for manual refund review.\n',
+      '# January refund rehearsal approval\n\nThe finance lead signed off on the January refund rehearsal. This record documents that completed decision.\n',
     ],
     [
       'src/refunds/payment.js',

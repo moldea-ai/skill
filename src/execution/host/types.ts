@@ -4,6 +4,7 @@ export type ICodexEvaluationOperationalFailureCategory =
 
 export type ICodexEvaluationHostFailureKind =
   | 'aborted'
+  | 'evidence-integrity'
   | 'execution-failed'
   | 'output-limit'
   | 'proxy-unavailable'

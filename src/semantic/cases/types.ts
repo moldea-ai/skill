@@ -1,3 +1,5 @@
+import type { ISemanticWorkspaceChanges, ISemanticWorkspaceSnapshot } from '../workspace/index.ts';
+
 export type ISemanticCriterion = {
   criterion: string;
   label: string;
@@ -84,7 +86,20 @@ export type ISemanticCaseSetup = (
   context: ISemanticCaseSetupContext,
 ) => Promise<ISemanticCaseSetupResult | void>;
 
+export interface ISemanticWorkspaceCheck {
+  id: string;
+  passed: boolean;
+}
+
+export type ISemanticWorkspaceVerifier = (input: {
+  repositoryPath: string;
+  requestIndex: number;
+  snapshot: ISemanticWorkspaceSnapshot;
+  workspaceChanges: ISemanticWorkspaceChanges;
+}) => ISemanticWorkspaceCheck[];
+
 export type ISemanticCase = ISemanticCaseDefinition & {
   coverageClaimIds: string[];
   setup?: ISemanticCaseSetup;
+  verifyWorkspace?: ISemanticWorkspaceVerifier;
 };

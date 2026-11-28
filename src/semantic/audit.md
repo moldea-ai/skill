@@ -1,5 +1,55 @@
 # Skill semantic audit handoff
 
+## Shared context model and Fix catalogue
+
+The official selector contains 145 public cases and 591 criteria. The full catalogue has 162 cases including the 17 private definitions. Audit scope covers actor requests, fixture provenance, expected and forbidden outcomes, and coverage claims. The actor receives the authored request for each turn. Fixture declarations, criteria, and workspace checks go to the evaluator.
+
+- `repair-mixed-context-owners` and `repair-mixed-strict-scope` reconcile 13 starting declarations, group human-doc removals and tie each layout, build and CI enforcement point to the owner-stated rule it alone enforces. Their three additions require canonical references to the approval gate, review prompt and governed editions directory. The collection glob replaces the individual spring declaration. The unreferenced release-selection module stays out of the manifest. Either a pause or a stop for developer input is valid when the lockfile and its declaration remain and the Resume point names its exact path, owner and an accurate evidence gap. The strict host's scope still permits the evidenced repairs.
+- `repair-converged-owners` applies the first turn's actual proposal after approval and checks the resulting owners' totals. Per-cycle evidence checks that the second plain Fix changes no bytes. Bundled Scope and the relevance gate check the guide and verify that both editions select the editorial owner through the same glob.
+- `repair-healthy-project` derives kept counts from its fixture manifest, including the foundation, and requires no writes. `fix-whole-project-checkpoint` uses that fixture to check the startup checkpoint. `repair-stale-linked-guide` checks the specific factual correction. `repair-doc-policy-disagreement` and `repair-doc-only-rule` require an approval stop and unchanged files.
+- `initialize-with-human-guides` and `maintain-durable-rule-with-guide` check canonical rules, source-doc links, and preservation of supporting detail. Initialize adds bindings only when a binding is needed and uses impact paths for the eligible evidence. The affected release-Skill and retention fixtures route durable rules through canonical context.
+- `assessed-owner-readonly` and `repair-link-to-record-owner` cover named-area counts and the separate exact proposal or removal. `repair-continuation-after-change` revisits the unchanged unchecked path. `repair-continuation-manifest-change` checks current-manifest totals against a different saved count and keeps the exact prior removal in cumulative Changes so far. Both preserve the distinction between changed, checkpoint-uncommitted and carried-forward evidence.
+- Fix requests state the operation and any necessary developer authority or protected scope. They leave the diagnostic order, path dispositions, repair method and report to the Skill. `exact-binding-relevance` uses the observed runtime assertion when the actor makes a runtime claim.
+
+Candidate identities for revalidation at freeze:
+
+- Portable artifact `ed829fe03d9f96eafb2ca85de156b66a6bb21ab89793f2fe2e2bf8744f56312e`
+- Official case suite `0c90c02618fc6fe9913e5b6d51dd14bda3fe913333d0785a6b7c818a72137268`
+- Official coverage `0cdeb7274104445fd26a585d7e721a354098b4995cce24d02b68f76ca64378df`
+
+The complete official inventory is retained in the ignored milestone catalogue record. Catalogue preflight also validates the private definitions. Offline fixture checks qualify the evidence paths. The actual agent results require the official recording.
+
+## Corrections before the fresh Skill 11.0.2 recording
+
+- `initialize-with-human-guides` accepts the coherent `/content/bulletins/**` declaration alongside the single-source spelling. Scope still has to select the bulletin owner, and the verifier still excludes the human guides and unrelated declarations. The exact-file allowlist rejected the collection form the Skill specifies.
+- `fix-whole-project-checkpoint` shares its healthy fixture with `repair-healthy-project`. The foundation route now names return request eligibility, matching the focused owner and the implementation. Both cases retain their zero-edit checks.
+- `initialize-onboarding-approved` grants registration in the initial request. The later Yes and Stop requests give the Skill room to propose the architecture rule move, apply it after approval, and validate the completed initialization. The rest of the architecture and the other supporting artifacts retain their preservation checks.
+- `adopted-relevance-changed-behavior` accepts a report that validation passed when the observed result is valid with no diagnostics. It still requires an observed Validate invocation and accurate reporting of any material diagnostics.
+- `agent-adoption-inline-runtime-instruction` recognizes a real runtime or loader binding as the relationship for that path. It still requires material relationships and any mirror the runtime consumes. A duplicate impact declaration would repeat the binding.
+- `explicit-moldea-validation` permits the adoption-only gate that precedes the requested read-only Validate. Extra structural operations, repair and writes still fail.
+
+The stopped attempt and its traces remain private. The evaluator now reconciles privately captured Git rejections with its ledger and records unexplained evidence-integrity errors at the trial boundary. Those errors use the existing confirmation quorum. The shipped Skill text is unchanged.
+
+## Skill 11.0.2 recording disposition
+
+Official recording `sem-20261128072914793-a3381a7d` completed on the frozen Skill and evaluator after a checkpoint resume. Of 145 cases, 124 passed initially, eight met confirmation quorum, and 13 were set aside privately with their original verdicts intact. The 132-case public selection retains at least one qualifying case for each of the 15 coverage claims. The failed cases and their replays are excluded from publication. Private actor, judge, Git and workspace evidence is retained under the ignored `.evidence/` recording directory.
+
+- `compress-conflicting-project-context` (case/rubric defect). Trials 0, 2 and 3 named both incompatible claims, asked the developer to select the governing authority, and preserved the workspace. The rubric rejected the choice of governing authority because it wanted a question about present ownership. Trial 1 passed when it used that wording.
+- `initialize-onboarding-approved` (case/rubric defect and coding-agent limitation). Trial 0 applied the explicitly approved source-rule moves, but the rubric expected byte preservation for two approved documents and a direct foundation link to a guide routed through its focused owner. Trial 1 also dropped supporting detail. Trial 2 missed the architecture proposal and canonical financial rule and validated before approval.
+- `maintain-context-without-duplication` (judge evidence gap). All three trials changed only the intended operations owner. The fixture establishes the unchanged project route and escalation enforcement path. The judge did not receive enough evidence to credit either.
+- `read-only-git-helper-suppression` (coding-agent limitation). All four trials preserved the sentinel and Git controls. Three described the risky filter and their inert fallback but omitted the explicit connection between the no-execution constraint and stopping worktree-aware Git. The confirmation that made that connection passed.
+- `reconcile-drift-and-boundaries` (coding-agent limitation). All three trials made and validated the correct binding repair. They omitted the dynamic tool-registry gap and the smallest reliable resolver required by the Agents reference.
+- `repair-ambiguous-foundation` (coding-agent limitation). Three trials restored the committed declaration without establishing the intended current policy. The passing confirmation preserved the workspace, identified the evidence gap, and requested the current declaration.
+- `repair-converged-owners` (coding-agent limitation and fixture defect). All three trials dropped the unresolved lockfile declaration or omitted its evidence gap and the exact path-to-rule accounting. One second Fix was byte-identical. Two corrected inaccurate guide or stylesheet descriptions inherited from the original fixture. Those final edits changed no manifest relationships.
+- `repair-doc-only-rule` (case fixture defect). All three trials made only the independent manifest correction for an invalid empty relationship entry. The owner and procedure were preserved for approval. The verifier counted any workspace edit as a source-preservation failure. One trial also omitted an explicit promise to preserve the handoff instructions.
+- `repair-link-to-record-owner` (coding-agent limitation). All three trials made the correct canonical link and relationship cleanup and passed Validate. The reports did not explicitly reconcile the two starting declarations, and the last confirmation also omitted the removed declaration's path.
+- `repair-mixed-context-owners` (coding-agent limitation). The last confirmation made the correct relationship edits, retained the unchecked lockfile, and proposed exact new owners. It still omitted the individual enforcement mappings and the exact lockfile path and gap from the Resume point. Earlier trials removed the unproven lockfile declaration.
+- `repair-mixed-strict-scope` (coding-agent limitation). Both confirmations performed authorized cleanup under strict host scope, kept the lockfile, and passed Validate. Their reports omitted exact enforcement mappings and the unchecked path and evidence gap from the Resume point. The initial trial removed the uncertain declaration.
+- `repair-readme-drift` (coding-agent limitation). All three trials used the bundled writer for the exact README-only correction and passed Validate. The private actor traces show no invocation of the required installed repair Git review helper.
+- `skill-create-progressive-disclosure` (evaluator evidence gap). The fixture seeds docs/release-policy.md. Each created Skill links to that file and passing native link checks exist. The judge withheld resource resolution because the guide or its proof was absent from the projected evidence.
+
+Every disposition has a corresponding next-revision follow-up. The evaluator, cases and shipped Skill bytes used for recording remain unchanged.
+
 ## Context ownership and instruction-link catalogue
 
 The official recording catalogue contained 138 public cases. All 138 fixture baselines materialized locally. The audit reviewed directions, criteria, ownership routes and manifest impact paths. `plan-context-unrouted-refund` intentionally leaves one owner unrouted. `repair-ambiguous-foundation` intentionally has a malformed working-tree manifest. The record, presentation and installed-Skill paths in repair fixtures remain until the actor assesses them. Existing private dispositions stay in place.

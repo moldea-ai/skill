@@ -942,7 +942,7 @@ export const correlateToolInvocations = <
       commandIndices.set(identity, indices);
     }
   });
-  const grouped: Array<Array<{ invocation: T; depth: number }>> = commands.map(() => []);
+  const grouped: Array<Array<{ invocation: T; isUnprovedRoot: boolean }>> = commands.map(() => []);
   const instances = observations.commandInstances ?? [];
   const instanceIdentities = new Set(instances.map((instance) => instance.identity));
   const instanceIndices = correlateObservedCommandInstances(
@@ -958,7 +958,7 @@ export const correlateToolInvocations = <
       const identity = invocation.callerIdentities?.[depth];
       if (identity !== undefined && instanceIdentities.has(identity)) {
         const index = instanceIndices.get(identity);
-        if (index !== undefined) grouped[index]!.push({ invocation, depth });
+        if (index !== undefined) grouped[index]!.push({ invocation, isUnprovedRoot: false });
         return;
       }
       const caller = callers[depth]!;
@@ -972,12 +972,13 @@ export const correlateToolInvocations = <
         ),
       ];
       if (matches.length === 0) continue;
-      if (matches.length === 1) grouped[matches[0]!]!.push({ invocation, depth });
+      if (matches.length === 1)
+        grouped[matches[0]!]!.push({ invocation, isUnprovedRoot: depth === 0 });
       return;
     }
   });
   const accepted = grouped.map((group) =>
-    group.length === 0 || (group.length > 1 && group.some(({ depth }) => depth === 0))
+    group.length === 0 || (group.length > 1 && group.some(({ isUnprovedRoot }) => isUnprovedRoot))
       ? null
       : group,
   );
@@ -1061,6 +1062,33 @@ const isSafeManagedReadmeCommand = (words: readonly string[]): boolean =>
   SAFE_MANAGED_README_PATHS.has(words[1] ?? '') &&
   words[2] === '--repository' &&
   isSandboxRepositoryRoot(words[3]);
+
+/** Identifies an actual bundled helper from its validated child argv. */
+export const identifyCapturedHelper = (
+  invocation: Pick<ICliInvocation, 'arguments' | 'entrypoint'>,
+) => {
+  const { entrypoint } = invocation;
+  if (entrypoint === undefined || entrypoint === 'cli' || entrypoint === 'node-eval') return null;
+  const words = [
+    '/opt/node',
+    `/mnt/.agents/skills/moldea/scripts/${entrypoint}.mjs`,
+    ...invocation.arguments,
+  ];
+  if (entrypoint === 'relevance-gate' && isSafeRelevanceGateCommand(words))
+    return {
+      kind: entrypoint,
+      mode: words.includes('--adoption-only')
+        ? ('adoption-only' as const)
+        : ('relationship' as const),
+    };
+  if (entrypoint === 'managed-readme' && isSafeManagedReadmeCommand(words))
+    return { kind: entrypoint };
+  if (entrypoint === 'repair-git') {
+    const mode = getRepairGitMode(words);
+    if (mode !== null) return { kind: entrypoint, mode };
+  }
+  return null;
+};
 
 /**
  * Identifies one exact bundled README-writer invocation without retaining its command.
@@ -2477,7 +2505,17 @@ export const projectCodexEvaluationExecutionEvidence = (
     });
   const captures = events.filter((event) => event['type'] === 'moldea.cli-invocations');
   if (captures.length > 1) throw new Error('CLI invocation capture is duplicated.');
-  const cliCapture = captures.length === 0 ? null : CliInvocationEventSchema.parse(captures[0]);
+  const parsedCapture = captures.length === 0 ? null : CliInvocationEventSchema.parse(captures[0]);
+  const cliCapture =
+    parsedCapture === null
+      ? null
+      : {
+          ...parsedCapture,
+          invocations: parsedCapture.invocations.filter(
+            ({ entrypoint }) =>
+              entrypoint === undefined || entrypoint === 'cli' || entrypoint === 'managed-agents',
+          ),
+        };
   const cliInvocations =
     cliCapture?.invocations.filter((invocation) => invocation.entrypoint !== 'managed-agents') ??
     null;

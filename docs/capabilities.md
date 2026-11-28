@@ -12,7 +12,7 @@ order: 30
 
 Ask **Initialize moldea**. With sufficient evidence, the coding agent writes the grounded foundation and integrates it with your instructions before asking guided questions. When the foundation is unclear, it asks one focused question before writing. A guided round shows established facts, area coverage, agent status, files changed and remaining gaps. It offers up to five numbered, evidence-backed proposals. Answer **yes**, answer by number, or **skip**. Existing agents are one approval item in the first round unless your request includes them.
 
-The agent saves confirmed facts, relationships and decisions in their owners. Choose another round on the named gaps or stop and validate the covered scope. **Continue** resumes an unanswered round in this conversation. See [Initialize a project](/examples/initialize-a-project/).
+The agent saves confirmed facts and rules in their canonical owners, links supporting guides and policies, and declares relationships for the artifacts that qualify. Decisions have their own records. Choose another round on the named gaps or stop and validate the covered scope. **Continue** resumes an unanswered round in this conversation. See [Initialize a project](/examples/initialize-a-project/).
 
 ## Use governing context
 
@@ -20,7 +20,7 @@ In an adopted repository, planning a product change reads `project.md` and selec
 
 ## Maintain and consolidate context
 
-Save durable facts in the focused owner for their area. Link to facts owned elsewhere and keep decision records separate. Ask **Help moldea learn the billing area** for one evidence-backed round in the same format as Initialize. The agent proposes an owner and a routing link when the area is uncovered.
+Save durable facts and governing rules in the focused owner for their area. Link human documentation for supporting detail and keep decision records separate. Ask **Help moldea learn the billing area** for one evidence-backed round in the same format as Initialize. The agent proposes an owner and a routing link when the area is uncovered.
 
 ## Plan, create, or change project agents
 
@@ -28,7 +28,7 @@ Plan the minimum useful architecture with the right division between application
 
 ## Check and fix
 
-[Check](/docs/check-fix-validate/) assesses facts, ownership, routes and relationships without writing. Run Fix routinely and after large changes to add missing relationships, remove unjustified paths with reasons and replace copied facts with links. Structure changes require approval. Large whole-project fixes proceed in bounded rounds.
+[Check](/docs/check-fix-validate/) assesses facts, ownership, routes and relationships without writing. Run Fix routinely and after large changes to correct established drift. Each assessed owner receives a structure verdict and counts that cover its starting declarations. The report describes why paths were kept and names each added, removed or unchecked path with its evidence, reason or gap. Structure changes require approval. A large Fix can pause and carry unchecked owners and paths into the next round.
 
 ## Validate structure
 

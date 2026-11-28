@@ -269,6 +269,7 @@ export const createSemanticResultDimensions = (options: {
         workspaceChanges: cycle.workspaceChanges,
       });
       // resumed requests exclude cached history from grading, but retain it in paid usage
+      result.semantic &&= cycle.workspaceChecks?.every(({ passed }) => passed) ?? true;
       result.resource &&=
         cycle.usage !== null &&
         cycle.usage.inputTokens -

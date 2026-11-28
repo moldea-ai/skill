@@ -73,6 +73,7 @@ export {
   correlateToolInvocations,
   hasPassingCodexEvaluationCommandPolicy,
   hasValidCodexEvaluationCommandPolicy,
+  identifyCapturedHelper,
   identifyMoldeaCliLauncherOperation,
   identifyMoldeaRelevanceGateMode,
   identifyMoldeaManagedAgentsMode,
@@ -85,6 +86,7 @@ export {
   projectCodexEvaluationExecutionEvidence,
   projectMoldeaInvocationOperations,
   projectRepairGitCommandEvidence,
+  redactCodexDiagnosticText,
 } from './execution-evidence.ts';
 
 // Git command-policy boundary
@@ -105,6 +107,8 @@ export type { IGitInvocationEvidence } from './git-invocations.ts';
 // cooperative Node-startup CLI capture
 export {
   CliInvocationEventSchema,
+  getNodeEvalSource,
+  NODE_ASSERTION_METHODS,
   identifyCliInvocationOperation,
   isMoldeaCliOperation,
   MOLDEA_CLI_OPERATIONS,

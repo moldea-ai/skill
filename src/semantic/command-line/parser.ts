@@ -23,6 +23,7 @@ const SEMANTIC_EVALUATION_OPTIONS = {
   cases: VALUE,
   claims: VALUE,
   'diagnose-batch': FLAG,
+  'max-public-failures': VALUE,
   preflight: FLAG,
   record: FLAG,
   'record-checkpoint': FLAG,
@@ -93,6 +94,8 @@ const createDiagnosticSelector = (
  * - The options don't form one supported recording, diagnostic, or verification run.
  * - --token-limit requires --record or --diagnose-batch.
  * - --token-limit must be a positive safe integer no greater than 128000000.
+ * - --max-public-failures requires --record.
+ * - --max-public-failures must be a non-negative safe integer.
  */
 export const parseSemanticEvaluationArguments = (
   arguments_: readonly string[],
@@ -166,10 +169,24 @@ export const parseSemanticEvaluationArguments = (
     throw new Error('--token-limit must be a positive safe integer no greater than 128000000.');
   }
 
+  const publicFailureValue = getOptionValue(values, '--max-public-failures');
+  const maxPublicFailures = publicFailureValue === undefined ? null : Number(publicFailureValue);
+  if (publicFailureValue !== undefined && !isRecordRequested) {
+    throw new Error('--max-public-failures requires --record.');
+  }
+  if (
+    maxPublicFailures !== null &&
+    (!/^(?:0|[1-9]\d*)$/u.test(publicFailureValue ?? '') ||
+      !Number.isSafeInteger(maxPublicFailures))
+  ) {
+    throw new Error('--max-public-failures must be a non-negative safe integer.');
+  }
+
   const allowedOptions = isRecordRequested
     ? new Set([
         '--record',
         '--cases',
+        '--max-public-failures',
         '--restart',
         '--resume-stopped-stage',
         '--token-limit',
@@ -191,7 +208,7 @@ export const parseSemanticEvaluationArguments = (
   if (allowedOptions !== null && [...seenOptions].some((option) => !allowedOptions.has(option))) {
     throw new Error(
       isRecordRequested
-        ? '--record accepts only a case selection, a worker count, a token limit, and one optional execution modifier.'
+        ? '--record accepts only a case selection, a worker count, admission limits, and one optional execution modifier.'
         : '--diagnose-batch accepts one selector, one worker count, and one optional execution modifier.',
     );
   }
@@ -222,6 +239,7 @@ export const parseSemanticEvaluationArguments = (
     isRestartRequested,
     isResumeStoppedStageRequested,
     isVerifyAttemptsRequested,
+    maxPublicFailures,
     recordCaseIds,
     requestedCaseId,
     tokenLimit,

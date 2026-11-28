@@ -33,6 +33,7 @@ import {
 import { projectActorExecutionEvidenceEvent } from '../execution/index.ts';
 import { buildSemanticActorPrompt, buildSemanticJudgePrompt } from '../judging/index.ts';
 
+import { readCaseImpactPaths } from './case-fixtures.ts';
 import {
   createActorRepository,
   prepareSemanticEvaluationHome,
@@ -357,7 +358,7 @@ test.each([
   ['maintain-dirty-project', 'src/billing.ts', /refundWindowDays = (\d+)/u],
   [
     'maintain-context-without-duplication',
-    'docs/operations-policy.md',
+    'moldea/context/retention.md',
     /Legal approves retention exceptions\./u,
   ],
 ] as const)('%s exposes its policy authority to the judge', async (caseId, sourcePath, pattern) => {
@@ -1261,6 +1262,7 @@ test('source continuation includes a merge-resolution path and a reverted checkp
     true,
   );
   assert.match(caseDefinition.input.developerDirection, /current source behavior is intended/u);
+  assert.match(caseDefinition.input.developerDirection, /\/src\/owner-c\.js.*unchecked/u);
   const inventory = JSON.parse(cliOutput(repositoryPath, ['inspect'])) as {
     result: { page: { records: Array<{ path: string }> } };
   };
@@ -1269,6 +1271,7 @@ test('source continuation includes a merge-resolution path and a reverted checkp
     [
       '/moldea/context/a.md',
       '/moldea/context/b.md',
+      '/moldea/context/c.md',
       '/moldea/context/d.md',
       '/moldea/context/e.md',
       '/moldea/context/next.md',
@@ -1292,7 +1295,7 @@ test('source continuation includes a merge-resolution path and a reverted checkp
   assert.match(readFileSync(join(repositoryPath, 'src/owner-b.js'), 'utf8'), /baseline/u);
 
   // the governing decision permits the intended context repair without changing source behavior
-  const sources = ['a', 'b', 'e', 'd', 'next'].map((id) =>
+  const sources = ['a', 'b', 'c', 'e', 'd', 'next'].map((id) =>
     readFileSync(join(repositoryPath, `src/owner-${id}.js`)),
   );
   writeFileSync(
@@ -1306,7 +1309,7 @@ test('source continuation includes a merge-resolution path and a reverted checkp
   const validation = JSON.parse(cliOutput(repositoryPath, ['validate'])) as { status: string };
   assert.equal(validation.status, 'valid');
   assert.deepEqual(
-    ['a', 'b', 'e', 'd', 'next'].map((id) =>
+    ['a', 'b', 'c', 'e', 'd', 'next'].map((id) =>
       readFileSync(join(repositoryPath, `src/owner-${id}.js`)),
     ),
     sources,
@@ -1321,10 +1324,23 @@ test('manifest continuation distinguishes changed and checkpoint-only owner entr
   });
   assert.equal(diff.status, 0, diff.stderr);
   assert.deepEqual(diff.stdout.trim().split('\n'), ['moldea/context/c.md', 'moldea/moldea.yaml']);
-  const manifest = readFileSync(join(repositoryPath, 'moldea/moldea.yaml'), 'utf8');
-  assert.match(manifest, /\/src\/owner-f-policy\.js/u);
-  assert.match(manifest, /\/src\/owner-g\.js/u);
+  const manifest = readCaseImpactPaths(await snapshotSemanticWorkspace(repositoryPath));
+  assert.deepEqual(manifest.get('/moldea/context/f.md'), [
+    '/src/owner-f-policy.js',
+    '/src/owner-f-state.js',
+  ]);
+  assert.deepEqual(manifest.get('/moldea/context/g.md'), ['/src/owner-g.js']);
+  const checkpointRepair = spawnSync(
+    'git',
+    ['log', '-1', '--format=', '-p', 'repair-checkpoint', '--', 'moldea/moldea.yaml'],
+    { cwd: repositoryPath, encoding: 'utf8' },
+  );
+  assert.equal(checkpointRepair.status, 0, checkpointRepair.stderr);
+  assert.match(checkpointRepair.stdout, /^-\s+- \/docs\/dispatch-guide\.md$/mu);
+  assert.deepEqual(manifest.get('/moldea/project.md'), ['/src/project-state.js']);
   assert.equal(gateResult(repositoryPath, ['/src/owner-f-policy.js']), '1\n');
+  assert.equal(gateResult(repositoryPath, ['/src/owner-f-state.js']), '1\n');
+  assert.equal(gateResult(repositoryPath, ['/docs/dispatch-guide.md']), '0\n');
 });
 
 test('agent retirement fixture retains exclusively dependent prose and tests', async () => {

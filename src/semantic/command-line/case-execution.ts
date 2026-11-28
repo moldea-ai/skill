@@ -70,6 +70,55 @@ const initializeCaseCheckpoint = async (
   return checkpoint;
 };
 
+/** Resolves a terminal case as soon as its evidence is ready, before ordered commit. */
+const resolveTrialPrefix = (
+  id: string,
+  trials: ISemanticRecordedTrial[],
+): ISemanticRecordedCase | null => {
+  const initialTrial = trials[0]?.trial;
+  if (initialTrial === undefined) return null;
+  if (initialTrial.passed) {
+    return { confirmationStatus: 'not-required', id, status: 'passed', trials };
+  }
+  if (!initialTrial.confirmationEligible) {
+    return { confirmationStatus: 'not-applicable', id, status: 'failed', trials };
+  }
+  const resolution = getEvaluationConfirmationResolution(
+    trials.slice(1).map(({ trial }) => trial.passed),
+  );
+  if (resolution === 'recovered') {
+    return { confirmationStatus: 'passed', id, status: 'recovered', trials };
+  }
+  if (resolution === 'confirmed-failure') {
+    return { confirmationStatus: 'rejected', id, status: 'failed', trials };
+  }
+  return null;
+};
+
+/** Finds a terminal verdict even when the last trial has not entered the case's ordered prefix. */
+export const getTerminalSemanticCase = (
+  checkpoint: ISemanticCaseCheckpoint,
+): ISemanticRecordedCase | null => {
+  if (checkpoint.completedCase !== null) return checkpoint.completedCase;
+  const active = checkpoint.activeTrial;
+  const finalTrial = active?.phase === 'trial-complete' ? active.recordedTrial : null;
+  const trials = finalTrial === null ? checkpoint.trials : [...checkpoint.trials, finalTrial];
+  return resolveTrialPrefix(checkpoint.caseId, trials);
+};
+
+const completeCaseTrial = (
+  checkpoint: ISemanticCaseCheckpoint,
+  recordedTrial: ISemanticRecordedTrial,
+): ISemanticCaseCheckpoint => {
+  const trials = [...checkpoint.trials, recordedTrial];
+  return {
+    ...checkpoint,
+    activeTrial: null,
+    completedCase: resolveTrialPrefix(checkpoint.caseId, trials),
+    trials,
+  };
+};
+
 const executeInitialTrial = async (
   options: ISemanticCaseExecutionOptions,
   caseDefinition: ISemanticCase,
@@ -86,73 +135,34 @@ const executeInitialTrial = async (
       await options.persistCaseCheckpoint(checkpoint);
     },
   });
-  checkpoint = {
-    ...checkpoint,
-    activeTrial: null,
-    trials: [...checkpoint.trials, recordedTrial],
-  };
-  await options.persistCaseCheckpoint(checkpoint);
+  await options.persistCaseCheckpoint(completeCaseTrial(checkpoint, recordedTrial));
 };
 
 const resolveSemanticCase = async (
   options: ISemanticCaseExecutionOptions,
   caseDefinition: ISemanticCase,
 ): Promise<ISemanticRecordedCase> => {
+  options.signal?.throwIfAborted();
   const initialCheckpoint = options.getCaseCheckpoint(caseDefinition.id);
   if (initialCheckpoint === null) {
     throw new Error('Semantic case resolution requires an initial trial checkpoint.');
   }
   let checkpoint = initialCheckpoint;
   validateCaseCheckpoint(caseDefinition, checkpoint);
-  if (checkpoint.completedCase !== null) return checkpoint.completedCase;
 
-  const finishCase = async (completedCase: ISemanticRecordedCase) => {
-    checkpoint = { ...checkpoint, activeTrial: null, completedCase };
-    await options.persistCaseCheckpoint(checkpoint);
-    return completedCase;
-  };
-
-  while (true) {
+  while (checkpoint.completedCase === null) {
     options.signal?.throwIfAborted();
-    const initialTrial = checkpoint.trials[0]?.trial;
-    if (initialTrial === undefined) {
+    if (checkpoint.trials.length === 0) {
       throw new Error('Semantic case resolution requires an initial trial checkpoint.');
     }
-    if (initialTrial.passed) {
-      return finishCase({
-        confirmationStatus: 'not-required',
-        id: caseDefinition.id,
-        status: 'passed',
-        trials: checkpoint.trials,
+    const terminalCase = resolveTrialPrefix(caseDefinition.id, checkpoint.trials);
+    if (terminalCase !== null) {
+      await options.persistCaseCheckpoint({
+        ...checkpoint,
+        activeTrial: null,
+        completedCase: terminalCase,
       });
-    }
-    if (!initialTrial.confirmationEligible) {
-      return finishCase({
-        confirmationStatus: 'not-applicable',
-        id: caseDefinition.id,
-        status: 'failed',
-        trials: checkpoint.trials,
-      });
-    }
-
-    const resolution = getEvaluationConfirmationResolution(
-      checkpoint.trials.slice(1).map(({ trial }) => trial.passed),
-    );
-    if (resolution === 'recovered') {
-      return finishCase({
-        confirmationStatus: 'passed',
-        id: caseDefinition.id,
-        status: 'recovered',
-        trials: checkpoint.trials,
-      });
-    }
-    if (resolution === 'confirmed-failure') {
-      return finishCase({
-        confirmationStatus: 'rejected',
-        id: caseDefinition.id,
-        status: 'failed',
-        trials: checkpoint.trials,
-      });
+      return terminalCase;
     }
     if (checkpoint.trials.length >= 4) {
       throw new Error(`Semantic confirmation policy did not resolve ${caseDefinition.id}.`);
@@ -168,13 +178,10 @@ const resolveSemanticCase = async (
         await options.persistCaseCheckpoint(checkpoint);
       },
     });
-    checkpoint = {
-      ...checkpoint,
-      activeTrial: null,
-      trials: [...checkpoint.trials, recordedTrial],
-    };
+    checkpoint = completeCaseTrial(checkpoint, recordedTrial);
     await options.persistCaseCheckpoint(checkpoint);
   }
+  return checkpoint.completedCase;
 };
 
 /**

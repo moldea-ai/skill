@@ -2641,7 +2641,7 @@ try {
 				"@moldea.ai/repository-fs": "4.0.1"
 			},
 			supportedNodeRange: ">=22.17.0",
-			version: "15.0.0"
+			version: "15.0.1"
 		},
 		readStdin: Ai,
 		signal: $.signal

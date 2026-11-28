@@ -4,8 +4,10 @@ import type {
   IRepairGitCommandEvidence,
   ICodexEvaluationCommandPolicyEvidence,
 } from '../../execution/host/index.ts';
+import type { ISemanticWorkspaceCheck } from '../cases/index.ts';
 import type { ISemanticWorkspaceChanges } from '../workspace/index.ts';
 import type { ISemanticHostOutput } from './host-output.ts';
+import type { INodeAssertionFact } from './node-assertion-evidence.ts';
 
 // one runner-authored developer request, with its own unchanged resource allowance
 export interface ISemanticCycleEvidence extends ISemanticHostOutput {
@@ -14,6 +16,7 @@ export interface ISemanticCycleEvidence extends ISemanticHostOutput {
   isMountIntegrityPassing: boolean;
   isRepositoryControlPassing: boolean;
   workspaceChanges: ISemanticWorkspaceChanges;
+  workspaceChecks?: ISemanticWorkspaceCheck[];
 }
 
 // one admitted paid invocation; null usage conservatively charges the absolute host maximum
@@ -33,6 +36,7 @@ export interface ISemanticActorExecutionEvidenceOptions {
 
 // evaluator-owned facts derived from recognized command output
 export type ISemanticActorExecutionOutputFact =
+  | INodeAssertionFact
   | {
       kind: 'repair-git-result';
       mode: 'checkpoint' | 'continue' | 'review' | 'verify';
@@ -104,7 +108,7 @@ export interface ISemanticActorExecutionOutputEvidence {
 export interface ISemanticActorExecutionEvidence {
   eventType: 'item.completed';
   item: {
-    commandKind: 'managed-agents' | 'moldea' | 'other';
+    commandKind: 'captured-child' | 'managed-agents' | 'moldea' | 'other';
     repairGit: IRepairGitCommandEvidence;
     exitCode: number;
     outputEvidence: ISemanticActorExecutionOutputEvidence;

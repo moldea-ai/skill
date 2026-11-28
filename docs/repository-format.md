@@ -50,6 +50,8 @@ Add a surface when it protects a distinct kind of durable truth:
 
 Repository-local Agent Skills stay in their authoritative repository-native directories. They are not copied into a parallel `/moldea/skills` store. Exact instruction mirrors also stay outside `/moldea/**` and are declared only when a runtime requires another path.
 
+Durable product and policy rules that agents or PR Assurance rely on belong in the canonical moldea context for their area. When a rule moves into context, replace its statement in the human doc with a link to the owner within the authorized edit scope. If the doc is outside that scope, report the remaining duplicate. Human docs can explain the circumstances around a rule. The owner links to the docs for supporting detail.
+
 ## Example: connect focused context to the code
 
 Suppose the foundation identifies a support-triage service whose scope is defined in `/src/service.ts`, and support policy deserves focused context:
@@ -80,11 +82,11 @@ context:
       - /src/support/**
 ```
 
-An **impact path** is an exact path or simple glob under `affectedBy` naming repository content whose change warrants checking whether the owner's stated facts still hold or its stated rules are followed. An exact path names a regular file. Use a glob such as `/src/support/**` to cover a coherent subtree. A bare directory path is invalid with or without a trailing slash.
+An **impact path** is an exact path or simple glob under `affectedBy` for code or configuration that implements a fact or enforces a rule the owner states, a project-owned model-facing asset that governs behavior, or the authoritative source of a directly governed authored deliverable. A match calls for checking whether the owner's stated facts still hold or its stated rules are followed. Relevance can end without an edit. Human documentation stays out of impact paths, including guides, procedures, policies, READMEs, records, approvals and receipts. Link those docs from their owner. Presentation, build and CI qualify only as the sole enforcement point of a stated rule.
 
-A match brings the owner into relevance analysis. Accurate context needs no edit. A binding already establishes relevance for its exact file, so an exact `affectedBy` entry need not repeat it. Context entries, including `project.md` for project-wide facts, may relate an enforcement point, a project-owned model-facing asset that governs behavior, or the source of a directly governed authored deliverable. A deliverable needs only its `affectedBy` entry. Reference documentation and records belong in links.
+A binding already establishes relevance for its exact file, so an exact `affectedBy` entry need not repeat it. An authored deliverable needs only its impact path. An exact path names a regular file. Use a glob such as `/src/support/**` for a coherent subtree of eligible files. A bare directory path is invalid with or without a trailing slash.
 
-When a feature uses shared infrastructure, relate the consuming feature file whose behavior is material to its owner's facts or rules. Relate a shared module to an owner of the module's own contract. Presentation, build, CI, deployment, assets and content-production scripts qualify only when a path is the sole enforcement point of a stated rule. Generated, vendored and installed artifacts are excluded.
+When a feature uses shared infrastructure, relate the consuming feature file whose behavior is material to its owner's facts or rules. Relate a shared module to an owner of the module's own contract. Deployment, assets and content-production scripts qualify only when a path is the sole enforcement point of a stated rule. Generated, vendored and installed artifacts are excluded.
 
 ## Example: grow into a grounded agent
 

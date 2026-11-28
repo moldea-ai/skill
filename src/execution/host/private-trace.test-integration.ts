@@ -415,7 +415,7 @@ test.each([0, 7])(
     }),
 );
 
-test.each(['completed', 'failed', 'cancelled', 'timed-out', 'malformed'] as const)(
+test.each(['completed', 'blocked-git', 'failed', 'cancelled', 'timed-out', 'malformed'] as const)(
   'real sandbox preserves private traces when %s',
   async (scenario) =>
     withFixture(async (root) => {
@@ -426,11 +426,28 @@ test.each(['completed', 'failed', 'cancelled', 'timed-out', 'malformed'] as cons
       await Promise.all([mkdir(executableDirectory), mkdir(repository), mkdir(sourceHome)]);
       vi.stubEnv('PATH', `${executableDirectory}:${process.env['PATH'] ?? ''}`);
       vi.stubEnv('CODEX_HOME', sourceHome);
-      vi.stubEnv('MOLDEA_EVAL_HOST_TIMEOUT_MS', '1000');
+      vi.stubEnv('MOLDEA_EVAL_HOST_TIMEOUT_MS', scenario === 'blocked-git' ? '10000' : '1000');
       await prepareCodexEvaluationHome(home);
       const hostBody =
         `#!${process.execPath}\n` +
-        `const {spawnSync}=require('node:child_process');const {existsSync}=require('node:fs');\n` +
+        `const {spawnSync}=require('node:child_process');const {existsSync,mkdirSync,renameSync,rmdirSync}=require('node:fs');\n` +
+        (scenario === 'blocked-git'
+          ? `
+const git = '/home/evaluator/bin/git';
+const ledger = '/home/evaluator/git-invocations.jsonl';
+for (let i = 0; i < 28; i++) {
+  if (spawnSync(git, ['--version']).status !== 0) throw new Error('Unexpected Git rejection');
+}
+if (spawnSync(git, ['rev-parse']).status !== 2) throw new Error('Expected policy rejection');
+renameSync(ledger, ledger + '.saved');
+mkdirSync(ledger);
+for (const args of [['--version'], ['rev-parse'], ['--version'], ['rev-parse']]) {
+  if (spawnSync(git, args).status !== 3) throw new Error('Expected ledger rejection');
+}
+rmdirSync(ledger);
+renameSync(ledger + '.saved', ledger);
+`
+          : '') +
         `const result=spawnSync('/home/evaluator/bin/git',['--version'],{encoding:'utf8'});\n` +
         `if(existsSync(${JSON.stringify(join(root, '.evidence'))}))throw new Error('observer files accessible');\n` +
         `process.stdout.write(JSON.stringify({type:'item.completed',item:{id:'command-1',type:'command_execution',command:'git --version',exit_code:result.status,aggregated_output:result.stdout+result.stderr}})+'\\n');\n` +
@@ -483,9 +500,13 @@ test.each(['completed', 'failed', 'cancelled', 'timed-out', 'malformed'] as cons
         controller.abort();
       }
       const observed = await result;
-      if (scenario === 'completed') {
+      if (scenario === 'completed' || scenario === 'blocked-git') {
         expect(observed.error).toBeNull();
         expect(observed.output).toContain('moldea.git-invocations');
+        if (scenario === 'blocked-git') {
+          expect(observed.output).toContain('"invocationCount":34');
+          expect(observed.output).toContain('"blockedInvocationCount":4');
+        }
         expect(observed.output).not.toContain('moldeaPrivateTrace');
         expect(observed.output).not.toContain('private-semantic');
       } else {
@@ -498,6 +519,12 @@ test.each(['completed', 'failed', 'cancelled', 'timed-out', 'malformed'] as cons
       for (const file of files) {
         expect(file.text).toContain(`"complete":${scenario !== 'malformed'}`);
         expect(file.text).not.toContain('git version ');
+        if (scenario === 'blocked-git') {
+          expect(JSON.parse(file.text.trim().split('\n').at(-1)!)).toMatchObject({
+            gitInvocationCount: 34,
+            expectedGitInvocationCount: 34,
+          });
+        }
       }
       const events = files.find(({ name }) => !name.includes('.git.'));
       expect(events?.text).toContain('turn.completed');

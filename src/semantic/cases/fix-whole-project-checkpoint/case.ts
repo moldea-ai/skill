@@ -1,15 +1,14 @@
-import { createSemanticCaseSetup } from '../../workspace/index.ts';
-
 import { defineSemanticCase } from '../define.ts';
+import { semanticCase as healthyProject } from '../repair-healthy-project/case.ts';
 
 export const semanticCase = defineSemanticCase({
-  setup: createSemanticCaseSetup('repair-healthy-project'),
+  setup: healthyProject.setup,
+  verifyWorkspace: healthyProject.verifyWorkspace,
   id: 'fix-whole-project-checkpoint',
   scenario: 'An explicit whole-project Fix establishes a checkpoint before guided work.',
   operation: 'fix',
   input: {
-    developerDirection:
-      'Fix the moldea project as a whole. Start with a checkpoint and show the first round before making any changes needing my decision.',
+    developerDirection: 'fix moldea',
     repositoryEvidence: [
       {
         claim: 'The repository already has a project foundation.',
@@ -32,7 +31,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'approved-repair-git',
       criterion:
-        "Use the real bundled repair Git helper to establish the checkpoint and report its grounded outcome. Report that the first round is complete with no changes and nothing needing the developer's decision for this healthy fixture.",
+        'The installed repair Git helper establishes the checkpoint. The foundation, packing and returns owners are cohesive. Each keeps 1 of 1 declarations for its stated behavior, with zero removed and unchecked. Nothing changes or needs a decision in the healthy fixture.',
     },
   ],
   forbidden: [

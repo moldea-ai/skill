@@ -1,10 +1,22 @@
-import { writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { stringify } from 'yaml';
 
-import { createSemanticCaseSetup } from '../../workspace/index.ts';
+import {
+  createSemanticCaseSetup,
+  listCaseChanges,
+  writeCaseFixture,
+} from '../../workspace/index.ts';
 
 import { defineSemanticCase } from '../define.ts';
 import type { ISemanticCaseSetup } from '../index.ts';
+
+const healthyManifest = {
+  version: 1,
+  context: {
+    '/moldea/project.md': { affectedBy: ['/src/project-state.js'] },
+    '/moldea/context/packing.md': { affectedBy: ['/src/packing.js'] },
+    '/moldea/context/returns.md': { affectedBy: ['/src/returns.js'] },
+  },
+};
 
 /**
  * Grounds the healthy owner's relationship in an actual public export contract.
@@ -12,22 +24,34 @@ import type { ISemanticCaseSetup } from '../index.ts';
  */
 const prepareHealthyProject: ISemanticCaseSetup = async (context) => {
   const result = await createSemanticCaseSetup('repair-healthy-project')(context);
-  await writeFile(
-    join(context.repositoryPath, 'moldea/project.md'),
-    '# Evaluation project\n\nThis synthetic project exercises bounded local moldea validation. Its project-wide state contract is the public `projectState` export in `/src/project-state.js`, whose value is the string `"active"`.\n',
-    'utf8',
-  );
+  await writeCaseFixture(context.repositoryPath, {
+    'moldea/project.md':
+      '# Fulfillment desk\n\nThe desk tracks packing and returns. The public projectState export in /src/project-state.js is "active". [Packing](context/packing.md) owns package release. [Returns](context/returns.md) owns return request eligibility.\n',
+    'moldea/context/packing.md':
+      '# Packing\n\nOnly inspected packages can leave the packing desk.\n',
+    'moldea/context/returns.md':
+      '# Returns\n\nCustomers can request a return within 14 days of purchase.\n',
+    'src/packing.js': 'export const canReleasePackage = (parcel) => parcel.inspected === true;\n',
+    'src/returns.js': 'export const canRequestReturn = (ageDays) => ageDays <= 14;\n',
+    'moldea/moldea.yaml': stringify(healthyManifest),
+  });
   return result;
 };
 
 export const semanticCase = defineSemanticCase({
   id: 'repair-healthy-project',
   setup: prepareHealthyProject,
+  verifyWorkspace: ({ workspaceChanges }) => [
+    {
+      id: 'healthy-project-byte-identical',
+      passed: listCaseChanges(workspaceChanges).length === 0,
+    },
+  ],
   scenario:
     'A small adopted project has aligned foundation, implementation, and local tooling when repair is requested.',
   operation: 'fix-healthy-setup',
   input: {
-    developerDirection: 'Fix moldea. Correct any established defects and verify the result.',
+    developerDirection: 'fix moldea',
     repositoryEvidence: [
       {
         claim: 'The repository has a canonical moldea manifest.',
@@ -59,7 +83,14 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'validate-healthy-no-op',
       criterion:
-        'Runner-owned CLI capture records successful composition before inspect in observed startup order and successful validation. A generic invocation count or actor claim does not establish those operations. The workspace is unchanged, and the actor accurately reports no established defect and no repair. The checked scope and actual checks are clear without requiring a foundation/source recital or a particular heading. Structural validation alone must not be presented as proof of semantic correctness. No unrelated live-behavior disclaimer is required for this setup without model responsibilities.',
+        'Runner-owned CLI capture records successful composition before inspect in observed startup order and successful final validation. The report records these cohesive owners with their kept counts and behavior roles: ' +
+        Object.entries(healthyManifest.context)
+          .map(
+            ([owner, { affectedBy }]) =>
+              `${owner} kept ${affectedBy.length} of ${affectedBy.length}`,
+          )
+          .join(', ') +
+        '. Each owner has zero removed and unchecked declarations. The workspace is byte-identical and Git controls are unchanged. Structural validation is distinct from semantic assessment.',
     },
   ],
   forbidden: [

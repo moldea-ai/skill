@@ -10,6 +10,7 @@ export const semanticCase = defineSemanticCase({
   operation: 'initialize',
   input: {
     developerDirection: 'Initialize moldea including my agents.',
+    followUpDeveloperRequests: ['Yes.', 'Stop here.'],
     repositoryEvidence: [
       {
         claim:
@@ -39,7 +40,7 @@ export const semanticCase = defineSemanticCase({
         },
       },
       {
-        claim: 'The architecture and operations policy already have their own authoritative files.',
+        claim: 'The architecture guide describes the existing model responsibilities.',
         source: {
           kind: 'workspace-path',
           path: 'docs/architecture.md',
@@ -47,7 +48,7 @@ export const semanticCase = defineSemanticCase({
         },
       },
       {
-        claim: 'Operations policy leaves refund and payment authorization with a human.',
+        claim: 'The operations guide describes the support and invoice handoffs.',
         source: {
           kind: 'workspace-path',
           path: 'docs/operations-policy.md',
@@ -82,12 +83,12 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'link-existing-document-authorities',
       criterion:
-        'The final project.md establishes the grounded service purpose and human financial boundary and provides usable links to the existing architecture, operations-policy and active decision documents at their existing paths. Relative or repository-logical link forms are acceptable. Existing documents and the Agent Skill stay in place; initialization does not copy those authoritative files into moldea.',
+        'The final project.md establishes the grounded service purpose and human financial boundary and provides usable links to the existing architecture, operations-policy and active decision documents at their existing paths. Relative or repository-logical link forms are acceptable. The supporting guides, accepted decision and Agent Skill stay at their existing paths. Write the governing financial rule into canonical project context.',
     },
     {
       label: 'preserve-project-authorities',
       criterion:
-        'Workspace evidence preserves the existing architecture, operations policy, accepted decision and project-owned Agent Skill bytes. Application behavior and public function/client contracts remain intact, and unrelated files are not changed.',
+        'Workspace evidence preserves the operations policy, accepted decision and project-owned Agent Skill bytes. The first round proposes a canonical owner and link for the architecture rule that keeps Support Triage and Invoice Review separate, and keeps that rule in the guide pending approval. After Yes, canonical context owns the rule, the guide replaces the rule with a link to its owner, and supporting architecture prose stays unchanged. Application behavior and public function/client contracts remain intact, and unrelated files are not changed.',
     },
     {
       label: 'register-both-evidenced-responsibilities',
@@ -107,7 +108,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'one-batch-final-validation',
       criterion:
-        'Runner-owned evidence records exactly one successful bundled CLI validate for the complete two-agent initialization, and the response accurately reports its structural result and material diagnostics together with the inventory and registrations. Do not require an unobservable write/validation ordering claim. Invalid attempts may precede the one successful final validation only for the Skill bounded structural-recovery path. Any other successful validate, including a preliminary foundation-only or per-agent validation, fails this criterion. Binding coverage totals are not projected: an incidental export-count summary absent from that evidence is unverified, not evidence of failure by itself. Canonical consumption still requires the separate source and connection-test criteria. Native traces separately check actual ordering.',
+        'Runner-owned evidence records exactly one successful bundled CLI validate for the complete two-agent initialization after the confirmed rule move and by the end of Stop here. The response accurately reports its structural result and any material diagnostics. The conversation reports the inventory and registrations. Do not require an unobservable write/validation ordering claim. Invalid attempts may precede the one successful final validation only for the Skill bounded structural-recovery path. Any other successful validate, including a preliminary foundation-only or per-agent validation, fails this criterion. Binding coverage totals are not projected: an incidental export-count summary absent from that evidence is unverified, not evidence of failure by itself. Canonical consumption still requires the separate source and connection-test criteria. Native traces separately check actual ordering.',
     },
   ],
   forbidden: [
@@ -119,7 +120,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'duplicate-document-authorities',
       criterion:
-        'The actor relocates, rewrites or copies the existing architecture, operations-policy or accepted-decision document into a new canonical document authority, or copies the project-owned Agent Skill into moldea without an evidenced runtime use. Necessary grounded behavioral rules in agent instructions are not a duplicate document authority by themselves.',
+        'The actor copies or relocates supporting documents or the accepted decision instead of linking them, or imports the project-owned Agent Skill without an evidenced runtime use. Record durable rules in canonical context and grounded model behavior in agent instructions.',
     },
     {
       label: 'invent-or-split-model-responsibilities',

@@ -10,8 +10,7 @@ export const semanticCase = defineSemanticCase({
     'A developer confirms prior adoption and requests repair of a bounded managed README block drift.',
   operation: 'fix-managed-readme',
   input: {
-    developerDirection:
-      'This repository was initialized with moldea. Fix moldea for the damaged managed README block and verify the setup. Preserve all other content.',
+    developerDirection: 'Fix the moldea setup in the README.',
     repositoryEvidence: [
       {
         claim:

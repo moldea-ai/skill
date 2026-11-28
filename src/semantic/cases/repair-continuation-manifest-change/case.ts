@@ -11,7 +11,7 @@ export const semanticCase = defineSemanticCase({
   operation: 'fix',
   input: {
     developerDirection:
-      'Continue Fix moldea from this previous report: the project foundation and 4 of 5 focused context owners were checked at commit `repair-checkpoint`; continue from `/moldea/context/next.md`. Paths uncommitted at that checkpoint: `moldea/moldea.yaml`. Uncommitted manifest owner entries: `/moldea/context/g.md`. Reassess only earlier owners affected since that checkpoint, then finish the inventory and report the source commit of any carried-forward assessment.',
+      'Continue Fix moldea from this report. Fix paused. The foundation and 4 of 5 focused context owners were checked. Changes so far: moldea/moldea.yaml (committed), removed /docs/dispatch-guide.md from the foundation because it is a human guide. At the pause F kept its single declaration. Resume point: commit `repair-checkpoint`, next `/moldea/context/next.md`. Uncommitted paths: `moldea/moldea.yaml`. Uncommitted manifest owner entries: `/moldea/context/g.md`.',
     repositoryEvidence: [
       {
         claim: 'The current owner declarations exist.',
@@ -39,7 +39,7 @@ export const semanticCase = defineSemanticCase({
       },
       {
         claim:
-          'The current committed F relationship selects /src/owner-f-policy.js, which implements the baseline stated by F. That owner definition is healthy; its change from the checkpoint-time path requires reassessment, not restoration.',
+          'F’s current committed relationships select the request policy and baseline configuration. The policy imports the baseline state from its owning module.',
         source: {
           kind: 'workspace-path',
           path: 'src/owner-f-policy.js',
@@ -70,6 +70,11 @@ export const semanticCase = defineSemanticCase({
       label: 'carry-forward-unchanged-owner',
       criterion:
         'Owner H is carried forward from the supplied checkpoint commit with its source assessment identified, the remaining owner is reported checked, and the report names the carried-forward assessment and its source commit.',
+    },
+    {
+      label: 'reconcile-current-and-cumulative-outcomes',
+      criterion:
+        'Reassess F as cohesive with 2 of 2 kept for its request policy and baseline state, zero removed and unchecked. Keep the exact earlier /docs/dispatch-guide.md removal and its reason in Changes so far. Do not count it as a current removal or count F against its single saved declaration.',
     },
   ],
   forbidden: [

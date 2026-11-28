@@ -1,4 +1,4 @@
-// project evidence is deliberately outside moldea; initialization must link rather than relocate it
+// existing assets describe the workflows and decisions that ground initialization
 export const ONBOARDING_FILES: Record<string, string> = {
   'README.md': `# Operations review service
 
@@ -20,7 +20,7 @@ Support Triage classifies customer requests through two Responses-style calls. I
 `,
   'docs/operations-policy.md': `# Operations policy
 
-Support review must not invent order details or promise a refund. Invoice review extracts supplied data without authorizing a payment. Customer Operations owns the review process; a human retains every financial decision.
+The support queue records open questions about the order, and the invoice queue records the extracted fields supplied for accounting review. Customer Operations tracks the handoffs. The accepted human-approval decision explains why financial authorization sits outside both workflows.
 `,
   'docs/decisions/001-human-approval.md': `# Human approval
 

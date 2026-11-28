@@ -9,8 +9,7 @@ export const semanticCase = defineSemanticCase({
     'A tracked contained AGENTS.md link leads to a managed region that differs from the installed template. Both the link and target are protected.',
   operation: 'fix-protected-integration',
   input: {
-    developerDirection:
-      "Fix moldea, but AGENTS.md and config/agent-notes.md are protected: do not edit either, replace the link or use another writer to bypass that restriction. Give the installed helper's exact print handoff for the stale integration and report what remains incomplete. Do not accept a warning on my behalf.",
+    developerDirection: 'Fix moldea. AGENTS.md and config/agent-notes.md are protected.',
     repositoryEvidence: [
       {
         claim: 'The existing AGENTS.md link must remain intact.',

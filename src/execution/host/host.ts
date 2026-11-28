@@ -76,6 +76,7 @@ export const CODEX_EVALUATION_DEFAULT_ALLOWED_EGRESS_HOSTS = [
 // stable categories for evaluation-host failures
 export const CODEX_EVALUATION_HOST_FAILURE_KINDS = {
   Aborted: 'aborted',
+  EvidenceIntegrity: 'evidence-integrity',
   ExecutionFailed: 'execution-failed',
   OutputLimit: 'output-limit',
   ProxyUnavailable: 'proxy-unavailable',
@@ -1203,16 +1204,21 @@ export const runCodexEvaluationHost = async ({
     readOnlyWorkspacePaths,
     includeWorkspaceBinaryDirectory,
   );
-  const writerEntrypoint = '/mnt/.agents/skills/moldea/scripts/managed-agents.mjs';
-  const hasImmutableWriter =
-    workspaceAccess === 'read-only' ||
-    [
-      ...protectedWorkspacePaths.map((path) => `/mnt/${path}`),
-      ...readOnlyMounts.map(({ target }) => target),
-    ].some((root) => {
-      const path = resolve('/', root);
-      return path === writerEntrypoint || isPathWithin(path, writerEntrypoint);
-    });
+  const immutableRoots = [
+    ...protectedWorkspacePaths.map((path) => `/mnt/${path}`),
+    ...readOnlyMounts.map(({ target }) => resolve('/', target)),
+  ];
+  const isTrustedInvocation = ({ entrypoint }: { entrypoint?: string | undefined }): boolean => {
+    if (
+      workspaceAccess === 'read-only' ||
+      entrypoint === undefined ||
+      entrypoint === 'cli' ||
+      entrypoint === 'node-eval'
+    )
+      return true;
+    const path = `/mnt/.agents/skills/moldea/scripts/${entrypoint}.mjs`;
+    return immutableRoots.some((root) => root === path || isPathWithin(root, path));
+  };
   await mkdir(join(sandboxHome, 'tmp'), { recursive: true, mode: 0o700 });
   const { prepareGitCommandPolicyBoundary } = await loadGitCommandPolicyBoundary();
   await prepareGitCommandPolicyBoundary(join(sandboxHome, 'bin'), {
@@ -1246,6 +1252,32 @@ export const runCodexEvaluationHost = async ({
       : await createPrivateTrace(privateTrace, join(sandboxHome, 'git.sock'));
   let traceOutcome: 'completed' | 'failed' = 'failed';
   let hasCapturedInvocations = false;
+  let invocationCaptureFailed = false;
+  let expectedGitInvocationCount = -1;
+  const readGitCapture = async () => {
+    const blockedInvocations = trace?.blockedGitInvocations ?? [];
+    const evidence = await readGitInvocationEvidence(gitInvocationLogPath, blockedInvocations);
+    expectedGitInvocationCount = evidence.invocationCount;
+    return {
+      type: 'moldea.git-invocations',
+      evidence,
+      ...(blockedInvocations.length === 0
+        ? {}
+        : { blockedInvocationCount: blockedInvocations.length }),
+    };
+  };
+  const finishPrivateTrace = async (): Promise<void> => {
+    try {
+      await trace?.finish(traceOutcome, expectedGitInvocationCount);
+    } catch (cause) {
+      if (traceOutcome !== 'completed' && !invocationCaptureFailed) throw cause;
+      throw new CodexEvaluationHostError(
+        CODEX_EVALUATION_HOST_FAILURE_KINDS.EvidenceIntegrity,
+        'Evaluation private evidence is incomplete.',
+        { cause },
+      );
+    }
+  };
   const proxyProcess = spawn(process.execPath, [EGRESS_PROXY_PATH], {
     env: {
       MOLDEA_EVAL_ALLOWED_HOSTS: hostConfiguration.allowedEgressHosts.join(','),
@@ -1289,11 +1321,9 @@ export const runCodexEvaluationHost = async ({
       capture: trace?.capture,
     });
     try {
-      const evidence = await readGitInvocationEvidence(gitInvocationLogPath);
+      const gitCapture = await readGitCapture();
       const capture = await readCliInvocationCapture(cliInvocationLogPath);
-      const invocations = capture.invocations.filter(
-        (invocation) => invocation.entrypoint !== 'managed-agents' || hasImmutableWriter,
-      );
+      const invocations = capture.invocations.filter(isTrustedInvocation);
       const canonicalState =
         canonicalInitial === undefined
           ? {}
@@ -1303,14 +1333,15 @@ export const runCodexEvaluationHost = async ({
                 ? null
                 : observeCanonicalDigest(join(cwd, 'moldea')),
             };
-      const captureFrames = `${JSON.stringify({ type: 'moldea.git-invocations', evidence })}\n${JSON.stringify({ type: 'moldea.cli-invocations', observesManagedAgents: true, invocations, commandInstances: capture.commandInstances, ...canonicalState })}`;
+      const captureFrames = `${JSON.stringify(gitCapture)}\n${JSON.stringify({ type: 'moldea.cli-invocations', observesManagedAgents: true, invocations, commandInstances: capture.commandInstances, ...canonicalState })}`;
       trace?.capture(Buffer.from(`${captureFrames}\n`));
       hasCapturedInvocations = true;
       traceOutcome = 'completed';
       return `${output}\n${captureFrames}`;
     } catch (error) {
+      invocationCaptureFailed = true;
       throw new CodexEvaluationHostError(
-        CODEX_EVALUATION_HOST_FAILURE_KINDS.ExecutionFailed,
+        CODEX_EVALUATION_HOST_FAILURE_KINDS.EvidenceIntegrity,
         'Evaluation invocation capture was unavailable or incomplete.',
         { cause: error },
       );
@@ -1323,19 +1354,16 @@ export const runCodexEvaluationHost = async ({
         if (trace !== undefined) {
           if (!hasCapturedInvocations) {
             try {
-              const evidence = await readGitInvocationEvidence(gitInvocationLogPath);
+              const gitCapture = await readGitCapture();
               const capture = await readCliInvocationCapture(cliInvocationLogPath);
               trace.capture(
                 Buffer.from(
                   [
-                    JSON.stringify({ type: 'moldea.git-invocations', evidence }),
+                    JSON.stringify(gitCapture),
                     JSON.stringify({
                       type: 'moldea.cli-invocations',
                       observesManagedAgents: true,
-                      invocations: capture.invocations.filter(
-                        (invocation) =>
-                          invocation.entrypoint !== 'managed-agents' || hasImmutableWriter,
-                      ),
+                      invocations: capture.invocations.filter(isTrustedInvocation),
                       commandInstances: capture.commandInstances,
                     }),
                     '',
@@ -1346,13 +1374,7 @@ export const runCodexEvaluationHost = async ({
               trace.markIncomplete();
             }
           }
-          let expectedCount = -1;
-          try {
-            expectedCount = (await readGitInvocationEvidence(gitInvocationLogPath)).invocationCount;
-          } catch {
-            /* finish records the incomplete capture and stops without an operational retry */
-          }
-          await trace.finish(traceOutcome, expectedCount);
+          await finishPrivateTrace();
         }
       } finally {
         await rm(gitInvocationLogPath, { force: true });

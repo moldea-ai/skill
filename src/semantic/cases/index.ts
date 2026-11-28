@@ -6,6 +6,8 @@ export type {
   ISemanticCaseSetup,
   ISemanticCaseSetupContext,
   ISemanticCaseSetupResult,
+  ISemanticWorkspaceCheck,
+  ISemanticWorkspaceVerifier,
   ISemanticCriterion,
   ISemanticGitStateFact,
   ISemanticRepositoryEvidenceDeclaration,
@@ -17,7 +19,7 @@ export { SemanticCaseDefinitionSchema } from './schema.ts';
 
 // authoring and discovery
 export { defineSemanticCase } from './define.ts';
-export { loadSemanticCases } from './loader.ts';
+export { loadSemanticCases, selectSemanticRecordingCases } from './loader.ts';
 
 // fixture checkpoint requests
 export {

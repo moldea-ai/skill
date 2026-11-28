@@ -11,12 +11,13 @@ import type { IRepairGitCommandEvidence, IRepairGitReasonCode } from './types.ts
 
 // raw arguments are temporary, bounded and never persisted in semantic evidence
 const MAXIMUM_GIT_LOG_BYTES = 1_048_576;
-const GitInvocationSchema = z.strictObject({
+export const GitInvocationSchema = z.strictObject({
   arguments: z.array(z.string().max(65_536)).max(4_096),
   approved: z.boolean(),
   origin: z.enum(['actor', 'host']),
   caller: z.enum(['actor', 'repair-helper', 'managed-writer', 'release-cli', 'unverified']),
 });
+export type IGitInvocation = z.infer<typeof GitInvocationSchema>;
 
 export const GitInvocationEvidenceSchema = z
   .strictObject({
@@ -32,14 +33,27 @@ export const GitInvocationEvidenceSchema = z
   );
 export type IGitInvocationEvidence = z.infer<typeof GitInvocationEvidenceSchema>;
 
-export const GitInvocationEventSchema = z.strictObject({
-  type: z.literal('moldea.git-invocations'),
-  evidence: GitInvocationEvidenceSchema,
-});
+export const GitInvocationEventSchema = z
+  .strictObject({
+    type: z.literal('moldea.git-invocations'),
+    evidence: GitInvocationEvidenceSchema,
+    blockedInvocationCount: z.number().int().nonnegative().optional(),
+  })
+  .refine(
+    ({ evidence, blockedInvocationCount }) =>
+      (blockedInvocationCount ?? 0) <= evidence.invocationCount,
+  );
 
 /** Projects actual wrapper calls; empty capture permits opaque commands that used no Git. */
-export const projectGitInvocations = (source: string): IGitInvocationEvidence => {
-  if (Buffer.byteLength(source) > MAXIMUM_GIT_LOG_BYTES)
+export const projectGitInvocations = (
+  source: string,
+  blockedInvocations: readonly IGitInvocation[] = [],
+): IGitInvocationEvidence => {
+  const blockedBytes = blockedInvocations.reduce(
+    (total, record) => total + Buffer.byteLength(JSON.stringify(record)) + 1,
+    0,
+  );
+  if (Buffer.byteLength(source) + blockedBytes > MAXIMUM_GIT_LOG_BYTES)
     throw new Error('Git invocation capture exceeded its byte limit.');
   if (source !== '' && !source.endsWith('\n'))
     throw new Error('Git invocation capture is incomplete.');
@@ -52,13 +66,19 @@ export const projectGitInvocations = (source: string): IGitInvocationEvidence =>
   const reasons = new Map<IRepairGitReasonCode, number>();
   let invocationCount = 0;
   let hostInvocationCount = 0;
-  for (const line of source.split('\n').slice(0, -1)) {
-    const record = GitInvocationSchema.parse(JSON.parse(line));
+  const loggedRecords = source.split('\n').slice(0, -1);
+  const records = [
+    ...loggedRecords.map((line) => GitInvocationSchema.parse(JSON.parse(line))),
+    ...blockedInvocations,
+  ];
+  for (const [index, record] of records.entries()) {
     invocationCount++;
     if (record.origin === 'host') {
       hostInvocationCount++;
       continue;
     }
+    // a capture failure blocked execution, so an approved shape earns no method credit
+    if (index >= loggedRecords.length && record.approved) continue;
     if (
       record.approved &&
       (['release-cli', 'managed-writer'].includes(record.caller) ||
@@ -86,7 +106,10 @@ export const projectGitInvocations = (source: string): IGitInvocationEvidence =>
 };
 
 /** Reads the runner-owned capture after the sandbox exits, retaining no raw arguments. */
-export const readGitInvocationEvidence = async (path: string): Promise<IGitInvocationEvidence> => {
+export const readGitInvocationEvidence = async (
+  path: string,
+  blockedInvocations?: readonly IGitInvocation[],
+): Promise<IGitInvocationEvidence> => {
   const handle = await open(path, constants.O_RDONLY | constants.O_NOFOLLOW);
   try {
     const stats = await handle.stat();
@@ -109,7 +132,7 @@ export const readGitInvocationEvidence = async (path: string): Promise<IGitInvoc
     const content = bytes.subarray(0, byteCount);
     if (!Buffer.from(content.toString('utf8')).equals(content))
       throw new Error('Git invocation capture is not valid UTF-8.');
-    return projectGitInvocations(content.toString('utf8'));
+    return projectGitInvocations(content.toString('utf8'), blockedInvocations);
   } finally {
     await handle.close();
   }

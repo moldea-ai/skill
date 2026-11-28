@@ -9,3 +9,13 @@ export {
   prepareSemanticEvaluationHome,
   snapshotSemanticWorkspace,
 } from './setup.ts';
+
+// deterministic case checks
+export {
+  checkCaseScope,
+  hasCaseLink,
+  listCaseChanges,
+  readCaseFile,
+  readCaseImpactPaths,
+  writeCaseFixture,
+} from './case-fixtures.ts';

@@ -46,9 +46,9 @@ test('presents all six capabilities as distinct visual outcomes', async ({ page 
   await expect(page.getByText('Fix moldea.', { exact: true }).locator('code')).toHaveCount(0);
   await expect(page.getByText('Planning is read-only.', { exact: true })).toBeVisible();
   await page.getByText('How Check, Fix, and Validate differ', { exact: true }).click();
-  await expect(page.getByText('Fix adds missing relationships', { exact: false })).toContainText(
-    'asks before splitting an owner or changing routing',
-  );
+  const fixSummary = page.getByText('Fix looks for missing relationships', { exact: false });
+  await expect(fixSummary).toContainText('asks before splitting an owner or changing routing');
+  await expect(fixSummary).toContainText('the kept, removed and unchecked counts');
   await expect(page.getByRole('list', { name: 'Saved project files' })).toContainText('refunds.md');
   await expect(page.getByRole('list', { name: 'Release review skill files' })).toContainText(
     'verify.mjs',

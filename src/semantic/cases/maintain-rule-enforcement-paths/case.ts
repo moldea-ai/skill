@@ -10,7 +10,7 @@ export const semanticCase = defineSemanticCase({
   operation: 'maintain-material-relationships',
   input: {
     developerDirection:
-      'Use moldea to maintain the relationships for Stock, Release review and Editorial. You may add the qualifying paths to the manifest for their existing owners. Run Scope for the authored post you find through Editorial, report the match and validate.',
+      'Maintain moldea’s Stock, Release review and Editorial relationships. Check what owns the editorial post.',
     repositoryEvidence: [
       {
         claim: 'The entry point routes three independently owned responsibilities.',

@@ -8,7 +8,7 @@ order: 65
 
 # Design project-grounded Agent Skills
 
-Choose an Agent Skill when coding agents repeatedly need the same project-specific procedure. A project policy belongs in its existing authority. Link the source from the skill and keep the procedure distinct from an independently executing application agent.
+Choose an Agent Skill when coding agents repeatedly need the same project-specific procedure. Promote only reusable, project-owned procedure into the Skill. The Skill owns its model-facing procedure and links to the canonical moldea context for the durable product and policy rules it applies. Keep the procedure distinct from an independently executing application agent.
 
 Identify the skill's real consumers and source directory before editing it. Keep the entrypoint short, state the requests that activate it, and route to specific resources only when needed. Resolve links from the installed skill and keep host metadata consistent with that entrypoint.
 

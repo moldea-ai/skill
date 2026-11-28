@@ -8,6 +8,11 @@ import type { ISemanticCase } from './types.ts';
 
 type ISemanticCaseModule = { semanticCase?: unknown };
 
+/** Selects the complete official catalogue. Targeted recordings narrow this same selection. */
+export const selectSemanticRecordingCases = (
+  catalogue: readonly ISemanticCase[],
+): ISemanticCase[] => catalogue.filter(({ publication }) => publication !== 'private');
+
 /**
  * Discovers typed semantic case modules without a handwritten inventory.
  * @param casesRoot Directory containing one `<case-id>/case.ts` or built `case.mjs` per case.

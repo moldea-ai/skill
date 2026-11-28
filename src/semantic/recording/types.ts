@@ -65,7 +65,7 @@ export interface ISemanticRecordedTrial {
   operationalRetries: ISemanticOperationalRetryState;
   stageIdentities: {
     actorSha256: string;
-    judgeSha256: string;
+    judgeSha256: string | null;
   };
   trial: ISemanticAttemptTrialModel;
   workspaceChanges: ISemanticWorkspaceChanges;

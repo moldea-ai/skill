@@ -235,58 +235,61 @@ test('convergence fixture exercises approved relocation, the no-edit cycle, and 
   }
 });
 
-test('confirmed initialization checks the actual routes, source-doc replacements, and only eligible path roles', async () => {
-  const root = await mkdtemp(path.join(tmpdir(), 'moldea-init-guides-fixture-'));
-  try {
-    const { repositoryPath, developerDirection } = await materializeCase(root, initialization);
-    const snapshot = await snapshotSemanticWorkspace(repositoryPath);
-    expect(developerDirection).toBe('initialize moldea');
-    expect(initialization.input.followUpDeveloperRequests).toStrictEqual(['Yes.', 'Stop here.']);
-    expect(snapshot.has('moldea/moldea.yaml')).toBe(false);
-    expect(
-      initialization.verifyWorkspace({
+test.each([BULLETIN_SOURCE, '/content/bulletins/**'])(
+  'confirmed initialization checks routes, source-doc replacements, and eligible path %s',
+  async (bulletinSource) => {
+    const root = await mkdtemp(path.join(tmpdir(), 'moldea-init-guides-fixture-'));
+    try {
+      const { repositoryPath, developerDirection } = await materializeCase(root, initialization);
+      const snapshot = await snapshotSemanticWorkspace(repositoryPath);
+      expect(developerDirection).toBe('initialize moldea');
+      expect(initialization.input.followUpDeveloperRequests).toStrictEqual(['Yes.', 'Stop here.']);
+      expect(snapshot.has('moldea/moldea.yaml')).toBe(false);
+      expect(
+        initialization.verifyWorkspace({
+          repositoryPath,
+          requestIndex: 0,
+          snapshot,
+          workspaceChanges: diffSemanticWorkspaceSnapshots(snapshot, snapshot),
+        }),
+      ).toStrictEqual([{ id: 'human-rules-unaltered-before-confirmation', passed: true }]);
+      const dispatch = 'moldea/context/order-handoff.md';
+      const bulletin = 'moldea/context/community-bulletin.md';
+      await writeCaseFixture(repositoryPath, {
+        'moldea/project.md':
+          '# Cooperative\n\n[Order handoff](context/order-handoff.md) governs dispatch. [Community bulletin](context/community-bulletin.md) governs publication.\n',
+        'moldea/moldea.yaml': manifestWithPaths({
+          [dispatch]: [DISPATCH_CODE],
+          [bulletin]: [EDITORIAL_INSTRUCTION, bulletinSource],
+        }),
+        [dispatch]:
+          '# Order handoff\n\nSame-day dispatch ends at 16:00 local time. See [dispatch procedure](/docs/dispatch-procedure.md).\n',
+        [bulletin]:
+          '# Community bulletin\n\nThe bulletin editor must approve each edition before publishing. See [bulletin policy](/docs/bulletin-policy.md).\n',
+        [DISPATCH_GUIDE]:
+          '# Dispatch procedure\n\nSee [order handoff](/moldea/context/order-handoff.md). Use the packing list to sort orders into collection and delivery. Report a missed collection in shift notes.\n',
+        [BULLETIN_GUIDE]:
+          '# Bulletin policy\n\nSee [community bulletin](/moldea/context/community-bulletin.md). Use the checklist to compile questions into one message for the editor. Record the approved edition in the issue log.\n',
+      });
+      const after = await snapshotSemanticWorkspace(repositoryPath);
+      const final = {
         repositoryPath,
-        requestIndex: 0,
-        snapshot,
-        workspaceChanges: diffSemanticWorkspaceSnapshots(snapshot, snapshot),
-      }),
-    ).toStrictEqual([{ id: 'human-rules-unaltered-before-confirmation', passed: true }]);
-    const dispatch = 'moldea/context/order-handoff.md';
-    const bulletin = 'moldea/context/community-bulletin.md';
-    await writeCaseFixture(repositoryPath, {
-      'moldea/project.md':
-        '# Cooperative\n\n[Order handoff](context/order-handoff.md) governs dispatch. [Community bulletin](context/community-bulletin.md) governs publication.\n',
-      'moldea/moldea.yaml': manifestWithPaths({
-        [dispatch]: [DISPATCH_CODE],
-        [bulletin]: [EDITORIAL_INSTRUCTION, BULLETIN_SOURCE],
-      }),
-      [dispatch]:
-        '# Order handoff\n\nSame-day dispatch ends at 16:00 local time. See [dispatch procedure](/docs/dispatch-procedure.md).\n',
-      [bulletin]:
-        '# Community bulletin\n\nThe bulletin editor must approve each edition before publishing. See [bulletin policy](/docs/bulletin-policy.md).\n',
-      [DISPATCH_GUIDE]:
-        '# Dispatch procedure\n\nSee [order handoff](/moldea/context/order-handoff.md). Use the packing list to sort orders into collection and delivery. Report a missed collection in shift notes.\n',
-      [BULLETIN_GUIDE]:
-        '# Bulletin policy\n\nSee [community bulletin](/moldea/context/community-bulletin.md). Use the checklist to compile questions into one message for the editor. Record the approved edition in the issue log.\n',
-    });
-    const after = await snapshotSemanticWorkspace(repositoryPath);
-    const final = {
-      repositoryPath,
-      requestIndex: 1,
-      snapshot: after,
-      workspaceChanges: diffSemanticWorkspaceSnapshots(snapshot, after),
-    };
-    expect(initialization.verifyWorkspace(final)).toStrictEqual([
-      { id: 'focused-canonical-rules-linked-and-routed', passed: true },
-      { id: 'source-doc-statements-replaced', passed: true },
-      { id: 'eligible-relationships-only', passed: true },
-    ]);
-    assertValidFixture(repositoryPath);
-    expect(initialization.verifyWorkspace({ ...final, snapshot })[1]?.passed).toBe(false);
-  } finally {
-    await rm(root, { recursive: true, force: true });
-  }
-});
+        requestIndex: 1,
+        snapshot: after,
+        workspaceChanges: diffSemanticWorkspaceSnapshots(snapshot, after),
+      };
+      expect(initialization.verifyWorkspace(final)).toStrictEqual([
+        { id: 'focused-canonical-rules-linked-and-routed', passed: true },
+        { id: 'source-doc-statements-replaced', passed: true },
+        { id: 'eligible-relationships-only', passed: true },
+      ]);
+      assertValidFixture(repositoryPath);
+      expect(initialization.verifyWorkspace({ ...final, snapshot })[1]?.passed).toBe(false);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  },
+);
 
 test('the official selection contains the plain requests and keeps the answer key out of them', async () => {
   const cases = await loadSemanticCases(path.resolve(import.meta.dirname, '../cases'));

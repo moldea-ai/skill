@@ -67,15 +67,25 @@ export const createSemanticReplay = (
           { content: cycle.response, kind: 'message', role: 'coding-agent', source: 'recorded' },
         ];
       }),
-      createWorkspaceStep(recordedTrial),
-      {
+    ];
+    if (steps.length === 0) {
+      steps.push({
+        content: recordedTrial.developerDirection,
+        kind: 'message',
+        role: 'developer',
+        source: 'recorded',
+      });
+    }
+    if (trial.evaluatorError !== 'actor') steps.push(createWorkspaceStep(recordedTrial));
+    if (trial.evaluatorError === undefined) {
+      steps.push({
         kind: 'verdict',
         rationale: recordedVerdict?.rationale ?? trial.rationale,
         role: 'independent-judge',
         source: 'recorded',
         status: (recordedVerdict?.passed ?? trial.passed) ? 'passed' : 'failed',
-      },
-    ];
+      });
+    }
     return {
       confirmationIndex: trial.confirmationIndex,
       evaluatedAt: trial.evaluatedAt,

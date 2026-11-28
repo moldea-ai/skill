@@ -102,6 +102,8 @@ export const parseSemanticEvaluationHostOutput = (
   const nativeCommands: Array<{ event: unknown; command: unknown }> = [];
   const actorExecutionEvidence: ISemanticActorExecutionEvidence[] = [];
   let hasOperationalFailureEvent = false;
+  let gitCaptureFailureCount = 0;
+  let blockedGitInvocationCount = 0;
   let response: string | null = null;
   let gitInvocationEvidence: IGitInvocationEvidence | null = null;
   let capture: ICliInvocationEvent | null = null;
@@ -120,21 +122,23 @@ export const parseSemanticEvaluationHostOutput = (
     const event = HostEventSchema.parse(parsed);
     hostEvents.push(parsed);
     const invocationFailure = GitCaptureCommandSchema.safeParse(parsed);
-    if (invocationFailure.success)
+    if (invocationFailure.success) {
       nativeCommands.push({ event: parsed, command: invocationFailure.data.item['command'] });
-    if (
-      invocationFailure.success &&
-      /(?:^|\n)MOLDEA_(?:GIT|CLI)_CAPTURE_FAILED(?:\r?\n|$)/u.test(
-        invocationFailure.data.item.aggregated_output,
-      )
-    )
-      throw new CodexEvaluationHostError(
-        CODEX_EVALUATION_HOST_FAILURE_KINDS.ExecutionFailed,
-        'Invocation capture failed during actor execution.',
-      );
+      const output = invocationFailure.data.item.aggregated_output;
+      gitCaptureFailureCount += [
+        ...output.matchAll(/(?:^|\n)MOLDEA_GIT_CAPTURE_FAILED(?=\r?\n|$)/gu),
+      ].length;
+      if (/(?:^|\n)MOLDEA_CLI_CAPTURE_FAILED(?:\r?\n|$)/u.test(output))
+        throw new CodexEvaluationHostError(
+          CODEX_EVALUATION_HOST_FAILURE_KINDS.EvidenceIntegrity,
+          'CLI invocation evidence is incomplete.',
+        );
+    }
     if (event.type === 'moldea.git-invocations') {
       if (gitInvocationEvidence !== null) throw new Error('Git invocation capture is duplicated.');
-      gitInvocationEvidence = GitInvocationEventSchema.parse(parsed).evidence;
+      const gitCapture = GitInvocationEventSchema.parse(parsed);
+      gitInvocationEvidence = gitCapture.evidence;
+      blockedGitInvocationCount = gitCapture.blockedInvocationCount ?? 0;
     }
     if (event.type === 'moldea.cli-invocations') {
       if (capture !== null) throw new Error('CLI invocation capture is duplicated.');
@@ -146,6 +150,11 @@ export const parseSemanticEvaluationHostOutput = (
     const messageEvent = AgentMessageEventSchema.safeParse(event);
     if (messageEvent.success) response = messageEvent.data.item.text;
   }
+  if (gitCaptureFailureCount > blockedGitInvocationCount)
+    throw new CodexEvaluationHostError(
+      CODEX_EVALUATION_HOST_FAILURE_KINDS.EvidenceIntegrity,
+      'Git invocation evidence is incomplete.',
+    );
   const correspondingInvocations = correlateToolInvocations(
     nativeCommands.map(({ command }) => command),
     capture?.invocations ?? [],

@@ -194,7 +194,7 @@ const PaidInvocationSchema = z.strictObject({
   cycle: CycleSchema.optional(),
 });
 const RecordedTrialSchema = z.strictObject({
-  cycles: z.array(CycleSchema).min(1),
+  cycles: z.array(CycleSchema),
   paidInvocations: z.array(PaidInvocationSchema),
   actorExecutionEvidence: z.array(z.unknown()),
   gitInvocationEvidence: GitInvocationEvidenceSchema,
@@ -203,10 +203,10 @@ const RecordedTrialSchema = z.strictObject({
   operationalRetries: OperationalRetryStateSchema,
   stageIdentities: z.strictObject({
     actorSha256: Sha256Schema,
-    judgeSha256: Sha256Schema,
+    judgeSha256: Sha256Schema.nullable(),
   }),
   trial: z.looseObject({
-    cycles: z.array(CycleSchema).min(1),
+    cycles: z.array(CycleSchema),
     paidInvocations: z.array(PaidInvocationSchema),
     actorCommandPolicyEvidence: CommandPolicySchema,
     actorResourceEvidence: ResourceEvidenceSchema,
@@ -223,6 +223,7 @@ const RecordedTrialSchema = z.strictObject({
       semantic: z.boolean(),
     }),
     evaluatedAt: z.iso.datetime(),
+    evaluatorError: z.enum(['actor', 'judge']).optional(),
     executionOrigin: z.enum(['carried', 'executed', 'reused']),
     carriedFrom: z
       .strictObject({
@@ -309,7 +310,9 @@ const ActiveTrialSchema = z
     if (
       (trial.phase === 'actor-pending' && (hasActorEvidence || hasRecordedTrial)) ||
       (trial.phase === 'judge-pending' && (!hasActorEvidence || hasRecordedTrial)) ||
-      (trial.phase === 'trial-complete' && (!hasActorEvidence || !hasRecordedTrial))
+      (trial.phase === 'trial-complete' &&
+        (!hasRecordedTrial ||
+          hasActorEvidence === (trial.recordedTrial?.trial.evaluatorError === 'actor')))
     ) {
       context.addIssue({
         code: 'custom',
@@ -409,27 +412,58 @@ const hasValidPaidCycles = (
 const hasValidRecordedTrial = (
   recorded: ISemanticRecordedTrial,
   options: ISemanticActorExecutionEvidenceOptions,
-): boolean =>
-  hasValidPaidCycles(recorded.paidInvocations, options) &&
-  hasValidActorSummary(
-    {
-      cycles: recorded.cycles,
-      actorExecutionEvidence: recorded.actorExecutionEvidence,
-      actorResourceEvidence: recorded.trial.actorResourceEvidence,
-      commandPolicyEvidence: recorded.trial.actorCommandPolicyEvidence,
-      gitInvocationEvidence: recorded.gitInvocationEvidence,
-      response: recorded.actorResponse,
-      usage: recorded.trial.actorUsage,
-    },
-    options,
-  ) &&
-  serializeSemanticStageValue(recorded.cycles) ===
-    serializeSemanticStageValue(recorded.trial.cycles) &&
-  serializeSemanticStageValue(recorded.paidInvocations) ===
-    serializeSemanticStageValue(recorded.trial.paidInvocations) &&
-  recorded.paidInvocations.filter(({ stage }) => stage === 'actor').length >=
-    recorded.cycles.length &&
-  recorded.paidInvocations.some(({ stage }) => stage === 'judge');
+): boolean => {
+  const { trial, cycles, paidInvocations } = recorded;
+  if (
+    !hasValidPaidCycles(paidInvocations, options) ||
+    serializeSemanticStageValue(cycles) !== serializeSemanticStageValue(trial.cycles) ||
+    serializeSemanticStageValue(paidInvocations) !==
+      serializeSemanticStageValue(trial.paidInvocations) ||
+    paidInvocations.filter(({ stage }) => stage === 'actor').length < cycles.length
+  )
+    return false;
+
+  const hasActorSummary = () =>
+    hasValidActorSummary(
+      {
+        cycles,
+        actorExecutionEvidence: recorded.actorExecutionEvidence,
+        actorResourceEvidence: recorded.trial.actorResourceEvidence,
+        commandPolicyEvidence: recorded.trial.actorCommandPolicyEvidence,
+        gitInvocationEvidence: recorded.gitInvocationEvidence,
+        response: recorded.actorResponse,
+        usage: recorded.trial.actorUsage,
+      },
+      options,
+    );
+  const hasJudgeInvocation = paidInvocations.some(({ stage }) => stage === 'judge');
+  if (trial.evaluatorError === undefined)
+    return recorded.stageIdentities.judgeSha256 !== null && hasActorSummary() && hasJudgeInvocation;
+
+  return (
+    recorded.stageIdentities.judgeSha256 === null &&
+    !trial.passed &&
+    trial.confirmationEligible &&
+    !trial.dimensions.operational &&
+    !trial.dimensions.semantic &&
+    trial.failureClassifications.length === 1 &&
+    trial.failureClassifications[0] === 'operational' &&
+    trial.observed.length === 0 &&
+    trial.forbidden.length === 0 &&
+    trial.judgeUsage === null &&
+    trial.stageReuse === null &&
+    paidInvocations.at(-1)?.stage === trial.evaluatorError &&
+    (trial.evaluatorError === 'judge' ? hasJudgeInvocation : !hasJudgeInvocation) &&
+    (cycles.length > 0
+      ? hasActorSummary()
+      : trial.evaluatorError === 'actor' &&
+        trial.actorUsage === null &&
+        recorded.actorResponse === '' &&
+        recorded.actorExecutionEvidence.length === 0 &&
+        recorded.gitInvocationEvidence.invocationCount === 0 &&
+        trial.actorCommandPolicyEvidence.completedCommandCount === 0)
+  );
+};
 
 const CandidateCheckpointSchema = z
   .strictObject({

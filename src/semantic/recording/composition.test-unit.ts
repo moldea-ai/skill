@@ -179,6 +179,38 @@ const createSource = (
 };
 
 describe('semantic composition', () => {
+  test('preserves an evaluator error instead of creating a judge verdict', () => {
+    const definition = createCase('evaluator-integrity');
+    const source = createSource([definition], [{ passed: false }], 'sem-integrity');
+    const recorded = source.cases.get(definition.id)!.trials[0]!;
+    recorded.stageIdentities.judgeSha256 = null;
+    recorded.trial.dimensions.operational = false;
+    recorded.trial.evaluatorError = 'judge';
+    recorded.trial.failureClassifications = ['operational'];
+    recorded.trial.rationale = 'Evaluator evidence integrity error during the judge stage.';
+    const result = composeSemanticRecordedCases({
+      definitions: [definition],
+      review: {
+        acceptedCriteria: [],
+        caseSources: [],
+        formatVersion: 1,
+        inputReview: 'Task evidence reviewed.',
+        reassessments: [{ caseId: definition.id, rationale: 'The task outcome is established.' }],
+      },
+      sources: [source],
+    });
+    const selected = result.cases[0]!;
+    expect(selected.trials[0]?.trial).toMatchObject({
+      evaluatorError: 'judge',
+      failureClassifications: ['operational'],
+      passed: false,
+      confirmationEligible: true,
+    });
+    expect(createSemanticReplay(selected).trials[0]?.steps.map(({ kind }) => kind)).not.toContain(
+      'verdict',
+    );
+  });
+
   test('preserves a policy failure from a malformed judge call during recomputation', () => {
     const definition = createCase('policy-retry');
     const source = createSource([definition], [{ passed: false }], 'sem-policy-retry');

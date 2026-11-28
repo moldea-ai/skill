@@ -140,8 +140,9 @@ export const completeSemanticActiveTrial = (
   recordedTrial: ISemanticRecordedTrial,
   updatedAt: string,
 ): ISemanticActiveTrialCheckpoint => {
-  requirePendingStage(activeTrial, 'judge');
-  const resumedTrial = markStoppedStageResumed(activeTrial, 'judge');
+  const stage = recordedTrial.trial.evaluatorError ?? 'judge';
+  requirePendingStage(activeTrial, stage);
+  const resumedTrial = markStoppedStageResumed(activeTrial, stage);
   return {
     ...resumedTrial,
     phase: 'trial-complete',

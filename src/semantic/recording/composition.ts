@@ -129,40 +129,46 @@ const carryTrial = (options: {
 }): ISemanticRecordedTrial => {
   const { caseDefinition, recordedTrial, reviewRationale, source } = options;
   const sourceTrial = recordedTrial.trial;
-  const computedDimensions = createSemanticResultDimensions({
-    cycles: recordedTrial.cycles,
-    paidInvocations: recordedTrial.paidInvocations,
-    actorCommandPolicy: sourceTrial.actorCommandPolicyEvidence,
-    actorExecutionEvidence: recordedTrial.actorExecutionEvidence,
-    gitInvocationEvidence: recordedTrial.gitInvocationEvidence,
-    actorResourceEvidence: sourceTrial.actorResourceEvidence,
-    caseDefinition,
-    isMountIntegrityPassing: sourceTrial.dimensions.mountIntegrity,
-    isRepositoryControlPassing: sourceTrial.dimensions.repositoryControl,
-    isSemanticPassing: reviewRationale !== null || sourceTrial.dimensions.semantic,
-    judgeCommandPolicy: sourceTrial.judgeCommandPolicyEvidence,
-  });
-  const dimensions = options.preserveVerdict
-    ? {
-        ...sourceTrial.dimensions,
-        commandPolicy: computedDimensions.commandPolicy,
-        semantic:
-          sourceTrial.dimensions.semantic &&
-          hasPassingCaseRepairGitEvidence({
-            actorCommandPolicy: sourceTrial.actorCommandPolicyEvidence,
-            actorExecutionEvidence: recordedTrial.actorExecutionEvidence,
-            gitInvocationEvidence: recordedTrial.gitInvocationEvidence,
-            caseDefinition,
-          }),
-      }
-    : computedDimensions;
+  const computedDimensions =
+    sourceTrial.evaluatorError !== undefined
+      ? sourceTrial.dimensions
+      : createSemanticResultDimensions({
+          cycles: recordedTrial.cycles,
+          paidInvocations: recordedTrial.paidInvocations,
+          actorCommandPolicy: sourceTrial.actorCommandPolicyEvidence,
+          actorExecutionEvidence: recordedTrial.actorExecutionEvidence,
+          gitInvocationEvidence: recordedTrial.gitInvocationEvidence,
+          actorResourceEvidence: sourceTrial.actorResourceEvidence,
+          caseDefinition,
+          isMountIntegrityPassing: sourceTrial.dimensions.mountIntegrity,
+          isRepositoryControlPassing: sourceTrial.dimensions.repositoryControl,
+          isSemanticPassing: reviewRationale !== null || sourceTrial.dimensions.semantic,
+          judgeCommandPolicy: sourceTrial.judgeCommandPolicyEvidence,
+        });
+  const dimensions =
+    sourceTrial.evaluatorError !== undefined
+      ? sourceTrial.dimensions
+      : options.preserveVerdict
+        ? {
+            ...sourceTrial.dimensions,
+            commandPolicy: computedDimensions.commandPolicy,
+            semantic:
+              sourceTrial.dimensions.semantic &&
+              hasPassingCaseRepairGitEvidence({
+                actorCommandPolicy: sourceTrial.actorCommandPolicyEvidence,
+                actorExecutionEvidence: recordedTrial.actorExecutionEvidence,
+                gitInvocationEvidence: recordedTrial.gitInvocationEvidence,
+                caseDefinition,
+              }),
+          }
+        : computedDimensions;
   const hasChangedVerdict =
-    reviewRationale !== null ||
+    (reviewRationale !== null && sourceTrial.evaluatorError === undefined) ||
     dimensions.commandPolicy !== sourceTrial.dimensions.commandPolicy ||
     dimensions.resource !== sourceTrial.dimensions.resource ||
     dimensions.semantic !== sourceTrial.dimensions.semantic;
   const reassessment =
-    reviewRationale ??
+    (sourceTrial.evaluatorError === undefined ? reviewRationale : null) ??
     (hasChangedVerdict
       ? 'Deterministic host-policy, repair-Git and resource checks were recomputed; the recorded judge verdict was retained.'
       : null);
@@ -185,10 +191,14 @@ const carryTrial = (options: {
         ...(recordedVerdict === undefined ? {} : { recordedVerdict }),
         version: recordedSource?.version ?? source.bundle.run.version,
       },
-      confirmationEligible: isSemanticConfirmationEligible(dimensions),
+      confirmationEligible:
+        sourceTrial.evaluatorError !== undefined || isSemanticConfirmationEligible(dimensions),
       dimensions,
       executionOrigin: 'carried',
-      failureClassifications: getSemanticFailureClassifications(dimensions),
+      failureClassifications:
+        sourceTrial.evaluatorError === undefined
+          ? getSemanticFailureClassifications(dimensions)
+          : sourceTrial.failureClassifications,
       passed: hasPassingSemanticResultDimensions(dimensions),
       rationale:
         reassessment === null ? sourceTrial.rationale : `Maintainer reassessment: ${reassessment}`,

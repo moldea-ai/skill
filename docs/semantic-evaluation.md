@@ -29,6 +29,8 @@ The actor and judge run in isolated homes on Linux. Related repositories and eva
 
 Public evidence contains structured outcomes, observed skill operations, workspace changes, and usage summaries. Private event and Git sidecars retain bounded, redacted diagnostics for triage under `.evidence/private-semantic/`. A resume requires complete capture and matching inputs. Keep these sidecars with the private attempt and its charge ledger.
 
+The runner counts Git attempts blocked before execution when their private records establish the ledger rejection. Those attempts supply no proof that Git ran. An unexplained capture mismatch records an evaluator error for that trial and leaves it eligible for normal confirmation. Recorded usage and unresolved reservations remain in the charge ledger. Other cases continue under the same admission limits.
+
 The judge receives bounded descriptions of recognized Node assertions that the runner observed, with their verdicts. An unsupported, skipped, or ambiguous assertion establishes no behavior. The judge also sees observed bundled helper results from compound commands, with each child's own exit status. Raw command text, output, and process identities stay in private capture.
 
 Cases compare each turn's workspace and Git controls independently of the actor's report. Case-owned workspace checks can verify specific outcomes from the actual files. The Fix convergence case also checks that the final workspace is byte-identical and runs the bundled relevance gate and Scope against a guide-only path and a governed edition source.

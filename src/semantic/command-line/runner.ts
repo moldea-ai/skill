@@ -21,6 +21,7 @@ import {
   identifyCodexEvaluationHost,
   parseCodexEvaluationHostCommand,
   prepareCodexEvaluationHome,
+  projectCodexEvaluationExecutionEvidence,
   runCodexEvaluationHost,
   runCodexEvaluationOperationalStage,
   CodexEvaluationHostError,
@@ -374,7 +375,7 @@ export const runSemanticTrial = async (options: {
   cli: ISemanticCliIdentity;
   confirmationIndex: 1 | 2 | 3 | null;
   artifactDigest: string;
-  privateTraceAttemptId?: string;
+  privateTrace?: { attemptId: string; repositoryRoot: string };
   isOperationalResumeRequested: boolean;
   judgeCommand: readonly string[];
   judgeHost: ICodexEvaluationHostIdentity;
@@ -558,6 +559,100 @@ export const runSemanticTrial = async (options: {
       };
     }
 
+    const persistProgress = async (nextTrial: ISemanticActiveTrialCheckpoint): Promise<void> => {
+      await options.persistActiveTrial(nextTrial);
+      activeTrial = nextTrial;
+    };
+    const recordEvidenceIntegrityFailure = async (
+      error: unknown,
+    ): Promise<ISemanticTrialExecution> => {
+      throwIfSemanticExecutionAborted(options.signal);
+      if (
+        !(error instanceof CodexEvaluationHostError) ||
+        error.kind !== CODEX_EVALUATION_HOST_FAILURE_KINDS.EvidenceIntegrity
+      )
+        throw error;
+
+      const stage = activeTrial.phase === 'actor-pending' ? 'actor' : 'judge';
+      const actorEvidence = activeTrial.actorEvidence;
+      const cycles = activeTrial.actorCycles;
+      const emptyCommandPolicy = projectCodexEvaluationExecutionEvidence('').commandPolicy;
+      const summary = cycles.length > 0 ? summarizeSemanticCycles(cycles) : null;
+      const paidInvocations = activeTrial.paidInvocations;
+      const evaluatedAt = new Date().toISOString();
+      const actorCommandPolicy = summary?.commandPolicyEvidence ?? emptyCommandPolicy;
+      const actorExecutionEvidence = summary?.actorExecutionEvidence ?? [];
+      const gitInvocationEvidence = summary?.gitInvocationEvidence ?? {
+        invocationCount: 0,
+        hostInvocationCount: 0,
+        repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+      };
+      const actorResourceEvidence = summary?.actorResourceEvidence ?? {
+        commandCount: 0,
+        maximumInvocationByteCount: 0,
+        modelVisibleToolOutputByteCount: 0,
+        operations: [],
+        stdoutByteCount: 0,
+      };
+      const publicTrial: ISemanticAttemptTrialModel = {
+        cycles,
+        paidInvocations,
+        actorCommandPolicyEvidence: actorCommandPolicy,
+        actorResourceEvidence,
+        actorHost: { ...options.actorHost, role: 'actor' },
+        actorUsage: summary?.usage ?? null,
+        confirmationEligible: true,
+        confirmationIndex: options.confirmationIndex,
+        dimensions: {
+          ...createSemanticResultDimensions({
+            ...(cycles.length === 0 ? {} : { cycles }),
+            paidInvocations,
+            actorCommandPolicy,
+            actorExecutionEvidence,
+            gitInvocationEvidence,
+            actorResourceEvidence,
+            caseDefinition: options.caseDefinition,
+            isMountIntegrityPassing: actorEvidence?.isMountIntegrityPassing ?? false,
+            isRepositoryControlPassing: actorEvidence?.isRepositoryControlPassing ?? false,
+            isSemanticPassing: false,
+            judgeCommandPolicy: emptyCommandPolicy,
+          }),
+          operational: false,
+        },
+        evaluatedAt,
+        evaluatorError: stage,
+        executionOrigin: 'executed',
+        forbidden: [],
+        failureClassifications: ['operational'],
+        judgeCommandPolicyEvidence: emptyCommandPolicy,
+        judgeHost: { ...options.judgeHost, role: 'judge' },
+        judgeUsage: null,
+        kind: options.confirmationIndex === null ? 'initial' : 'confirmation',
+        observed: [],
+        passed: false,
+        rationale: `Evaluator evidence integrity error during the ${stage} stage.`,
+        stageReuse: null,
+      };
+      const recordedTrial: ISemanticRecordedTrial = {
+        cycles,
+        paidInvocations,
+        actorExecutionEvidence,
+        gitInvocationEvidence,
+        actorResponse: summary?.response ?? '',
+        developerDirection: actorPrompt,
+        operationalRetries: activeTrial.operationalRetries,
+        stageIdentities: { actorSha256: actorStageIdentity.sha256, judgeSha256: null },
+        trial: publicTrial,
+        workspaceChanges: actorEvidence?.workspaceChanges ?? {
+          created: [],
+          deleted: [],
+          modified: [],
+        },
+      };
+      await persistProgress(completeSemanticActiveTrial(activeTrial, recordedTrial, evaluatedAt));
+      return { publicTrial, recordedTrial };
+    };
+
     if (activeTrial.phase === 'actor-pending') {
       let hasStartedAttempt = false;
       const actorExecution = await runHostStage({
@@ -609,12 +704,11 @@ export const runSemanticTrial = async (options: {
               command: options.actorCommand,
               cwd: repositoryPath,
               includeWorkspaceBinaryDirectory: hasWorkspaceBinaryDirectory,
-              ...(options.privateTraceAttemptId === undefined
+              ...(options.privateTrace === undefined
                 ? {}
                 : {
                     privateTrace: {
-                      repositoryRoot: REPOSITORY_ROOT,
-                      attemptId: options.privateTraceAttemptId,
+                      ...options.privateTrace,
                       caseId: options.caseDefinition.id,
                       invocation: `t${options.confirmationIndex ?? 0}-a`,
                     },
@@ -635,12 +729,13 @@ export const runSemanticTrial = async (options: {
               : { verifyWorkspace: preparedCase.verifyWorkspace }),
           });
         },
-        persistActiveTrial: options.persistActiveTrial,
+        persistActiveTrial: persistProgress,
         reservationId: options.caseDefinition.id,
         stage: 'actor',
         temporaryRoot: evaluationRoot,
         tokenController: options.tokenController,
-      });
+      }).catch(recordEvidenceIntegrityFailure);
+      if ('recordedTrial' in actorExecution) return actorExecution;
       activeTrial = actorExecution.activeTrial;
       const cycles = actorExecution.output;
       activeTrial = attachSemanticActorEvidence(
@@ -698,12 +793,11 @@ export const runSemanticTrial = async (options: {
             command: options.judgeCommand,
             cwd: repositoryPath,
             prompt: judgePrompt,
-            ...(options.privateTraceAttemptId === undefined
+            ...(options.privateTrace === undefined
               ? {}
               : {
                   privateTrace: {
-                    repositoryRoot: REPOSITORY_ROOT,
-                    attemptId: options.privateTraceAttemptId,
+                    ...options.privateTrace,
                     caseId: options.caseDefinition.id,
                     invocation: `t${options.confirmationIndex ?? 0}-j`,
                   },
@@ -725,12 +819,13 @@ export const runSemanticTrial = async (options: {
           assessment: assessSemanticJudgeOutput(options.caseDefinition, judgeEvidence.response),
         };
       },
-      persistActiveTrial: options.persistActiveTrial,
+      persistActiveTrial: persistProgress,
       reservationId: options.caseDefinition.id,
       stage: 'judge',
       temporaryRoot: evaluationRoot,
       tokenController: options.tokenController,
-    });
+    }).catch(recordEvidenceIntegrityFailure);
+    if ('recordedTrial' in judgeExecution) return judgeExecution;
     activeTrial = judgeExecution.activeTrial;
     const { judgeEvidence, assessment } = judgeExecution.output;
     const judgeStageIdentity = createSemanticJudgeStageIdentity({
@@ -1298,7 +1393,7 @@ const run = async (signal: AbortSignal): Promise<void> => {
         actorCommand,
         actorHost,
         artifactDigest,
-        privateTraceAttemptId: attemptId,
+        privateTrace: { attemptId, repositoryRoot: REPOSITORY_ROOT },
         caseDefinition,
         cli,
         confirmationIndex,

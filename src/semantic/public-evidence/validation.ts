@@ -31,30 +31,36 @@ const CyclePresentationSchema = z.looseObject({
   commandPolicyEvidence: z.looseObject({ completedCommandCount: z.number().int().nonnegative() }),
   usage: HostUsageSchema,
 });
-const TrialSchema = z.looseObject({
-  cycles: z
-    .array(CyclePresentationSchema)
-    .min(1)
-    .refine((cycles) => cycles.every((cycle, index) => cycle.requestIndex === index))
-    .optional(),
-  actorUsage: HostUsageSchema,
-  confirmationIndex: z.union([z.literal(1), z.literal(2), z.literal(3), z.null()]),
-  dimensions: z.looseObject({
-    commandPolicy: z.boolean(),
-    mountIntegrity: z.boolean(),
-    operational: z.boolean(),
-    repositoryControl: z.boolean(),
-    resource: z.boolean(),
-    semantic: z.boolean(),
-  }),
-  evaluatedAt: z.iso.datetime(),
-  forbidden: z.array(z.string()),
-  kind: z.enum(['confirmation', 'initial']),
-  judgeUsage: HostUsageSchema,
-  observed: z.array(z.string()),
-  passed: z.boolean(),
-  rationale: z.string(),
-});
+const TrialSchema = z
+  .looseObject({
+    cycles: z
+      .array(CyclePresentationSchema)
+      .refine((cycles) => cycles.every((cycle, index) => cycle.requestIndex === index))
+      .optional(),
+    actorUsage: HostUsageSchema,
+    confirmationIndex: z.union([z.literal(1), z.literal(2), z.literal(3), z.null()]),
+    dimensions: z.looseObject({
+      commandPolicy: z.boolean(),
+      mountIntegrity: z.boolean(),
+      operational: z.boolean(),
+      repositoryControl: z.boolean(),
+      resource: z.boolean(),
+      semantic: z.boolean(),
+    }),
+    evaluatedAt: z.iso.datetime(),
+    evaluatorError: z.enum(['actor', 'judge']).optional(),
+    forbidden: z.array(z.string()),
+    kind: z.enum(['confirmation', 'initial']),
+    judgeUsage: HostUsageSchema,
+    observed: z.array(z.string()),
+    passed: z.boolean(),
+    rationale: z.string(),
+  })
+  .refine(
+    ({ cycles, evaluatorError, passed }) =>
+      (cycles?.length !== 0 || evaluatorError === 'actor') &&
+      (evaluatorError === undefined || !passed),
+  );
 const CaseSchema = z.looseObject({
   id: z.string().min(1),
   replay: ReplaySchema,

@@ -58,7 +58,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'register-material-runtime-relationships',
       criterion:
-        'The manifest registers the real repository-local runtime, loader, impact relationships, and any mirror the runtime actually requires. Direct canonical consumption does not require a mirror.',
+        'The manifest binds the real repository-local runtime and loader and declares any other evidenced material relationships and any mirror the runtime actually requires. A binding establishes the relationship for its path without a duplicate impact entry. Direct canonical consumption requires no mirror.',
     },
     {
       label: 'verify-runtime-instruction-provenance',

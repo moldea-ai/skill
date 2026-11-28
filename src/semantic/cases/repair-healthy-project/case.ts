@@ -26,7 +26,7 @@ const prepareHealthyProject: ISemanticCaseSetup = async (context) => {
   const result = await createSemanticCaseSetup('repair-healthy-project')(context);
   await writeCaseFixture(context.repositoryPath, {
     'moldea/project.md':
-      '# Fulfillment desk\n\nThe desk tracks packing and returns. The public projectState export in /src/project-state.js is "active". [Packing](context/packing.md) owns package release. [Returns](context/returns.md) owns refund eligibility.\n',
+      '# Fulfillment desk\n\nThe desk tracks packing and returns. The public projectState export in /src/project-state.js is "active". [Packing](context/packing.md) owns package release. [Returns](context/returns.md) owns return request eligibility.\n',
     'moldea/context/packing.md':
       '# Packing\n\nOnly inspected packages can leave the packing desk.\n',
     'moldea/context/returns.md':

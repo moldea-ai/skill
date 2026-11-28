@@ -98,7 +98,11 @@ export const loadSemanticReusableTrials = async (
     });
 
     for (const recordedCase of recordedCases) {
-      if (recordedCase.status === 'pending') continue;
+      if (
+        recordedCase.status === 'pending' ||
+        recordedCase.trials.some(({ trial }) => trial.evaluatorError !== undefined)
+      )
+        continue;
       const initial = recordedCase.trials[0]?.trial;
       const confirmations = recordedCase.trials.slice(1);
       if (

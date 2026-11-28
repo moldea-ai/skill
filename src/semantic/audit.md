@@ -14,10 +14,21 @@ The official selector contains 145 public cases and 591 criteria. The full catal
 Candidate identities for revalidation at freeze:
 
 - Portable artifact `ed829fe03d9f96eafb2ca85de156b66a6bb21ab89793f2fe2e2bf8744f56312e`
-- Official case suite `33fae30682707840296fc67ea9964c0430786fc9c62ff3b5ae0b09564a5b0ecf`
+- Official case suite `0c90c02618fc6fe9913e5b6d51dd14bda3fe913333d0785a6b7c818a72137268`
 - Official coverage `0cdeb7274104445fd26a585d7e721a354098b4995cce24d02b68f76ca64378df`
 
 The complete official inventory is retained in the ignored milestone catalogue record. Catalogue preflight also validates the private definitions. Offline fixture checks qualify the evidence paths. The actual agent results require the official recording.
+
+## Corrections before the fresh Skill 11.0.2 recording
+
+- `initialize-with-human-guides` accepts the coherent `/content/bulletins/**` declaration alongside the single-source spelling. Scope still has to select the bulletin owner, and the verifier still excludes the human guides and unrelated declarations. The exact-file allowlist rejected the collection form the Skill specifies.
+- `fix-whole-project-checkpoint` shares its healthy fixture with `repair-healthy-project`. The foundation route now names return request eligibility, matching the focused owner and the implementation. Both cases retain their zero-edit checks.
+- `initialize-onboarding-approved` grants registration in the initial request. The later Yes and Stop requests give the Skill room to propose the architecture rule move, apply it after approval, and validate the completed initialization. The rest of the architecture and the other supporting artifacts retain their preservation checks.
+- `adopted-relevance-changed-behavior` accepts a report that validation passed when the observed result is valid with no diagnostics. It still requires an observed Validate invocation and accurate reporting of any material diagnostics.
+- `agent-adoption-inline-runtime-instruction` recognizes a real runtime or loader binding as the relationship for that path. It still requires material relationships and any mirror the runtime consumes. A duplicate impact declaration would repeat the binding.
+- `explicit-moldea-validation` permits the adoption-only gate that precedes the requested read-only Validate. Extra structural operations, repair and writes still fail.
+
+The stopped attempt and its traces remain private. The evaluator now reconciles privately captured Git rejections with its ledger and records unexplained evidence-integrity errors at the trial boundary. Those errors use the existing confirmation quorum. The shipped Skill text is unchanged.
 
 ## Context ownership and instruction-link catalogue
 

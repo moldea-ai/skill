@@ -14,6 +14,7 @@ export const BULLETIN_GUIDE = 'docs/bulletin-policy.md';
 export const DISPATCH_CODE = '/src/dispatch-window.js';
 export const EDITORIAL_INSTRUCTION = '/skills/bulletin-review/SKILL.md';
 export const BULLETIN_SOURCE = '/content/bulletins/spring.md';
+const BULLETIN_COLLECTION = '/content/bulletins/**';
 const cutoff = /\b16:00\b|\b4(?::00)?\s*p\.?m\b/iu;
 const publishedApproval =
   /\b(?:requires?|must|only|before|until)\b[^.\n]*\b(?:sign[- ]off|approv)/iu;
@@ -142,7 +143,9 @@ export const semanticCase = defineSemanticCase({
           [...entries.values()]
             .flat()
             .every((path) =>
-              [DISPATCH_CODE, EDITORIAL_INSTRUCTION, BULLETIN_SOURCE].includes(path),
+              [DISPATCH_CODE, EDITORIAL_INSTRUCTION, BULLETIN_SOURCE, BULLETIN_COLLECTION].includes(
+                path,
+              ),
             ),
       },
     ];

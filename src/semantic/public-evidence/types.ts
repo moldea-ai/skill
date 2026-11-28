@@ -112,6 +112,7 @@ export interface ISemanticAttemptTrialModel {
   confirmationIndex: 1 | 2 | 3 | null;
   dimensions: ISemanticResultDimensions;
   evaluatedAt: string;
+  evaluatorError?: 'actor' | 'judge';
   executionOrigin: 'carried' | 'executed' | 'reused';
   carriedFrom?: {
     attemptId: string;

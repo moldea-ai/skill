@@ -1032,6 +1032,109 @@ console.log(JSON.stringify({type:'turn.completed',usage:{input_tokens:isOverBudg
   }
 }, 30_000);
 
+test('evidence integrity errors confirm per trial and let other cases complete', async () => {
+  const root = await mkdtemp(path.join(tmpdir(), 'moldea-integrity-trial-'));
+  temporaryRoots.push(root);
+  const bin = path.join(root, 'bin');
+  const sourceHome = path.join(root, 'source-home');
+  await Promise.all([bin, sourceHome].map((directory) => mkdir(directory)));
+  await writeFile(
+    path.join(bin, 'codex'),
+    `#!/opt/node
+const fs = require('node:fs');
+const prompt = fs.readFileSync(0, 'utf8');
+const isJudge = prompt.startsWith('Assess whether');
+const fails = (!isJudge && prompt.includes('actor-integrity')) ||
+  (isJudge && prompt.includes('judge-integrity'));
+if (fails) {
+  const entry = {arguments:['--version'], approved:true, origin:'actor', caller:'actor'};
+  fs.appendFileSync('/home/evaluator/git-invocations.jsonl', JSON.stringify(entry) + '\\n');
+}
+const text = isJudge ? JSON.stringify({expected:{expected:true},forbidden:{forbidden:false},rationale:'Completed.'}) : 'Completed.';
+console.log(JSON.stringify({type:'item.completed',item:{type:'agent_message',text}}));
+console.log(JSON.stringify({type:'turn.completed',usage:{input_tokens:100,cached_input_tokens:50,output_tokens:20}}));
+`,
+    { mode: 0o755 },
+  );
+  await writeFile(path.join(bin, 'codex-code-mode-host'), '#!/bin/sh\nexit 0\n', {
+    mode: 0o755,
+  });
+  vi.stubEnv('CODEX_HOME', sourceHome);
+  vi.stubEnv('PATH', `${bin}${path.delimiter}${process.env['PATH'] ?? ''}`);
+  const cases = ['actor-integrity', 'judge-integrity', 'later-case'].map((id) => ({
+    ...createCase(id),
+    setup: async ({ sandboxHome }: { sandboxHome: string }) => {
+      await prepareCodexEvaluationHome(sandboxHome);
+      return {};
+    },
+  }));
+  const checkpoint = createCandidateCheckpoint(cases);
+  checkpoint.maxPublicFailures = 8;
+  await writeSemanticCheckpoint(root, checkpoint);
+  const base = [
+    'codex',
+    'exec',
+    '--ignore-user-config',
+    '--ignore-rules',
+    '--ephemeral',
+    '--skip-git-repo-check',
+    '--dangerously-bypass-approvals-and-sandbox',
+    '-c',
+    'shell_environment_policy.inherit=none',
+    '--json',
+    '-',
+  ];
+  const results = await executeSemanticCases({
+    cases,
+    checkpoint,
+    repositoryRoot: root,
+    workerCount: 4,
+    executeTrial: async (options) =>
+      (
+        await runSemanticTrial({
+          ...options,
+          actorCommand: buildCodexEvaluationHostCommand(base, 'actor'),
+          judgeCommand: buildCodexEvaluationHostCommand(base, 'judge'),
+          actorHost: checkpoint.actorHost,
+          judgeHost: checkpoint.judgeHost,
+          artifactDigest: SHA256,
+          cli: checkpoint.cli,
+          privateTrace: { repositoryRoot: root, attemptId: checkpoint.attemptId },
+          isOperationalResumeRequested: false,
+          reusableTrials: [],
+        })
+      ).recordedTrial,
+  });
+  expect(results.map(({ id, status }) => ({ id, status }))).toStrictEqual([
+    { id: 'actor-integrity', status: 'failed' },
+    { id: 'judge-integrity', status: 'failed' },
+    { id: 'later-case', status: 'passed' },
+  ]);
+  for (const [index, stage] of (['actor', 'judge'] as const).entries()) {
+    const rejected = results[index]!;
+    expect(rejected.confirmationStatus).toBe('rejected');
+    expect(rejected.trials).toHaveLength(3);
+    for (const trial of rejected.trials) {
+      expect(trial.trial).toMatchObject({
+        evaluatorError: stage,
+        failureClassifications: ['operational'],
+        passed: false,
+        confirmationEligible: true,
+        judgeUsage: null,
+        observed: [],
+        forbidden: [],
+      });
+      expect(trial.cycles).toHaveLength(stage === 'actor' ? 0 : 1);
+      expect(trial.paidInvocations.at(-1)).toStrictEqual({ stage, usage: null });
+      expect(trial.stageIdentities.judgeSha256).toBeNull();
+    }
+  }
+  expect(getSemanticCandidatePaidTokenCount(checkpoint.cases, checkpoint.caseCheckpoints)).toBe(
+    6 * 2_097_152 + 5 * 120,
+  );
+  expect(await readSemanticCheckpoint(root)).toStrictEqual(checkpoint);
+}, 30_000);
+
 describe('semantic runner case orchestration', () => {
   test.each(['passed', 'recovered', 'failed'] as const)(
     'archives a completed %s diagnostic with all usage and confirmations before cleanup',

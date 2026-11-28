@@ -13,6 +13,7 @@ import { z } from 'zod';
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../resources/index.ts';
 
 import { redactCodexDiagnosticText } from './execution-evidence.ts';
+import { GitInvocationSchema, type IGitInvocation } from './git-invocations.ts';
 import type { ICodexEvaluationPrivateTraceOptions } from './types.ts';
 
 const MAX_TRACE_BYTES = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostOutputBytes;
@@ -46,6 +47,7 @@ const SECRET_FIELDS = [
 const GitDiagnosticSchema = z.object({
   arguments: z.array(z.string()),
   status: z.number().int().nullable(),
+  blockedInvocation: GitInvocationSchema.nullable(),
   calls: z.array(
     z.object({
       kind: z.enum(['subprocess', 'wrapper']),
@@ -184,6 +186,7 @@ export const createPrivateTrace = async (
   const fileByteCounts = { events: 0, git: 0 };
   let eventCount = 0;
   let gitInvocationCount = 0;
+  const blockedGitInvocations: IGitInvocation[] = [];
   let failure: Error | null = null;
   let writes = Promise.resolve();
   let line = '';
@@ -238,6 +241,16 @@ export const createPrivateTrace = async (
         const record = GitDiagnosticSchema.parse(
           JSON.parse(Buffer.concat(chunks).toString('utf8')),
         );
+        if (record.blockedInvocation !== null) {
+          if (
+            record.status !== 3 ||
+            record.calls.length !== 1 ||
+            record.calls[0]?.kind !== 'wrapper' ||
+            JSON.stringify(record.blockedInvocation.arguments) !== JSON.stringify(record.arguments)
+          )
+            throw new Error('A Git ledger rejection must precede execution.');
+          blockedGitInvocations.push(record.blockedInvocation);
+        }
         const calls = record.calls.map((call) => {
           if (call.incomplete) fail('Private Git diagnostic subprocess capture was incomplete.');
           const stderr = Buffer.from(call.stderr, 'base64');
@@ -267,6 +280,7 @@ export const createPrivateTrace = async (
           arguments: argumentsList,
           argumentsRedacted: JSON.stringify(argumentsList) !== JSON.stringify(record.arguments),
           status: record.status,
+          ledgerRecovered: record.blockedInvocation !== null,
           calls,
         });
       } catch {
@@ -290,6 +304,8 @@ export const createPrivateTrace = async (
   }
   server.on('error', () => fail('Private Git diagnostic listener failed.'));
   return {
+    // the wrapper waits for the socket acknowledgement before the host can finish
+    blockedGitInvocations,
     /** Marks missing runtime capture without discarding the retained diagnostic stream. */
     markIncomplete(this: void): void {
       fail('Private runtime invocation capture was incomplete.');
@@ -400,6 +416,7 @@ export const createPrivateTrace = async (
         outcome,
         eventCount,
         gitInvocationCount,
+        expectedGitInvocationCount,
       };
       append('events', footer, true);
       append('git', footer, true);

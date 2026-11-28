@@ -1,5 +1,39 @@
 # Skill semantic audit handoff
 
+## Skill 11.0.3 recording disposition
+
+Official recording `sem-20261128150942086-94fe14a3` finished all 145 cases on frozen Skill artifact `4a4b446ff5029bae79ed757f71ff8bb18ef2d045b7ac2b6d8aac86f085874289`. The 132 qualifying cases consist of 126 initial passes and six confirmation recoveries. They retain evidence for all 15 public coverage claims. The 13 cases below retain their original verdicts in the private recording. Trial numbers identify the traces in the recording’s private review. The Skill text and case definitions were held fixed.
+
+- `initialize-inspected-source-coverage` (coding-agent reporting limitation). Trials 0, 1 and 2 registered the real Support Triage connection, preserved runtime behavior, passed integration and Validate, and named three uninspected modules. Their reports omitted the specific statement that registered relationships were limited to inspected source, despite the Initialize report requirement.
+- `initialize-onboarding-approved` (case/rubric defect and coding-agent limitation). All three trials connected and tested both workflows and validated after Yes. The recorded diff shows an accepted decision statement replaced with a link. The case demands byte preservation and direct links even where the actor proposed an authorized move and routed supporting material through the new owner. Trials 0 and 1 also changed supporting prose.
+- `initialize-onboarding-confirmation` (case/rubric timing defect). Trials 0, 2 and 3 preserved all source authorities, created the foundation, linked the financial approval decision and left registrations pending. The first-round rubric requires the financial rule in canonical project.md before the approval that the Initializing reference requires for a human-doc rule move. Trial 1 included the rule and passed.
+- `maintain-context-without-duplication` (judge evidence gap). Trials 0, 1 and 2 each changed only moldea/context/operations.md and passed Validate. The fixture already supplies the unique project route and /src/operations/escalation.js relationship; the complete diff preserves both. The judge marked both unchanged paths unevidenced.
+- `reconcile-drift-and-boundaries` (coding-agent reporting limitation). Trials 0, 1 and 2 repaired only the runtime binding, preserved the obsolete path’s absence, created no unproved binding, and passed Validate. Each report omitted the distinct unverified dynamic registration and the focused resolver even while noting unverified live instruction consumption.
+- `repair-converged-owners` (coding-agent limitation and case fixture defect). All three trials dropped the unverified lockfile declaration or omitted the required evidence gap and per-path enforcement accounting. Trial 0’s final Fix was byte-identical. In confirmations 1 and 2 the actor reported correcting inherited refund-guide and stylesheet descriptions that the split left stale, as documented for 11.0.2. Those corrections are distinct from enumerating or expanding coherent module paths.
+- `repair-doc-only-rule` (case/fixture defect). All three trials changed only moldea/moldea.yaml. The fixture seeded an empty owner mapping that Validate rejects, and Fix removed it. The preservation verifier demands a zero-file diff even though its criterion concerns the procedure and canonical owner only. Their bytes were preserved and approval to move the rule remained pending.
+- `repair-healthy-project` (coding-agent reporting limitation). All four trials kept the workspace byte-identical, used the installed repair helper and passed final structural validation. Trial 2 reported all three owner totals and passed. Trials 0, 1 and 3 omitted per-owner totals and unchecked counts despite the explicit completion contract.
+- `repair-mixed-context-owners` (coding-agent limitation). Trials 0 and 1 removed the unverified lockfile declaration. Trial 2 kept it and recognized the gap but omitted both from Resume. All trials proposed the split before approval and used the edition glob. They omitted explicit sole-enforcement path-to-rule mappings.
+- `repair-mixed-strict-scope` (coding-agent limitation). The trials correctly performed relationship cleanup under strict scope and left the split pending. Trial 0 preserved the unresolved lockfile without a complete Resume point. Trials 1 and 2 removed its declaration and declared completion. All omitted individual sole-enforcement mappings.
+- `repair-readme-drift` (coding-agent limitation). All four trials restored only the managed README wording and passed Validate. Private Git capture credited the required installed review helper only in passing confirmation 1. Trials 0, 2 and 3 omitted that verification.
+- `repair-stale-integration` (coding-agent command-policy limitation). All trials repaired only the managed block, kept the tracked symlink and surrounding BOM/CRLF bytes, passed Validate twice, and made no second-pass edits. Trials 0, 2 and 3 submitted direct git ls-files syntax outside the allowed orientation commands. Confirmation 1 used compliant reads and passed.
+- `skill-create-progressive-disclosure` (judge evidence gap and coding-agent limitation). The fixture actually contains docs/release-policy.md, which the canonical policy links to. The judge rejected that existing unchanged resource as unproved in all three trials. One confirmation also loaded its skill-owned detail unconditionally, weakening progressive disclosure.
+
+### Next-revision follow-ups
+
+- `initialize-inspected-source-coverage`. Show how to distinguish the inspected relationship coverage map from the list of changed files in the final Initialize report.
+- `initialize-onboarding-approved`. Separate approved source-rule moves and canonical link routing from preservation of unrelated supporting text.
+- `initialize-onboarding-confirmation`. Distinguish the first-round foundation boundary from the approved canonical rule move, and verify the explicit financial rule after approval.
+- `maintain-context-without-duplication`. Project the initial and unchanged routing and manifest relationship to the judge for narrow Maintain repairs.
+- `reconcile-drift-and-boundaries`. Keep distinct dynamic registration evidence and the smallest resolver visible in the final repair report.
+- `repair-converged-owners`. Align the fixture’s existing guide and stylesheet facts before grading second-pass no-op behavior, and retain the separate unchecked evidence and enforcement checks.
+- `repair-doc-only-rule`. Seed a valid zero-relationship manifest and scope the preservation assertion to the rule source and owner.
+- `repair-healthy-project`. Keep the no-op fixture and evaluate whether concise count reporting can be made more reliable in the next revision.
+- `repair-mixed-context-owners`. Keep testing the exact unchecked path and evidence gap in the Resume point, along with each sole-enforcement path and rule.
+- `repair-mixed-strict-scope`. Retain strict-scope cleanup coverage and verify that the unresolved declaration and Resume point survive.
+- `repair-readme-drift`. Retain the bounded README case and require actual installed-helper review evidence even when the managed writer performs the edit.
+- `repair-stale-integration`. Keep the BOM/CRLF and symlink regression coverage and distinguish submitted Git syntax from wrapper-confirmed executed reads.
+- `skill-create-progressive-disclosure`. Project the release desk guide path to the judge and keep the independent conditional-loading check.
+
 ## Shared context model and Fix catalogue
 
 The official selector contains 145 public cases and 591 criteria. The full catalogue has 162 cases including the 17 private definitions. Audit scope covers actor requests, fixture provenance, expected and forbidden outcomes, and coverage claims. The actor receives the authored request for each turn. Fixture declarations, criteria, and workspace checks go to the evaluator.

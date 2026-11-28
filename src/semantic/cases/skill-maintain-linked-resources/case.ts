@@ -32,7 +32,7 @@ export const semanticCase = defineSemanticCase({
         claim: 'The current policy covers npm and pnpm.',
         source: {
           kind: 'workspace-path',
-          path: 'docs/release-policy.md',
+          path: 'moldea/context/release-policy.md',
           expectedType: 'file',
         },
       },

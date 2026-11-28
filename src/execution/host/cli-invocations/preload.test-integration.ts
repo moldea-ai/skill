@@ -12,6 +12,7 @@ import {
 } from '../../../semantic/execution/index.ts';
 import { semanticCase } from '../../../semantic/cases/ordinary-final-validation-limit/case.ts';
 import { semanticCase as staleIntegrationCase } from '../../../semantic/cases/repair-stale-integration/case.ts';
+import { buildSemanticJudgePrompt } from '../../../semantic/judging/index.ts';
 import {
   createActorRepository,
   diffSemanticWorkspaceSnapshots,
@@ -20,6 +21,134 @@ import {
 
 import { buildCodexEvaluationHostCommand, runCodexEvaluationHost } from '../host.ts';
 import { CliInvocationEventSchema } from './index.ts';
+
+test('captures runtime assertion status and the actual helper result in compound commands', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'moldea-assertion-tools-'));
+  try {
+    await mkdir(join(root, 'source-home'));
+    vi.stubEnv('CODEX_HOME', join(root, 'source-home'));
+    const home = join(root, 'home');
+    const tools = join(root, 'tools');
+    const { repositoryPath, readOnlyMounts } = await createActorRepository(
+      root,
+      staleIntegrationCase,
+      home,
+      tools,
+    );
+    await writeFile(
+      join(repositoryPath, 'rule.mjs'),
+      'export const readRule = () => ({ enabled: true });\n',
+    );
+    await writeFile(
+      join(repositoryPath, 'skip.mjs'),
+      'process.exit(0); export const readRule = () => ({ enabled: true });\n',
+    );
+    const source =
+      'import assert from "node:assert/strict"; import { readRule } from "./rule.mjs"; assert.deepStrictEqual(readRule(), { enabled: true });';
+    const check = (program: string) => "node --input-type=module -e '" + program + "'";
+    const gate =
+      'node /mnt/.agents/skills/moldea/scripts/relevance-gate.mjs --repository /mnt --adoption-only';
+    const commands = [
+      check(source) + ' && ' + gate + '; printf "parent only"; exit 7',
+      check(source.replace('enabled: true', 'enabled: false')) + ' || true',
+      check(source.replace('./rule.mjs', './skip.mjs')),
+      'node -e \'const assert = require("node:assert/strict"); assert.strictEqual(2, 2);\'',
+      'node -e \'const assert = require("node:assert/strict"); if (false) assert.strictEqual(2, 2);\'',
+      'false && ' + gate + "; printf '1\\n'",
+    ];
+    await writeFile(
+      join(tools, 'codex'),
+      '#!/opt/node\n' +
+        "const {spawnSync}=require('node:child_process');\n" +
+        'const commands=' +
+        JSON.stringify(commands) +
+        ';\n' +
+        'for (const [index, script] of commands.entries()) {\n' +
+        "  const item = {id:'tool-'+index,type:'command_execution',command:'/bin/bash -lc '+JSON.stringify(script)};\n" +
+        "  console.log(JSON.stringify({type:'item.started',item}));\n" +
+        "  const result=spawnSync('/bin/bash',['-c',script],{encoding:'utf8'});\n" +
+        "  console.log(JSON.stringify({type:'item.completed',item:{...item,status:result.status===0?'completed':'failed',exit_code:result.status,aggregated_output:result.stdout+result.stderr}}));\n" +
+        "}\nconsole.log(JSON.stringify({type:'item.completed',item:{type:'agent_message',text:'Complete.'}}));\n",
+      { mode: 0o755 },
+    );
+    await writeFile(join(tools, 'codex-code-mode-host'), '#!/bin/sh\nexit 0\n', { mode: 0o755 });
+    vi.stubEnv('PATH', tools + ':' + (process.env['PATH'] ?? ''));
+    const output = await runCodexEvaluationHost({
+      command: buildCodexEvaluationHostCommand(
+        [
+          'codex',
+          'exec',
+          '--ephemeral',
+          '--ignore-rules',
+          '--ignore-user-config',
+          '--skip-git-repo-check',
+          '--dangerously-bypass-approvals-and-sandbox',
+          '-c',
+          'shell_environment_policy.inherit=none',
+          '-',
+        ],
+        'actor',
+      ),
+      cwd: repositoryPath,
+      sandboxHome: home,
+      role: 'actor',
+      prompt: 'Observe a runtime assertion and a helper.',
+      readOnlyMounts,
+      readOnlyWorkspacePaths: ['.agents', '.git'],
+    });
+    const identity = readReleaseIdentity(process.cwd());
+    const parsed = parseSemanticEvaluationHostOutput(output, {
+      cliVersion: identity.cliVersion,
+      jsonSchemaVersion: identity.cliJsonSchemaVersion,
+    });
+    const facts = parsed.actorExecutionEvidence.flatMap(({ item }) => item.outputEvidence.facts);
+    expect(facts).toMatchObject([
+      {
+        kind: 'node-assertion',
+        status: 'passed',
+        method: 'deepStrictEqual',
+        actual: 'readRule()',
+        expected: '{"enabled": true}',
+        source: './rule.mjs',
+      },
+      { kind: 'relevance-gate-result', mode: 'adoption-only', matched: true },
+      { kind: 'node-assertion', status: 'failed', method: 'deepStrictEqual' },
+      { kind: 'node-assertion', status: 'skipped' },
+      {
+        kind: 'node-assertion',
+        status: 'passed',
+        method: 'strictEqual',
+        actual: '2',
+        expected: '2',
+      },
+      { kind: 'node-assertion', status: 'unsupported' },
+    ]);
+    expect(parsed.actorExecutionEvidence[0]?.item.exitCode).toBe(7);
+    expect(parsed.commandPolicyEvidence.completedCommandCount).toBe(commands.length);
+    expect(parsed.actorResourceEvidence.commandCount).toBe(0);
+    expect(JSON.stringify(parsed)).not.toContain('parent only');
+    expect(JSON.stringify(parsed)).not.toContain('callerIdentities');
+    const judgePrompt = buildSemanticJudgePrompt({
+      actorCommandPolicyEvidence: parsed.commandPolicyEvidence,
+      actorExecutionEvidence: parsed.actorExecutionEvidence,
+      actorResourceEvidence: parsed.actorResourceEvidence,
+      actorResponse: parsed.response,
+      caseDefinition: staleIntegrationCase,
+      gitInvocationEvidence: parsed.gitInvocationEvidence,
+      isRepositoryControlPassing: true,
+      repositoryEvidence: staleIntegrationCase.input.repositoryEvidence,
+      workspaceChanges: { created: [], deleted: [], modified: [] },
+    });
+    expect(judgePrompt).toContain('"kind":"node-assertion"');
+    expect(judgePrompt).toContain('"actual":"readRule()"');
+    expect(judgePrompt).toContain('"kind":"relevance-gate-result"');
+    expect(judgePrompt).not.toContain('parent only');
+    expect(judgePrompt).not.toContain('callerIdentities');
+  } finally {
+    vi.unstubAllEnvs();
+    await rm(root, { recursive: true, force: true });
+  }
+});
 
 test('parallel real validation and writer print retain separately proved results', async () => {
   const root = await mkdtemp(join(tmpdir(), 'moldea-parallel-tools-'));

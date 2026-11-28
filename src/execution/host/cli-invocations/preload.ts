@@ -9,10 +9,17 @@ import { readBoundedFile } from 'jg-fs/sync';
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../resources/index.ts';
 
 import { observeCanonicalDigest } from './canonical-observation.ts';
+import { getNodeEvalSource, observeNodeAssertions } from './runtime-assertion.ts';
 
 // Linux-only evaluator preload. NODE_OPTIONS propagates through cooperative Node wrappers.
 const cli = '/mnt/.agents/skills/moldea/scripts/moldea-cli/moldea.mjs';
-const writer = '/mnt/.agents/skills/moldea/scripts/managed-agents.mjs';
+const helperDirectory = '/mnt/.agents/skills/moldea/scripts/';
+const helperEntrypoints = new Map([
+  [`${helperDirectory}managed-agents.mjs`, 'managed-agents'],
+  [`${helperDirectory}managed-readme.mjs`, 'managed-readme'],
+  [`${helperDirectory}relevance-gate.mjs`, 'relevance-gate'],
+  [`${helperDirectory}repair-git.mjs`, 'repair-git'],
+] as const);
 const log = '/home/evaluator/cli-invocations.jsonl';
 const HOST_EXECUTABLES = new Set(['/opt/codex', '/opt/codex-code-mode-host']);
 
@@ -88,36 +95,55 @@ const appendRecord = (record: object): void => {
 
 /** Installs bounded observation before the entry point resolves or executes. */
 const observeTool = (): void => {
-  if (!isMainThread || process.argv[1] === undefined) return;
-  const entrypoint = resolve(process.argv[1]);
-  if (entrypoint !== cli && entrypoint !== writer) return;
-  if (entrypoint === writer) {
+  if (!isMainThread) return;
+  const evalSource = process.argv.length === 1 ? getNodeEvalSource(process.execArgv) : null;
+  const isNodeEval = evalSource !== null && evalSource.includes('node:assert');
+  const path = process.argv[1] === undefined ? null : resolve(process.argv[1]);
+  const entrypoint = isNodeEval
+    ? 'node-eval'
+    : path === cli
+      ? 'cli'
+      : path === null
+        ? undefined
+        : helperEntrypoints.get(path as Parameters<typeof helperEntrypoints.get>[0]);
+  if (entrypoint === undefined) return;
+  if (
+    entrypoint !== 'cli' &&
+    entrypoint !== 'managed-agents' &&
+    !isNodeEval &&
+    process.execArgv.length !== 0
+  )
+    return;
+  if (path !== null && entrypoint !== 'cli') {
     try {
-      if (realpathSync(writer) !== writer || !lstatSync(writer).isFile()) return;
+      if (realpathSync(path) !== path || !lstatSync(path).isFile()) return;
     } catch {
       return;
     }
   }
-  const args = process.argv.slice(2);
-  if (entrypoint === cli) {
+  const args = isNodeEval ? process.execArgv : process.argv.slice(2);
+  if (entrypoint === 'cli') {
     const repositoryIndex = args.indexOf('--repository');
     const repository = repositoryIndex === -1 ? process.cwd() : args[repositoryIndex + 1];
     if (repository === undefined || resolve(repository) !== '/mnt') return;
   }
   const id = randomUUID();
-  const observesCanonicalState = entrypoint === cli && args[0] === 'validate';
+  const observesCanonicalState = entrypoint === 'cli' && args[0] === 'validate';
   appendRecord({
     kind: 'start',
     id,
     arguments: args,
-    entrypoint: entrypoint === cli ? 'cli' : 'managed-agents',
+    entrypoint,
     ...observeCallers(),
     ...(observesCanonicalState ? { canonicalBefore: observeCanonicalDigest('/mnt/moldea') } : {}),
   });
+  const readAssertion = isNodeEval ? observeNodeAssertions() : null;
   let outputByteCount = 0;
   let stdoutByteCount = 0;
   const chunks: Buffer[] = [];
-  const maximumBytes = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxMoldeaInvocationOutputBytes;
+  const maximumBytes = isNodeEval
+    ? 0
+    : MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxMoldeaInvocationOutputBytes;
   for (const [stream, isStdout] of [
     [process.stdout, true],
     [process.stderr, false],
@@ -141,6 +167,7 @@ const observeTool = (): void => {
       exitCode,
       outputByteCount,
       stdout: new StringDecoder('utf8').write(Buffer.concat(chunks)),
+      ...(readAssertion === null ? {} : { assertionObservation: readAssertion() }),
       ...(observesCanonicalState ? { canonicalAfter: observeCanonicalDigest('/mnt/moldea') } : {}),
     });
   });

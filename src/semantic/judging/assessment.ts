@@ -148,6 +148,8 @@ ${serializeSemanticStageValue(workspaceChanges)}
 
 Runner-owned actor execution evidence:
 ${cycles === undefined ? serializeSemanticStageValue(actorExecutionEvidence) : 'See ordered cycle execution evidence above.'}
+An observed node-assertion with status passed or failed identifies the check that ran. A skipped, ambiguous or unsupported assertion establishes no behavior. A captured child exit describes that child independently of its enclosing shell.
+Use any workspaceChecks in an ordered cycle as independent evidence from that turn's actual workspace. A failed check contradicts a corresponding completion claim.
 
 Actual cooperative Git-wrapper invocation evidence (complete capture; arguments discarded):
 ${serializeSemanticStageValue(gitInvocationEvidence)}

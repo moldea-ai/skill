@@ -46,6 +46,7 @@ import {
   createRecordedSemanticDefinitions,
   createSemanticCaseDefinitionDigest,
   loadSemanticCases,
+  selectSemanticRecordingCases,
   type ISemanticCase,
 } from '../cases/index.ts';
 import {
@@ -104,6 +105,7 @@ import {
   type ISemanticWorkspaceSnapshot,
 } from '../workspace/index.ts';
 import {
+  getTerminalSemanticCase,
   runSemanticCaseExecution,
   type ISemanticCaseTrialExecutionOptions,
 } from './case-execution.ts';
@@ -147,6 +149,7 @@ type ISemanticTrialExecution = {
 
 // semantic trial boundary with candidate-wide paid-token admission
 export type ISemanticRunnerTrialExecutionOptions = ISemanticCaseTrialExecutionOptions & {
+  assertPaidAdmission: () => void;
   tokenController: ISemanticTokenAdmissionController;
 };
 
@@ -221,6 +224,7 @@ const throwIfSemanticExecutionAborted = (signal: AbortSignal | undefined): void 
 
 const runHostStage = async <T>(options: {
   activeTrial: ISemanticActiveTrialCheckpoint;
+  assertPaidAdmission?: (() => void) | undefined;
   isOperationalResumeRequested: boolean;
   operation: (
     signal: AbortSignal,
@@ -286,6 +290,7 @@ const runHostStage = async <T>(options: {
               signal,
               async (operation) => {
                 throwIfSemanticExecutionAborted(signal);
+                options.assertPaidAdmission?.();
                 options.tokenController.reserve(options.reservationId);
                 isReservationActive = true;
                 const invocationIndex = activeTrial.paidInvocations.length;
@@ -301,6 +306,17 @@ const runHostStage = async <T>(options: {
                   await options.persistActiveTrial(activeTrial);
                 } finally {
                   releaseReservation();
+                }
+                try {
+                  options.assertPaidAdmission?.();
+                } catch (error) {
+                  // The provider has not started, so this invocation has no charge to retain.
+                  activeTrial = {
+                    ...activeTrial,
+                    paidInvocations: activeTrial.paidInvocations.slice(0, invocationIndex),
+                  };
+                  await options.persistActiveTrial(activeTrial);
+                  throw error;
                 }
                 throwIfSemanticExecutionAborted(signal);
                 const output = await operation();
@@ -351,6 +367,7 @@ const runHostStage = async <T>(options: {
  */
 export const runSemanticTrial = async (options: {
   activeTrial: ISemanticActiveTrialCheckpoint | null;
+  assertPaidAdmission?: (() => void) | undefined;
   actorCommand: readonly string[];
   actorHost: ICodexEvaluationHostIdentity;
   caseDefinition: ISemanticCase;
@@ -544,6 +561,7 @@ export const runSemanticTrial = async (options: {
     if (activeTrial.phase === 'actor-pending') {
       let hasStartedAttempt = false;
       const actorExecution = await runHostStage({
+        assertPaidAdmission: options.assertPaidAdmission,
         activeTrial,
         signal: options.signal,
         isOperationalResumeRequested: options.isOperationalResumeRequested,
@@ -612,6 +630,9 @@ export const runSemanticTrial = async (options: {
               await persistCycles([...completedCycles]);
             },
             requests: [actorPrompt, ...(preparedCase.input.followUpDeveloperRequests ?? [])],
+            ...(preparedCase.verifyWorkspace === undefined
+              ? {}
+              : { verifyWorkspace: preparedCase.verifyWorkspace }),
           });
         },
         persistActiveTrial: options.persistActiveTrial,
@@ -667,6 +688,7 @@ export const runSemanticTrial = async (options: {
       workspaceChanges: actorEvidence.workspaceChanges,
     });
     const judgeExecution = await runHostStage({
+      assertPaidAdmission: options.assertPaidAdmission,
       activeTrial,
       signal: options.signal,
       isOperationalResumeRequested: options.isOperationalResumeRequested,
@@ -813,6 +835,7 @@ export const runSemanticTrial = async (options: {
  * - Evaluation worker count must be 1, 2, or 4.
  * - Semantic token limit must be a positive safe integer no greater than 128000000.
  * - Paid-stage admission exceeds the configured limit.
+ * - The official recording stops when terminal public failures exceed its configured limit.
  * - Execution is cancelled before another case or paid boundary.
  */
 export const executeSemanticCases = async (
@@ -837,6 +860,28 @@ export const executeSemanticCases = async (
   const caseCheckpointStates = new Map<string, ISemanticCaseCheckpoint>(
     Object.entries(options.checkpoint?.caseCheckpoints ?? {}),
   );
+  const maxPublicFailures = options.checkpoint?.maxPublicFailures;
+  const terminalPublicFailures = new Set<string>();
+  const privateCaseIds = new Set(
+    options.cases.filter(({ publication }) => publication === 'private').map(({ id }) => id),
+  );
+  const observeTerminalCase = (recordedCase: ISemanticRecordedCase | null): void => {
+    if (recordedCase?.status === 'failed' && !privateCaseIds.has(recordedCase.id)) {
+      terminalPublicFailures.add(recordedCase.id);
+    }
+  };
+  if (maxPublicFailures !== undefined) {
+    options.checkpoint?.cases.forEach(observeTerminalCase);
+    caseCheckpointStates.forEach((state) => observeTerminalCase(getTerminalSemanticCase(state)));
+  }
+  const assertPaidAdmission = (): void => {
+    if (maxPublicFailures !== undefined && terminalPublicFailures.size > maxPublicFailures) {
+      throw new Error(
+        `Semantic recording stopped: ${terminalPublicFailures.size} terminal public failures exceed the limit of ${maxPublicFailures}.`,
+      );
+    }
+  };
+  assertPaidAdmission();
   const tokenController = createSemanticTokenAdmissionController({
     ...(options.tokenLimit === undefined ? {} : { tokenLimit: options.tokenLimit }),
     getConsumedTokenCount: () =>
@@ -875,12 +920,16 @@ export const executeSemanticCases = async (
     },
     executeTrial: (trialOptions) => {
       throwIfSemanticExecutionAborted(options.signal);
-      return options.executeTrial({ ...trialOptions, tokenController });
+      assertPaidAdmission();
+      return options.executeTrial({ ...trialOptions, assertPaidAdmission, tokenController });
     },
     signal: options.signal,
     getCaseCheckpoint: (caseId) => caseCheckpointStates.get(caseId) ?? null,
     persistCaseCheckpoint: async (caseCheckpoint) => {
       caseCheckpointStates.set(caseCheckpoint.caseId, caseCheckpoint);
+      if (maxPublicFailures !== undefined) {
+        observeTerminalCase(getTerminalSemanticCase(caseCheckpoint));
+      }
       await mutateCheckpoint((currentCheckpoint) => {
         currentCheckpoint.caseCheckpoints[caseCheckpoint.caseId] = caseCheckpoint;
       });
@@ -888,6 +937,7 @@ export const executeSemanticCases = async (
     workerCount: options.workerCount,
   });
 
+  assertPaidAdmission();
   return options.checkpoint === null ? executedCases : options.checkpoint.cases;
 };
 
@@ -1078,9 +1128,7 @@ const run = async (signal: AbortSignal): Promise<void> => {
   throwIfSemanticExecutionAborted(signal);
   const arguments_ = parseSemanticEvaluationArguments(process.argv.slice(2));
   const catalog = await loadSemanticCases(CASES_ROOT);
-  const cases = arguments_.isRecordRequested
-    ? catalog.filter(({ publication }) => publication !== 'private')
-    : catalog;
+  const cases = arguments_.isRecordRequested ? selectSemanticRecordingCases(catalog) : catalog;
   const coverage = createSemanticCoverage(cases);
   const artifactDigest = createPortableSkillArtifactDigest(REPOSITORY_ROOT);
   const caseSuiteDigest = createSemanticCaseSuiteDigest(cases);
@@ -1168,6 +1216,7 @@ const run = async (signal: AbortSignal): Promise<void> => {
         cli,
         coverageDigest,
         judgeHost: createSemanticHostContract(judgeHost),
+        maxPublicFailures: arguments_.maxPublicFailures ?? undefined,
         mode: checkpointMode,
         selectedCaseIds,
       };
@@ -1178,6 +1227,7 @@ const run = async (signal: AbortSignal): Promise<void> => {
         cli: checkpoint.cli,
         coverageDigest: checkpoint.coverageDigest,
         judgeHost: createSemanticHostContract(checkpoint.judgeHost),
+        maxPublicFailures: checkpoint.maxPublicFailures,
         mode: checkpoint.mode,
         selectedCaseIds: checkpoint.selectedCaseIds,
       };
@@ -1201,6 +1251,9 @@ const run = async (signal: AbortSignal): Promise<void> => {
       coverageDigest,
       createdAt,
       judgeHost,
+      ...(arguments_.maxPublicFailures === null
+        ? {}
+        : { maxPublicFailures: arguments_.maxPublicFailures }),
       mode: checkpointMode,
       schemaVersion: 4,
       selectedCaseIds,
@@ -1232,6 +1285,7 @@ const run = async (signal: AbortSignal): Promise<void> => {
     checkpoint,
     executeTrial: async ({
       activeTrial,
+      assertPaidAdmission,
       caseDefinition,
       confirmationIndex,
       persistActiveTrial,
@@ -1240,6 +1294,7 @@ const run = async (signal: AbortSignal): Promise<void> => {
       const trialExecution = await runSemanticTrial({
         signal,
         activeTrial,
+        assertPaidAdmission,
         actorCommand,
         actorHost,
         artifactDigest,

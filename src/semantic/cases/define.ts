@@ -11,5 +11,11 @@ export const defineSemanticCase = <TCase extends ISemanticCase>(semanticCase: TC
   if (semanticCase.setup !== undefined && typeof semanticCase.setup !== 'function') {
     throw new Error(`${semanticCase.id} setup must be a function when provided.`);
   }
+  if (
+    semanticCase.verifyWorkspace !== undefined &&
+    typeof semanticCase.verifyWorkspace !== 'function'
+  ) {
+    throw new Error('Semantic workspace verification requires a function.');
+  }
   return semanticCase;
 };

@@ -7,6 +7,7 @@ import type { ISemanticCase, ISemanticCaseDefinition, ISemanticCriterion } from 
 const parseSerializableCase = (caseDefinition: ISemanticCaseDefinition) => {
   const serializableCase: Record<string, unknown> = { ...caseDefinition };
   delete serializableCase['setup'];
+  delete serializableCase['verifyWorkspace'];
   return SemanticCaseDefinitionSchema.parse(serializableCase);
 };
 

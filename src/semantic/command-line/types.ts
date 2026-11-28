@@ -12,6 +12,7 @@ export interface ISemanticEvaluationArguments {
   isRestartRequested: boolean;
   isResumeStoppedStageRequested: boolean;
   isVerifyAttemptsRequested: boolean;
+  maxPublicFailures: number | null;
   recordCaseIds: string[] | null;
   requestedCaseId: string | undefined;
   tokenLimit: number | null;

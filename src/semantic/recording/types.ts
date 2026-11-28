@@ -97,6 +97,7 @@ export interface ISemanticCandidateCheckpoint {
   coverageDigest: string;
   createdAt: string;
   judgeHost: ICodexEvaluationHostIdentity;
+  maxPublicFailures?: number;
   mode: ISemanticEvaluationMode;
   schemaVersion: 4;
   selectedCaseIds: string[];

@@ -7,11 +7,11 @@ export const semanticCase = defineSemanticCase({
   requiredRepairGitMode: 'continue',
   setup: createSemanticCaseSetup('repair-continuation-after-change'),
   scenario:
-    'A previous repair checkpoint has four checked context owners; later source changes and a merge require selective reassessment.',
+    'A repair checkpoint carries an unchecked path with unchanged bytes alongside owner evidence affected by later changes and a merge.',
   operation: 'fix',
   input: {
     developerDirection:
-      'Continue Fix moldea from this previous report: the project foundation and 4 of 5 focused context owners were checked at commit `repair-checkpoint`; continue from `/moldea/context/next.md`. Paths uncommitted at that checkpoint: `src/owner-b.js`. Uncommitted manifest owner entries: none. The current source behavior is intended; update conflicting context to reflect it. Reassess only earlier owners affected since that checkpoint, then finish the inventory and report the source commit of any carried-forward assessment.',
+      'Continue Fix moldea. Resume point from the prior report: commit `repair-checkpoint`. Foundation and A, B, D, and E assessed. C: `/src/owner-c.js` unchecked when the round ran out of room to read it. Next: `/moldea/context/next.md`. Uncommitted paths: `src/owner-b.js`. Uncommitted manifest owner entries: none. The current source behavior is intended.',
     repositoryEvidence: [
       {
         claim: 'The previous owner documents are declared.',
@@ -58,6 +58,11 @@ export const semanticCase = defineSemanticCase({
         'The report reassesses A, B and E. It identifies src/owner-a.js and src/owner-e.js as changes from the supplied checkpoint and separately attributes src/owner-b.js to the saved uncommitted paths, even though B now matches baseline. It reports or corrects the conflict in A. Native evidence establishes actual retrieval and reassessment. Naming a merge is unnecessary.',
     },
     {
+      label: 'reassess-unchanged-unchecked-path',
+      criterion:
+        'Read the unchanged /src/owner-c.js because it was unchecked at the pause. Report a current verdict for C and 1 of 1 kept for implementing its baseline state, with zero removed and unchecked. The report establishes a fresh assessment without attributing it to a Git change.',
+    },
+    {
       label: 'carry-forward-unchanged-owner',
       criterion:
         'Owner D is carried forward from the supplied checkpoint commit with its source assessment identified, the remaining owner is reported checked, and the report names the carried-forward assessment and its source commit.',
@@ -72,7 +77,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'stale-assessment',
       criterion:
-        'The actor carries A, B, or E forward, reports unchanged D as affected without supporting change evidence, or reports health while an owner is not current.',
+        'The actor carries A, B, C, or E forward, reports unchanged D as affected without supporting change evidence, or reports health while an owner is not current.',
     },
     {
       label: 'unapproved-git-shape',

@@ -174,6 +174,18 @@ const CycleSchema = z.strictObject({
   isMountIntegrityPassing: z.boolean(),
   isRepositoryControlPassing: z.boolean(),
   workspaceChanges: WorkspaceChangesSchema,
+  workspaceChecks: z
+    .array(
+      z.strictObject({
+        id: z
+          .string()
+          .max(64)
+          .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u),
+        passed: z.boolean(),
+      }),
+    )
+    .max(16)
+    .optional(),
 });
 const PaidInvocationSchema = z.strictObject({
   commandPolicyEvidence: CommandPolicySchema.optional(),
@@ -431,12 +443,20 @@ const CandidateCheckpointSchema = z
     coverageDigest: Sha256Schema,
     createdAt: z.iso.datetime(),
     judgeHost: HostIdentitySchema.extend({ role: z.literal('judge') }),
+    maxPublicFailures: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER).optional(),
     mode: z.enum(['diagnostic', 'official']),
     schemaVersion: z.literal(4),
     selectedCaseIds: z.array(z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u)).min(1),
     updatedAt: z.iso.datetime(),
   })
   .superRefine((checkpoint, context) => {
+    if (checkpoint.maxPublicFailures !== undefined && checkpoint.mode !== 'official') {
+      context.addIssue({
+        code: 'custom',
+        message: 'The public failure limit requires an official semantic checkpoint.',
+        path: ['maxPublicFailures'],
+      });
+    }
     if (new Set(checkpoint.selectedCaseIds).size !== checkpoint.selectedCaseIds.length) {
       context.addIssue({ code: 'custom', message: 'Selected semantic case ids must be unique.' });
     }

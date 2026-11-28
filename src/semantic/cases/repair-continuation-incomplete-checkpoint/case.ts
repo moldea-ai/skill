@@ -9,7 +9,7 @@ export const semanticCase = defineSemanticCase({
   operation: 'fix',
   input: {
     developerDirection:
-      'Continue Fix moldea from this report: the foundation and 2 of 3 focused owners were checked; continue from /moldea/context/next.md. Checkpoint commit: repair-checkpoint. The checkpoint path list was not recorded. Uncommitted manifest owner entries: none. Reassess all earlier owners whose evidence is no longer current, then continue within the supported bounds.',
+      'Continue Fix moldea from this report: the foundation and 2 of 3 focused owners were checked; continue from /moldea/context/next.md. Checkpoint commit: repair-checkpoint. The checkpoint path list was not recorded. Uncommitted manifest owner entries: none.',
     repositoryEvidence: [
       {
         claim: 'Owner B context says its source remains at baseline.',

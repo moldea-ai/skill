@@ -16,7 +16,7 @@ export const semanticCase = defineSemanticCase({
         claim: 'The authoritative release policy already exists.',
         source: {
           kind: 'workspace-path',
-          path: 'docs/release-policy.md',
+          path: 'moldea/context/release-policy.md',
           expectedType: 'file',
         },
       },

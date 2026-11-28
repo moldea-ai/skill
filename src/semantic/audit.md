@@ -1,5 +1,24 @@
 # Skill semantic audit handoff
 
+## Shared context model and Fix catalogue
+
+The official selector contains 145 public cases and 591 criteria. The full catalogue has 162 cases including the 17 private definitions. Audit scope covers actor requests, fixture provenance, expected and forbidden outcomes, and coverage claims. The actor receives the authored request for each turn. Fixture declarations, criteria, and workspace checks go to the evaluator.
+
+- `repair-mixed-context-owners` and `repair-mixed-strict-scope` reconcile 13 starting declarations, group human-doc removals and tie each layout, build and CI enforcement point to the owner-stated rule it alone enforces. Their three additions require canonical references to the approval gate, review prompt and governed editions directory. The collection glob replaces the individual spring declaration. The unreferenced release-selection module stays out of the manifest. Either a pause or a stop for developer input is valid when the lockfile and its declaration remain and the Resume point names its exact path, owner and an accurate evidence gap. The strict host's scope still permits the evidenced repairs.
+- `repair-converged-owners` applies the first turn's actual proposal after approval and checks the resulting owners' totals. Per-cycle evidence checks that the second plain Fix changes no bytes. Bundled Scope and the relevance gate check the guide and verify that both editions select the editorial owner through the same glob.
+- `repair-healthy-project` derives kept counts from its fixture manifest, including the foundation, and requires no writes. `fix-whole-project-checkpoint` uses that fixture to check the startup checkpoint. `repair-stale-linked-guide` checks the specific factual correction. `repair-doc-policy-disagreement` and `repair-doc-only-rule` require an approval stop and unchanged files.
+- `initialize-with-human-guides` and `maintain-durable-rule-with-guide` check canonical rules, source-doc links, and preservation of supporting detail. Initialize adds bindings only when a binding is needed and uses impact paths for the eligible evidence. The affected release-Skill and retention fixtures route durable rules through canonical context.
+- `assessed-owner-readonly` and `repair-link-to-record-owner` cover named-area counts and the separate exact proposal or removal. `repair-continuation-after-change` revisits the unchanged unchecked path. `repair-continuation-manifest-change` checks current-manifest totals against a different saved count and keeps the exact prior removal in cumulative Changes so far. Both preserve the distinction between changed, checkpoint-uncommitted and carried-forward evidence.
+- Fix requests state the operation and any necessary developer authority or protected scope. They leave the diagnostic order, path dispositions, repair method and report to the Skill. `exact-binding-relevance` uses the observed runtime assertion when the actor makes a runtime claim.
+
+Candidate identities for revalidation at freeze:
+
+- Portable artifact `ed829fe03d9f96eafb2ca85de156b66a6bb21ab89793f2fe2e2bf8744f56312e`
+- Official case suite `33fae30682707840296fc67ea9964c0430786fc9c62ff3b5ae0b09564a5b0ecf`
+- Official coverage `0cdeb7274104445fd26a585d7e721a354098b4995cce24d02b68f76ca64378df`
+
+The complete official inventory is retained in the ignored milestone catalogue record. Catalogue preflight also validates the private definitions. Offline fixture checks qualify the evidence paths. The actual agent results require the official recording.
+
 ## Context ownership and instruction-link catalogue
 
 The official recording catalogue contained 138 public cases. All 138 fixture baselines materialized locally. The audit reviewed directions, criteria, ownership routes and manifest impact paths. `plan-context-unrouted-refund` intentionally leaves one owner unrouted. `repair-ambiguous-foundation` intentionally has a malformed working-tree manifest. The record, presentation and installed-Skill paths in repair fixtures remain until the actor assesses them. Existing private dispositions stay in place.

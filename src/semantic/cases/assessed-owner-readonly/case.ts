@@ -9,8 +9,7 @@ export const semanticCase = defineSemanticCase({
     'A direct read-only assessment compares accurate refund context and its relationships with the named caller and approval policy.',
   operation: 'check-context-relationships',
   input: {
-    developerDirection:
-      'Review moldea/context/refunds.md and its implementation relationships against src/refund-request.js and src/refund-policy.js. Assess whether the context and routing reflect the current refund behavior. Do not change any files.',
+    developerDirection: 'Check moldea for refunds.',
     repositoryEvidence: [
       {
         claim: 'The named context describes the current approval behavior.',
@@ -34,6 +33,11 @@ export const semanticCase = defineSemanticCase({
     maximumMoldeaOutputBytes: 524288,
   },
   expected: [
+    {
+      label: 'assess-named-owner-and-paths',
+      criterion:
+        'Record a cohesive verdict for the named refund owner. Report 1 of 1 kept for refund request handling and zero removals and unchecked paths. Name /src/refund-policy.js separately as a proposed addition with its approval-threshold evidence. Keep the unchanged relevant finding concise and make no edits.',
+    },
     {
       label: 'report-accurate-prose-and-missing-coverage',
       criterion:

@@ -8,8 +8,7 @@ export const semanticCase = defineSemanticCase({
     'An installed directory link resolves outside the repository, preventing safe repair Git evidence.',
   operation: 'fix-project',
   input: {
-    developerDirection:
-      'Fix moldea. The approved returns window is 14 days. Preserve installed links and report any evidence limitation; do not bypass an unsafe-link stop.',
+    developerDirection: 'Fix moldea. The approved returns window is 14 days.',
     repositoryEvidence: [
       {
         claim: 'The installed link leaves the repository.',

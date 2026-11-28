@@ -1203,16 +1203,21 @@ export const runCodexEvaluationHost = async ({
     readOnlyWorkspacePaths,
     includeWorkspaceBinaryDirectory,
   );
-  const writerEntrypoint = '/mnt/.agents/skills/moldea/scripts/managed-agents.mjs';
-  const hasImmutableWriter =
-    workspaceAccess === 'read-only' ||
-    [
-      ...protectedWorkspacePaths.map((path) => `/mnt/${path}`),
-      ...readOnlyMounts.map(({ target }) => target),
-    ].some((root) => {
-      const path = resolve('/', root);
-      return path === writerEntrypoint || isPathWithin(path, writerEntrypoint);
-    });
+  const immutableRoots = [
+    ...protectedWorkspacePaths.map((path) => `/mnt/${path}`),
+    ...readOnlyMounts.map(({ target }) => resolve('/', target)),
+  ];
+  const isTrustedInvocation = ({ entrypoint }: { entrypoint?: string | undefined }): boolean => {
+    if (
+      workspaceAccess === 'read-only' ||
+      entrypoint === undefined ||
+      entrypoint === 'cli' ||
+      entrypoint === 'node-eval'
+    )
+      return true;
+    const path = `/mnt/.agents/skills/moldea/scripts/${entrypoint}.mjs`;
+    return immutableRoots.some((root) => root === path || isPathWithin(root, path));
+  };
   await mkdir(join(sandboxHome, 'tmp'), { recursive: true, mode: 0o700 });
   const { prepareGitCommandPolicyBoundary } = await loadGitCommandPolicyBoundary();
   await prepareGitCommandPolicyBoundary(join(sandboxHome, 'bin'), {
@@ -1291,9 +1296,7 @@ export const runCodexEvaluationHost = async ({
     try {
       const evidence = await readGitInvocationEvidence(gitInvocationLogPath);
       const capture = await readCliInvocationCapture(cliInvocationLogPath);
-      const invocations = capture.invocations.filter(
-        (invocation) => invocation.entrypoint !== 'managed-agents' || hasImmutableWriter,
-      );
+      const invocations = capture.invocations.filter(isTrustedInvocation);
       const canonicalState =
         canonicalInitial === undefined
           ? {}
@@ -1332,10 +1335,7 @@ export const runCodexEvaluationHost = async ({
                     JSON.stringify({
                       type: 'moldea.cli-invocations',
                       observesManagedAgents: true,
-                      invocations: capture.invocations.filter(
-                        (invocation) =>
-                          invocation.entrypoint !== 'managed-agents' || hasImmutableWriter,
-                      ),
+                      invocations: capture.invocations.filter(isTrustedInvocation),
                       commandInstances: capture.commandInstances,
                     }),
                     '',

@@ -245,10 +245,14 @@ describe('semantic checkpoint storage', () => {
   });
 });
 
-test('round trips projected Git and print evidence and rejects malformed command metadata', async () => {
+test('round trips projected Git, assertion and print evidence and rejects malformed command metadata', async () => {
   const root = await mkdtemp(path.join(tmpdir(), 'moldea-semantic-checkpoint-'));
   temporaryRoots.push(root);
   const checkpoint = createCheckpoint();
+  const assertionArguments = [
+    '-e',
+    'const assert = require("node:assert/strict"); assert.strictEqual(2, 2);',
+  ];
   const output = [
     JSON.stringify({
       type: 'item.completed',
@@ -284,6 +288,16 @@ test('round trips projected Git and print evidence and rejects malformed command
     }),
     JSON.stringify({
       type: 'item.completed',
+      item: {
+        type: 'command_execution',
+        command: "node -e '" + assertionArguments[1] + "'",
+        aggregated_output: '',
+        exit_code: 0,
+        status: 'completed',
+      },
+    }),
+    JSON.stringify({
+      type: 'item.completed',
       item: { type: 'agent_message', text: 'Git evidence unavailable.' },
     }),
   ].join('\n');
@@ -294,6 +308,15 @@ test('round trips projected Git and print evidence and rejects malformed command
         type: 'moldea.cli-invocations',
         observesManagedAgents: true,
         invocations: [
+          {
+            arguments: assertionArguments,
+            entrypoint: 'node-eval',
+            assertionObservation: { method: 'strictEqual', passed: true },
+            callers: [['/opt/node', ...assertionArguments]],
+            stdout: '',
+            outputByteCount: 0,
+            exitCode: 0,
+          },
           {
             arguments: ['--repository', '/mnt', '--print'],
             entrypoint: 'managed-agents',
@@ -364,6 +387,16 @@ test('round trips projected Git and print evidence and rejects malformed command
   };
   await writeSemanticCheckpoint(root, checkpoint);
   expect(await readSemanticCheckpoint(root)).toStrictEqual(checkpoint);
+  expect(
+    evidence.actorExecutionEvidence.flatMap(({ item }) => item.outputEvidence.facts),
+  ).toContainEqual({
+    kind: 'node-assertion',
+    status: 'passed',
+    method: 'strictEqual',
+    actual: '2',
+    expected: '2',
+    source: null,
+  });
   expect(evidence.commandPolicyEvidence.moldeaLauncherMissReasons).toStrictEqual([
     { code: 'unrecognized-node-path', count: 1 },
   ]);

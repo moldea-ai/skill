@@ -40,7 +40,7 @@ test('the shipped CLI validates and inspects a project without a package manifes
       expect(invocation.status, invocation.stdout).toBe(exitCode);
       const envelope = JSON.parse(invocation.stdout) as { result: unknown };
       expect(envelope).toMatchObject({
-        cliVersion: '15.0.0',
+        cliVersion: '15.0.1',
         command: args[0],
         schemaVersion: 9,
         status,

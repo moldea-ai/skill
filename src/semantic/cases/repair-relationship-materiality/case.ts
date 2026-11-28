@@ -27,8 +27,7 @@ export const semanticCase = defineSemanticCase({
     'Refund policy and settings are material; navigation and tooling do not govern this owner.',
   operation: 'fix',
   input: {
-    developerDirection:
-      'Fix moldea. Audit the existing refund context and its material implementation relationships. Preserve the established approval and configured-threshold policy and all application files.',
+    developerDirection: 'fix moldea',
     repositoryEvidence: [
       {
         claim: 'The declared owners exist.',

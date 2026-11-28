@@ -16,6 +16,7 @@ import {
   createMoldeaResourceEvidence,
   hasValidActorExecutionEvidence,
   projectActorExecutionEvidenceEvent,
+  projectCapturedChildEvidence,
   projectCliInvocationEvidence,
   projectManagedAgentsInvocationEvidence,
 } from './actor-evidence.ts';
@@ -47,6 +48,25 @@ const projectUnplacedCliInvocation = (
     entry.item.outputEvidence.disposition =
       entry.item.outputEvidence.byteCount === 0 ? 'empty' : 'unrecognized';
   return entry;
+};
+
+/** Keeps supplemental observations separate from chargeable CLI calls. */
+const projectCapturedInvocation = (
+  invocation: ICliInvocation,
+  options: ISemanticActorExecutionEvidenceOptions,
+  isPlaced: boolean,
+): ISemanticActorExecutionEvidence | null => {
+  switch (invocation.entrypoint) {
+    case undefined:
+    case 'cli':
+      return isPlaced
+        ? projectCliInvocationEvidence(invocation, options)
+        : projectUnplacedCliInvocation(invocation, options);
+    case 'managed-agents':
+      return isPlaced ? projectManagedAgentsInvocationEvidence(invocation, options) : null;
+    default:
+      return projectCapturedChildEvidence(invocation, options, isPlaced);
+  }
 };
 
 export interface ISemanticHostOutput {
@@ -133,15 +153,25 @@ export const parseSemanticEvaluationHostOutput = (
   );
   const placedInvocations = new Set(correspondingInvocations.flatMap((group) => group ?? []));
   for (const [index, { event }] of nativeCommands.entries()) {
-    const executionEvidence = projectActorExecutionEvidenceEvent(event, options, false, false);
+    const group = correspondingInvocations[index] ?? [];
+    const hasCapturedHelper = group.some(
+      ({ entrypoint }) =>
+        entrypoint === 'managed-readme' ||
+        entrypoint === 'relevance-gate' ||
+        entrypoint === 'repair-git',
+    );
+    const executionEvidence = projectActorExecutionEvidenceEvent(
+      event,
+      options,
+      false,
+      false,
+      !hasCapturedHelper,
+    );
     if (executionEvidence !== null) {
       actorExecutionEvidence.push(executionEvidence);
     }
-    for (const invocation of correspondingInvocations[index] ?? []) {
-      const child =
-        invocation.entrypoint === 'managed-agents'
-          ? projectManagedAgentsInvocationEvidence(invocation, options)
-          : projectCliInvocationEvidence(invocation, options);
+    for (const invocation of group) {
+      const child = projectCapturedInvocation(invocation, options, true);
       if (child !== null) actorExecutionEvidence.push(child);
     }
     if (!hasValidActorExecutionEvidence(actorExecutionEvidence, options))
@@ -149,11 +179,11 @@ export const parseSemanticEvaluationHostOutput = (
   }
   actorExecutionEvidence.push(
     ...(capture?.invocations ?? [])
-      .filter(
-        (invocation) =>
-          invocation.entrypoint !== 'managed-agents' && !placedInvocations.has(invocation),
-      )
-      .map((invocation) => projectUnplacedCliInvocation(invocation, options)),
+      .filter((invocation) => !placedInvocations.has(invocation))
+      .flatMap((invocation) => {
+        const child = projectCapturedInvocation(invocation, options, false);
+        return child === null ? [] : [child];
+      }),
   );
   if (!hasValidActorExecutionEvidence(actorExecutionEvidence, options))
     throw new Error('Codex actor execution evidence exceeded its item limit.');

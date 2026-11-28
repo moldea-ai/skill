@@ -34,7 +34,7 @@ The agent then uses the bounded inventory and project indexes to identify main a
 
 A plain **yes** accepts all proposals for that round. You can answer by number or **skip** to leave that round's unconfirmed proposals unwritten. The first round includes one registration item when agents or inline model workflows are found. Say **Initialize moldea including my agents** when you want to authorize registration up front.
 
-Confirmed answers give each main area with new facts a focused owner. The agent adds its routing link to `project.md`, declares evidenced relationships and records decisions in their own files. Existing authorities stay where they are and are linked. Choose another round on the remaining named areas or stop here. Say **continue** in the same conversation to return to an unanswered round.
+Confirmed answers give each main area a focused owner for its facts and rules. The agent adds its routing link to `project.md`, declares evidenced relationships and records decisions in their own files. The owner links human documentation for supporting detail. Choose another round on the remaining named areas or stop here. Say **continue** in the same conversation to return to an unanswered round.
 
 Stopping completes the covered scope. After the last write and native checks, the coding agent validates once on the normal path and reports adoption, what was covered, and what remains. Later, ask **Help moldea learn the billing area** to map it in one focused Maintain round.
 

@@ -9,7 +9,7 @@ export const semanticCase = defineSemanticCase({
   operation: 'fix-agent-binding',
   input: {
     developerDirection:
-      'Fix moldea for the support agent. The support implementation was renamed to src/support-assistant.ts. Update its stale runtime-agent binding to the existing supportAssistant export. src/dynamic-tools.ts assembles tool registrations dynamically; report that limitation and the source or test needed to verify the connection. Preserve the accurate support instruction and both implementation files. Do not recreate src/support-agent.ts or invent a tool binding. Validate and inspect the final task diff.',
+      'Fix moldea for the support agent. The support implementation moved to src/support-assistant.ts.',
     repositoryEvidence: [
       {
         claim: 'The old implementation was removed.',

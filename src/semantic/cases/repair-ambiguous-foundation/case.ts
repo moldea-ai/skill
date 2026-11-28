@@ -9,8 +9,7 @@ export const semanticCase = defineSemanticCase({
     'Prior adoption is confirmed, but a damaged current manifest has declarations whose intended current values are unknown.',
   operation: 'fix-ambiguous-manifest',
   input: {
-    developerDirection:
-      'This repository was initialized with moldea, but the current manifest is damaged after policy work. Use Fix moldea without discarding current declarations.',
+    developerDirection: 'Fix moldea. This repository was initialized with moldea.',
     repositoryEvidence: [
       {
         claim: 'The current manifest is malformed.',

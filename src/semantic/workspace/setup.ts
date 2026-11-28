@@ -825,7 +825,7 @@ const seedContextMaintenanceScenario = async (
     await writeScenarioFile(
       repositoryPath,
       'docs/operations-policy.md',
-      '# Retention exception approvals\n\nLegal approves retention exceptions.\n',
+      '# Retention exception desk guide\n\nLog exception paperwork in the shared queue. See [retention approvals](/moldea/context/retention.md) for the governing rule.\n',
     );
     await writeScenarioFile(
       repositoryPath,
@@ -838,7 +838,8 @@ const seedContextMaintenanceScenario = async (
       'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n  /moldea/context/operations.md:\n    affectedBy:\n      - /src/operations/escalation.js\n',
     );
     await appendScenarioRouting(repositoryPath, [
-      '- [Operations](context/operations.md) covers escalation and links to retention approvals.',
+      '- [Operations](context/operations.md) covers escalation.',
+      '- [Retention](context/retention.md) governs retention exception approvals.',
       '- [Architecture](context/architecture.md) routes to the application design.',
     ]);
     await writeScenarioFile(
@@ -849,7 +850,12 @@ const seedContextMaintenanceScenario = async (
     await writeScenarioFile(
       repositoryPath,
       'moldea/context/operations.md',
-      '# Operations\n\nSupport owns the escalation policy. Only the responsible team can direct an escalation. See the [retention exception approval policy](../../docs/operations-policy.md).\n',
+      '# Operations\n\nSupport owns the escalation policy. Only the responsible team can direct an escalation. See [retention approvals](retention.md) for exceptions.\n',
+    );
+    await writeScenarioFile(
+      repositoryPath,
+      'moldea/context/retention.md',
+      '# Retention\n\nLegal approves retention exceptions. See the [desk guide](/docs/operations-policy.md) for the shared queue.\n',
     );
     await writeScenarioFile(
       repositoryPath,
@@ -1408,16 +1414,44 @@ const seedScenarioRepository = async (
       break;
     }
     case 'repair-continuation-after-change':
-      await seedContinuationOwners(repositoryPath, ['a', 'b', 'e', 'd', 'next']);
+      await seedContinuationOwners(repositoryPath, ['a', 'b', 'c', 'e', 'd', 'next']);
       break;
-    case 'repair-continuation-manifest-change':
+    case 'repair-continuation-manifest-change': {
       await seedContinuationOwners(repositoryPath, ['c', 'f', 'g', 'h', 'next']);
+      const manifest = await readFile(join(repositoryPath, 'moldea/moldea.yaml'), 'utf8');
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/moldea.yaml',
+        manifest.replace(
+          '      - /src/project-state.js\n',
+          '      - /src/project-state.js\n      - /docs/dispatch-guide.md\n',
+        ),
+      );
+      await appendScenarioRouting(repositoryPath, [
+        '- [Dispatch guide](/docs/dispatch-guide.md) explains handoffs between operators.',
+      ]);
+      await writeScenarioFile(
+        repositoryPath,
+        'docs/dispatch-guide.md',
+        '# Dispatch guide\n\nRecord the next operator and handoff time in the desk log.\n',
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/context/f.md',
+        '# Owner F\n\nF starts at baseline and accepts only audit requests at baseline. The request policy is in src/owner-f-policy.js.\n',
+      );
       await writeScenarioFile(
         repositoryPath,
         'src/owner-f-policy.js',
-        "export const state = 'baseline';\n",
+        "import { initialState } from './owner-f-state.js';\n\nexport const acceptsRequest = (kind, state = initialState) => state !== 'baseline' || kind === 'audit';\n",
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'src/owner-f-state.js',
+        "export const initialState = 'baseline';\n",
       );
       break;
+    }
     case 'maintain-relationship-after-move':
       await appendScenarioRouting(repositoryPath, [
         '- [Invoice extraction](context/invoice.md) governs extracted fields.',
@@ -1732,10 +1766,18 @@ const seedScenarioRepository = async (
       );
       break;
     case 'skill-create-progressive-disclosure':
+      await appendScenarioRouting(repositoryPath, [
+        '- [Release policy](context/release-policy.md) governs the publish gate.',
+      ]);
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/context/release-policy.md',
+        '# Release policy\n\nRelease approval requires successful npm and pnpm installations and review of the complete release diff. Stop when any required check fails. See the [release desk guide](/docs/release-policy.md) for where to collect reports.\n',
+      );
       await writeScenarioFile(
         repositoryPath,
         'docs/release-policy.md',
-        '# Release policy\n\nVerify the supported npm and pnpm installations, inspect the complete release diff, and stop when any required check fails.\n',
+        '# Release desk guide\n\nCollect verifier reports and diff review notes in the release ticket. See the [release policy](/moldea/context/release-policy.md).\n',
       );
       await writeScenarioFile(
         repositoryPath,
@@ -1744,9 +1786,12 @@ const seedScenarioRepository = async (
       );
       break;
     case 'skill-maintain-linked-resources':
+      await appendScenarioRouting(repositoryPath, [
+        '- [Release policy](context/release-policy.md) governs package-manager verification.',
+      ]);
       await writeScenarioFile(
         repositoryPath,
-        'docs/release-policy.md',
+        'moldea/context/release-policy.md',
         '# Release policy\n\nRelease verification covers both npm and pnpm and stops when either supported installation fails.\n',
       );
       await writeScenarioFile(
@@ -1978,8 +2023,13 @@ const applySourceContinuationHistory = async (repositoryPath: string): Promise<v
 
 /** Leaves committed owner-definition changes and a reverted manifest edit. */
 const applyManifestContinuationHistory = async (repositoryPath: string): Promise<void> => {
+  const beforeRepair = await readFile(join(repositoryPath, 'moldea/moldea.yaml'), 'utf8');
+  const originalManifest = beforeRepair.replace('      - /docs/dispatch-guide.md\n', '');
+  await writeScenarioFile(repositoryPath, 'moldea/moldea.yaml', originalManifest);
+  commitScenarioPaths(repositoryPath, 'test: remove guide relationship in first round', [
+    'moldea/moldea.yaml',
+  ]);
   runScenarioGit(repositoryPath, ['tag', 'repair-checkpoint']);
-  const originalManifest = await readFile(join(repositoryPath, 'moldea/moldea.yaml'), 'utf8');
   await writeScenarioFile(
     repositoryPath,
     'moldea/moldea.yaml',
@@ -1995,7 +2045,10 @@ const applyManifestContinuationHistory = async (repositoryPath: string): Promise
   await writeScenarioFile(
     repositoryPath,
     'moldea/moldea.yaml',
-    originalManifest.replace('/src/owner-f.js', '/src/owner-f-policy.js'),
+    originalManifest.replace(
+      '/src/owner-f.js',
+      '/src/owner-f-policy.js\n      - /src/owner-f-state.js',
+    ),
   );
   commitScenarioPaths(repositoryPath, 'test: change owner f declaration', ['moldea/moldea.yaml']);
 };

@@ -8,8 +8,7 @@ export const semanticCase = defineSemanticCase({
   scenario: 'A scoped Fix finds two conflicting thresholds without a governing decision.',
   operation: 'fix',
   input: {
-    developerDirection:
-      'Fix moldea for refunds. The code and saved policy disagree about the threshold, and I have not selected which one is correct.',
+    developerDirection: 'Fix moldea for refunds.',
     repositoryEvidence: [
       {
         claim: 'The implementation uses 500.',

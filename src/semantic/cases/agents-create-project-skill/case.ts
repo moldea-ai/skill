@@ -15,7 +15,7 @@ export const semanticCase = defineSemanticCase({
         claim: 'The governing release policy is in its existing owner.',
         source: {
           kind: 'workspace-path',
-          path: 'docs/release-policy.md',
+          path: 'moldea/context/release-policy.md',
           expectedType: 'file',
         },
       },
@@ -39,7 +39,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'ground-project-skill',
       criterion:
-        'Create release-readiness activation and guidance that routes the complete release-diff review to docs/release-policy.md and the package-manager support check to scripts/verify-release.mjs. Keep both resources in their existing ownership and distinguish the two checks in the skill or report.',
+        'Create release-readiness activation and guidance that routes the complete release-diff review to moldea/context/release-policy.md and the package-manager support check to scripts/verify-release.mjs. Keep both resources in their existing ownership and distinguish the two checks in the skill or report.',
     },
   ],
   forbidden: [

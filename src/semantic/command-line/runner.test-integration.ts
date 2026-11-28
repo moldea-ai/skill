@@ -297,6 +297,155 @@ test('cancellation drains active results without initializing another case or co
   }
 });
 
+test.each(['initial', 'confirmation'] as const)(
+  'stops at the ninth terminal public failure during %s with four workers',
+  async (phase) => {
+    const repositoryRoot = await mkdtemp(path.join(tmpdir(), 'moldea-failure-limit-'));
+    temporaryRoots.push(repositoryRoot);
+    const committed = Array.from({ length: 8 }, (_, index) => createCase(`failed-${index}`));
+    const remaining = ['ordered-first', 'ninth', 'active-one', 'active-two', 'queued'].map(
+      createCase,
+    );
+    const checkpoint = {
+      ...createCandidateCheckpoint([...committed, ...remaining]),
+      maxPublicFailures: 8,
+    };
+    checkpoint.cases = committed.map((caseDefinition) => {
+      const trial = createRecordedTrial({ caseDefinition, confirmationIndex: null, passed: false });
+      trial.trial.confirmationEligible = false;
+      return {
+        confirmationStatus: 'not-applicable',
+        id: caseDefinition.id,
+        status: 'failed',
+        trials: [trial],
+      };
+    });
+    await writeSemanticCheckpoint(repositoryRoot, checkpoint);
+    const release = createDeferred();
+    const fourStarted = createDeferred();
+    const active: string[] = [];
+    const failures: unknown[] = [];
+    const running = executeSemanticCases({
+      cases: remaining,
+      checkpoint,
+      executeTrial: async ({ assertPaidAdmission, caseDefinition, confirmationIndex }) => {
+        const { id } = caseDefinition;
+        const trial = createRecordedTrial({
+          caseDefinition,
+          confirmationIndex,
+          passed: id !== 'ninth' && (phase === 'initial' || confirmationIndex !== null),
+        });
+        if (phase === 'confirmation' && confirmationIndex === null) {
+          trial.trial.confirmationEligible = true;
+          return trial;
+        }
+        if (id === 'queued') throw new Error('A queued paid stage passed the stop.');
+        if (confirmationIndex !== 2) active.push(id);
+        if (active.length === 4) fourStarted.resolve();
+        await fourStarted.promise;
+        if (id === 'ninth') {
+          trial.trial.confirmationEligible = false;
+          return trial;
+        }
+        await release.promise;
+        try {
+          assertPaidAdmission();
+        } catch (error) {
+          failures.push(error);
+        }
+        return trial;
+      },
+      repositoryRoot,
+      workerCount: 4,
+    }).catch((error: unknown) => error);
+    try {
+      const stopped = /9 terminal public failures exceed the limit of 8/u;
+      await expect
+        .poll(
+          async () =>
+            (await readSemanticCheckpoint(repositoryRoot)).caseCheckpoints['ninth']?.completedCase
+              ?.status,
+        )
+        .toBe('failed');
+      expect(checkpoint.cases).toHaveLength(8);
+      release.resolve();
+      const result = await running;
+      expect(result).toBeInstanceOf(Error);
+      if (!(result instanceof Error)) throw new Error('Expected stopped recording.');
+      expect(result.message).toMatch(stopped);
+      const saved = await readSemanticCheckpoint(repositoryRoot);
+      expect(saved.maxPublicFailures).toBe(8);
+      expect(failures).toHaveLength(3);
+      const paid = getSemanticCandidatePaidTokenCount(saved.cases, saved.caseCheckpoints);
+      expect(paid).toBe(phase === 'initial' ? 48 : 72);
+      const executeTrial = vi.fn<() => Promise<ISemanticRecordedTrial>>();
+      await expect(
+        executeSemanticCases({
+          cases: remaining.slice(saved.cases.length - committed.length),
+          checkpoint: saved,
+          executeTrial,
+          repositoryRoot,
+          workerCount: 4,
+        }),
+      ).rejects.toThrow(stopped);
+      expect(executeTrial).not.toHaveBeenCalled();
+      expect(await readSemanticCheckpoint(repositoryRoot)).toStrictEqual(saved);
+    } finally {
+      release.resolve();
+      fourStarted.resolve();
+      await running;
+    }
+  },
+);
+
+test('drops an unpaid reservation when the stop closes during checkpoint persistence', async () => {
+  const definition = createCase('pending-reservation');
+  const checkpoint = createCandidateCheckpoint([definition]);
+  let isAdmissionClosed = false;
+  const invocations: number[] = [];
+  const tokenController = createSemanticTokenAdmissionController({
+    getConsumedTokenCount: () => 0,
+  });
+  const stop = new Error('Synthetic terminal public failure stop.');
+  const host = [
+    'codex',
+    'exec',
+    '--ephemeral',
+    '--ignore-rules',
+    '--ignore-user-config',
+    '--skip-git-repo-check',
+    '--dangerously-bypass-approvals-and-sandbox',
+    '-c',
+    'shell_environment_policy.inherit=none',
+    '-',
+  ];
+  await expect(
+    runSemanticTrial({
+      activeTrial: null,
+      assertPaidAdmission: () => {
+        if (isAdmissionClosed) throw stop;
+      },
+      actorCommand: buildCodexEvaluationHostCommand(host, 'actor'),
+      actorHost: checkpoint.actorHost,
+      artifactDigest: SHA256,
+      caseDefinition: definition,
+      cli: checkpoint.cli,
+      confirmationIndex: null,
+      isOperationalResumeRequested: false,
+      judgeCommand: buildCodexEvaluationHostCommand(host, 'judge'),
+      judgeHost: checkpoint.judgeHost,
+      persistActiveTrial: async ({ paidInvocations }) => {
+        invocations.push(paidInvocations.length);
+        if (paidInvocations.length > 0) isAdmissionClosed = true;
+      },
+      reusableTrials: [],
+      tokenController,
+    }),
+  ).rejects.toBe(stop);
+  expect(invocations).toContain(1);
+  expect(invocations.at(-1)).toBe(0);
+});
+
 /** Prepares the real recording entrypoint with terminal synthetic evidence and non-model hosts. */
 const prepareCompletedRecording = async (
   actorVersionChanged: boolean,
@@ -1376,7 +1525,15 @@ console.log(JSON.stringify({type:'turn.completed',usage:{input_tokens:100,cached
       actorCommand: buildCodexEvaluationHostCommand(baseCommand, 'actor'),
       actorHost: checkpoint.actorHost,
       artifactDigest: SHA256,
-      caseDefinition: definition,
+      caseDefinition: {
+        ...definition,
+        verifyWorkspace: ({ requestIndex, workspaceChanges }) => [
+          {
+            id: 'only-approved-turn-changes-owner',
+            passed: workspaceChanges.modified.length === (requestIndex === 1 ? 1 : 0),
+          },
+        ],
+      },
       cli: checkpoint.cli,
       confirmationIndex: null,
       isOperationalResumeRequested: false,
@@ -1396,6 +1553,11 @@ console.log(JSON.stringify({type:'turn.completed',usage:{input_tokens:100,cached
       tokenController: createSemanticTokenAdmissionController({ getConsumedTokenCount: () => 0 }),
     });
     const cycles = execution.recordedTrial.cycles;
+    expect(cycles.map(({ workspaceChecks }) => workspaceChecks)).toStrictEqual(
+      cycles.map(() => [{ id: 'only-approved-turn-changes-owner', passed: true }]),
+    );
+    const saved = await readSemanticCheckpoint(root);
+    expect(saved.caseCheckpoints[caseId]?.activeTrial?.recordedTrial?.cycles).toStrictEqual(cycles);
     expect(cycles.map(({ developerRequest }) => developerRequest)).toStrictEqual(requests);
     expect(cycles.map(({ requestIndex }) => requestIndex)).toStrictEqual([0, 1, 2]);
     expect(cycles[0]?.workspaceChanges).toStrictEqual({ created: [], deleted: [], modified: [] });

@@ -12,7 +12,7 @@ The skill website presents the official semantic bundle and the independent reco
 
 ## Current selection
 
-- [Semantic evidence](/evidence/semantic/) shows 137 qualifying cases for Skill 11.0.1 with bundled CLI 15.0.0. The selection includes 133 initial passes and four cases that met the confirmation quorum. Composition `sem-20261127191800713-be339975` preserves the verdict and provenance of each of the 145 selected trials from official recording `sem-20261127180209078-70ba9531`. Both evaluation roles used `gpt-6.2-sol` at `xhigh`. Every selected trial ran on the release Skill bytes.
+- [Semantic evidence](/evidence/semantic/) shows 132 qualifying cases for Skill 11.0.2 with bundled CLI 15.0.1. The selection includes 124 initial passes and eight cases that met the confirmation quorum. Composition `sem-20261128114249313-4e74441c` preserves the verdict and provenance of 148 selected trials from official recording `sem-20261128072914793-a3381a7d`. Both evaluation roles used `gpt-6.2-sol` at `xhigh`. Every selected trial ran on the release Skill bytes.
 - [Scripted journeys](/evidence/journeys/) shows the provider conversations selected in `evidence/selection.json`. Each journey identifies its recorded skill version, inputs, and outcomes.
 - [Project runs](/evidence/project-runs/) shows coding sessions selected by `website/project-runs.json`. Each session identifies its recorded project, source checkpoints, and outcomes.
 
